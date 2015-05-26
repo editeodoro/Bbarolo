@@ -1,21 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url>
-		<loc>http://demo.yuzoolthemes.com/split/index.html</loc>
+		<loc>http://editeodoro.github.io/Bbarolo/index.html</loc>
+		<lastmod>2015-05-26</lastmod>
 	</url>
 	<url>
-		<loc>http://demo.yuzoolthemes.com/split/styled-3/index.html</loc>
+		<loc>http://editeodoro.github.io/Bbarolo/downloads/index.html</loc>
+		<lastmod>2015-05-26</lastmod>
 	</url>
 	<url>
-		<loc>http://demo.yuzoolthemes.com/split/styled-3/blog/index.html</loc>
+		<loc>http://editeodoro.github.io/Bbarolo/styled-3/index.html</loc>
+		<lastmod>2015-05-26</lastmod>
 	</url>
 	<url>
-		<loc>http://demo.yuzoolthemes.com/split/styled-3/markdown/index.html</loc>
+		<loc>http://editeodoro.github.io/Bbarolo/styled-3/blog/index.html</loc>
+		<lastmod>2015-05-26</lastmod>
 	</url>
 	<url>
-		<loc>http://demo.yuzoolthemes.com/split/styled-3/sitemap/index.html</loc>
+		<loc>http://editeodoro.github.io/Bbarolo/styled-3/blog/files/archive-sep-2014.html</loc>
+		<lastmod>2015-05-26</lastmod>
 	</url>
 	<url>
-		<loc>http://demo.yuzoolthemes.com/split/contact-form/index.php</loc>
+		<loc>http://editeodoro.github.io/Bbarolo/styled-3/markdown/index.html</loc>
+		<lastmod>2015-05-26</lastmod>
+	</url>
+	<url>
+		<loc>http://editeodoro.github.io/Bbarolo/styled-3/sitemap/index.html</loc>
+		<lastmod>2015-05-26</lastmod>
 	</url>
 </urlset>
