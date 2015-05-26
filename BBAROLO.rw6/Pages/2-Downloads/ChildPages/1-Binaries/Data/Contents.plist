@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SandwichFillings</key>
+	<array>
+		<dict>
+			<key>Dictionary</key>
+			<dict>
+				<key>Entries</key>
+				<array>
+					<dict>
+						<key>Description</key>
+						<string>GUI and Command Line for OS X Lion or later</string>
+						<key>Title</key>
+						<string>Mac OS X &gt;10.7</string>
+						<key>Type</key>
+						<integer>1</integer>
+						<key>URL</key>
+						<string>http://</string>
+					</dict>
+					<dict>
+						<key>Description</key>
+						<string>GUI and Command Line for OS X Snow Leopard</string>
+						<key>Title</key>
+						<string>Mac OS X 10.6</string>
+						<key>Type</key>
+						<integer>1</integer>
+						<key>URL</key>
+						<string>http://</string>
+					</dict>
+					<dict>
+						<key>Description</key>
+						<string>GUI and Command Line for Linux 64 bit</string>
+						<key>Title</key>
+						<string>Linux 64</string>
+						<key>Type</key>
+						<integer>1</integer>
+						<key>URL</key>
+						<string>http://</string>
+					</dict>
+					<dict>
+						<key>Description</key>
+						<string>GUI and Command Line for Linux 32 bit</string>
+						<key>Title</key>
+						<string>Linux 32 </string>
+						<key>Type</key>
+						<integer>1</integer>
+						<key>URL</key>
+						<string>http://</string>
+					</dict>
+				</array>
+			</dict>
+			<key>Files</key>
+			<array>
+				<string>PageDescription.as</string>
+			</array>
+			<key>Subsandwiches</key>
+			<array/>
+		</dict>
+	</array>
+	<key>Type</key>
+	<string>RapidWeaver File Sharing Data</string>
+</dict>
+</plist>
