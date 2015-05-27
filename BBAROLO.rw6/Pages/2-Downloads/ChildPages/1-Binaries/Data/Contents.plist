@@ -32,12 +32,14 @@
 					<dict>
 						<key>Description</key>
 						<string>GUI and Command Line for Linux x86_64</string>
+						<key>Resource Identifier</key>
+						<string>5076A8AF-38B4-4081-842D-59AAFF80DFBB</string>
 						<key>Title</key>
 						<string>Linux 64 bit</string>
 						<key>Type</key>
-						<integer>1</integer>
+						<integer>2</integer>
 						<key>URL</key>
-						<string>http://</string>
+						<string>rw://5076A8AF-38B4-4081-842D-59AAFF80DFBB</string>
 					</dict>
 					<dict>
 						<key>Description</key>
