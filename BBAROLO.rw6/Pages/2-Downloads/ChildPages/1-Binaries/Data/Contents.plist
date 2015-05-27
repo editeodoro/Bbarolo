@@ -12,12 +12,14 @@
 					<dict>
 						<key>Description</key>
 						<string>GUI and Command Line for OS X Lion or later</string>
+						<key>Resource Identifier</key>
+						<string>F0E04205-CC8A-4AC5-99C9-F1EFED9DC2F8</string>
 						<key>Title</key>
-						<string>Mac OS X ≥10.7</string>
+						<string>Mac OS X  ≥10.7</string>
 						<key>Type</key>
-						<integer>1</integer>
+						<integer>2</integer>
 						<key>URL</key>
-						<string>http://</string>
+						<string>rw://F0E04205-CC8A-4AC5-99C9-F1EFED9DC2F8</string>
 					</dict>
 					<dict>
 						<key>Description</key>
@@ -33,13 +35,13 @@
 						<key>Description</key>
 						<string>GUI and Command Line for Linux x86_64</string>
 						<key>Resource Identifier</key>
-						<string>5076A8AF-38B4-4081-842D-59AAFF80DFBB</string>
+						<string>519B6F02-46F2-48CB-B1A1-3A7D44104F87</string>
 						<key>Title</key>
 						<string>Linux 64 bit</string>
 						<key>Type</key>
 						<integer>2</integer>
 						<key>URL</key>
-						<string>rw://5076A8AF-38B4-4081-842D-59AAFF80DFBB</string>
+						<string>rw://519B6F02-46F2-48CB-B1A1-3A7D44104F87</string>
 					</dict>
 					<dict>
 						<key>Description</key>
