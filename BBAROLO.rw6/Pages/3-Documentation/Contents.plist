@@ -9,8 +9,6 @@
 			<dict>
 				<key>CreatedDate</key>
 				<date>2015-05-26T14:13:48Z</date>
-				<key>CustomThemeName</key>
-				<string>Patchy</string>
 				<key>ID</key>
 				<string>page4</string>
 				<key>MostRecentlySelectedStyleName</key>
@@ -26,6 +24,8 @@
 					<key>Name</key>
 					<string>Styled Text</string>
 				</dict>
+				<key>PublishingManifest</key>
+				<dict/>
 			</dict>
 			<key>Files</key>
 			<array>

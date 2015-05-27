@@ -9,6 +9,7 @@
 			<dict/>
 			<key>Files</key>
 			<array>
+				<string>files</string>
 				<string>Preview.html</string>
 				<string>rw_common</string>
 				<string>Thumbnail.png</string>

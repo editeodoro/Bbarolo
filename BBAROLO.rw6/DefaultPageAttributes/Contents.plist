@@ -9,6 +9,21 @@
 			<dict>
 				<key>ColourStyles</key>
 				<dict>
+					<key>Reason</key>
+					<dict>
+						<key>%colour_content_a%</key>
+						<string>#990E2A</string>
+						<key>%colour_content_text%</key>
+						<string>#2F2F2F</string>
+						<key>%colour_footer_background%</key>
+						<string>#660000</string>
+						<key>%colour_nav_a_current_background%</key>
+						<string>#800000</string>
+						<key>%colour_nav_sub_hover%</key>
+						<string>#AA0000</string>
+						<key>%colour_site_title%</key>
+						<string>#F1FFFA</string>
+					</dict>
 					<key>Veerle</key>
 					<dict/>
 				</dict>
@@ -36,6 +51,17 @@
 				<string>utf-8</string>
 				<key>ThemeStyles</key>
 				<dict>
+					<key>Reason</key>
+					<array>
+						<string>Background.Linen</string>
+						<string>Banner Height.Collapse</string>
+						<string>Banner Image.Banner 1</string>
+						<string>Header Opacity.0.5</string>
+						<string>Max Width.1000px</string>
+						<string>Navigation Opacity.0.4</string>
+						<string>Sidebar Position.Hidden</string>
+						<string>Text Size.Large</string>
+					</array>
 					<key>Veerle</key>
 					<array>
 						<string>Font Style.Serif</string>

@@ -11,8 +11,6 @@
 				<string>Barolo - Downloads Binaries</string>
 				<key>CreatedDate</key>
 				<date>2015-05-26T11:00:44Z</date>
-				<key>CustomThemeName</key>
-				<string>Patchy</string>
 				<key>ID</key>
 				<string>page2</string>
 				<key>MostRecentlySelectedStyleName</key>
@@ -28,6 +26,8 @@
 					<key>Name</key>
 					<string>File Sharing</string>
 				</dict>
+				<key>PublishingManifest</key>
+				<dict/>
 			</dict>
 			<key>Files</key>
 			<array/>

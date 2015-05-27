@@ -13,6 +13,8 @@
 				<dict>
 					<key>Patchy</key>
 					<dict/>
+					<key>Reason</key>
+					<dict/>
 					<key>Veerle</key>
 					<dict/>
 				</dict>
@@ -31,7 +33,7 @@
 				<key>FolderName</key>
 				<string>styled-4</string>
 				<key>HasCustomThemeStyle</key>
-				<true/>
+				<false/>
 				<key>ImageFormat</key>
 				<string>Original</string>
 				<key>ImageQuality</key>
@@ -52,6 +54,17 @@
 					<array>
 						<string>Font Style.Serif</string>
 						<string>Sidebar.Hidden</string>
+					</array>
+					<key>Reason</key>
+					<array>
+						<string>Background.Wood</string>
+						<string>Banner Height.400px</string>
+						<string>Banner Image.Banner 1</string>
+						<string>Header Opacity.0.4</string>
+						<string>Max Width.1000px</string>
+						<string>Navigation Opacity.0.4</string>
+						<string>Sidebar Position.Bottom</string>
+						<string>Text Size.Medium</string>
 					</array>
 					<key>Veerle</key>
 					<array>

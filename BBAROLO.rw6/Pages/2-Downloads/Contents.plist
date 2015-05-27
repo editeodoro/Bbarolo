@@ -9,8 +9,8 @@
 			<dict>
 				<key>BrowserTitle</key>
 				<string>Barolo - Downloads</string>
-				<key>CustomThemeName</key>
-				<string>Patchy</string>
+				<key>CreatedDate</key>
+				<date>2015-05-27T07:19:18Z</date>
 				<key>ID</key>
 				<string>page1</string>
 				<key>MostRecentlySelectedStyleName</key>
@@ -26,6 +26,8 @@
 					<key>Name</key>
 					<string>Styled Text</string>
 				</dict>
+				<key>PublishingManifest</key>
+				<dict/>
 			</dict>
 			<key>Files</key>
 			<array>

@@ -11,8 +11,6 @@
 				<string>Barolo - Download Examples</string>
 				<key>CreatedDate</key>
 				<date>2015-05-26T14:53:47Z</date>
-				<key>CustomThemeName</key>
-				<string>Patchy</string>
 				<key>ID</key>
 				<string>page5</string>
 				<key>MostRecentlySelectedStyleName</key>
@@ -28,6 +26,8 @@
 					<key>Name</key>
 					<string>Styled Text</string>
 				</dict>
+				<key>PublishingManifest</key>
+				<dict/>
 			</dict>
 			<key>Files</key>
 			<array>

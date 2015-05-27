@@ -11,19 +11,7 @@
 				<true/>
 				<key>ColourStyles</key>
 				<dict>
-					<key>Bravo</key>
-					<dict/>
-					<key>Cameo</key>
-					<dict/>
-					<key>Caribou</key>
-					<dict/>
-					<key>Delta</key>
-					<dict/>
-					<key>Japanese Fantasy</key>
-					<dict/>
-					<key>Manitoba</key>
-					<dict/>
-					<key>Patchy</key>
+					<key>Reason</key>
 					<dict/>
 					<key>Veerle</key>
 					<dict/>
@@ -41,7 +29,7 @@
 				<key>FilenameExtension</key>
 				<string>html</string>
 				<key>HasCustomThemeStyle</key>
-				<true/>
+				<false/>
 				<key>ImageFormat</key>
 				<string>Original</string>
 				<key>ImageQuality</key>
@@ -60,147 +48,23 @@
 				<string>utf-8</string>
 				<key>ThemeStyles</key>
 				<dict>
-					<key>Birthday</key>
+					<key>Reason</key>
 					<array>
-						<string>Font Family.Comic Sans</string>
-						<string>Styles.Boy</string>
-					</array>
-					<key>Blog</key>
-					<array>
-						<string>Header.Center</string>
-						<string>Sidebar.Right</string>
-						<string>Styles.Blue</string>
-						<string>Width.Default Width (780px)</string>
-					</array>
-					<key>Blog Pop</key>
-					<array>
-						<string>Header.Center</string>
-						<string>Sidebar.Right</string>
-						<string>Styles.Blue</string>
-						<string>Width.Default Width (780px)</string>
-					</array>
-					<key>Bravo</key>
-					<array>
-						<string>Sidebar.Left</string>
-						<string>Width.750px</string>
-					</array>
-					<key>Business</key>
-					<array>
-						<string>Sidebar.Left</string>
-						<string>Styles.Red</string>
-						<string>Width.Default Width (780px)</string>
-					</array>
-					<key>Cameo</key>
-					<array>
-						<string>Icons.Blue</string>
-						<string>Sidebar.Right</string>
-						<string>Width.800px</string>
-					</array>
-					<key>Caribou</key>
-					<array>
-						<string>Banner Design.Swirls</string>
-						<string>Icon Style.Black</string>
-						<string>Logo Position.Center</string>
-						<string>Sidebar Location.Right</string>
-					</array>
-					<key>Clean</key>
-					<array>
-						<string>Sidebar.Right</string>
-						<string>Styles.Red</string>
-					</array>
-					<key>Company</key>
-					<array>
-						<string>Sidebar.Right</string>
-						<string>Styles.Orange</string>
-					</array>
-					<key>Dark Dash Original</key>
-					<array>
-						<string>Sidebar.Right</string>
-					</array>
-					<key>Dark Glass</key>
-					<array>
-						<string>Sidebar.Right</string>
-					</array>
-					<key>Delta</key>
-					<array>
-						<string>Icons.Orange</string>
-						<string>Sidebar.Right</string>
-						<string>Width.800px</string>
-					</array>
-					<key>Final</key>
-					<array>
-						<string>Background Style.Background Style Grey</string>
-						<string>Container Font Size.medium</string>
-						<string>Content font.Titillium</string>
-						<string>Footer Font Size.medium</string>
-						<string>Header Font Size.medium</string>
-						<string>Headers Font.Titillium</string>
-						<string>Navbar width.normal</string>
-						<string>Sidebar Font Size.medium</string>
-						<string>Sidebar position and visibility.Right</string>
-					</array>
-					<key>Flancrest</key>
-					<array>
-						<string>Alignment.Left</string>
-						<string>Banners.Default</string>
-						<string>Sidebar.Left</string>
-						<string>Styles.Blue</string>
-					</array>
-					<key>Ideal</key>
-					<array>
-						<string>Sidebar.Right</string>
-						<string>Width.Default Width (780px)</string>
-					</array>
-					<key>Japanese Fantasy</key>
-					<array>
-						<string>Accent.Red</string>
-						<string>Banner.Image 1</string>
-						<string>Sidebar.Right</string>
-					</array>
-					<key>Magnesium</key>
-					<array>
-						<string>Sidebar.Right</string>
-						<string>Styles.Electric</string>
-						<string>Width.Default Width (780px)</string>
-					</array>
-					<key>Manitoba</key>
-					<array>
-						<string>Header Alignment.Inline</string>
-						<string>Icon Colour.Green</string>
-						<string>Sidebar.Right</string>
-						<string>Width.800px</string>
-					</array>
-					<key>Medieval</key>
-					<array>
-						<string>Sidebar.Right</string>
-					</array>
-					<key>Patchy</key>
-					<array>
-						<string>Font Style.Serif</string>
-						<string>Sidebar.Hidden</string>
-					</array>
-					<key>Realmac Software '05</key>
-					<array>
-						<string>Colors.Aqua</string>
-						<string>Header.Aqua</string>
-						<string>Sidebar.Right</string>
-					</array>
-					<key>Urban</key>
-					<array>
-						<string>Header.Industrial Buildings</string>
-						<string>Sidebar.Right</string>
+						<string>Background.Wood</string>
+						<string>Banner Height.Collapse</string>
+						<string>Banner Image.Banner 1</string>
+						<string>Header Opacity.0.4</string>
+						<string>Max Width.1000px</string>
+						<string>Navigation Opacity.0.4</string>
+						<string>Sidebar Position.Hidden</string>
+						<string>Text Size.Medium</string>
 					</array>
 					<key>Veerle</key>
 					<array>
-						<string>Font Style.Sans Serif</string>
-						<string>Header Height.267 px</string>
+						<string>Font Style.Serif</string>
 						<string>Header.Landscape</string>
-						<string>Photo Borders.None</string>
-						<string>Width.860 px (default)</string>
-					</array>
-					<key>iPhone</key>
-					<array>
-						<string>Width.600px</string>
+						<string>Photo Borders.2 px</string>
+						<string>Sidebar.Right</string>
 					</array>
 				</dict>
 			</dict>
