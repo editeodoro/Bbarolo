@@ -13,7 +13,7 @@
 						<key>Description</key>
 						<string>GUI and Command Line for OS X Lion or later</string>
 						<key>Title</key>
-						<string>Mac OS X &gt;10.7</string>
+						<string>Mac OS X ≥10.7</string>
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
@@ -31,9 +31,9 @@
 					</dict>
 					<dict>
 						<key>Description</key>
-						<string>GUI and Command Line for Linux 64 bit</string>
+						<string>GUI and Command Line for Linux x86_64</string>
 						<key>Title</key>
-						<string>Linux 64</string>
+						<string>Linux 64 bit</string>
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
@@ -41,9 +41,9 @@
 					</dict>
 					<dict>
 						<key>Description</key>
-						<string>GUI and Command Line for Linux 32 bit</string>
+						<string>GUI and Command Line for Linux x86</string>
 						<key>Title</key>
-						<string>Linux 32 </string>
+						<string>Linux 32 bit</string>
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
