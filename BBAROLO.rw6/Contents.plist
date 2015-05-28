@@ -178,14 +178,14 @@
 				AIAAgAiAB4AKgAlfECRFQUQ2NTdCNC1GMjdGLTQxQTEt
 				OEI2RS1DNEE2MjY2QTEwQ0JcZXhhbXBsZXMuemlwXxAk
 				QkQ4RjdDNjUtQzlBOC00NjJGLTlCQjItNTc1NDU2OTky
-				N0I20jgLOTpXTlMudGltZSNBuxb9acxaxIAL0jw9Pj9a
+				N0I20jgLOTpXTlMudGltZSNBuxcCCF9N8IAL0jw9Pj9a
 				JGNsYXNzbmFtZVgkY2xhc3Nlc1ZOU0RhdGWiPkBYTlNP
 				YmplY3TSPD1CQ15SV1NpdGVSZXNvdXJjZaJEQF5SV1Np
 				dGVSZXNvdXJjZdglCyYnKCkqKywtLi5KS0xNCIAMgACA
 				AIAPgA6AEYAQXxAkNDEzMzYzQUQtOEFDQy00RkI5LTk4
 				RDUtNEE0ODIwQjY2OUU5XxAPQmJhcm9sb19pY28ucG5n
 				XxAkNTYzMkUxQjQtNDBDRi00Rjc3LUIwQkQtMjcwNzND
-				NDZBQkJF0jgLUjojQbsW/Wj7TUmAC9I8PVVWXE5TTXV0
+				NDZBQkJF0jgLUjojQbsXAgdGWoqAC9I8PVVWXE5TTXV0
 				YWJsZVNldKNVV0BVTlNTZXTTCQoLWVxfoksxgA6AB6Ii
 				IYANgAaAFNI8PWFiXxATTlNNdXRhYmxlRGljdGlvbmFy
 				eaNhY0BcTlNEaWN0aW9uYXJ50wkKC2VoX6JLMYAOgAei
@@ -623,7 +623,7 @@
 					<key>ThemeName</key>
 					<string>Reason</string>
 					<key>TitleText</key>
-					<string>3D BAROLO</string>
+					<string>3D-BAROLO</string>
 					<key>TitleTextUsed</key>
 					<true/>
 					<key>WantsXMLSiteMap</key>
