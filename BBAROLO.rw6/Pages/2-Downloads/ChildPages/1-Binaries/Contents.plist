@@ -26,6 +26,8 @@
 					<key>Name</key>
 					<string>File Sharing</string>
 				</dict>
+				<key>PublishingManifest</key>
+				<dict/>
 			</dict>
 			<key>Files</key>
 			<array/>
