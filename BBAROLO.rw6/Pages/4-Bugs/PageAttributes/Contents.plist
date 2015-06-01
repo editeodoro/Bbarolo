@@ -39,10 +39,12 @@
 				<false/>
 				<key>DefaultLinkTarget</key>
 				<string></string>
+				<key>Enabled</key>
+				<false/>
 				<key>FilenameExtension</key>
 				<string>php</string>
 				<key>FolderName</key>
-				<string>contact-form</string>
+				<string>bugs</string>
 				<key>HasCustomThemeStyle</key>
 				<false/>
 				<key>ImageFormat</key>
@@ -50,7 +52,7 @@
 				<key>ImageQuality</key>
 				<string>High</string>
 				<key>IndexFilename</key>
-				<string>index.html</string>
+				<string>index.php</string>
 				<key>OutputFormat</key>
 				<string>Default</string>
 				<key>OutputXMLDeclaration</key>
