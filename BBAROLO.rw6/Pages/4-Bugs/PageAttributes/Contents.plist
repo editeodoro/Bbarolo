@@ -40,7 +40,7 @@
 				<key>DefaultLinkTarget</key>
 				<string></string>
 				<key>Enabled</key>
-				<true/>
+				<false/>
 				<key>FilenameExtension</key>
 				<string>php</string>
 				<key>FolderName</key>
