@@ -40,9 +40,9 @@
 				<key>DefaultLinkTarget</key>
 				<string></string>
 				<key>FilenameExtension</key>
-				<string>html</string>
+				<string>php</string>
 				<key>FolderName</key>
-				<string>bugs</string>
+				<string>contact-form</string>
 				<key>HasCustomThemeStyle</key>
 				<false/>
 				<key>ImageFormat</key>

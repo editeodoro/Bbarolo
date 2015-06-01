@@ -7,10 +7,10 @@
 		<dict>
 			<key>Dictionary</key>
 			<dict>
-				<key>CreatedDate</key>
-				<date>2015-06-01T10:23:02Z</date>
+				<key>BrowserTitle</key>
+				<string>BBarolo - Bug Reporting</string>
 				<key>ID</key>
-				<string>page6</string>
+				<string>page7</string>
 				<key>MostRecentlySelectedStyleName</key>
 				<string>Theme Default</string>
 				<key>PageTitle</key>
