@@ -7,33 +7,30 @@
 		<dict>
 			<key>Dictionary</key>
 			<dict>
-				<key>BrowserTitle</key>
-				<string>BBarolo - Bug Reporting</string>
 				<key>CreatedDate</key>
-				<date>2015-06-03T08:00:19Z</date>
+				<date>2015-06-03T08:12:04Z</date>
 				<key>ID</key>
-				<string>page7</string>
+				<string>page6</string>
 				<key>MostRecentlySelectedStyleName</key>
 				<string>Theme Default</string>
 				<key>PageTitle</key>
 				<string>Bugs</string>
 				<key>PluginClassName</key>
-				<string>RWContactFormPlugin</string>
+				<string>RWStyledPlugin</string>
 				<key>PluginMetadata</key>
 				<dict>
 					<key>Author</key>
 					<string>Realmac Software</string>
 					<key>Name</key>
-					<string>Contact Form</string>
+					<string>Styled Text</string>
 				</dict>
-				<key>PublishingManifest</key>
-				<dict/>
 			</dict>
 			<key>Files</key>
-			<array/>
+			<array>
+				<string>Data.archive</string>
+			</array>
 			<key>Subsandwiches</key>
 			<array>
-				<string>Data</string>
 				<string>PageAttributes</string>
 			</array>
 		</dict>
