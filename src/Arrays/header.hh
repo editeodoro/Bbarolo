@@ -25,7 +25,7 @@
 #define HEADER_HH_
 
 #include <iostream>
-#include <cstring>
+#include <string>
 #include <cmath>
 #include <vector>
 #include <fitsio.h> 

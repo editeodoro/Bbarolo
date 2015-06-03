@@ -804,7 +804,7 @@ void ParamGuess<T>::fitEllipse() {
 	}
 	else {
 		std::cout << "Error while estimating inclination.";
-		abort();
+		std::terminate();
 	}
 	 
 }

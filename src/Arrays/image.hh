@@ -25,7 +25,7 @@
 #define IMAGE_HH_
 
 #include <iostream>
-#include <cstring>
+#include <string>
 #include "stats.hh"
 #include "header.hh"
 #include "cube.hh"

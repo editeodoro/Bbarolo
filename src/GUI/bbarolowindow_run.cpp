@@ -21,7 +21,6 @@
 #include<fstream>
 #include <iomanip>
 #include <sys/stat.h>
-#include <cstdlib>
 #include <QtGui>
 #include "bbarolowindow.h"
 #include "ui_bbarolowindow.h"

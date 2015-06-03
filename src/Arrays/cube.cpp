@@ -23,12 +23,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstring>
-#include <fitsio.h>
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
-#include <iomanip>
 #include "cube.hh"
 #include "stats.hh"
 #include "../Map/detection.hh"
@@ -133,7 +127,7 @@ Cube<T>::Cube(int *dimensions) {
     numPix = numAxes = 0;
     if((size<0) || (imsize<0) ) {
         std::cout << "Error [Cube(dimArray)]: Negative size -- could not define Cube "<< std::endl;
-        abort();
+        std::terminate();
     }
     else {
 		numPix = size;

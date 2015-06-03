@@ -118,7 +118,7 @@ void MomentMap<T>::ZeroMoment (bool msk) {
 	if (!this->arrayAllocated) {
 		std::cout << "MOMENT MAPS error: ";
 		std::cout << "Array not allocated. Call 'input' first!!\n";
-		abort();
+		std::terminate();
 	}
 		
 	if (!(this->headDefined=setHead(0))) {
@@ -163,7 +163,7 @@ void MomentMap<T>::FirstMoment (bool msk) {
 	if (!this->arrayAllocated) {
 		std::cout << "MOMENT MAPS error: ";
 		std::cout << "Array not allocated. Call 'input' first!!\n";
-		abort();
+		std::terminate();
 	}
 		
 	if (!(this->headDefined=setHead(1))) {
@@ -219,7 +219,7 @@ void MomentMap<T>::SecondMoment (bool msk) {
 	if (!this->arrayAllocated) {
 		std::cout << "MOMENT MAPS error: ";
 		std::cout << "Array not allocated. Call 'input' first!!\n";
-		abort();
+		std::terminate();
 	}
 		
 	if (!(this->headDefined=setHead(2))) {

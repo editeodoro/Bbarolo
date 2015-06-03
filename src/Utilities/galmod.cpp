@@ -243,7 +243,7 @@ void Galmod<T>::calculate() {
 	}
 	else {
 		std::cout<< "GALMOD error: wrong or unknown input parameter.\n";
-		abort();
+		std::terminate();
 	}
 
 }
@@ -372,7 +372,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 			std::cout << "GALMOD error (unknown CUNIT for RA-DEC): ";
 			std::cout << "cannot convert to ARCMIN.\n";
 			std::cout << cunit[i];
-			abort(); 
+			std::terminate(); 
 		}
 		cdelt[i]   = cdelt[i]*arcmconv;
 		pixsize[i] = fabs(cdelt[i]); 
@@ -416,7 +416,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 	}
 	else {
 		std::cout << "GALMOD error (unknown CUNIT for spectral axis): cannot convert.";
-		abort(); 
+		std::terminate(); 
 	}
 	
     if (axtyp==2) {
@@ -427,7 +427,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         else {
             std::cout << "GALMOD error (unknown CUNIT3): cannot convert to M.\n";
             std::cout << cunit3;
-            abort();
+            std::terminate();
         }
 
         crval3=crval3*mconv;
@@ -447,7 +447,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 		else {
 			std::cout << "GALMOD error (unknown CUNIT3): cannot convert to Hz.\n";
 			std::cout << cunit3;
-			abort(); 
+			std::terminate(); 
 		}
 		
 		crval3=crval3*hzconv;
@@ -465,7 +465,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 		else {
 			std::cout << "GALMOD error (unknown CUNIT3): cannot convert to M/S.\n";
 			std::cout << cunit3;
-			abort(); 
+			std::terminate(); 
 		}
 		
 		crval3=crval3*msconv;
@@ -477,7 +477,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 	}
     else { 
         std::cout << "Unknown axis type: no velocities along spectral axis.\n";
-        abort();
+        std::terminate();
 	}
 
  
@@ -531,11 +531,11 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 		if (uradii[i-1]+r->radsep>=uradii[i]) {
 			if (uradii[i-1]>uradii[i]) {
 				std::cout << "GALMOD error: Radii not in increasing order.\n";
-				abort();
+				std::terminate();
 			}
 			else {
 				std::cout << "GALMOD error: Radius separation too small.\n";
-				abort();
+				std::terminate();
 			}
 		}
 	}
@@ -556,20 +556,20 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 		uvdisp[i]=rings->vdisp[i]*1000;
 		if (uvdisp[i]<0) {
 			std::cout << "GALMOD error: Negative velocity dispersion not allowed.\n";
-			abort();
+			std::terminate();
 		}
 		
 		udens[i]=rings->dens[i]/1.0E20;
 
         if (udens[i]<0) {
 			std::cout << "GALMOD error: Negative column-density not allowed.\n";
-			abort(); 
+			std::terminate(); 
 		}
 		
 		uz0[i]=rings->z0[i]/60.;
 		if (uz0[i]<0) {
 			std::cout << "GALMOD error: Negative scale height not allowed.\n";
-			abort(); 
+			std::terminate(); 
 		}
 		
 		uinc[i]=rings->inc[i]*M_PI/180.;
@@ -679,7 +679,7 @@ void Galmod<T>::galmod() {
 			int nc = lround(pow(cdens*r->dens[ir],cmode)*twopi*rtmp*r->radsep/pixarea); 
 			if (nc==0) {
                 std::cout << "No clouds used. Choose higher CDENS " << std::endl;
-                abort();
+                std::terminate();
 //				Do next ring, jump to end of loop for rings.
 				continue;
 			}

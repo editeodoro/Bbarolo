@@ -24,7 +24,7 @@
 #ifndef CUBE_HH_
 #define CUBE_HH_
 
-#include <cstring>
+#include <string>
 #include <fitsio.h>
 #include "header.hh"
 #include "stats.hh"

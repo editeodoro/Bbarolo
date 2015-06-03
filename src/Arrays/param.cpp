@@ -26,10 +26,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <algorithm>
-#include <cstdlib>
-#include <ctype.h>
-#include <math.h>
+#include <cmath>
 #include <unistd.h>
 #include "param.hh"
 #include "../Utilities/utils.hh"
@@ -531,92 +528,101 @@ bool Param::checkPars() {
 		}
 	}
 
-    if (flagGalFit || flagSpace) {
+    if (flagGalFit || flagSpace || flagGalMod) {
 		bool good = true;
 		std::string str =" is not an optional parameter. Please specify it in the input file or set flagSearch=true";
-		
+
+        if (NRADII==0) {
+            std::cout << "3DFIT error: NRADII cannot be 0!" << std::endl;
+            good = false;
+        }
+
         if (flagGalMod) {
 			if (NRADII==-1 && RADII=="-1")	{
-                std::cout << "GALFIT error: NRADII or RADII" << str << std::endl;
+                std::cout << "3DFIT error: NRADII or RADII" << str << std::endl;
 				good = false;
 			}
 			if (XPOS=="-1")	{
-                std::cout << "GALFIT error: XPOS" << str << std::endl;
+                std::cout << "3DFIT error: XPOS" << str << std::endl;
 				good = false;
 			}
 			if (YPOS=="-1")	{
-                std::cout << "GALFIT error: YPOS" << str << std::endl;
+                std::cout << "3DFIT error: YPOS" << str << std::endl;
 				good = false;
 			}
 			if (RADSEP==-1 && RADII=="-1")	{
-                std::cout << "GALFIT error: RADSEP" << str << std::endl;
+                std::cout << "3DIT error: RADSEP" << str << std::endl;
 				good = false;
 			}
 			if (VSYS=="-1")	{
-                std::cout << "GALFIT error: VSYS" << str << std::endl;
+                std::cout << "3DFIT error: VSYS" << str << std::endl;
 				good = false;
 			}
 			if (VROT=="-1")	{
-                std::cout << "GALFIT error: VROT" << str << std::endl;
+                std::cout << "3DFIT error: VROT" << str << std::endl;
 				good = false;
             }
             if (VDISP=="-1")	{
-                std::cout << "GALFIT error: VDISP" << str << std::endl;
+                std::cout << "3DFIT error: VDISP" << str << std::endl;
 				good = false;
             }
 			if (INC=="-1")	{
-                std::cout << "GALFIT error: INC" << str << std::endl;
+                std::cout << "3DFIT error: INC" << str << std::endl;
 				good = false;
 			}
 			if (PHI=="-1")	{
-                std::cout << "GALFIT error: PHI" << str << std::endl;
+                std::cout << "3DFIT error: PHI" << str << std::endl;
 				good = false;
             }
             if (Z0=="-1")	{
-                std::cout << "GALFIT error: Z0" << str << std::endl;
+                std::cout << "3DFIT error: Z0" << str << std::endl;
 				good = false;
             }
 		}
 		
-		if (FREE=="" && flagGalFit) {
-            std::cout << "GALFIT error: FREE" << str << std::endl;
-			good = false;
-		}
-																																		
+        if (flagGalFit) {
+            if (FREE=="") {
+                std::cout << "3DFIT error: FREE" << str << std::endl;
+                good = false;
+            }
+
+            if (FTYPE<1 || FTYPE>4) {
+                std::cout << "3DFIT warning: ";
+                std::cout << "Not valid argument for FTYPE parameter. ";
+                std::cout << "Assuming 2 (|mod-obs|).\n";
+                FTYPE = 2;
+            }
+
+            if (WFUNC<0 || WFUNC>2) {
+                std::cout << "3DFIT warning: ";
+                std::cout << "Not valid argument for WFUNC parameter. ";
+                std::cout << "Assuming 1 (|cos(θ)| weighting function).\n";
+                WFUNC = 1;
+            }
+
+            if (SIDE=="A"||SIDE=="APP"||SIDE=="APPR"||SIDE=="APPROACHING") SIDE = "A";
+            else if (SIDE=="R"||SIDE=="REC"||SIDE=="RECED"||SIDE=="RECEDING") SIDE = "R";
+            else if (SIDE=="B"||SIDE=="BOTH") SIDE = "B";
+            else if (SIDE=="BS"||SIDE=="S"||SIDE=="SINGLE"||SIDE=="BOTH SINGLE") SIDE = "S";
+            else {
+                std::cout << "3DFIT warning: ";
+                std::cout << "Not valid argument for SIDE parameter. ";
+                std::cout << "Assuming B (fitting both sides of the galaxy).\n";
+                SIDE = "B";
+            }
+
+        }
+
 		if (LTYPE<1 || LTYPE>5) {
-            std::cout << "GALFIT warning: ";
+            std::cout << "3DFIT warning: ";
             std::cout << "Not valid argument for LTYPE parameter. ";
             std::cout << "Assuming 1 (gaussian layer).\n";
 			LTYPE = 1;
 		}
 		
-		if (FTYPE<1 || FTYPE>4) {
-            std::cout << "GALFIT warning: ";
-            std::cout << "Not valid argument for FTYPE parameter. ";
-            std::cout << "Assuming 2 (|mod-obs|).\n";
-            FTYPE = 2;
-		}
-		
-		if (WFUNC<0 || WFUNC>2) {
-            std::cout << "GALFIT warning: ";
-            std::cout << "Not valid argument for WFUNC parameter. ";
-            std::cout << "Assuming 1 (|cos(θ)| weighting function).\n";
-			WFUNC = 1;
-		}
-			
-		if (SIDE=="A"||SIDE=="APP"||SIDE=="APPR"||SIDE=="APPROACHING") SIDE = "A";
-		else if (SIDE=="R"||SIDE=="REC"||SIDE=="RECED"||SIDE=="RECEDING") SIDE = "R";	
-		else if (SIDE=="B"||SIDE=="BOTH") SIDE = "B";
-		else if (SIDE=="BS"||SIDE=="S"||SIDE=="SINGLE"||SIDE=="BOTH SINGLE") SIDE = "S";
-		else {
-            std::cout << "GALFIT warning: ";
-            std::cout << "Not valid argument for SIDE parameter. ";
-            std::cout << "Assuming B (fitting both sides of the galaxy).\n";
-			SIDE = "B";
-		}
 
         if (flagSlitfit==true) {
-            std::cout<< "GALFIT warning: Galfit and Splitfit cannot be run at the same time. "
+            std::cout<< "3DFIT warning: Galfit and Splitfit cannot be run at the same time. "
                      << "Switching off Slitfit. \n";
             flagSlitfit=false;
         }
@@ -1058,14 +1064,7 @@ void helpscreen(std::ostream& Str) {
 	
 	using std::cout;
 	using std::endl;
-	int m=26;
-		
-		
-       
-      
-       
-        
-
+    int m=26;
 
 	Str	<< endl << endl
 	    << "             ____                                _____        __           \n"
@@ -1079,7 +1078,7 @@ void helpscreen(std::ostream& Str) {
 		<< "      _\\(_)_           Bbarolo quick guide                ||`    `||      \n"
 		<< "     (_)_)(_)_      _________________________     ___     ||BAROLO||       \n"
 		<< "    (_)(_)_)(_)                                  ||  \\\\   ||      ||     \n"
-		<< "     (_)(_))_)                                   ||__// _ || 2013 ||       \n"
+        << "     (_)(_))_)                                   ||__// _ || 2015 ||       \n"
 		<< "      (_(_(_)                                    ||  \\\\   | \\____/ |    \n"
 		<< "       (_)_)                                     ||__//   |        |       \n"
 		<< "        (_)                                               \\_.-\"\"-._/    \n "

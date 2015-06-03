@@ -512,7 +512,7 @@ double arcsconv(std::string cunit) {
 		std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
 		std::cout << "cannot convert to ARCSEC.\n";
 		std::cout << cunit;
-		abort(); 
+		std::terminate(); 
 	}
 	
 }
@@ -533,7 +533,7 @@ double degconv(std::string cunit) {
         std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
         std::cout << "cannot convert to DEGREE.\n";
         std::cout << cunit;
-        abort();
+        std::terminate();
     }
 }
 

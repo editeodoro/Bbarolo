@@ -548,7 +548,7 @@ void Detection<T>::calcWCSparams(Header &head) {
 		std::cout << "Error (unknown CUNIT for RA-DEC): ";
 		std::cout << "cannot convert to ARCSEC.\n";
 		std::cout << cunit;
-		abort(); 
+        std::terminate();
 	}
 	
     lngtype = head.Ctype(0);

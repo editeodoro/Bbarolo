@@ -22,7 +22,7 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
-#include <cstring>
+#include <string>
 #include <cmath>
 #include <cfloat>
 #include <iomanip>

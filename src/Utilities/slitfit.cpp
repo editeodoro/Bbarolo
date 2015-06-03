@@ -17,8 +17,6 @@
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
-#include <cstdlib>
-
 #include "galfit.hh"
 #include "../Arrays/cube.hh"
 #include "../Arrays/image.hh"

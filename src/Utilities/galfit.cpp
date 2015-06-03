@@ -137,7 +137,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
     std::string ctype[2]={in->Head().Ctype(0),in->Head().Ctype(1)};
     double *pix_center = getCenterCoordinates(pos,ctype);
 
-    bool toEstimate = (p->getRADII()=="-1" && p->getNRADII()==-1 && p->getRADSEP()==-1)  ||
+    bool toEstimate = (p->getRADII()=="-1" && p->getNRADII()==-1) || p->getRADSEP()==-1 ||
                        p->getXPOS()=="-1" || p->getYPOS()=="-1" || p->getVSYS()=="-1" ||
                        p->getVROT()=="-1" || p->getPHI()=="-1"  || p->getINC()=="-1";
 
@@ -150,7 +150,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
 
         if (largest==NULL) {
             std::cout << "3DFIT error: No sources detected in the datacube. Cannot fit!!! \n";
-            abort();
+            std::terminate();
         }
 
         if (verb) std::cout << "\n Estimating initial parameters... " << std::flush;
@@ -191,6 +191,11 @@ Galfit<T>::Galfit(Cube<T> *c) {
         dens  = p->getDENS()!="-1" ? atof(p->getDENS().c_str()) : 1.;
         inc   = atof(p->getINC().c_str());
         pa    = atof(p->getPHI().c_str());
+    }
+
+    if (nr==0) {
+        std::cout << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
+        std::terminate();
     }
 
     nr = nr>0 && nr<max_size ? nr : max_size;
@@ -364,7 +369,7 @@ void Galfit<T>::input (Cube<T> *c, Rings<T> *inrings, bool *maskpar, double TOL)
 	}
     if (nfixed == MAXPAR) {
         std::cout << "GALFIT error: NO free parameters!\n";
-		abort();
+        std::terminate();
 	}
 	nfree = MAXPAR-nfixed;
 	
@@ -379,7 +384,7 @@ void Galfit<T>::input (Cube<T> *c, Rings<T> *inrings, bool *maskpar, double TOL)
 //				  << "continue with this value? [Y/N] ";
 //		std::string a;
 //		std::cin >> a;
-//		if (a=="n" || a=="N" || a=="no" || a=="NO") abort();
+//		if (a=="n" || a=="N" || a=="no" || a=="NO") std::terminate();
 //	}
 	
 	maxs[VROT]	= 500;
@@ -526,12 +531,12 @@ void Galfit<T>::galfit() {
             if (ir!=inr->nr-1) {
                 if (inr->radii[ir+1]<=inr->radii[ir]) {
                     cout << "3DFIT error: Radii not in increasing order.\n";
-                    abort();
+                    std::terminate();
                 }
             }
             if (inr->radii[ir]<0) {
                 cout << "3DFIT error: Negative radius!!!\n";
-                abort();
+                std::terminate();
             }
 
             details = true;
@@ -1070,7 +1075,7 @@ void Galfit<T>::createMask() {
         Detection<T> *larg = in->LargestDetection();
         if (larg==NULL) {
             std::cout << "3DFIT error: No sources detected in the datacube. Cannot fit!!! \n";
-            abort();
+            std::terminate();
         }
         std::vector<Voxel<T> > voxlist = larg->getPixelSet();
         typename std::vector<Voxel<T> >::iterator vox;
@@ -1385,7 +1390,7 @@ T Galfit<T>::getCenterCoord(std::string pos, std::string type) {
     else {
         std::cout << "3DFIT error: unknown coordinate type: " << type
                   << "\n             Cannot convert to grid. \n";
-        abort();
+        std::terminate();
     }
 
     if (coord_str.find('d')!=-1) {                              // Found degrees

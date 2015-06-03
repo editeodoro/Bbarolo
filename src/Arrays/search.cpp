@@ -23,7 +23,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstring>
+#include <string>
 #include <cmath>
 #include <climits>
 #include <cfloat>
@@ -724,9 +724,9 @@ void Cube<T>::printDetections (std::ostream& Stream) {
         double world[3];
         pixToWCSSingle(head.WCS(), pix, world);
 
-        std::string Xint = to_string<int>(fabs(Xmax-Xmin));
-        std::string Yint = to_string<int>(fabs(Ymax-Ymin));
-        std::string Zint = to_string<int>(fabs(Zmax-Zmin));
+        std::string Xint = to_string<int>(fabs(Xmax-Xmin)+1);
+        std::string Yint = to_string<int>(fabs(Ymax-Ymin)+1);
+        std::string Zint = to_string<int>(fabs(Zmax-Zmin)+1);
 
         Stream 	<< setw(m-3) << right << Xint
                 << setw(m-3) << right << Yint

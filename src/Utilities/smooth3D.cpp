@@ -22,7 +22,7 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
-#include <cstring>
+#include <string>
 #include <iomanip>
 #include "../Arrays/cube.hh"
 #include "smooth3D.hh"
@@ -165,7 +165,7 @@ void Smooth3D<T>::cubesmooth(Cube<T> *c) {
 		std::cout << "SMOOTH error (unknown CUNIT for RA-DEC): ";
 		std::cout << "cannot convert to ARCSEC.\n";
 		std::cout << cunit;
-		abort();
+		std::terminate();
 	}
 	
     Beam OB = {c->pars().getOBmaj(), c->pars().getOBmin(), c->pars().getOBpa()};
@@ -260,7 +260,7 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
 	crota = c->Head().Crota();
 	
 	beamDefined = defineBeam(Oldbeam, Newbeam);
-	if (!beamDefined) abort();
+	if (!beamDefined) std::terminate();
 	
 	if (c->pars().isVerbose()) {
 
@@ -302,7 +302,7 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
 	else allOK = calculate(c->Array(), array);
 	if (!allOK) {
 		std::cout << "SMOOTH error: cannot smooth data\n";
-		abort();
+		std::terminate();
 	}
 
 }
