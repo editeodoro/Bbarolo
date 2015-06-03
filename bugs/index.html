@@ -1,46 +1,4 @@
-<?php
-	// Start session.
-	session_start();
-	
-	// Set a key, checked in mailer, prevents against spammers trying to hijack the mailer.
-	$security_token = $_SESSION['security_token'] = uniqid(rand());
-	
-	if ( ! isset($_SESSION['formMessage'])) {
-		$_SESSION['formMessage'] = 'Please, report any bug or problem you have with <strong>BBarolo</strong> through the following form. You can attach error messages in the Attachment field. I will try to fix the issues as soon as possible.<br />Thank you.<br /><br />Fields marked with * are required.';	
-	}
-	
-	if ( ! isset($_SESSION['formFooter'])) {
-		$_SESSION['formFooter'] = ' ';
-	}
-	
-	if ( ! isset($_SESSION['form'])) {
-		$_SESSION['form'] = array();
-	}
-	
-	function check($field, $type = '', $value = '') {
-		$string = "";
-		if (isset($_SESSION['form'][$field])) {
-			switch($type) {
-				case 'checkbox':
-					$string = 'checked="checked"';
-					break;
-				case 'radio':
-					if($_SESSION['form'][$field] === $value) {
-						$string = 'checked="checked"';
-					}
-					break;
-				case 'select':
-					if($_SESSION['form'][$field] === $value) {
-						$string = 'selected="selected"';
-					}
-					break;
-				default:
-					$string = $_SESSION['form'][$field];
-			}
-		}
-		return $string;
-	}
-?><!DOCTYPE html>
+<!DOCTYPE html>
 <!--[if IE 8 ]><html lang="en" class="ie8"><![endif]-->
 <!--[if IE 9 ]><html lang="en" class="ie9"><![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
@@ -54,7 +12,7 @@
 		<meta name="generator" content="RapidWeaver" />
 		
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>BBarolo - Bug Reporting</title>
+		<title>BBarolo - Bugs reporting</title>
 		<link rel="stylesheet" type="text/css" media="all" href="../rw_common/themes/reason/consolidated.css" />
 		
 		
@@ -100,40 +58,7 @@
 				</div>
 				<section id="container" class="theme">
 					<section id="content" class="theme">
-						<div id="push">
-<div class="message-text"><?php echo $_SESSION['formMessage']; unset($_SESSION['formMessage']); ?></div><br />
-
-<form action="./files/mailer.php" method="post" enctype="multipart/form-data">
-	 <div>
-		<label>Your Name</label> *<br />
-		<input class="form-input-field" type="text" value="<?php echo check('element0'); ?>" name="form[element0]" size="40"/><br /><br />
-
-		<label>Your Email</label> *<br />
-		<input class="form-input-field" type="text" value="<?php echo check('element1'); ?>" name="form[element1]" size="40"/><br /><br />
-
-		<label>Subject</label> *<br />
-		<input class="form-input-field" type="text" value="<?php echo check('element2'); ?>" name="form[element2]" size="40"/><br /><br />
-
-		<label>Message</label> *<br />
-		<textarea class="form-input-field" name="form[element3]" rows="8" cols="38"><?php echo check('element3'); ?></textarea><br /><br />
-
-		<label>Attachment</label> <br />
-		<input type="file" name="element4" /><br /><br />
-
-		<div style="display: none;">
-			<label>Spam Protection: Please don't fill this in:</label>
-			<textarea name="comment" rows="1" cols="1"></textarea>
-		</div>
-		<input type="hidden" name="form_token" value="<?php echo $security_token; ?>" />
-		<input class="form-input-button" type="reset" name="resetButton" value="Reset" />
-		<input class="form-input-button" type="submit" name="submitButton" value="Submit" />
-	</div>
-</form>
-
-<br />
-<div class="form-footer"><?php echo $_SESSION['formFooter']; unset($_SESSION['formFooter']); ?></div><br />
-
-<?php unset($_SESSION['form']); ?></div>
+						<div id="push">Please, report any bug or problem you have with <strong>BBarolo</strong>. <br />If you are a Github user, you can submit an issue ticket at <a href="https://github.com/editeodoro/bbarolo/issues" rel="">this page</a>. Otherwise you can <a href="mailto:enrico.diteodoro@unibo.it" rel="">mail</a> me. Please attach any significant error messages and tell me how to reproduce the problem. <br /><br />I will try to fix the issues as soon as I can. Thank you.<br /></div>
 					</section>
 					<aside class="theme">
 						<h2 id="sideTitle"></h2>

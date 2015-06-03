@@ -7,6 +7,8 @@
 		<dict>
 			<key>Dictionary</key>
 			<dict>
+				<key>BrowserTitle</key>
+				<string>BBarolo - Bugs reporting</string>
 				<key>CreatedDate</key>
 				<date>2015-06-03T08:12:04Z</date>
 				<key>ID</key>
