@@ -17,7 +17,7 @@
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
-						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.0/Bbarolo_MacOS_Lion.zip</string>
+						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.0.1/Bbarolo_MacOS_Lion.zip</string>
 					</dict>
 					<dict>
 						<key>Description</key>
@@ -27,7 +27,7 @@
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
-						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.0/Bbarolo_MacOS_SnowLeopard.zip</string>
+						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.0.1/Bbarolo_MacOS_SL.zip</string>
 					</dict>
 					<dict>
 						<key>Description</key>
@@ -37,17 +37,7 @@
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
-						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.0/Bbarolo_Linux_x64.zip</string>
-					</dict>
-					<dict>
-						<key>Description</key>
-						<string>GUI and Command Line for Linux x86 - COMING SOON</string>
-						<key>Title</key>
-						<string>Linux 32 bit</string>
-						<key>Type</key>
-						<integer>1</integer>
-						<key>URL</key>
-						<string>http://</string>
+						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.0.1/Bbarolo_Linux_x64.zip</string>
 					</dict>
 				</array>
 			</dict>
