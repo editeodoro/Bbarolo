@@ -31,6 +31,7 @@
 #include "./Arrays/cube.hh"
 #include "./Arrays/stats.hh"
 #include "./Utilities/moment.hh"
+#include "./Utilities/ringmodel.hh"
 #include "./Utilities/smooth3D.hh"
 #include "./Utilities/galfit.hh"
 #include "./Utilities/spacepar.hh"
@@ -160,6 +161,15 @@ int main (int argc, char *argv[]) {
 			sp->calculate();
 			delete sp;
         }
+
+        //<<<<<<< 2D Tilted-Ring Model
+        if (par->getFlagRing()) {
+            Ringmodel *trmod = new Ringmodel(c);
+            trmod->ringfit();
+            trmod->printfinal(std::cout);
+            delete trmod;
+        }
+        ///----------------------
 
 		if (par->getMaps()) {
             MomentMap<float> map;

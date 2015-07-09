@@ -272,15 +272,22 @@ bool Header::header_read (std::string fname) {
         }
     }
 
+    if (ctype[0].find("RA")>=0 && crval[0]<0) crval[0]+=360.;
+
     status=0;
     fits_read_keys_str (fptr, "CUNIT", 1, numAxes, Cunit, &nfound, &status);
     if (nfound==0) {
-        Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,M/S]");
         if (numAxes>0) cunit[0] = "DEGREE";
         if (numAxes>1) cunit[1] = "DEGREE";
         if (numAxes>2) {
-            if (ctype[2]=="FREQ" || ctype[2]=="freq" || ctype[2]=="Freq") cunit[2] = "HZ";
-            else cunit[2] = "M/S";
+            if (ctype[2]=="FREQ" || ctype[2]=="freq" || ctype[2]=="Freq") {
+                cunit[2] = "HZ";
+                Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,HZ]");
+            }
+            else {
+                cunit[2] = "M/S";
+                Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,M/S]");
+            }
         }
     }
     else {

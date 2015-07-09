@@ -210,7 +210,8 @@ void Galfit<T>::writeModel_azim() {
         count[i]=0;
     }
 
-    /*/// ANELLO 2D -------------------------------------------------------------
+  /*
+    /// ANELLO 2D -------------------------------------------------------------
     for (int y=0; y<in->DimY(); y++) {
         for (int x=0; x<in->DimX(); x++) {
             map_mod[x+y*out->DimX()]=0;
@@ -246,7 +247,8 @@ void Galfit<T>::writeModel_azim() {
                 double xr =  -(x-x0)*sin(phi)+(y-y0)*cos(phi);
                 double yr = (-(x-x0)*cos(phi)-(y-y0)*sin(phi))/cos(inc);
                 double r = sqrt(xr*xr+yr*yr);
-                bool isin = r>=r1 && r<=r2;
+                //bool isin = r>=r1 && r<=r2;
+                bool isin = ir==outr->nr-1 ? r>=r1 && r<=r2+sqrt(in->Head().BeamArea()/M_PI) : r>=r1 && r<=r2;
                 if (!isin) continue;
 
                 rmap[x+y*out->DimX()] = ir;
@@ -260,6 +262,7 @@ void Galfit<T>::writeModel_azim() {
     //--------------------------------------------------------------------------
     */
 
+///*
     // ANELLO 3D --------------------------------------------------------------
     T *ringreg = getFinalRingsRegion();
     for (int ir=0;ir<outr->nr;ir++) {
@@ -320,7 +323,7 @@ void Galfit<T>::writeModel_azim() {
     delete [] ringreg;
 
     // -----------------------------------------------------------------------------
-
+//*/
 
     for (int i=0;i<outr->nr;i++) surf_dens[i]/=count[i];
 
@@ -902,7 +905,10 @@ void Galfit<T>::plotChanMaps() {
             << "xmin = " << xmin << std::endl << "xmax = " << xmax << std::endl
             << "ymin = " << ymin << std::endl << "ymax = " << ymax << std::endl
             << "zmin = " << zmin << std::endl << "zmax = " << zmax << std::endl
-            << "imagedata = image[0].data[zmin:zmax,ymin:ymax,xmin:xmax] \n"
+            << "imagedata = image[0].data[";
+    if (in->Head().NumAx()>3)
+        for (int i=0; i<in->Head().NumAx()-3; i++) py_file << "0,";
+    py_file << "zmin:zmax,ymin:ymax,xmin:xmax] \n"
             << "imagedata_mod = image_mod[0].data[zmin:zmax,ymin:ymax,xmin:xmax] \n"
             << "head = image[0].header \n"
             << "zsize=imagedata[:,0,0].size \n"

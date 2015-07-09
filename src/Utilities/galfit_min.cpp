@@ -1130,7 +1130,7 @@ T* Galfit<T>::getFinalRingsRegion () {
 	for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
 	
 	T R1  = outr->radii.front()/(in->Head().PixScale()*arcconv);
-	T R2  = outr->radii.back()/(in->Head().PixScale()*arcconv);
+    T R2  = outr->radii.back()/(in->Head().PixScale()*arcconv)+sqrt(in->Head().BeamArea()/M_PI);
 	T phi = outr->phi.back();
 	T inc = outr->inc.back();
 	T psi = 0.;

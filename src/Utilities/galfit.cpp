@@ -444,7 +444,7 @@ void Galfit<T>::galfit() {
 			<< setw(m+1) << "DISP(km/s)"
 			<< setw(m)   << "INC(deg)" 
 			<< setw(m)   << "P.A.(deg)" 
-			<< setw(m)   << "Z0 (pc)"
+            << setw(m)   << "Z0(pc)"
 			<< setw(m)   << "Z0(arcs)"
 			<< setw(m)   << "SIG(E20)"
             << setw(m)   << "XPOS(pix)"
@@ -1224,7 +1224,7 @@ bool Galfit<T>::setCfield() {
 		th1 = twoth1/2;          
     }
     
-    Beam Con = {2*a1, 2*b1, th1*45./atan(1.)};
+    Beam Con = {2*a1, 2*b1, (th1*45./atan(1.))-90.};
 
 
 	// Building the convolution field.

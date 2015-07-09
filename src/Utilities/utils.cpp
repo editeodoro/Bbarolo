@@ -176,6 +176,7 @@ T AlltoVel (T in, Header &h) {
   /// a output value in units of KM/S.
 	
     std::string cunit2 = h.Cunit(h.NumAx()-1);
+    if (h.NumAx()>3) cunit2 = h.Cunit(2);
 
     double freq0 = h.Freq0();
     const double c = 299792458;

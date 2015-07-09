@@ -756,7 +756,7 @@ template void Cube<double>::printDetections(std::ostream&);
 
 template <class T>
 void Cube<T>::plotDetections() {
-	
+
 	int numObj = objectList->size();
     /*
     static int a=0;
@@ -883,7 +883,7 @@ void Cube<T>::plotDetections() {
     Vemap->Head().setMinMax(0,0);
     Vemap->Head().setBtype("velocity");
     Vemap->Head().setBunit("KM/S");
-    name = par.getOutfolder()+head.Obname()+"_mom1th.fits";
+    name = par.getOutfolder()+head.Obname()+"_mom1st.fits";
     Vemap->fitswrite_2d(name.c_str());
 	
     Dimap->copyHeader(head);

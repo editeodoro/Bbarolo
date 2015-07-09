@@ -24,6 +24,7 @@
 #ifndef RINGMODEL_HH_
 #define RINGMODEL_HH_
 
+#include "../Arrays/cube.hh"
 
 class Ringmodel							/// A class to make a least-square fitting
 {										/// of velocity field with a tilted rings
@@ -32,6 +33,8 @@ public:									/// model.
 	Ringmodel();						/// Default constructor.	
 	Ringmodel(int nrings);				/// Alternative constructor.
 	
+    Ringmodel (Cube<float> *c);
+
 	Ringmodel(int nrings, float *radii, float *widths, float *vsys, float *vrot,
 			  float *vexp, float *posang, float *incl, float xcenter, float ycenter);
 			  
@@ -127,6 +130,8 @@ public:									/// model.
 	int 	getdat (float *x, float *y, float *w, float *p, float ri, float ro, float &q, int nfr);
 	
 	void 	print (std::ostream& Stream);
+    void    printfinal (std::ostream& Stream);
+
 	
 	friend std::ostream& operator<< (std::ostream& Stream, Ringmodel& r);
 	
@@ -177,6 +182,7 @@ protected:
 
 private:
 
+    Cube<float> *in;
 	int		blo[2];			///< Lower edge of box.
 	int		bup[2];			///< Upper edge of box.
 	int		nfit;			///< Number of fits.
@@ -186,7 +192,7 @@ private:
 	float	tol;			///< Tolerance of fit.
 	float	elp4[4];		///< Matrix of coefficients.
 	int		cor[2];			///< Correlation ellipses.
-	
+
 };
   
   

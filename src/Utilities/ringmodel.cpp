@@ -29,6 +29,7 @@
 #include "ringmodel.hh"
 #include "../Arrays/cube.hh"
 #include "../Arrays/param.hh"
+#include "moment.hh"
 #include "lsqfit.hh"
 #include "utils.hh"
 #include "progressbar.hh"
@@ -107,6 +108,78 @@ Ringmodel::Ringmodel(int nrings) {
 	
 	allAllocated = true;
 	
+}
+
+
+Ringmodel::Ringmodel (Cube<float> *c)  {
+
+    in = c;
+    int nrings = c->pars().getNRADII()-1;
+    float widths = c->pars().getRADSEP()/(arcsconv(c->Head().Cunit(0))*c->Head().PixScale());
+    float vsys = atof(c->pars().getVSYS().c_str());
+    float vrot = atof(c->pars().getVROT().c_str());
+    float vexp = 0;
+    float posang = atof(c->pars().getPHI().c_str());
+    float incl = atof(c->pars().getINC().c_str());
+    float xcenter = atof(c->pars().getXPOS().c_str());
+    float ycenter = atof(c->pars().getYPOS().c_str());
+    float *radii = new float[nrings];
+
+    for (int i=0; i<nrings; i++) radii[i]=(i+1)*widths;
+
+    set(nrings, radii, widths, vsys, vrot, vexp, posang, incl, xcenter, ycenter);
+
+
+    bool mpar[MAXPAR];
+    for (int i=0; i<MAXPAR; i++) mpar[i]=false;
+    std::string FREE = c->pars().getFREE();
+    FREE = makelower(FREE);
+
+    int found = FREE.find("vsys");
+    if (found<0) mpar[VSYS]=false;
+    else mpar[VSYS]=true;
+
+    found = FREE.find("vrot");
+    if (found<0) mpar[VROT]=false;
+    else mpar[VROT]=true;
+
+    found = FREE.find("pa");
+    if (found<0) mpar[PA]=false;
+    else mpar[PA]=true;
+
+    found = FREE.find("inc");
+    if (found<0) mpar[INC]=false;
+    else mpar[INC]=true;
+
+    found = FREE.find("xpos");
+    if (found<0) mpar[X0]=false;
+    else mpar[X0]=true;
+
+    found = FREE.find("ypos");
+    if (found<0) mpar[Y0]=false;
+    else mpar[Y0]=true;
+
+    found = FREE.find("all");
+    if (found>=0)
+        for (int i=0; i<MAXPAR; i++) mpar[i] = true;
+
+    int hside;
+    if (c->pars().getSIDE()=="R") hside=1;
+    else if (c->pars().getSIDE()=="A") hside=2;
+    else hside = 3;
+
+    int wfunc = c->pars().getWFUNC();
+
+    setoption (mpar,hside,wfunc,15.);
+
+    MomentMap<float> map;
+    map.input(c);
+    map.FirstMoment(true);
+    map.fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_1st.fits").c_str());
+
+    int boxlow[2] = {0,0};
+    int boxup[2] = {map.DimX()-1, map.DimY()-1};
+    setfield(map.Array(),map.DimX(),map.DimY(),boxup,boxlow);
 }
 
 
@@ -813,6 +886,46 @@ void Ringmodel::print (std::ostream& Stream) {
 		}
 	}
 }
+
+void Ringmodel::printfinal (std::ostream& Stream) {
+
+    int m=10;
+    Stream  << std::endl;
+    Stream 	<< setw(m) << right << "#Radius"
+            << setw(m) << right << "Radius"
+            << setw(m) << right << "Vsys "
+            << setw(m) << right << "Vrot "
+            << setw(m) << right << "Vexp "
+            << setw(m) << right << "P.A."
+            << setw(m) << right << "Incl."
+            << setw(m) << right << "Xcenter"
+            << setw(m) << right << "Ycenter" << endl;
+
+    Stream 	<< setw(m) << right  << "#[pix] "
+            << setw(m) << right << "[arcs]"
+            << setw(m) << right << "[KM/S]"
+            << setw(m) << right << "[KM/S]"
+            << setw(m) << right << "[KM/S]"
+            << setw(m) << right << "[deg]"
+            << setw(m) << right << "[deg]"
+            << setw(m) << right << "[pix] "
+            << setw(m) << right << "[pix] " << endl;
+
+    for (int i=0; i<nrad; i++) {
+
+        Stream 	<< setw(m) << right << setprecision(2) << rads[i]
+                << setw(m) << right << setprecision(2) << rads[i]*in->Head().PixScale()*arcsconv(in->Head().Cunit(0))
+                << setw(m) << right << setprecision(2) << vsysf[i]
+                << setw(m) << right << setprecision(2) << vrotf[i]
+                << setw(m) << right << setprecision(2) << vexpf[i]
+                << setw(m) << right << setprecision(2) << posaf[i]
+                << setw(m) << right << setprecision(2) << inclf[i]
+                << setw(m) << right << setprecision(2) << xposf[i]
+                << setw(m) << right << setprecision(2) << yposf[i] << std::endl;
+
+    }
+}
+
 
 
 std::ostream& operator<< (std::ostream& Stream, Ringmodel& r) {

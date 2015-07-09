@@ -424,7 +424,7 @@ bool Smooth3D<T>::defineBeam(Beam Oldbeam, Beam Newbeam) {
 	confie = new double[maxconv];
 	confieAllocated=true;
 		
-	conbeam.bpa -= crota;
+	conbeam.bpa -= crota-90;
 	if (!Fillgauss2d(conbeam, 1.0, true, NconX, NconY, confie)) {
 		std::cout << "SMOOTH error: Convolution region to big!\n";
 		return false;

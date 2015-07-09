@@ -707,7 +707,7 @@ void Param::printDefaults (std::ostream& theStream) {
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
-    recordParam(theStream, "[velocityMap]", "Saving 1th moment map to FITS file?", stringize(par.getVelMap()));
+    recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
 	recordParam(theStream, "[blankCube]", "Using a blanked cube for maps and profile?", stringize(par.getBlankCube()));
 	recordParam(theStream, "[blankCut]", "SNR clipping cut for blanked areas", par.getBlankCut());
@@ -927,7 +927,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
-    recordParam(theStream, "[velocityMap]", "Saving 1th moment map to FITS file?", stringize(par.getVelMap()));
+    recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
     if (par.getTotalMap() || par.getDispMap() || par.getVelMap()) {
 		recordParam(theStream, "[blankCube]", "   Using a blanked cube for maps and profile?", stringize(par.getBlankCube()));
@@ -961,8 +961,11 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
     
     if (par.getDistance()!=-1)
 		recordParam(theStream, "[Distance]", "Distance of the galaxy (Mpc)?", par.getDistance());
-	recordParam(theStream, "[GALFIT]", "Fitting a 3D model to the datacube?", stringize(par.getflagGalFit()));
-	if (par.getflagGalFit()) {
+
+    recordParam(theStream, "[GALFIT]", "Fitting a 3D model to the datacube?", stringize(par.getflagGalFit()));
+    recordParam(theStream, "[GALMOD]", "Writing a 3D model to the datacube?", stringize(par.getflagGalMod()));
+
+    if (par.getflagGalFit() || par.getflagGalMod()) {
 		std::string box;
 		for (int i=0;i<6;i++) if (par.getBOX(i)!=-1) box += to_string<int>(par.getBOX(i))+" ";
 		if (box=="") box = "NONE";
@@ -981,6 +984,8 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
 		recordParam(theStream, "[FREE]", "   Parameters to be minimized", par.getFREE());
         recordParam(theStream, "[MASK]", "   Type of mask?", par.getMASK());
 		recordParam(theStream, "[SIDE]", "   What side of the galaxy to be used", (par.getSIDE()));	
+        recordParam(theStream, "[NORM]", "   Type of normalization?", (par.getNORM()));
+
 		
 		std::string ltype;
 		switch (par.getLTYPE()) {
