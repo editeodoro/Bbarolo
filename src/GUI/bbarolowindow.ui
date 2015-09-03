@@ -1970,19 +1970,6 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="KillpushButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Kill BBarolo</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="page_3">
@@ -3840,6 +3827,19 @@ p, li { white-space: pre-wrap; }
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QPushButton" name="KillpushButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Kill BBarolo</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -4024,7 +4024,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>BlankfactordoubleSpinBox</tabstop>
   <tabstop>BlankcutSpinBox</tabstop>
   <tabstop>LogtextEdit</tabstop>
-  <tabstop>KillpushButton</tabstop>
   <tabstop>Plot1comboBox</tabstop>
   <tabstop>Plot2comboBox</tabstop>
   <tabstop>Plot3comboBox</tabstop>
