@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -187,7 +187,7 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 			deallocate_2D(p,ndim+1);
 			delete [] y;
 			return false;
-			//abort();
+			//std::terminate();
 		}
 		nfunc += 2;
 		
@@ -709,6 +709,10 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 	int ftype = in->pars().getFTYPE();
     //int bweight = second ? 0 : in->pars().getBweight();
     int bweight = in->pars().getBweight();
+    int side;
+    if (in->pars().getSIDE()=="R") side=1;
+    else if (in->pars().getSIDE()=="A") side=2;
+    else side=3;
 
 	typename std::vector<Pixel<T> >::iterator pix;
 	for(pix=anulus->begin();pix<anulus->end();pix++) {
@@ -732,7 +736,24 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 		
 		double costh = fabs(cos(theta*M_PI/180.));
 		double wi = std::pow(costh, double(wpow));
-			
+
+        bool use=false;
+        switch (side) {					// Which side of galaxy.
+            case 1: 						//< Receding half.
+                use = (fabs(theta)<=90.0);
+                break;
+            case 2: 						//< Approaching half.
+                use = (fabs(theta)>=90.0);
+                break;
+            case 3: 						//< Both halves.
+                use = true;
+                break;
+            default:
+                break;
+        }
+
+        if (!use) continue;
+
 		// Normalizing and residuals.
 		for (uint z=in->DimZ(); z--;) {
 			long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
@@ -1130,7 +1151,7 @@ T* Galfit<T>::getFinalRingsRegion () {
 	for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
 	
 	T R1  = outr->radii.front()/(in->Head().PixScale()*arcconv);
-	T R2  = outr->radii.back()/(in->Head().PixScale()*arcconv);
+    T R2  = outr->radii.back()/(in->Head().PixScale()*arcconv)+sqrt(in->Head().BeamArea()/M_PI);
 	T phi = outr->phi.back();
 	T inc = outr->inc.back();
 	T psi = 0.;

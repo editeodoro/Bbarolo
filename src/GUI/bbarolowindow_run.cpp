@@ -10,10 +10,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -21,7 +21,6 @@
 #include<fstream>
 #include <iomanip>
 #include <sys/stat.h>
-#include <cstdlib>
 #include <QtGui>
 #include "bbarolowindow.h"
 #include "ui_bbarolowindow.h"
@@ -31,7 +30,7 @@
 #include "../Utilities/utils.hh"
 
 
-void BbaroloWindow::on_FitslineEdit_editingFinished()
+void BBaroloWindow::on_FitslineEdit_editingFinished()
 {
 
     QString filename = ui->FitslineEdit->text().trimmed();
@@ -104,7 +103,7 @@ void BbaroloWindow::on_FitslineEdit_editingFinished()
     lastFilename = filename;
 }
 
-void BbaroloWindow::on_FitspushButton_clicked()
+void BBaroloWindow::on_FitspushButton_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open FITSFILE"), QDir::currentPath(), tr("FITS files (*.fit *.fits *.FITS *.FIT);; All files (*.*)"), 0, QFileDialog::DontUseNativeDialog);
     if (!filename.isNull()) {
@@ -113,7 +112,7 @@ void BbaroloWindow::on_FitspushButton_clicked()
     }
 }
 
-void BbaroloWindow::on_ParampushButton_clicked()
+void BBaroloWindow::on_ParampushButton_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open parameter file"), QDir::currentPath(), tr("Parameter files (*.par *.txt *.dat)"), 0, QFileDialog::DontUseNativeDialog);
     if( !filename.isNull()) {
@@ -123,7 +122,7 @@ void BbaroloWindow::on_ParampushButton_clicked()
     }
 }
 
-void BbaroloWindow::updateText()
+void BBaroloWindow::updateText()
 {
     QString appendText(proc->readAll());
     ui->LogtextEdit->insertPlainText (appendText);
@@ -132,15 +131,15 @@ void BbaroloWindow::updateText()
     if (get3DFitFlag()) plotParameters();
 }
 
-void BbaroloWindow::updateExit()
+void BBaroloWindow::updateExit()
 {
     ui->RunpushButton->setEnabled(true);
     enable_All();
 
-    if (proc->exitCode()==0 && proc->exitStatus()==0) ui->statusBar->showMessage("  Bbarolo successfully terminated");
+    if (proc->exitCode()==0 && proc->exitStatus()==0) ui->statusBar->showMessage("  BBarolo successfully terminated");
     else {
-        if (proc->exitStatus()==0)  ui->statusBar->showMessage("  Bbarolo exited with errors");
-        else ui->statusBar->showMessage("  Bbarolo has been killed");
+        if (proc->exitStatus()==0)  ui->statusBar->showMessage("  BBarolo exited with errors");
+        else ui->statusBar->showMessage("  BBarolo has been killed");
     }
 
     QFile outfile(out_path+"output.log");
@@ -151,7 +150,7 @@ void BbaroloWindow::updateExit()
 
 }
 
-void BbaroloWindow::on_KillpushButton_clicked()
+void BBaroloWindow::on_KillpushButton_clicked()
 {
     if (proc->state()==2) {
         proc->terminate();
@@ -161,7 +160,7 @@ void BbaroloWindow::on_KillpushButton_clicked()
     }
 }
 
-void BbaroloWindow::on_RunpushButton_clicked() {
+void BBaroloWindow::on_RunpushButton_clicked() {
 
     ui->listWidget->setCurrentRow(ui->listWidget->model()->rowCount()-2);
     if (ui->FitslineEdit->text().isEmpty()) {
@@ -190,17 +189,17 @@ void BbaroloWindow::on_RunpushButton_clicked() {
     }
 
     ui->LogtextEdit->clear();
-    ui->statusBar->showMessage("  Bbarolo is running ...");
+    ui->statusBar->showMessage("  BBarolo is running ...");
 
     proc = new QProcess(this);
-    QString cmd = QApplication::applicationDirPath()+"/Bbarolo "+argv1+" "+argv2;
+    QString cmd = QApplication::applicationDirPath()+"/BBarolo "+argv1+" "+argv2;
     connect(proc, SIGNAL(readyRead()), this, SLOT(updateText()));
     connect(proc, SIGNAL(readyReadStandardError()), this, SLOT(updateText()));
     connect(proc, SIGNAL(finished(int)), this, SLOT(updateExit()));
     proc->start(cmd);
 }
 
-void BbaroloWindow::readParamFromFile(std::string filein) {
+void BBaroloWindow::readParamFromFile(std::string filein) {
 
     Param *par = new Param;
     par->readParams(filein);
@@ -383,7 +382,7 @@ void BbaroloWindow::readParamFromFile(std::string filein) {
     }
 }
 
-void BbaroloWindow::writeParamFile(QString file) {
+void BBaroloWindow::writeParamFile(QString file) {
 
     using namespace std;
 
@@ -537,7 +536,7 @@ void BbaroloWindow::writeParamFile(QString file) {
     out.close();
 }
 
-void BbaroloWindow::readModelParam(Param *par) {
+void BBaroloWindow::readModelParam(Param *par) {
 
     ui->FreeParametersframe->setEnabled(true);
     QString s;
@@ -723,7 +722,7 @@ void BbaroloWindow::readModelParam(Param *par) {
     else ui->NormcomboBox->setCurrentIndex(2);
 }
 
-void BbaroloWindow::writeModelParam(std::ofstream &out) {
+void BBaroloWindow::writeModelParam(std::ofstream &out) {
 
     int n=20;
     if (!ui->RadsepFilelineEdit->isHidden()) {
@@ -824,7 +823,7 @@ void BbaroloWindow::writeModelParam(std::ofstream &out) {
 
 }
 
-void BbaroloWindow::plotParameters(){
+void BBaroloWindow::plotParameters(){
 
     const unsigned nsubplot = ui->SecondstagecheckBox->isChecked() ? 2 : 1;
     const unsigned MAXPAR = 9;

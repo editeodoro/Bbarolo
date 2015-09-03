@@ -14,15 +14,15 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
 #include <iostream>
-#include <cstring>
+#include <string>
 #include <iomanip>
 #include "../Arrays/cube.hh"
 #include "smooth3D.hh"
@@ -38,6 +38,8 @@ void Smooth3D<T>::defaults() {
 	cutoffratio=1.0/10000.0;
 	maxconv=512*512;
 	arrayAllocated 	= false;
+    blanksAllocated = false;
+    useBlanks       = true;
 	confieAllocated	= false;
 	beamDefined 	= false;
 	usescalefac		= true;
@@ -67,7 +69,8 @@ template <class T>
 Smooth3D<T>::~Smooth3D() {
 	
 	if (arrayAllocated) delete [] array;	
-	if (confieAllocated) delete [] confie;		
+    if (blanksAllocated) delete [] blanks;
+    if (confieAllocated) delete [] confie;
 }
 template Smooth3D<short>::~Smooth3D();
 template Smooth3D<int>::~Smooth3D();
@@ -130,6 +133,14 @@ Smooth3D<T>& Smooth3D<T>::operator=(const Smooth3D<T> &s) {
 			this->array[i] = s.array[i];
 	}
 
+    if (this->blanksAllocated) delete [] blanks;
+    this->blanksAllocated = s.blanksAllocated;
+    if (this->blanksAllocated) {
+        this->blanks = new bool[NdatX*NdatY*NdatZ];
+        for (int i=0; i<NdatX*NdatY*NdatZ; i++)
+            this->blanks[i] = s.blanks[i];
+    }
+
 	if (this->confieAllocated) delete [] confie;
 	this->confieAllocated = s.confieAllocated;
 	if (this->confieAllocated) {
@@ -165,7 +176,7 @@ void Smooth3D<T>::cubesmooth(Cube<T> *c) {
 		std::cout << "SMOOTH error (unknown CUNIT for RA-DEC): ";
 		std::cout << "cannot convert to ARCSEC.\n";
 		std::cout << cunit;
-		abort();
+		std::terminate();
 	}
 	
     Beam OB = {c->pars().getOBmaj(), c->pars().getOBmin(), c->pars().getOBpa()};
@@ -260,7 +271,7 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
 	crota = c->Head().Crota();
 	
 	beamDefined = defineBeam(Oldbeam, Newbeam);
-	if (!beamDefined) abort();
+	if (!beamDefined) std::terminate();
 	
 	if (c->pars().isVerbose()) {
 
@@ -295,14 +306,19 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
 	
 	array = new T [NdatX*NdatY*NdatZ];
 	arrayAllocated =true;
-		
+
+    blanks = new bool [NdatX*NdatY*NdatZ];
+    blanksAllocated = true;
+    for (int i=0; i<NdatX*NdatY*NdatZ; i++) blanks[i] = isBlank(c->Array(i)) && useBlanks ? false : true;
+
+
 	bool allOK;
 
 	if (fft) allOK = calculatefft(c->Array(), array);
 	else allOK = calculate(c->Array(), array);
 	if (!allOK) {
 		std::cout << "SMOOTH error: cannot smooth data\n";
-		abort();
+		std::terminate();
 	}
 
 }
@@ -344,6 +360,10 @@ bool Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam, T *OldArray, T 
 	beamDefined = defineBeam(Oldbeam, Newbeam);	
 	if (!beamDefined) return false;
 		
+    blanks = new bool [NdatX*NdatY*NdatZ];
+    blanksAllocated = true;
+    for (int i=0; i<NdatX*NdatY*NdatZ; i++) blanks[i] = isBlank(c->Array(i)) && useBlanks ? false : true;
+
 	bool allOK;
 	if (fft) allOK = calculatefft(OldArray, NewArray);
 	else allOK = calculate(OldArray, NewArray);
@@ -424,7 +444,7 @@ bool Smooth3D<T>::defineBeam(Beam Oldbeam, Beam Newbeam) {
 	confie = new double[maxconv];
 	confieAllocated=true;
 		
-	conbeam.bpa -= crota;
+	conbeam.bpa -= crota-90;
 	if (!Fillgauss2d(conbeam, 1.0, true, NconX, NconY, confie)) {
 		std::cout << "SMOOTH error: Convolution region to big!\n";
 		return false;
@@ -544,7 +564,7 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
 			for (int y=(NconY-1)/2; y<(NdatY+(NconY-1)/2); y++) {
 				long nPix = x+y*(NdatX+NconX-1);
 				long oPix = (x-(NconX-1)/2)+(y-(NconY-1)/2)*NdatX+z*NdatX*NdatY;	
-				NewArray[oPix] = afterCON[nPix]*scalefac;
+                NewArray[oPix] = blanks[oPix]*afterCON[nPix]*scalefac;
 			}
 		}
 		
@@ -600,8 +620,8 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
 		for (int x=0; x<NdatX; x++) {
 			for (int y=0; y<NdatY; y++) {
 				long nPix = x+y*NdatX;
-				long oPix = x+y*NdatX+z*NdatX*NdatY;	
-				NewArray[oPix] = conv_fft.dst[nPix]*scalefac;
+                long oPix = x+y*NdatX+z*NdatX*NdatY;
+                NewArray[oPix] = blanks[oPix]*conv_fft.dst[nPix]*scalefac;
 			}
 		}
 		
@@ -891,7 +911,7 @@ void Smooth3D<T>::fitswrite() {
 
     std::string name = in->pars().getSmoothOut();
     if (name=="NONE") {
-        in->pars().getOutfolder()+in->Head().Name();
+        name = in->pars().getOutfolder()+in->Head().Name();
         name += "_s"+to_string<int>(lround(newbeam.bmaj));
         if (in->pars().getflagReduce()) name+="red";
         name+=".fits";

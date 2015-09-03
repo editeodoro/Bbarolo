@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -25,7 +25,6 @@
 #include <fftw3.h>
 #include <cmath>
 #include <iostream>
-#include <stdlib.h>
 #include <cstring>
 
 #ifdef _OPENMP
@@ -120,7 +119,7 @@ void init_Conv2D (Conv2D &ws, CONV_MODE mode, int w_src, int h_src, int w_kernel
 					  << "   - CIRCULAR_SAME \n"
 					  << "   - CIRCULAR_SHIFTED\n"
 					  << "   - CIRCULAR_CUSTOM\n";
-			abort();
+            std::terminate();
 	}
 
 	ws.in_src  = new double[ws.h_fftw*ws.w_fftw];
@@ -284,7 +283,7 @@ void convolve(Conv2D &ws, double *src, double *kernel) {
 					  << "   - CIRCULAR_SAME \n"
 					  << "   - CIRCULAR_SHIFTED\n"
 					  << "   - CIRCULAR_CUSTOM\n";
-			abort();
+            std::terminate();
 	}
 }
  

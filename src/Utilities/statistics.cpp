@@ -15,10 +15,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -143,7 +143,7 @@ template void findAllStats<double>(double *, size_t, double&, double&, double&, 
 
 
 template <class T> 
-void findAllStats(T *array, size_t size, bool *mask, T &mean, T &stddev, T &median, T &madfm) {
+void findAllStats(T *array, size_t size, bool *mask, T &mean, T &stddev, T &median, T &madfm, T &maxx, T &minn) {
 
   /// Find the mean,rms (or standard deviation), median AND madfm of a
   /// subset of an array of numbers. Type independent. The subset is
@@ -171,7 +171,14 @@ void findAllStats(T *array, size_t size, bool *mask, T &mean, T &stddev, T &medi
 
 	T *newarray = new T[goodSize];
 	goodSize=0;
-	for(size_t i=0;i<size;i++) if(mask[i]) newarray[goodSize++] = array[i];
+    minn = maxx = array[0];
+    for(size_t i=0;i<size;i++) {
+        if(mask[i]) {
+            newarray[goodSize++] = array[i];
+            if(array[i]<minn) minn=array[i];
+            if(array[i]>maxx) maxx=array[i];
+        }
+    }
 
 	mean = findMean(newarray,goodSize);
 	stddev = findStddev(newarray,goodSize);
@@ -181,11 +188,11 @@ void findAllStats(T *array, size_t size, bool *mask, T &mean, T &stddev, T &medi
 	delete [] newarray;
 
 }
-template void findAllStats<short>(short*, size_t, bool*, short&, short&, short&,short&);
-template void findAllStats<int>(int*, size_t, bool*, int&, int&, int &, int &);
-template void findAllStats<long>(long*, size_t, bool*, long&, long&, long&, long&);
-template void findAllStats<float>(float*, size_t, bool*, float&, float&, float&, float&);
-template void findAllStats<double>(double*, size_t, bool*, double&, double&, double&, double&);
+template void findAllStats<short>(short*, size_t, bool*, short&, short&, short&,short&, short&, short&);
+template void findAllStats<int>(int*, size_t, bool*, int&, int&, int &, int &, int &, int &);
+template void findAllStats<long>(long*, size_t, bool*, long&, long&, long&, long&, long&, long&);
+template void findAllStats<float>(float*, size_t, bool*, float&, float&, float&, float&, float&, float&);
+template void findAllStats<double>(double*, size_t, bool*, double&, double&, double&, double&, double&, double&);
 
 
 

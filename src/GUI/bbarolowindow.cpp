@@ -10,10 +10,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -27,9 +27,9 @@
 //ConsoleStream cout(&std::cout,ui->LogtextEdit); <--- I prefer this one
 //new Q_DebugStream(std::cout, ui->LogtextEdit);
 
-BbaroloWindow::BbaroloWindow(QWidget *parent) :
+BBaroloWindow::BBaroloWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::BbaroloWindow)
+    ui(new Ui::BBaroloWindow)
 {
     ui->setupUi(this);
     ui->xposlineEdit->setValidator(new QDoubleValidator(0,10000,4,this));
@@ -62,7 +62,7 @@ BbaroloWindow::BbaroloWindow(QWidget *parent) :
     ui->plot4->setInteraction(QCP::iRangeZoom, true);
 
     Hide_All_3DFit_file(true);
-    ui->Logolabel->setPixmap(QPixmap(currentPath.path()+"/BbaroloGUI.app/Contents/Resources/Bbarolo.tiff"));
+    ui->Logolabel->setPixmap(QPixmap(currentPath.path()+"/BBaroloGUI.app/Contents/Resources/Bbarolo.tiff"));
     ui->AutocheckBox->setHidden(true);
     ui->MaskThreshSpinBox->setHidden(true);
 
@@ -78,12 +78,12 @@ BbaroloWindow::BbaroloWindow(QWidget *parent) :
 
 }
 
-BbaroloWindow::~BbaroloWindow()
+BBaroloWindow::~BBaroloWindow()
 {
     delete ui;
 }
 
-void BbaroloWindow::resetGUI() {
+void BBaroloWindow::resetGUI() {
     enable_All();
     ui->ParamlineEdit->clear();
     ui->FitslineEdit->clear();
@@ -192,7 +192,7 @@ void BbaroloWindow::resetGUI() {
     ui->listWidget->setCurrentRow(0);
 }
 
-void BbaroloWindow::enable_All() {
+void BBaroloWindow::enable_All() {
     ui->ParamlineEdit->setEnabled(true);
     ui->FitslineEdit->setEnabled(true);
     ui->ParampushButton->setEnabled(true);
@@ -215,7 +215,7 @@ void BbaroloWindow::enable_All() {
     ui->AutocheckBox->setEnabled(true);
 }
 
-void BbaroloWindow::disable_All() {
+void BBaroloWindow::disable_All() {
     ui->FitslineEdit->setDisabled(true);
     ui->ParampushButton->setDisabled(true);
     ui->ResetpushButton->setDisabled(true);
@@ -233,7 +233,7 @@ void BbaroloWindow::disable_All() {
     ui->AutocheckBox->setDisabled(true);
 }
 
-void BbaroloWindow::on_AutocheckBox_stateChanged()
+void BBaroloWindow::on_AutocheckBox_stateChanged()
 {
     if(ui->AutocheckBox->isChecked()) disable_All();
     else enable_All();
@@ -242,7 +242,7 @@ void BbaroloWindow::on_AutocheckBox_stateChanged()
     ui->AutocheckBox->setEnabled(true);
 }
 
-void BbaroloWindow::on_BoxcheckBox_stateChanged()
+void BBaroloWindow::on_BoxcheckBox_stateChanged()
 {
     if (ui->BoxcheckBox->isChecked()) {
         ui->XmaxspinBox->setEnabled(true);
@@ -273,31 +273,31 @@ void BbaroloWindow::on_BoxcheckBox_stateChanged()
 /// 3Dfit panel slots
 //////////////////////
 
-void BbaroloWindow::on_NringscheckBox_stateChanged()
+void BBaroloWindow::on_NringscheckBox_stateChanged()
 {
     if (ui->NringscheckBox->isChecked()) ui->NringsspinBox->setDisabled(true);
     else ui->NringsspinBox->setEnabled(true);
 }
 
-void BbaroloWindow::on_RadsepcheckBox_stateChanged()
+void BBaroloWindow::on_RadsepcheckBox_stateChanged()
 {
     if (ui->RadsepcheckBox->isChecked()) ui->RadsepSpinBox->setDisabled(true);
     else ui->RadsepSpinBox->setEnabled(true);
 }
 
-void BbaroloWindow::on_XposcheckBox_stateChanged()
+void BBaroloWindow::on_XposcheckBox_stateChanged()
 {
     if (ui->XposcheckBox->isChecked()) ui->xposlineEdit->setDisabled(true);
     else ui->xposlineEdit->setEnabled(true);
 }
 
-void BbaroloWindow::on_YposcheckBox_stateChanged()
+void BBaroloWindow::on_YposcheckBox_stateChanged()
 {
     if (ui->YposcheckBox->isChecked()) ui->yposlineEdit->setDisabled(true);
     else ui->yposlineEdit->setEnabled(true);
 }
 
-void BbaroloWindow::on_wcscomboBox_activated(int index)
+void BBaroloWindow::on_wcscomboBox_activated(int index)
 {
     switch (index) {
     case 0:
@@ -324,25 +324,25 @@ void BbaroloWindow::on_wcscomboBox_activated(int index)
     ui->yposlineEdit->setCursorPosition(1);
 }
 
-void BbaroloWindow::on_VsyscheckBox_stateChanged()
+void BBaroloWindow::on_VsyscheckBox_stateChanged()
 {
     if (ui->VsyscheckBox->isChecked()) ui->VsysSpinBox->setDisabled(true);
     else ui->VsysSpinBox->setEnabled(true);
 }
 
-void BbaroloWindow::on_VrotcheckBox_stateChanged()
+void BBaroloWindow::on_VrotcheckBox_stateChanged()
 {
     if (ui->VrotcheckBox->isChecked()) ui->VrotSpinBox->setDisabled(true);
     else ui->VrotSpinBox->setEnabled(true);
 }
 
-void BbaroloWindow::on_VdispcheckBox_stateChanged()
+void BBaroloWindow::on_VdispcheckBox_stateChanged()
 {
     if (ui->VdispcheckBox->isChecked()) ui->VdispSpinBox->setDisabled(true);
     else ui->VdispSpinBox->setEnabled(true);
 }
 
-void BbaroloWindow::on_InccheckBox_stateChanged()
+void BBaroloWindow::on_InccheckBox_stateChanged()
 {
     if (ui->InccheckBox->isChecked()) {
         ui->IncSpinBox->setDisabled(true);
@@ -354,7 +354,7 @@ void BbaroloWindow::on_InccheckBox_stateChanged()
     }
 }
 
-void BbaroloWindow::on_PacheckBox_stateChanged()
+void BBaroloWindow::on_PacheckBox_stateChanged()
 {
     if (ui->PacheckBox->isChecked()) {
         ui->PaSpinBox->setDisabled(true);
@@ -366,20 +366,20 @@ void BbaroloWindow::on_PacheckBox_stateChanged()
     }
 }
 
-void BbaroloWindow::on_Z0checkBox_stateChanged()
+void BBaroloWindow::on_Z0checkBox_stateChanged()
 {
     if (ui->Z0checkBox->isChecked()) ui->Z0SpinBox->setDisabled(true);
     else ui->Z0SpinBox->setEnabled(true);
 }
 
-void BbaroloWindow::on_SecondstagecheckBox_stateChanged()
+void BBaroloWindow::on_SecondstagecheckBox_stateChanged()
 {
     if(ui->SecondstagecheckBox->isChecked()) ui->PolynspinBox->setEnabled(true);
     else ui->PolynspinBox->setDisabled(true);
 
 }
 
-void BbaroloWindow::on_MasktoolButton_clicked()
+void BBaroloWindow::on_MasktoolButton_clicked()
 {
 
     if (ui->MaskcomboBox->currentIndex()==0) {
@@ -394,7 +394,7 @@ void BbaroloWindow::on_MasktoolButton_clicked()
 
 }
 
-void BbaroloWindow::on_MaskcomboBox_currentIndexChanged(int index)
+void BBaroloWindow::on_MaskcomboBox_currentIndexChanged(int index)
 {
     if (index==0) {
         ui->MasktoolButton->setHidden(false);
@@ -415,38 +415,38 @@ void BbaroloWindow::on_MaskcomboBox_currentIndexChanged(int index)
 
 }
 
-void BbaroloWindow::on_RadseppushButton_clicked(){Selected_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->RadsepSpinBox); Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->NringsspinBox, false);}
-void BbaroloWindow::on_XpospushButton_clicked(){Selected_3DFit_file(ui->XposFilelineEdit,ui->XposFilespinBox,ui->xposlineEdit);}
-void BbaroloWindow::on_YpospushButton_clicked(){Selected_3DFit_file(ui->YposFilelineEdit,ui->YposFilespinBox,ui->yposlineEdit);}
-void BbaroloWindow::on_VsyspushButton_clicked(){Selected_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox);}
-void BbaroloWindow::on_VrotpushButton_clicked(){Selected_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox);}
-void BbaroloWindow::on_VdisppushButton_clicked(){Selected_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox);}
-void BbaroloWindow::on_IncpushButton_clicked(){Selected_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox);}
-void BbaroloWindow::on_PapushButton_clicked(){Selected_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox);}
-void BbaroloWindow::on_Z0pushButton_clicked(){Selected_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox);}
-void BbaroloWindow::on_DenspushButton_clicked(){Selected_3DFit_file(ui->DensFilelineEdit,ui->DensFilespinBox,ui->DensSpinBox);}
+void BBaroloWindow::on_RadseppushButton_clicked(){Selected_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->RadsepSpinBox); Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->NringsspinBox, false);}
+void BBaroloWindow::on_XpospushButton_clicked(){Selected_3DFit_file(ui->XposFilelineEdit,ui->XposFilespinBox,ui->xposlineEdit);}
+void BBaroloWindow::on_YpospushButton_clicked(){Selected_3DFit_file(ui->YposFilelineEdit,ui->YposFilespinBox,ui->yposlineEdit);}
+void BBaroloWindow::on_VsyspushButton_clicked(){Selected_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox);}
+void BBaroloWindow::on_VrotpushButton_clicked(){Selected_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox);}
+void BBaroloWindow::on_VdisppushButton_clicked(){Selected_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox);}
+void BBaroloWindow::on_IncpushButton_clicked(){Selected_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox);}
+void BBaroloWindow::on_PapushButton_clicked(){Selected_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox);}
+void BBaroloWindow::on_Z0pushButton_clicked(){Selected_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox);}
+void BBaroloWindow::on_DenspushButton_clicked(){Selected_3DFit_file(ui->DensFilelineEdit,ui->DensFilespinBox,ui->DensSpinBox);}
 
-void BbaroloWindow::on_RadsepFilelineEdit_editingFinished(){Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->RadsepSpinBox,ui->RadsepFilelineEdit->text().isEmpty());Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->NringsspinBox,ui->RadsepFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_XposFilespinBox_editingFinished(){Hide_3DFit_file(ui->XposFilelineEdit,ui->XposFilespinBox,ui->xposlineEdit,ui->XposFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_YposFilelineEdit_editingFinished(){Hide_3DFit_file(ui->YposFilelineEdit,ui->YposFilespinBox,ui->yposlineEdit,ui->YposFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_VsysFilelineEdit_editingFinished(){Hide_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox,ui->VsysFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_VrotFilelineEdit_editingFinished() {Hide_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox,ui->VrotFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_VdispFilelineEdit_editingFinished(){Hide_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox,ui->VdispFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_IncFilelineEdit_editingFinished(){Hide_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox,ui->IncFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_PaFilelineEdit_editingFinished(){Hide_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox,ui->PaFilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_Z0FilelineEdit_editingFinished(){Hide_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox,ui->Z0FilelineEdit->text().isEmpty());}
-void BbaroloWindow::on_DensFilelineEdit_editingFinished(){Hide_3DFit_file(ui->DensFilelineEdit,ui->DensFilespinBox,ui->DensSpinBox,ui->DensFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_RadsepFilelineEdit_editingFinished(){Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->RadsepSpinBox,ui->RadsepFilelineEdit->text().isEmpty());Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->NringsspinBox,ui->RadsepFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_XposFilespinBox_editingFinished(){Hide_3DFit_file(ui->XposFilelineEdit,ui->XposFilespinBox,ui->xposlineEdit,ui->XposFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_YposFilelineEdit_editingFinished(){Hide_3DFit_file(ui->YposFilelineEdit,ui->YposFilespinBox,ui->yposlineEdit,ui->YposFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_VsysFilelineEdit_editingFinished(){Hide_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox,ui->VsysFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_VrotFilelineEdit_editingFinished() {Hide_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox,ui->VrotFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_VdispFilelineEdit_editingFinished(){Hide_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox,ui->VdispFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_IncFilelineEdit_editingFinished(){Hide_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox,ui->IncFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_PaFilelineEdit_editingFinished(){Hide_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox,ui->PaFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_Z0FilelineEdit_editingFinished(){Hide_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox,ui->Z0FilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_DensFilelineEdit_editingFinished(){Hide_3DFit_file(ui->DensFilelineEdit,ui->DensFilespinBox,ui->DensSpinBox,ui->DensFilelineEdit->text().isEmpty());}
 
-void BbaroloWindow::on_GalfittoolButton_clicked(){ui->stackedWidget->setCurrentIndex(ui->stackedWidget->count()-2);}
-void BbaroloWindow::on_GalfitAdvtoolButton_clicked(){ui->stackedWidget->setCurrentIndex(1);}
+void BBaroloWindow::on_GalfittoolButton_clicked(){ui->stackedWidget->setCurrentIndex(ui->stackedWidget->count()-2);}
+void BBaroloWindow::on_GalfitAdvtoolButton_clicked(){ui->stackedWidget->setCurrentIndex(1);}
 
-void BbaroloWindow::Hide_3DFit_file(QLineEdit *le, QSpinBox *sb, QWidget *qw, bool Hide) {
+void BBaroloWindow::Hide_3DFit_file(QLineEdit *le, QSpinBox *sb, QWidget *qw, bool Hide) {
         le->setHidden(Hide);
         sb->setHidden(Hide);
         qw->setEnabled(Hide);
 }
 
-void BbaroloWindow::Hide_All_3DFit_file(bool Hide) {
+void BBaroloWindow::Hide_All_3DFit_file(bool Hide) {
     Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->RadsepSpinBox,Hide);
     Hide_3DFit_file(ui->XposFilelineEdit,ui->XposFilespinBox,ui->xposlineEdit,Hide);
     Hide_3DFit_file(ui->YposFilelineEdit,ui->YposFilespinBox,ui->yposlineEdit,Hide);
@@ -459,7 +459,7 @@ void BbaroloWindow::Hide_All_3DFit_file(bool Hide) {
     Hide_3DFit_file(ui->DensFilelineEdit,ui->DensFilespinBox,ui->DensSpinBox,Hide);
 }
 
-void BbaroloWindow::Selected_3DFit_file(QLineEdit *le, QSpinBox *sb, QWidget *qw) {
+void BBaroloWindow::Selected_3DFit_file(QLineEdit *le, QSpinBox *sb, QWidget *qw) {
 
     QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), QDir::currentPath(), tr("All files (*.*)"), 0, QFileDialog::DontUseNativeDialog);
     if (!filename.isEmpty()) {
@@ -472,7 +472,7 @@ void BbaroloWindow::Selected_3DFit_file(QLineEdit *le, QSpinBox *sb, QWidget *qw
 //////////////////////
 /// Search panel slots
 //////////////////////
-void BbaroloWindow::on_SearchgroupBox_clicked()
+void BBaroloWindow::on_SearchgroupBox_clicked()
 {
     if (ui->SearchgroupBox->isChecked()) {
         ui->SearchAdvgroupBox->setEnabled(true);
@@ -482,7 +482,7 @@ void BbaroloWindow::on_SearchgroupBox_clicked()
     }
 }
 
-void BbaroloWindow::on_GrowthcheckBox_stateChanged()
+void BBaroloWindow::on_GrowthcheckBox_stateChanged()
 {
     if (ui->GrowthcheckBox->isChecked()) {
         ui->SecondarycutlineEdit->setEnabled(true);
@@ -494,7 +494,7 @@ void BbaroloWindow::on_GrowthcheckBox_stateChanged()
     }
 }
 
-void BbaroloWindow::on_SearchAdvgroupBox_clicked()
+void BBaroloWindow::on_SearchAdvgroupBox_clicked()
 {
     if (ui->SearchAdvgroupBox->isChecked()){
         ui->ThreshSpatialBox->setDisabled(true);
@@ -508,7 +508,7 @@ void BbaroloWindow::on_SearchAdvgroupBox_clicked()
 }
 
 
-void BbaroloWindow::on_AdjacentcheckBox_stateChanged(int arg1)
+void BBaroloWindow::on_AdjacentcheckBox_stateChanged(int arg1)
 {
     if (arg1==Qt::Checked) {
         ui->ThreshSpatialBox->setValue(-1);
@@ -521,13 +521,13 @@ void BbaroloWindow::on_AdjacentcheckBox_stateChanged(int arg1)
 }
 
 
-void BbaroloWindow::on_SearchtoolButton_clicked(){ui->stackedWidget->setCurrentIndex(ui->stackedWidget->count()-1);}
-void BbaroloWindow::on_SearchAdvtoolButton_clicked(){ui->stackedWidget->setCurrentIndex(2);}
+void BBaroloWindow::on_SearchtoolButton_clicked(){ui->stackedWidget->setCurrentIndex(ui->stackedWidget->count()-1);}
+void BBaroloWindow::on_SearchAdvtoolButton_clicked(){ui->stackedWidget->setCurrentIndex(2);}
 
 //////////////////////
 /// Smooth panel slots
 //////////////////////
-void BbaroloWindow::on_BeamgroupBox_clicked()
+void BBaroloWindow::on_BeamgroupBox_clicked()
 {
     if (ui->BeamgroupBox->isChecked()) {
         ui->FactorcheckBox->setChecked(false);
@@ -535,7 +535,7 @@ void BbaroloWindow::on_BeamgroupBox_clicked()
     else ui->FactorcheckBox->setChecked(true);
 }
 
-void BbaroloWindow::on_FactorcheckBox_stateChanged()
+void BBaroloWindow::on_FactorcheckBox_stateChanged()
 {
     if(ui->FactorcheckBox->isChecked()) {
         ui->FactordoubleSpinBox->setEnabled(true);
@@ -551,7 +551,7 @@ void BbaroloWindow::on_FactorcheckBox_stateChanged()
     }
 }
 
-void BbaroloWindow::on_NbmajSpinBox_valueChanged(double arg1)
+void BBaroloWindow::on_NbmajSpinBox_valueChanged(double arg1)
 {
     if (obj!=""){
         QString smooth_name = "./output/"+obj+"/"+obj+"_s"+QString::number(lround(arg1));
@@ -561,20 +561,20 @@ void BbaroloWindow::on_NbmajSpinBox_valueChanged(double arg1)
     }
 }
 
-void BbaroloWindow::on_SmoothOutpushButton_clicked()
+void BBaroloWindow::on_SmoothOutpushButton_clicked()
 {
     QString filename = QFileDialog::getSaveFileName(this,tr("Save FITS file"),QDir::currentPath(),tr("FITS files (*.fits *.FITS *.fit *.FIT)"));
     if (!filename.isNull()) ui->SmoothOutlineEdit->setText(filename);
 }
 
-void BbaroloWindow::on_FactordoubleSpinBox_valueChanged(double arg1)
+void BBaroloWindow::on_FactordoubleSpinBox_valueChanged(double arg1)
 {
     ui->NbmajSpinBox->setValue(arg1*ui->ObmajSpinBox->value());
     ui->NbminSpinBox->setValue(arg1*ui->ObminSpinBox->value());
     ui->NbpaSpinBox->setValue(ui->ObpaSpinBox->value());
 }
 
-void BbaroloWindow::on_ReducecheckBox_clicked(bool checked)
+void BBaroloWindow::on_ReducecheckBox_clicked(bool checked)
 {
     if (obj!=""){
         QString smooth_name = "./output/"+obj+"/"+obj+"_s"+QString::number(lround(ui->NbmajSpinBox->value()));
@@ -585,14 +585,14 @@ void BbaroloWindow::on_ReducecheckBox_clicked(bool checked)
 }
 
 
-void BbaroloWindow::on_actionExport_parameter_file_triggered()
+void BBaroloWindow::on_actionExport_parameter_file_triggered()
 {
     QString filename = QFileDialog::getSaveFileName(this,tr("Save Parameter file"),QDir::currentPath(),tr("All files (*.*)"));
     writeParamFile(filename);
 }
 
 
-void BbaroloWindow::switch_Galmod_3Dfit(bool toHide) {
+void BBaroloWindow::switch_Galmod_3Dfit(bool toHide) {
     ui->FreeParametersframe->setHidden(toHide);
     ui->IncDSpinBox->setHidden(toHide);
     ui->PaDSpinBox->setHidden(toHide);
@@ -614,7 +614,7 @@ void BbaroloWindow::switch_Galmod_3Dfit(bool toHide) {
 /////////////////////////////////
 /// List widget slots & Functions
 /////////////////////////////////
-int BbaroloWindow::getCurrentRow(QListWidgetItem *item) {
+int BBaroloWindow::getCurrentRow(QListWidgetItem *item) {
 
     int currentRow=0;
     QString itemLab = item->text();
@@ -627,7 +627,7 @@ int BbaroloWindow::getCurrentRow(QListWidgetItem *item) {
     return currentRow;
 }
 
-void BbaroloWindow::on_listWidget_currentRowChanged(int currentRow)
+void BBaroloWindow::on_listWidget_currentRowChanged(int currentRow)
 {
     if (currentRow==1) switch_Galmod_3Dfit(false);
     else {
@@ -638,7 +638,7 @@ void BbaroloWindow::on_listWidget_currentRowChanged(int currentRow)
 }
 
 
-void BbaroloWindow::on_listWidget_itemChanged(QListWidgetItem *item)
+void BBaroloWindow::on_listWidget_itemChanged(QListWidgetItem *item)
 {
     QString itemLab = item->text();
     int currentRow=getCurrentRow(item);
@@ -670,7 +670,7 @@ void BbaroloWindow::on_listWidget_itemChanged(QListWidgetItem *item)
 
 }
 
-void BbaroloWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
+void BBaroloWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
 {
     int currentRow=getCurrentRow(item);
 
@@ -681,7 +681,7 @@ void BbaroloWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
     }
 }
 
-void BbaroloWindow::on_HidetoolButton_clicked()
+void BBaroloWindow::on_HidetoolButton_clicked()
 {
     if (ui->listWidget->isHidden()) {
         ui->listWidget->setHidden(false);
@@ -701,34 +701,34 @@ void BbaroloWindow::on_HidetoolButton_clicked()
 }
 
 
-void BbaroloWindow::set3DFitFlag(Qt::CheckState c) {
+void BBaroloWindow::set3DFitFlag(Qt::CheckState c) {
     ui->listWidget->item(1)->setCheckState(c);
     if (c==Qt::Checked && ui->listWidget->item(2)->checkState()==Qt::Checked)
         ui->listWidget->item(2)->setCheckState(Qt::Unchecked);
 }
 
-bool BbaroloWindow::get3DFitFlag() {return ui->listWidget->item(1)->checkState();};
+bool BBaroloWindow::get3DFitFlag() {return ui->listWidget->item(1)->checkState();};
 
-void BbaroloWindow::set3DModelFlag(Qt::CheckState c) {
+void BBaroloWindow::set3DModelFlag(Qt::CheckState c) {
     ui->listWidget->item(2)->setCheckState(c);
     if (c==Qt::Checked && ui->listWidget->item(1)->checkState()==Qt::Checked)
         ui->listWidget->item(1)->setCheckState(Qt::Unchecked);
 }
 
-bool BbaroloWindow::get3DModelFlag() {return ui->listWidget->item(2)->checkState();};
-void BbaroloWindow::setSearchFlag(Qt::CheckState c) {ui->listWidget->item(3)->setCheckState(c);};
-bool BbaroloWindow::getSearchFlag() {return ui->listWidget->item(3)->checkState();};
-void BbaroloWindow::setSmoothFlag(Qt::CheckState c) {ui->listWidget->item(4)->setCheckState(c);};
-bool BbaroloWindow::getSmoothFlag() {return ui->listWidget->item(4)->checkState();};
-void BbaroloWindow::setMapsFlag(Qt::CheckState c) {ui->listWidget->item(5)->setCheckState(c);};
-bool BbaroloWindow::getMapsFlag() {return ui->listWidget->item(5)->checkState();};
+bool BBaroloWindow::get3DModelFlag() {return ui->listWidget->item(2)->checkState();};
+void BBaroloWindow::setSearchFlag(Qt::CheckState c) {ui->listWidget->item(3)->setCheckState(c);};
+bool BBaroloWindow::getSearchFlag() {return ui->listWidget->item(3)->checkState();};
+void BBaroloWindow::setSmoothFlag(Qt::CheckState c) {ui->listWidget->item(4)->setCheckState(c);};
+bool BBaroloWindow::getSmoothFlag() {return ui->listWidget->item(4)->checkState();};
+void BBaroloWindow::setMapsFlag(Qt::CheckState c) {ui->listWidget->item(5)->setCheckState(c);};
+bool BBaroloWindow::getMapsFlag() {return ui->listWidget->item(5)->checkState();};
 
-std::string BbaroloWindow::getFileString(QLineEdit *le, QSpinBox *sb) {
+std::string BBaroloWindow::getFileString(QLineEdit *le, QSpinBox *sb) {
     QString to_return = "file("+le->text()+","+QString::number(sb->value())+")";
     return to_return.toStdString();
 }
 
-int BbaroloWindow::readFileString(QString &s) {
+int BBaroloWindow::readFileString(QString &s) {
     if (!s.contains("ile")) return -1;
     else {
         QStringList list = s.split(",");

@@ -10,10 +10,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     }
     else {
         QApplication a(argc, argv);
-        BbaroloWindow w;
+        BBaroloWindow w;
         w.show();
         return a.exec();
     }

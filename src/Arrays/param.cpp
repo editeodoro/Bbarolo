@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -26,10 +26,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <algorithm>
-#include <cstdlib>
-#include <ctype.h>
-#include <math.h>
+#include <cmath>
 #include <unistd.h>
 #include "param.hh"
 #include "../Utilities/utils.hh"
@@ -117,7 +114,6 @@ void Param::defaultValues() {
 	flagErrors			= false;
     POLYN				= "bezier";
     flagSpace			= false;
-    negStats            = false;
 	distance			= -1;	
 
     flagSmooth			= false;
@@ -230,7 +226,6 @@ Param& Param::operator= (const Param& p) {
 	this->WFUNC				= p.WFUNC;
 	this->BWEIGHT			= p.BWEIGHT;
     this->NORM              = p.NORM;
-    this->negStats          = p.negStats;
     this->startRAD          = p.startRAD;
 	
 	this->flagSpace		= p.flagSpace;
@@ -441,7 +436,6 @@ int Param::readParams(std::string paramfile) {
             if (arg=="polyn")           POLYN = readFilename(ss);
             if (arg=="sm")				SM = readFlag(ss);
             if (arg=="startrad")        startRAD = readIval(ss);
-            if (arg=="negstats")        negStats = readFlag(ss);
 
             if (arg=="p1")				P1 = readFilename(ss);
             if (arg=="p1par")			readVec<float>(ss,P1p,3);
@@ -531,92 +525,101 @@ bool Param::checkPars() {
 		}
 	}
 
-    if (flagGalFit || flagSpace) {
+    if (flagGalFit || flagSpace || flagGalMod) {
 		bool good = true;
 		std::string str =" is not an optional parameter. Please specify it in the input file or set flagSearch=true";
-		
+
+        if (NRADII==0) {
+            std::cout << "3DFIT error: NRADII cannot be 0!" << std::endl;
+            good = false;
+        }
+
         if (flagGalMod) {
 			if (NRADII==-1 && RADII=="-1")	{
-                std::cout << "GALFIT error: NRADII or RADII" << str << std::endl;
+                std::cout << "3DFIT error: NRADII or RADII" << str << std::endl;
 				good = false;
 			}
 			if (XPOS=="-1")	{
-                std::cout << "GALFIT error: XPOS" << str << std::endl;
+                std::cout << "3DFIT error: XPOS" << str << std::endl;
 				good = false;
 			}
 			if (YPOS=="-1")	{
-                std::cout << "GALFIT error: YPOS" << str << std::endl;
+                std::cout << "3DFIT error: YPOS" << str << std::endl;
 				good = false;
 			}
 			if (RADSEP==-1 && RADII=="-1")	{
-                std::cout << "GALFIT error: RADSEP" << str << std::endl;
+                std::cout << "3DIT error: RADSEP" << str << std::endl;
 				good = false;
 			}
 			if (VSYS=="-1")	{
-                std::cout << "GALFIT error: VSYS" << str << std::endl;
+                std::cout << "3DFIT error: VSYS" << str << std::endl;
 				good = false;
 			}
 			if (VROT=="-1")	{
-                std::cout << "GALFIT error: VROT" << str << std::endl;
+                std::cout << "3DFIT error: VROT" << str << std::endl;
 				good = false;
             }
             if (VDISP=="-1")	{
-                std::cout << "GALFIT error: VDISP" << str << std::endl;
+                std::cout << "3DFIT error: VDISP" << str << std::endl;
 				good = false;
             }
 			if (INC=="-1")	{
-                std::cout << "GALFIT error: INC" << str << std::endl;
+                std::cout << "3DFIT error: INC" << str << std::endl;
 				good = false;
 			}
 			if (PHI=="-1")	{
-                std::cout << "GALFIT error: PHI" << str << std::endl;
+                std::cout << "3DFIT error: PHI" << str << std::endl;
 				good = false;
             }
             if (Z0=="-1")	{
-                std::cout << "GALFIT error: Z0" << str << std::endl;
+                std::cout << "3DFIT error: Z0" << str << std::endl;
 				good = false;
             }
 		}
 		
-		if (FREE=="" && flagGalFit) {
-            std::cout << "GALFIT error: FREE" << str << std::endl;
-			good = false;
-		}
-																																		
+        if (flagGalFit) {
+            if (FREE=="") {
+                std::cout << "3DFIT error: FREE" << str << std::endl;
+                good = false;
+            }
+
+            if (FTYPE<1 || FTYPE>4) {
+                std::cout << "3DFIT warning: ";
+                std::cout << "Not valid argument for FTYPE parameter. ";
+                std::cout << "Assuming 2 (|mod-obs|).\n";
+                FTYPE = 2;
+            }
+
+            if (WFUNC<0 || WFUNC>2) {
+                std::cout << "3DFIT warning: ";
+                std::cout << "Not valid argument for WFUNC parameter. ";
+                std::cout << "Assuming 1 (|cos(θ)| weighting function).\n";
+                WFUNC = 1;
+            }
+
+            if (SIDE=="A"||SIDE=="APP"||SIDE=="APPR"||SIDE=="APPROACHING") SIDE = "A";
+            else if (SIDE=="R"||SIDE=="REC"||SIDE=="RECED"||SIDE=="RECEDING") SIDE = "R";
+            else if (SIDE=="B"||SIDE=="BOTH") SIDE = "B";
+            else if (SIDE=="BS"||SIDE=="S"||SIDE=="SINGLE"||SIDE=="BOTH SINGLE") SIDE = "S";
+            else {
+                std::cout << "3DFIT warning: ";
+                std::cout << "Not valid argument for SIDE parameter. ";
+                std::cout << "Assuming B (fitting both sides of the galaxy).\n";
+                SIDE = "B";
+            }
+
+        }
+
 		if (LTYPE<1 || LTYPE>5) {
-            std::cout << "GALFIT warning: ";
+            std::cout << "3DFIT warning: ";
             std::cout << "Not valid argument for LTYPE parameter. ";
             std::cout << "Assuming 1 (gaussian layer).\n";
 			LTYPE = 1;
 		}
 		
-		if (FTYPE<1 || FTYPE>4) {
-            std::cout << "GALFIT warning: ";
-            std::cout << "Not valid argument for FTYPE parameter. ";
-            std::cout << "Assuming 2 (|mod-obs|).\n";
-            FTYPE = 2;
-		}
-		
-		if (WFUNC<0 || WFUNC>2) {
-            std::cout << "GALFIT warning: ";
-            std::cout << "Not valid argument for WFUNC parameter. ";
-            std::cout << "Assuming 1 (|cos(θ)| weighting function).\n";
-			WFUNC = 1;
-		}
-			
-		if (SIDE=="A"||SIDE=="APP"||SIDE=="APPR"||SIDE=="APPROACHING") SIDE = "A";
-		else if (SIDE=="R"||SIDE=="REC"||SIDE=="RECED"||SIDE=="RECEDING") SIDE = "R";	
-		else if (SIDE=="B"||SIDE=="BOTH") SIDE = "B";
-		else if (SIDE=="BS"||SIDE=="S"||SIDE=="SINGLE"||SIDE=="BOTH SINGLE") SIDE = "S";
-		else {
-            std::cout << "GALFIT warning: ";
-            std::cout << "Not valid argument for SIDE parameter. ";
-            std::cout << "Assuming B (fitting both sides of the galaxy).\n";
-			SIDE = "B";
-		}
 
         if (flagSlitfit==true) {
-            std::cout<< "GALFIT warning: Galfit and Splitfit cannot be run at the same time. "
+            std::cout<< "3DFIT warning: Galfit and Splitfit cannot be run at the same time. "
                      << "Switching off Slitfit. \n";
             flagSlitfit=false;
         }
@@ -652,7 +655,7 @@ bool Param::checkPars() {
         NORM="LOCAL";
     }
 
-    if (!(MASK=="NONE" || MASK=="SMOOTH" || MASK=="SEARCH" || MASK=="THRESHOLD")) {
+    if (!(MASK=="NONE" || MASK=="SMOOTH" || MASK=="SEARCH" || MASK=="THRESHOLD" || MASK=="NEGATIVE")) {
         std::cout << " ERROR: Unknown type of mask: " << MASK << std::endl;
         std::cout << "Setting to SMOOTH" << std::endl;
         MASK="SMOOTH";
@@ -701,7 +704,7 @@ void Param::printDefaults (std::ostream& theStream) {
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
-    recordParam(theStream, "[velocityMap]", "Saving 1th moment map to FITS file?", stringize(par.getVelMap()));
+    recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
 	recordParam(theStream, "[blankCube]", "Using a blanked cube for maps and profile?", stringize(par.getBlankCube()));
 	recordParam(theStream, "[blankCut]", "SNR clipping cut for blanked areas", par.getBlankCut());
@@ -834,7 +837,7 @@ void Param::createTemplate() {
 	
 	parf.close();
 	
-	std::cout << "\n A template parameter input file (\"param.par\") for Bbarolo " 
+	std::cout << "\n A template parameter input file (\"param.par\") for BBarolo " 
 			  << "has been generated.\n\n" ;
 }
 
@@ -921,7 +924,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
-    recordParam(theStream, "[velocityMap]", "Saving 1th moment map to FITS file?", stringize(par.getVelMap()));
+    recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
     if (par.getTotalMap() || par.getDispMap() || par.getVelMap()) {
 		recordParam(theStream, "[blankCube]", "   Using a blanked cube for maps and profile?", stringize(par.getBlankCube()));
@@ -955,8 +958,11 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
     
     if (par.getDistance()!=-1)
 		recordParam(theStream, "[Distance]", "Distance of the galaxy (Mpc)?", par.getDistance());
-	recordParam(theStream, "[GALFIT]", "Fitting a 3D model to the datacube?", stringize(par.getflagGalFit()));
-	if (par.getflagGalFit()) {
+
+    recordParam(theStream, "[GALFIT]", "Fitting a 3D model to the datacube?", stringize(par.getflagGalFit()));
+    recordParam(theStream, "[GALMOD]", "Writing a 3D model to the datacube?", stringize(par.getflagGalMod()));
+
+    if (par.getflagGalFit() || par.getflagGalMod()) {
 		std::string box;
 		for (int i=0;i<6;i++) if (par.getBOX(i)!=-1) box += to_string<int>(par.getBOX(i))+" ";
 		if (box=="") box = "NONE";
@@ -975,6 +981,8 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
 		recordParam(theStream, "[FREE]", "   Parameters to be minimized", par.getFREE());
         recordParam(theStream, "[MASK]", "   Type of mask?", par.getMASK());
 		recordParam(theStream, "[SIDE]", "   What side of the galaxy to be used", (par.getSIDE()));	
+        recordParam(theStream, "[NORM]", "   Type of normalization?", (par.getNORM()));
+
 		
 		std::string ltype;
 		switch (par.getLTYPE()) {
@@ -1058,14 +1066,7 @@ void helpscreen(std::ostream& Str) {
 	
 	using std::cout;
 	using std::endl;
-	int m=26;
-		
-		
-       
-      
-       
-        
-
+    int m=26;
 
 	Str	<< endl << endl
 	    << "             ____                                _____        __           \n"
@@ -1076,24 +1077,24 @@ void helpscreen(std::ostream& Str) {
 		<< "        __          °.                             |        /`  `\\        \n" 
 		<< "   __  |_/         .°.  _________________        __|__     /      \\       \n"
 		<< "   \\_|\\\\ _          .°.                         `-----`   ;  ____  ;    \n" 
-		<< "      _\\(_)_           Bbarolo quick guide                ||`    `||      \n"
+		<< "      _\\(_)_           BBarolo quick guide                ||`    `||      \n"
 		<< "     (_)_)(_)_      _________________________     ___     ||BAROLO||       \n"
 		<< "    (_)(_)_)(_)                                  ||  \\\\   ||      ||     \n"
-		<< "     (_)(_))_)                                   ||__// _ || 2013 ||       \n"
+        << "     (_)(_))_)                                   ||__// _ || 2015 ||       \n"
 		<< "      (_(_(_)                                    ||  \\\\   | \\____/ |    \n"
 		<< "       (_)_)                                     ||__//   |        |       \n"
 		<< "        (_)                                               \\_.-\"\"-._/    \n "
 		<< "                                                          `\"\"\"\"\"\"`   \n\n\n\n "
-		<< "  Usage:                 Bbarolo option [file] \n\n\n"
+		<< "  Usage:                 BBarolo option [file] \n\n\n"
 		<< " Options: \n\n"
 		<< setw(m) << left << "        -f" 
-		<< "Bbarolo runs in default and automatic mode \n"
+		<< "BBarolo runs in default and automatic mode \n"
 		<< setw(m) << left << " " 
 		<< "with all the default parameters. [file]   \n"
 		<< setw(m) << left << " " 
 		<< "parameter is mandatory and it is the name \n"
 		<< setw(m) << left << " " 
-		<< "of the fitsfile to be analysed. Bbarolo   \n"
+		<< "of the fitsfile to be analysed. BBarolo   \n"
 		<< setw(m) << left << " " 
 		<< "will find sources in the cube, estimate   \n" 
 		<< setw(m) << left << " " 
@@ -1101,20 +1102,20 @@ void helpscreen(std::ostream& Str) {
 		<< setw(m) << left << " " 
 		<< "ring model.\n\n"
 		<< setw(m) << left << " "  
-		<< "Example:       Bbarolo -f myfitsfile.fits \n"
+		<< "Example:       BBarolo -f myfitsfile.fits \n"
 		<< endl << endl
 		<< setw(m) << left << "        -p" 
-		<< "Bbarolo runs with a parameter file. [file] \n"
+		<< "BBarolo runs with a parameter file. [file] \n"
 		<< setw(m) << left << " " 
 		<< "is mandatory and it is the name of the    \n"
 		<< setw(m) << left << " " 
 		<< "file where all the wanted parameters have \n" 
 		<< setw(m) << left << " " 
-		<< "been listed. We recommend to run Bbarolo  \n"
+		<< "been listed. We recommend to run BBarolo  \n"
 		<< setw(m) << left << " " 
 		<< "this way to achieve better results.\n\n"
 		<< setw(m) << left << " " 
-		<< "Example:       Bbarolo -p param.par       \n"
+		<< "Example:       BBarolo -p param.par       \n"
 		<< endl << endl
 		<< setw(m) << left << "        -d" 
 		<< "Prints on the screen a list all the availa-\n"

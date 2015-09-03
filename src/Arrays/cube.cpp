@@ -14,21 +14,15 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
 #include <iostream>
 #include <fstream>
-#include <cstring>
-#include <fitsio.h>
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
-#include <iomanip>
 #include "cube.hh"
 #include "stats.hh"
 #include "../Map/detection.hh"
@@ -133,7 +127,7 @@ Cube<T>::Cube(int *dimensions) {
     numPix = numAxes = 0;
     if((size<0) || (imsize<0) ) {
         std::cout << "Error [Cube(dimArray)]: Negative size -- could not define Cube "<< std::endl;
-        abort();
+        std::terminate();
     }
     else {
 		numPix = size;
@@ -393,20 +387,26 @@ void Cube<T>::setCubeStats() {
 
     if(par.isVerbose()) std::cout << " Calculating statistics for the cube... "<<std::flush;
     
-    stats.setRobust(par.getFlagRobustStats()); 
-	stats.calculate(array,numPix);
+    stats.setRobust(par.getFlagRobustStats());
+    bool *blanks = new bool[numPix];
+    for (int i=0; i<numPix; i++) blanks[i] = isBlank(array[i]) ? false : true;
+
+    stats.calculate(array,numPix,blanks);
 	stats.setThresholdSNR(par.getCut());
-    
+
     if(par.isVerbose()) {
 		std::cout << "Using flux threshold of: ";
 		T thresh;
 		if (par.getFlagUserThreshold()) thresh = par.getThreshold();
-		else thresh = stats.getThreshold();
-		std::cout << std::fixed << std::setprecision(5);
-		std::cout << thresh << " " << head.Bunit() << std::endl;
+        else thresh = stats.getThreshold();
+        if (thresh<1E-04) std::cout << std::scientific;
+        else std::cout << std::fixed;
+        std::cout << std::setprecision(5) << thresh << " " << head.Bunit() << std::endl;
 		std::cout << std::setw(52) << std::right << "(middle = " 
-				  << stats.getMiddle() << ", spread = " << stats.getSpread() << ")\n";
+                  << stats.getMiddle() << ", spread = " << stats.getSpread() << ")\n" << std::fixed;
 	}
+
+    delete [] blanks;
 	
 	statsDefined = true;
     

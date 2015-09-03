@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'bbarolowindow.ui'
 **
-** Created by: Qt User Interface Compiler version 4.8.7
+** Created by: Qt User Interface Compiler version 4.8.6
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -42,7 +42,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_BbaroloWindow
+class Ui_BBaroloWindow
 {
 public:
     QAction *actionOpen_FITS_file;
@@ -336,26 +336,26 @@ public:
     QPushButton *ResetpushButton;
     QStatusBar *statusBar;
     QMenuBar *menuBar;
-    QMenu *menuBbaroloQt;
+    QMenu *menuBBaroloQt;
 
-    void setupUi(QMainWindow *BbaroloWindow)
+    void setupUi(QMainWindow *BBaroloWindow)
     {
-        if (BbaroloWindow->objectName().isEmpty())
-            BbaroloWindow->setObjectName(QString::fromUtf8("BbaroloWindow"));
-        BbaroloWindow->setEnabled(true);
-        BbaroloWindow->resize(947, 760);
-        BbaroloWindow->setUnifiedTitleAndToolBarOnMac(false);
-        actionOpen_FITS_file = new QAction(BbaroloWindow);
+        if (BBaroloWindow->objectName().isEmpty())
+            BBaroloWindow->setObjectName(QString::fromUtf8("BBaroloWindow"));
+        BBaroloWindow->setEnabled(true);
+        BBaroloWindow->resize(947, 760);
+        BBaroloWindow->setUnifiedTitleAndToolBarOnMac(false);
+        actionOpen_FITS_file = new QAction(BBaroloWindow);
         actionOpen_FITS_file->setObjectName(QString::fromUtf8("actionOpen_FITS_file"));
-        actionOpen_parameter_file = new QAction(BbaroloWindow);
+        actionOpen_parameter_file = new QAction(BBaroloWindow);
         actionOpen_parameter_file->setObjectName(QString::fromUtf8("actionOpen_parameter_file"));
-        actionExport_parameter_file = new QAction(BbaroloWindow);
+        actionExport_parameter_file = new QAction(BBaroloWindow);
         actionExport_parameter_file->setObjectName(QString::fromUtf8("actionExport_parameter_file"));
-        actionOpen_list_of_FITS_files = new QAction(BbaroloWindow);
+        actionOpen_list_of_FITS_files = new QAction(BBaroloWindow);
         actionOpen_list_of_FITS_files->setObjectName(QString::fromUtf8("actionOpen_list_of_FITS_files"));
-        actionReset_GUI = new QAction(BbaroloWindow);
+        actionReset_GUI = new QAction(BBaroloWindow);
         actionReset_GUI->setObjectName(QString::fromUtf8("actionReset_GUI"));
-        centralWidget = new QWidget(BbaroloWindow);
+        centralWidget = new QWidget(BBaroloWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
         gridLayout->setSpacing(6);
@@ -2283,20 +2283,20 @@ public:
 
         gridLayout->addLayout(gridLayout_4, 0, 0, 1, 1);
 
-        BbaroloWindow->setCentralWidget(centralWidget);
-        statusBar = new QStatusBar(BbaroloWindow);
+        BBaroloWindow->setCentralWidget(centralWidget);
+        statusBar = new QStatusBar(BBaroloWindow);
         statusBar->setObjectName(QString::fromUtf8("statusBar"));
         QFont font3;
         font3.setPointSize(11);
         statusBar->setFont(font3);
         statusBar->setLayoutDirection(Qt::LeftToRight);
-        BbaroloWindow->setStatusBar(statusBar);
-        menuBar = new QMenuBar(BbaroloWindow);
+        BBaroloWindow->setStatusBar(statusBar);
+        menuBar = new QMenuBar(BBaroloWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
         menuBar->setGeometry(QRect(0, 0, 947, 22));
-        menuBbaroloQt = new QMenu(menuBar);
-        menuBbaroloQt->setObjectName(QString::fromUtf8("menuBbaroloQt"));
-        BbaroloWindow->setMenuBar(menuBar);
+        menuBBaroloQt = new QMenu(menuBar);
+        menuBBaroloQt->setObjectName(QString::fromUtf8("menuBBaroloQt"));
+        BBaroloWindow->setMenuBar(menuBar);
         QWidget::setTabOrder(ParamlineEdit, ParampushButton);
         QWidget::setTabOrder(ParampushButton, FitslineEdit);
         QWidget::setTabOrder(FitslineEdit, FitspushButton);
@@ -2440,15 +2440,15 @@ public:
         QWidget::setTabOrder(textEdit, RunpushButton);
         QWidget::setTabOrder(RunpushButton, GalfittoolButton);
 
-        menuBar->addAction(menuBbaroloQt->menuAction());
-        menuBbaroloQt->addSeparator();
-        menuBbaroloQt->addAction(actionOpen_FITS_file);
-        menuBbaroloQt->addAction(actionOpen_parameter_file);
-        menuBbaroloQt->addAction(actionExport_parameter_file);
-        menuBbaroloQt->addSeparator();
-        menuBbaroloQt->addAction(actionReset_GUI);
+        menuBar->addAction(menuBBaroloQt->menuAction());
+        menuBBaroloQt->addSeparator();
+        menuBBaroloQt->addAction(actionOpen_FITS_file);
+        menuBBaroloQt->addAction(actionOpen_parameter_file);
+        menuBBaroloQt->addAction(actionExport_parameter_file);
+        menuBBaroloQt->addSeparator();
+        menuBBaroloQt->addAction(actionReset_GUI);
 
-        retranslateUi(BbaroloWindow);
+        retranslateUi(BBaroloWindow);
 
         stackedWidget->setCurrentIndex(0);
         CuttypecomboBox->setCurrentIndex(1);
@@ -2462,393 +2462,393 @@ public:
         listWidget->setCurrentRow(-1);
 
 
-        QMetaObject::connectSlotsByName(BbaroloWindow);
+        QMetaObject::connectSlotsByName(BBaroloWindow);
     } // setupUi
 
-    void retranslateUi(QMainWindow *BbaroloWindow)
+    void retranslateUi(QMainWindow *BBaroloWindow)
     {
-        BbaroloWindow->setWindowTitle(QApplication::translate("BbaroloWindow", "BbaroloGUI", 0, QApplication::UnicodeUTF8));
-        actionOpen_FITS_file->setText(QApplication::translate("BbaroloWindow", "Open FITS file", 0, QApplication::UnicodeUTF8));
-        actionOpen_FITS_file->setShortcut(QApplication::translate("BbaroloWindow", "Ctrl+O", 0, QApplication::UnicodeUTF8));
-        actionOpen_parameter_file->setText(QApplication::translate("BbaroloWindow", "Open parameter file", 0, QApplication::UnicodeUTF8));
-        actionOpen_parameter_file->setShortcut(QApplication::translate("BbaroloWindow", "Ctrl+P", 0, QApplication::UnicodeUTF8));
-        actionExport_parameter_file->setText(QApplication::translate("BbaroloWindow", "Export parameter file", 0, QApplication::UnicodeUTF8));
-        actionExport_parameter_file->setShortcut(QApplication::translate("BbaroloWindow", "Ctrl+E", 0, QApplication::UnicodeUTF8));
-        actionOpen_list_of_FITS_files->setText(QApplication::translate("BbaroloWindow", "Open list of FITS files", 0, QApplication::UnicodeUTF8));
-        actionOpen_list_of_FITS_files->setShortcut(QApplication::translate("BbaroloWindow", "Ctrl+L", 0, QApplication::UnicodeUTF8));
-        actionReset_GUI->setText(QApplication::translate("BbaroloWindow", "Reset GUI", 0, QApplication::UnicodeUTF8));
-        AutocheckBox->setText(QApplication::translate("BbaroloWindow", "Automatic Mode", 0, QApplication::UnicodeUTF8));
-        textEdit->setHtml(QApplication::translate("BbaroloWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        BBaroloWindow->setWindowTitle(QApplication::translate("BBaroloWindow", "BBaroloGUI", 0, QApplication::UnicodeUTF8));
+        actionOpen_FITS_file->setText(QApplication::translate("BBaroloWindow", "Open FITS file", 0, QApplication::UnicodeUTF8));
+        actionOpen_FITS_file->setShortcut(QApplication::translate("BBaroloWindow", "Ctrl+O", 0, QApplication::UnicodeUTF8));
+        actionOpen_parameter_file->setText(QApplication::translate("BBaroloWindow", "Open parameter file", 0, QApplication::UnicodeUTF8));
+        actionOpen_parameter_file->setShortcut(QApplication::translate("BBaroloWindow", "Ctrl+P", 0, QApplication::UnicodeUTF8));
+        actionExport_parameter_file->setText(QApplication::translate("BBaroloWindow", "Export parameter file", 0, QApplication::UnicodeUTF8));
+        actionExport_parameter_file->setShortcut(QApplication::translate("BBaroloWindow", "Ctrl+E", 0, QApplication::UnicodeUTF8));
+        actionOpen_list_of_FITS_files->setText(QApplication::translate("BBaroloWindow", "Open list of FITS files", 0, QApplication::UnicodeUTF8));
+        actionOpen_list_of_FITS_files->setShortcut(QApplication::translate("BBaroloWindow", "Ctrl+L", 0, QApplication::UnicodeUTF8));
+        actionReset_GUI->setText(QApplication::translate("BBaroloWindow", "Reset GUI", 0, QApplication::UnicodeUTF8));
+        AutocheckBox->setText(QApplication::translate("BBaroloWindow", "Automatic Mode", 0, QApplication::UnicodeUTF8));
+        textEdit->setHtml(QApplication::translate("BBaroloWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'.Helvetica Neue DeskInterface'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Welcome to <span style=\" font-weight:600;\">Bbarolo</span>, a 3D-fitting tool to derive the kinematics of galaxies from emission-line observations. </p>\n"
+"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Welcome to <span style=\" font-weight:600;\">BBarolo</span>, a 3D-fitting tool to derive the kinematics of galaxies from emission-line observations. </p>\n"
 "<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
 "<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">To start, insert a parameter file or a FITS file in t"
                         "he above fields and set the tasks in the left bar.</p>\n"
 "<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">When everything is set and ready, click on &quot;Run Bbarolo!&quot; and enjoy. </p></body></html>", 0, QApplication::UnicodeUTF8));
+"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">When everything is set and ready, click on &quot;Run BBarolo!&quot; and enjoy. </p></body></html>", 0, QApplication::UnicodeUTF8));
         Logolabel->setText(QString());
         GalfitgroupBox->setTitle(QString());
-        label_25->setText(QApplication::translate("BbaroloWindow", "km/s", 0, QApplication::UnicodeUTF8));
+        label_25->setText(QApplication::translate("BBaroloWindow", "km/s", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        NringscheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>NRINGS: Number of rings of the 3D model. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        NringscheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>NRINGS: Number of rings of the 3D model. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        NringscheckBox->setText(QApplication::translate("BbaroloWindow", "  Number of rings", 0, QApplication::UnicodeUTF8));
+        NringscheckBox->setText(QApplication::translate("BBaroloWindow", "  Number of rings", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        VsysFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        VsysFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        XpospushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
-        PaPMlabel->setText(QApplication::translate("BbaroloWindow", "+-", 0, QApplication::UnicodeUTF8));
+        XpospushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        PaPMlabel->setText(QApplication::translate("BBaroloWindow", "+-", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        PacheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>PA: Position angle of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        PacheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>PA: Position angle of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        PacheckBox->setText(QApplication::translate("BbaroloWindow", "  Position angle", 0, QApplication::UnicodeUTF8));
+        PacheckBox->setText(QApplication::translate("BBaroloWindow", "  Position angle", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        Z0checkBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Z0: Scale-height of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        Z0checkBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Z0: Scale-height of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        Z0checkBox->setText(QApplication::translate("BbaroloWindow", "  Scale height", 0, QApplication::UnicodeUTF8));
-        IncPMlabel->setText(QApplication::translate("BbaroloWindow", "+-", 0, QApplication::UnicodeUTF8));
+        Z0checkBox->setText(QApplication::translate("BBaroloWindow", "  Scale height", 0, QApplication::UnicodeUTF8));
+        IncPMlabel->setText(QApplication::translate("BBaroloWindow", "+-", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        PaFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        PaFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        IncpushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        IncpushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        YposFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        YposFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        yposlineEdit->setText(QApplication::translate("BbaroloWindow", "0.00", 0, QApplication::UnicodeUTF8));
+        yposlineEdit->setText(QApplication::translate("BBaroloWindow", "0.00", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        DenscheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>DENS: Gas column density. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        DenscheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>DENS: Gas column density. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        DenscheckBox->setText(QApplication::translate("BbaroloWindow", "  Column density", 0, QApplication::UnicodeUTF8));
-        label_13->setText(QApplication::translate("BbaroloWindow", "\"", 0, QApplication::UnicodeUTF8));
+        DenscheckBox->setText(QApplication::translate("BBaroloWindow", "  Column density", 0, QApplication::UnicodeUTF8));
+        label_13->setText(QApplication::translate("BBaroloWindow", "\"", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        VsyscheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>VSYS: Systemic velocity of the galaxy. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        VsyscheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>VSYS: Systemic velocity of the galaxy. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        VsyscheckBox->setText(QApplication::translate("BbaroloWindow", "  Systemic velocity", 0, QApplication::UnicodeUTF8));
+        VsyscheckBox->setText(QApplication::translate("BBaroloWindow", "  Systemic velocity", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        VrotFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        VrotFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        VdisppushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
-        YpospushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
-        PapushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        VdisppushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        YpospushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        PapushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        XposcheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>XPOS: X-center of the rings, in pixels (starting from 0) or WCS coordinates. Check the box if you want the code to estimate it. </p></body></html>", 0, QApplication::UnicodeUTF8));
+        XposcheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>XPOS: X-center of the rings, in pixels (starting from 0) or WCS coordinates. Check the box if you want the code to estimate it. </p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        XposcheckBox->setText(QApplication::translate("BbaroloWindow", "  X center", 0, QApplication::UnicodeUTF8));
-        Z0pushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        XposcheckBox->setText(QApplication::translate("BBaroloWindow", "  X center", 0, QApplication::UnicodeUTF8));
+        Z0pushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        IncFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-#ifndef QT_NO_TOOLTIP
-        VrotcheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>VROT: Rotation velocity of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-        VrotcheckBox->setText(QApplication::translate("BbaroloWindow", "  Rotation velocity", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        VdispcheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>VDISP: Gas velocity dispersion of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-        VdispcheckBox->setText(QApplication::translate("BbaroloWindow", "  Velocity dispersion", 0, QApplication::UnicodeUTF8));
-        label_24->setText(QApplication::translate("BbaroloWindow", "km/s", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        InccheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>INC: Inclination of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-        InccheckBox->setText(QApplication::translate("BbaroloWindow", "  Inclination", 0, QApplication::UnicodeUTF8));
-        label_14->setText(QApplication::translate("BbaroloWindow", "\"", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        VdispFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-        label_26->setText(QApplication::translate("BbaroloWindow", "km/s", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        YposcheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>YPOS: Y-center of the rings, in pixels (starting from 0) or WCS coordinates. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-        YposcheckBox->setText(QApplication::translate("BbaroloWindow", "  Y center", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        Z0FilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-        label_18->setText(QApplication::translate("BbaroloWindow", "1/cm2", 0, QApplication::UnicodeUTF8));
-        xposlineEdit->setText(QApplication::translate("BbaroloWindow", "0.00", 0, QApplication::UnicodeUTF8));
-        VsyspushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
-        VrotpushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        XposFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p><p><br/></p></body></html>", 0, QApplication::UnicodeUTF8));
+        IncFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_TOOLTIP
-        RadsepcheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>RADSEP: Separation between the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        VrotcheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>VROT: Rotation velocity of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        RadsepcheckBox->setText(QApplication::translate("BbaroloWindow", "  Ring width", 0, QApplication::UnicodeUTF8));
-        DenspushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
-        label_12->setText(QApplication::translate("BbaroloWindow", "E20", 0, QApplication::UnicodeUTF8));
+        VrotcheckBox->setText(QApplication::translate("BBaroloWindow", "  Rotation velocity", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        DensFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        VdispcheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>VDISP: Gas velocity dispersion of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+        VdispcheckBox->setText(QApplication::translate("BBaroloWindow", "  Velocity dispersion", 0, QApplication::UnicodeUTF8));
+        label_24->setText(QApplication::translate("BBaroloWindow", "km/s", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        InccheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>INC: Inclination of the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+        InccheckBox->setText(QApplication::translate("BBaroloWindow", "  Inclination", 0, QApplication::UnicodeUTF8));
+        label_14->setText(QApplication::translate("BBaroloWindow", "\"", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        VdispFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+        label_26->setText(QApplication::translate("BBaroloWindow", "km/s", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        YposcheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>YPOS: Y-center of the rings, in pixels (starting from 0) or WCS coordinates. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+        YposcheckBox->setText(QApplication::translate("BBaroloWindow", "  Y center", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        Z0FilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+        label_18->setText(QApplication::translate("BBaroloWindow", "1/cm2", 0, QApplication::UnicodeUTF8));
+        xposlineEdit->setText(QApplication::translate("BBaroloWindow", "0.00", 0, QApplication::UnicodeUTF8));
+        VsyspushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        VrotpushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        XposFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p><p><br/></p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+#ifndef QT_NO_TOOLTIP
+        RadsepcheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>RADSEP: Separation between the rings. Check the box if you want the code to estimate it.</p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+        RadsepcheckBox->setText(QApplication::translate("BBaroloWindow", "  Ring width", 0, QApplication::UnicodeUTF8));
+        DenspushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        label_12->setText(QApplication::translate("BBaroloWindow", "E20", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        DensFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
         wcscomboBox->clear();
         wcscomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "pixels", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "degrees", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "sexagesimal", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "pixels", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "degrees", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "sexagesimal", 0, QApplication::UnicodeUTF8)
         );
-        GalfittoolButton->setText(QApplication::translate("BbaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
-        RadseppushButton->setText(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        GalfittoolButton->setText(QApplication::translate("BBaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
+        RadseppushButton->setText(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        RadsepFilespinBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        RadsepFilespinBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Column (first=1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
         SearchgroupBox->setTitle(QString());
-        label_41->setText(QApplication::translate("BbaroloWindow", "Primary Cut", 0, QApplication::UnicodeUTF8));
+        label_41->setText(QApplication::translate("BBaroloWindow", "Primary Cut", 0, QApplication::UnicodeUTF8));
         CuttypecomboBox->clear();
         CuttypecomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "Flux threshold", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "S/N cut", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Flux threshold", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "S/N cut", 0, QApplication::UnicodeUTF8)
         );
-        GrowthcheckBox->setText(QApplication::translate("BbaroloWindow", "Secondary cut", 0, QApplication::UnicodeUTF8));
-        label_42->setText(QApplication::translate("BbaroloWindow", "Type of search", 0, QApplication::UnicodeUTF8));
+        GrowthcheckBox->setText(QApplication::translate("BBaroloWindow", "Secondary cut", 0, QApplication::UnicodeUTF8));
+        label_42->setText(QApplication::translate("BBaroloWindow", "Type of search", 0, QApplication::UnicodeUTF8));
         SearchtypecomboBox->clear();
         SearchtypecomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "spectral", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "spatial", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "spectral", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "spatial", 0, QApplication::UnicodeUTF8)
         );
-        SearchtoolButton->setText(QApplication::translate("BbaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
-        primaryCutlineEdit->setText(QApplication::translate("BbaroloWindow", "5.00", 0, QApplication::UnicodeUTF8));
+        SearchtoolButton->setText(QApplication::translate("BBaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
+        primaryCutlineEdit->setText(QApplication::translate("BBaroloWindow", "5.00", 0, QApplication::UnicodeUTF8));
         Cuttype2comboBox->clear();
         Cuttype2comboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "Flux threshold", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "S/N cut", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Flux threshold", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "S/N cut", 0, QApplication::UnicodeUTF8)
         );
-        SecondarycutlineEdit->setText(QApplication::translate("BbaroloWindow", "2.50", 0, QApplication::UnicodeUTF8));
+        SecondarycutlineEdit->setText(QApplication::translate("BBaroloWindow", "2.50", 0, QApplication::UnicodeUTF8));
         SmoothgroupBox->setTitle(QString());
-        ReducecheckBox->setText(QApplication::translate("BbaroloWindow", "Repixeling", 0, QApplication::UnicodeUTF8));
+        ReducecheckBox->setText(QApplication::translate("BBaroloWindow", "Repixeling", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        BeamgroupBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Manually insert beam parameters</p></body></html>", 0, QApplication::UnicodeUTF8));
+        BeamgroupBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Manually insert beam parameters</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_WHATSTHIS
-        BeamgroupBox->setWhatsThis(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Whether you wish to manually insert beam parameters</p></body></html>", 0, QApplication::UnicodeUTF8));
+        BeamgroupBox->setWhatsThis(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Whether you wish to manually insert beam parameters</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_WHATSTHIS
-        BeamgroupBox->setTitle(QApplication::translate("BbaroloWindow", "Manual Beam", 0, QApplication::UnicodeUTF8));
-        label_7->setText(QApplication::translate("BbaroloWindow", "BPA", 0, QApplication::UnicodeUTF8));
-        label_2->setText(QApplication::translate("BbaroloWindow", "New", 0, QApplication::UnicodeUTF8));
-        label_4->setText(QApplication::translate("BbaroloWindow", "BMAJ", 0, QApplication::UnicodeUTF8));
-        label_6->setText(QApplication::translate("BbaroloWindow", "BMIN", 0, QApplication::UnicodeUTF8));
-        label_11->setText(QApplication::translate("BbaroloWindow", "' '", 0, QApplication::UnicodeUTF8));
-        label_8->setText(QApplication::translate("BbaroloWindow", "-->", 0, QApplication::UnicodeUTF8));
-        label_9->setText(QApplication::translate("BbaroloWindow", "-->", 0, QApplication::UnicodeUTF8));
-        label_3->setText(QApplication::translate("BbaroloWindow", "deg", 0, QApplication::UnicodeUTF8));
-        label_10->setText(QApplication::translate("BbaroloWindow", "' '", 0, QApplication::UnicodeUTF8));
-        label->setText(QApplication::translate("BbaroloWindow", "Old", 0, QApplication::UnicodeUTF8));
-        label_5->setText(QApplication::translate("BbaroloWindow", "-->", 0, QApplication::UnicodeUTF8));
-        FFTcheckBox->setText(QApplication::translate("BbaroloWindow", "FFT", 0, QApplication::UnicodeUTF8));
-        label_39->setText(QApplication::translate("BbaroloWindow", "Output", 0, QApplication::UnicodeUTF8));
-        SmoothOutpushButton->setText(QApplication::translate("BbaroloWindow", "Browse", 0, QApplication::UnicodeUTF8));
-        FactorcheckBox->setText(QApplication::translate("BbaroloWindow", "Factor:", 0, QApplication::UnicodeUTF8));
-        MaskgroupBox->setTitle(QApplication::translate("BbaroloWindow", "Mask", 0, QApplication::UnicodeUTF8));
-        label_54->setText(QApplication::translate("BbaroloWindow", "Signal-to-noise cut", 0, QApplication::UnicodeUTF8));
-        label_50->setText(QApplication::translate("BbaroloWindow", "Smoothing factor", 0, QApplication::UnicodeUTF8));
-        MomentmapsgroupBox->setTitle(QApplication::translate("BbaroloWindow", "Moment maps", 0, QApplication::UnicodeUTF8));
-        label_44->setText(QApplication::translate("BbaroloWindow", "Column density map (0th moment) ", 0, QApplication::UnicodeUTF8));
-        label_45->setText(QApplication::translate("BbaroloWindow", "Velocity map (1st moment)", 0, QApplication::UnicodeUTF8));
+        BeamgroupBox->setTitle(QApplication::translate("BBaroloWindow", "Manual Beam", 0, QApplication::UnicodeUTF8));
+        label_7->setText(QApplication::translate("BBaroloWindow", "BPA", 0, QApplication::UnicodeUTF8));
+        label_2->setText(QApplication::translate("BBaroloWindow", "New", 0, QApplication::UnicodeUTF8));
+        label_4->setText(QApplication::translate("BBaroloWindow", "BMAJ", 0, QApplication::UnicodeUTF8));
+        label_6->setText(QApplication::translate("BBaroloWindow", "BMIN", 0, QApplication::UnicodeUTF8));
+        label_11->setText(QApplication::translate("BBaroloWindow", "' '", 0, QApplication::UnicodeUTF8));
+        label_8->setText(QApplication::translate("BBaroloWindow", "-->", 0, QApplication::UnicodeUTF8));
+        label_9->setText(QApplication::translate("BBaroloWindow", "-->", 0, QApplication::UnicodeUTF8));
+        label_3->setText(QApplication::translate("BBaroloWindow", "deg", 0, QApplication::UnicodeUTF8));
+        label_10->setText(QApplication::translate("BBaroloWindow", "' '", 0, QApplication::UnicodeUTF8));
+        label->setText(QApplication::translate("BBaroloWindow", "Old", 0, QApplication::UnicodeUTF8));
+        label_5->setText(QApplication::translate("BBaroloWindow", "-->", 0, QApplication::UnicodeUTF8));
+        FFTcheckBox->setText(QApplication::translate("BBaroloWindow", "FFT", 0, QApplication::UnicodeUTF8));
+        label_39->setText(QApplication::translate("BBaroloWindow", "Output", 0, QApplication::UnicodeUTF8));
+        SmoothOutpushButton->setText(QApplication::translate("BBaroloWindow", "Browse", 0, QApplication::UnicodeUTF8));
+        FactorcheckBox->setText(QApplication::translate("BBaroloWindow", "Factor:", 0, QApplication::UnicodeUTF8));
+        MaskgroupBox->setTitle(QApplication::translate("BBaroloWindow", "Mask", 0, QApplication::UnicodeUTF8));
+        label_54->setText(QApplication::translate("BBaroloWindow", "Signal-to-noise cut", 0, QApplication::UnicodeUTF8));
+        label_50->setText(QApplication::translate("BBaroloWindow", "Smoothing factor", 0, QApplication::UnicodeUTF8));
+        MomentmapsgroupBox->setTitle(QApplication::translate("BBaroloWindow", "Moment maps", 0, QApplication::UnicodeUTF8));
+        label_44->setText(QApplication::translate("BBaroloWindow", "Column density map (0th moment) ", 0, QApplication::UnicodeUTF8));
+        label_45->setText(QApplication::translate("BBaroloWindow", "Velocity map (1st moment)", 0, QApplication::UnicodeUTF8));
         VfieldcheckBox->setText(QString());
         TotalmapcheckBox->setText(QString());
-        label_47->setText(QApplication::translate("BbaroloWindow", "Global profile", 0, QApplication::UnicodeUTF8));
+        label_47->setText(QApplication::translate("BBaroloWindow", "Global profile", 0, QApplication::UnicodeUTF8));
         DispmapcheckBox->setText(QString());
-        label_46->setText(QApplication::translate("BbaroloWindow", "Dispersion velosity map (2nd moment)", 0, QApplication::UnicodeUTF8));
+        label_46->setText(QApplication::translate("BBaroloWindow", "Dispersion velosity map (2nd moment)", 0, QApplication::UnicodeUTF8));
         ProfilecheckBox->setText(QString());
-        PVgroupBox->setTitle(QApplication::translate("BbaroloWindow", "Position-velocity diagrams", 0, QApplication::UnicodeUTF8));
-        label_20->setText(QApplication::translate("BbaroloWindow", "Center coordinates (x,y) = (", 0, QApplication::UnicodeUTF8));
-        label_22->setText(QApplication::translate("BbaroloWindow", ") pixels", 0, QApplication::UnicodeUTF8));
-        label_21->setText(QApplication::translate("BbaroloWindow", ",", 0, QApplication::UnicodeUTF8));
-        label_27->setText(QApplication::translate("BbaroloWindow", "Angle (degrees N->W)", 0, QApplication::UnicodeUTF8));
-        KillpushButton->setText(QApplication::translate("BbaroloWindow", "Kill Bbarolo", 0, QApplication::UnicodeUTF8));
+        PVgroupBox->setTitle(QApplication::translate("BBaroloWindow", "Position-velocity diagrams", 0, QApplication::UnicodeUTF8));
+        label_20->setText(QApplication::translate("BBaroloWindow", "Center coordinates (x,y) = (", 0, QApplication::UnicodeUTF8));
+        label_22->setText(QApplication::translate("BBaroloWindow", ") pixels", 0, QApplication::UnicodeUTF8));
+        label_21->setText(QApplication::translate("BBaroloWindow", ",", 0, QApplication::UnicodeUTF8));
+        label_27->setText(QApplication::translate("BBaroloWindow", "Angle (degrees N->W)", 0, QApplication::UnicodeUTF8));
+        KillpushButton->setText(QApplication::translate("BBaroloWindow", "Kill BBarolo", 0, QApplication::UnicodeUTF8));
         Plot1comboBox->clear();
         Plot1comboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
         );
         Plot2comboBox->clear();
         Plot2comboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
         );
         Plot3comboBox->clear();
         Plot3comboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
         );
         Plot4comboBox->clear();
         Plot4comboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VDISP", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "INC", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "PA", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Z0", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "XPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "YPOS", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "VSYS", 0, QApplication::UnicodeUTF8)
         );
-        AdvancedgroupBox->setTitle(QApplication::translate("BbaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
+        AdvancedgroupBox->setTitle(QApplication::translate("BBaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
         MaskcomboBox->clear();
         MaskcomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "SMOOTHING", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "SEARCHING", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "THRESHOLD", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "NONE", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "SMOOTHING", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "SEARCHING", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "THRESHOLD", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "NONE", 0, QApplication::UnicodeUTF8)
         );
 #ifndef QT_NO_TOOLTIP
-        label_28->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>MASK: type of mask. SMOOTH (smoothing and cutting), SEARCH (source finder) or THRESHOLD (cutting) </p></body></html>", 0, QApplication::UnicodeUTF8));
+        label_28->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>MASK: type of mask. SMOOTH (smoothing and cutting), SEARCH (source finder) or THRESHOLD (cutting) </p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        label_28->setText(QApplication::translate("BbaroloWindow", "Mask", 0, QApplication::UnicodeUTF8));
+        label_28->setText(QApplication::translate("BBaroloWindow", "Mask", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        label_33->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>LTYPE: Layer type of scale-height.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        label_33->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>LTYPE: Layer type of scale-height.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        label_33->setText(QApplication::translate("BbaroloWindow", "Layer type", 0, QApplication::UnicodeUTF8));
+        label_33->setText(QApplication::translate("BBaroloWindow", "Layer type", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        label_34->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>CDENS: Cloud column density.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        label_34->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>CDENS: Cloud column density.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        label_34->setText(QApplication::translate("BbaroloWindow", "Cloud CD", 0, QApplication::UnicodeUTF8));
+        label_34->setText(QApplication::translate("BBaroloWindow", "Cloud CD", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        label_37->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>NV: Number of subclouds.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        label_37->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>NV: Number of subclouds.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        label_37->setText(QApplication::translate("BbaroloWindow", "Num.", 0, QApplication::UnicodeUTF8));
+        label_37->setText(QApplication::translate("BBaroloWindow", "Num.", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        Ftypelabel->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>FTYPE: Function to be minimized.</p><p>           m=model, o=observations</p></body></html>", 0, QApplication::UnicodeUTF8));
+        Ftypelabel->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>FTYPE: Function to be minimized.</p><p>           m=model, o=observations</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        Ftypelabel->setText(QApplication::translate("BbaroloWindow", "Fitting function", 0, QApplication::UnicodeUTF8));
+        Ftypelabel->setText(QApplication::translate("BBaroloWindow", "Fitting function", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        Wfunclabel->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>WFUNC: Weighting function.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        Wfunclabel->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>WFUNC: Weighting function.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        Wfunclabel->setText(QApplication::translate("BbaroloWindow", "Weighting function", 0, QApplication::UnicodeUTF8));
+        Wfunclabel->setText(QApplication::translate("BBaroloWindow", "Weighting function", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        Tollabel->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>TOL: Tolerance of the fit.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        Tollabel->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>TOL: Tolerance of the fit.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        Tollabel->setText(QApplication::translate("BbaroloWindow", "Tolerance", 0, QApplication::UnicodeUTF8));
-        E20label->setText(QApplication::translate("BbaroloWindow", "E20", 0, QApplication::UnicodeUTF8));
+        Tollabel->setText(QApplication::translate("BBaroloWindow", "Tolerance", 0, QApplication::UnicodeUTF8));
+        E20label->setText(QApplication::translate("BBaroloWindow", "E20", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        SecondstagecheckBox->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>TWOSTAGE: Parameter regularization and second fitting stage.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        SecondstagecheckBox->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>TWOSTAGE: Parameter regularization and second fitting stage.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        SecondstagecheckBox->setText(QApplication::translate("BbaroloWindow", "Second stage", 0, QApplication::UnicodeUTF8));
+        SecondstagecheckBox->setText(QApplication::translate("BBaroloWindow", "Second stage", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        label_36->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>Type of normalization, pixel by pixel (LOCAL) or azimuthally averaged (AZIMUTHAL)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        label_36->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>Type of normalization, pixel by pixel (LOCAL) or azimuthally averaged (AZIMUTHAL)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        label_36->setText(QApplication::translate("BbaroloWindow", "Normalization", 0, QApplication::UnicodeUTF8));
+        label_36->setText(QApplication::translate("BBaroloWindow", "Normalization", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        ErrorsradioButton->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>FLAGERRORS: Estimating the errors. </p></body></html>", 0, QApplication::UnicodeUTF8));
+        ErrorsradioButton->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>FLAGERRORS: Estimating the errors. </p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        ErrorsradioButton->setText(QApplication::translate("BbaroloWindow", "Errors", 0, QApplication::UnicodeUTF8));
-        MasktoolButton->setText(QApplication::translate("BbaroloWindow", "Mask Settings", 0, QApplication::UnicodeUTF8));
+        ErrorsradioButton->setText(QApplication::translate("BBaroloWindow", "Errors", 0, QApplication::UnicodeUTF8));
+        MasktoolButton->setText(QApplication::translate("BBaroloWindow", "Mask Settings", 0, QApplication::UnicodeUTF8));
         LtypecomboBox->clear();
         LtypecomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "Gaussian", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Sech2", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Exponential", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Lorentzian", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "Box", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Gaussian", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Sech2", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Exponential", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Lorentzian", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "Box", 0, QApplication::UnicodeUTF8)
         );
         FtypecomboBox->clear();
         FtypecomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "chi-squared", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "|m-o|", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "|m-o|/(m+o)", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "chi-squared", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "|m-o|", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "|m-o|/(m+o)", 0, QApplication::UnicodeUTF8)
         );
         WfunccomboBox->clear();
         WfunccomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "uniform", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "cosine", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "cosine^2", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "uniform", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "cosine", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "cosine^2", 0, QApplication::UnicodeUTF8)
         );
 #ifndef QT_NO_TOOLTIP
-        Polynlabel->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>POLYN: Degree of polynomial for regularization or Bezier function (-1)</p></body></html>", 0, QApplication::UnicodeUTF8));
+        Polynlabel->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>POLYN: Degree of polynomial for regularization or Bezier function (-1)</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        Polynlabel->setText(QApplication::translate("BbaroloWindow", "Degree:  ", 0, QApplication::UnicodeUTF8));
+        Polynlabel->setText(QApplication::translate("BBaroloWindow", "Degree:  ", 0, QApplication::UnicodeUTF8));
         NormcomboBox->clear();
         NormcomboBox->insertItems(0, QStringList()
-         << QApplication::translate("BbaroloWindow", "LOCAL", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "AZIMUTHAL", 0, QApplication::UnicodeUTF8)
-         << QApplication::translate("BbaroloWindow", "NONE", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "LOCAL", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "AZIMUTHAL", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("BBaroloWindow", "NONE", 0, QApplication::UnicodeUTF8)
         );
-        TollineEdit->setText(QApplication::translate("BbaroloWindow", "1E-03", 0, QApplication::UnicodeUTF8));
-        yposcheckBox->setText(QApplication::translate("BbaroloWindow", "ycenter", 0, QApplication::UnicodeUTF8));
-        vrotcheckBox->setText(QApplication::translate("BbaroloWindow", "vrot", 0, QApplication::UnicodeUTF8));
-        inccheckBox->setText(QApplication::translate("BbaroloWindow", "inc", 0, QApplication::UnicodeUTF8));
-        z0checkBox->setText(QApplication::translate("BbaroloWindow", "scale height", 0, QApplication::UnicodeUTF8));
-        pacheckBox->setText(QApplication::translate("BbaroloWindow", "pa", 0, QApplication::UnicodeUTF8));
+        TollineEdit->setText(QApplication::translate("BBaroloWindow", "1E-03", 0, QApplication::UnicodeUTF8));
+        yposcheckBox->setText(QApplication::translate("BBaroloWindow", "ycenter", 0, QApplication::UnicodeUTF8));
+        vrotcheckBox->setText(QApplication::translate("BBaroloWindow", "vrot", 0, QApplication::UnicodeUTF8));
+        inccheckBox->setText(QApplication::translate("BBaroloWindow", "inc", 0, QApplication::UnicodeUTF8));
+        z0checkBox->setText(QApplication::translate("BBaroloWindow", "scale height", 0, QApplication::UnicodeUTF8));
+        pacheckBox->setText(QApplication::translate("BBaroloWindow", "pa", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        label_30->setToolTip(QApplication::translate("BbaroloWindow", "<html><head/><body><p>FREE: Parameters to fit.</p></body></html>", 0, QApplication::UnicodeUTF8));
+        label_30->setToolTip(QApplication::translate("BBaroloWindow", "<html><head/><body><p>FREE: Parameters to fit.</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        label_30->setText(QApplication::translate("BbaroloWindow", " Free parameters", 0, QApplication::UnicodeUTF8));
-        xposcheckBox->setText(QApplication::translate("BbaroloWindow", "xcenter", 0, QApplication::UnicodeUTF8));
-        vdispcheckBox->setText(QApplication::translate("BbaroloWindow", "disp", 0, QApplication::UnicodeUTF8));
-        vsyscheckBox->setText(QApplication::translate("BbaroloWindow", "vsys", 0, QApplication::UnicodeUTF8));
-        GalfitAdvtoolButton->setText(QApplication::translate("BbaroloWindow", "Back", 0, QApplication::UnicodeUTF8));
-        SearchAdvgroupBox->setTitle(QApplication::translate("BbaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
+        label_30->setText(QApplication::translate("BBaroloWindow", " Free parameters", 0, QApplication::UnicodeUTF8));
+        xposcheckBox->setText(QApplication::translate("BBaroloWindow", "xcenter", 0, QApplication::UnicodeUTF8));
+        vdispcheckBox->setText(QApplication::translate("BBaroloWindow", "disp", 0, QApplication::UnicodeUTF8));
+        vsyscheckBox->setText(QApplication::translate("BBaroloWindow", "vsys", 0, QApplication::UnicodeUTF8));
+        GalfitAdvtoolButton->setText(QApplication::translate("BBaroloWindow", "Back", 0, QApplication::UnicodeUTF8));
+        SearchAdvgroupBox->setTitle(QApplication::translate("BBaroloWindow", "Advanced", 0, QApplication::UnicodeUTF8));
         AdjacentcheckBox->setText(QString());
-        Minvoxellabel->setText(QApplication::translate("BbaroloWindow", "    Minimum # of voxels", 0, QApplication::UnicodeUTF8));
-        label_49->setText(QApplication::translate("BbaroloWindow", "    Max pixel separation", 0, QApplication::UnicodeUTF8));
-        MinPixlabel->setText(QApplication::translate("BbaroloWindow", "    Minimum # of pixels", 0, QApplication::UnicodeUTF8));
-        label_17->setText(QApplication::translate("BbaroloWindow", "    Maximum angular size ( ' )", 0, QApplication::UnicodeUTF8));
-        TwostagemergingcheckBox->setText(QApplication::translate("BbaroloWindow", "Two Stage Merging", 0, QApplication::UnicodeUTF8));
-        Mergelabel->setText(QApplication::translate("BbaroloWindow", "Merging criteria", 0, QApplication::UnicodeUTF8));
-        label_15->setText(QApplication::translate("BbaroloWindow", "    Merge only adjacent", 0, QApplication::UnicodeUTF8));
-        label_48->setText(QApplication::translate("BbaroloWindow", "    Max channel separation", 0, QApplication::UnicodeUTF8));
-        MinChanlabel->setText(QApplication::translate("BbaroloWindow", "    Minimum # of channels   ", 0, QApplication::UnicodeUTF8));
-        Rejeclabel->setText(QApplication::translate("BbaroloWindow", "Rejection criteria", 0, QApplication::UnicodeUTF8));
-        label_16->setText(QApplication::translate("BbaroloWindow", "    Maximum # of channels", 0, QApplication::UnicodeUTF8));
-        RejectcheckBox->setText(QApplication::translate("BbaroloWindow", "Reject before merging", 0, QApplication::UnicodeUTF8));
-        SearchAdvtoolButton->setText(QApplication::translate("BbaroloWindow", "Back", 0, QApplication::UnicodeUTF8));
+        Minvoxellabel->setText(QApplication::translate("BBaroloWindow", "    Minimum # of voxels", 0, QApplication::UnicodeUTF8));
+        label_49->setText(QApplication::translate("BBaroloWindow", "    Max pixel separation", 0, QApplication::UnicodeUTF8));
+        MinPixlabel->setText(QApplication::translate("BBaroloWindow", "    Minimum # of pixels", 0, QApplication::UnicodeUTF8));
+        label_17->setText(QApplication::translate("BBaroloWindow", "    Maximum angular size ( ' )", 0, QApplication::UnicodeUTF8));
+        TwostagemergingcheckBox->setText(QApplication::translate("BBaroloWindow", "Two Stage Merging", 0, QApplication::UnicodeUTF8));
+        Mergelabel->setText(QApplication::translate("BBaroloWindow", "Merging criteria", 0, QApplication::UnicodeUTF8));
+        label_15->setText(QApplication::translate("BBaroloWindow", "    Merge only adjacent", 0, QApplication::UnicodeUTF8));
+        label_48->setText(QApplication::translate("BBaroloWindow", "    Max channel separation", 0, QApplication::UnicodeUTF8));
+        MinChanlabel->setText(QApplication::translate("BBaroloWindow", "    Minimum # of channels   ", 0, QApplication::UnicodeUTF8));
+        Rejeclabel->setText(QApplication::translate("BBaroloWindow", "Rejection criteria", 0, QApplication::UnicodeUTF8));
+        label_16->setText(QApplication::translate("BBaroloWindow", "    Maximum # of channels", 0, QApplication::UnicodeUTF8));
+        RejectcheckBox->setText(QApplication::translate("BBaroloWindow", "Reject before merging", 0, QApplication::UnicodeUTF8));
+        SearchAdvtoolButton->setText(QApplication::translate("BBaroloWindow", "Back", 0, QApplication::UnicodeUTF8));
 
         const bool __sortingEnabled = listWidget->isSortingEnabled();
         listWidget->setSortingEnabled(false);
         QListWidgetItem *___qlistwidgetitem = listWidget->item(1);
-        ___qlistwidgetitem->setText(QApplication::translate("BbaroloWindow", "3D Fit", 0, QApplication::UnicodeUTF8));
+        ___qlistwidgetitem->setText(QApplication::translate("BBaroloWindow", "3D Fit", 0, QApplication::UnicodeUTF8));
         QListWidgetItem *___qlistwidgetitem1 = listWidget->item(2);
-        ___qlistwidgetitem1->setText(QApplication::translate("BbaroloWindow", "3D Model", 0, QApplication::UnicodeUTF8));
+        ___qlistwidgetitem1->setText(QApplication::translate("BBaroloWindow", "3D Model", 0, QApplication::UnicodeUTF8));
         QListWidgetItem *___qlistwidgetitem2 = listWidget->item(3);
-        ___qlistwidgetitem2->setText(QApplication::translate("BbaroloWindow", "Search", 0, QApplication::UnicodeUTF8));
+        ___qlistwidgetitem2->setText(QApplication::translate("BBaroloWindow", "Search", 0, QApplication::UnicodeUTF8));
         QListWidgetItem *___qlistwidgetitem3 = listWidget->item(4);
-        ___qlistwidgetitem3->setText(QApplication::translate("BbaroloWindow", "Smooth", 0, QApplication::UnicodeUTF8));
+        ___qlistwidgetitem3->setText(QApplication::translate("BBaroloWindow", "Smooth", 0, QApplication::UnicodeUTF8));
         QListWidgetItem *___qlistwidgetitem4 = listWidget->item(5);
-        ___qlistwidgetitem4->setText(QApplication::translate("BbaroloWindow", "Maps", 0, QApplication::UnicodeUTF8));
+        ___qlistwidgetitem4->setText(QApplication::translate("BBaroloWindow", "Maps", 0, QApplication::UnicodeUTF8));
         QListWidgetItem *___qlistwidgetitem5 = listWidget->item(6);
-        ___qlistwidgetitem5->setText(QApplication::translate("BbaroloWindow", "Log", 0, QApplication::UnicodeUTF8));
+        ___qlistwidgetitem5->setText(QApplication::translate("BBaroloWindow", "Log", 0, QApplication::UnicodeUTF8));
         QListWidgetItem *___qlistwidgetitem6 = listWidget->item(7);
-        ___qlistwidgetitem6->setText(QApplication::translate("BbaroloWindow", "Output", 0, QApplication::UnicodeUTF8));
+        ___qlistwidgetitem6->setText(QApplication::translate("BBaroloWindow", "Output", 0, QApplication::UnicodeUTF8));
         listWidget->setSortingEnabled(__sortingEnabled);
 
-        HidetoolButton->setText(QApplication::translate("BbaroloWindow", "Tasks", 0, QApplication::UnicodeUTF8));
-        Fitslabel->setText(QApplication::translate("BbaroloWindow", "FITS file  ", 0, QApplication::UnicodeUTF8));
-        ParampushButton->setText(QApplication::translate("BbaroloWindow", "Open", 0, QApplication::UnicodeUTF8));
-        BoxcheckBox->setText(QApplication::translate("BbaroloWindow", "Box    ", 0, QApplication::UnicodeUTF8));
-        Inputlabel->setText(QApplication::translate("BbaroloWindow", "Input file", 0, QApplication::UnicodeUTF8));
-        FitspushButton->setText(QApplication::translate("BbaroloWindow", "Open", 0, QApplication::UnicodeUTF8));
-        Xboxlabel->setText(QApplication::translate("BbaroloWindow", "x =", 0, QApplication::UnicodeUTF8));
-        label_19->setText(QApplication::translate("BbaroloWindow", ":", 0, QApplication::UnicodeUTF8));
-        Yboxlabel->setText(QApplication::translate("BbaroloWindow", "  y =", 0, QApplication::UnicodeUTF8));
-        label_23->setText(QApplication::translate("BbaroloWindow", ":", 0, QApplication::UnicodeUTF8));
-        Zboxlabel->setText(QApplication::translate("BbaroloWindow", "  z =", 0, QApplication::UnicodeUTF8));
-        label_29->setText(QApplication::translate("BbaroloWindow", ":", 0, QApplication::UnicodeUTF8));
-        RunpushButton->setText(QApplication::translate("BbaroloWindow", "Run Bbarolo!", 0, QApplication::UnicodeUTF8));
-        ResetpushButton->setText(QApplication::translate("BbaroloWindow", "Reset", 0, QApplication::UnicodeUTF8));
-        menuBbaroloQt->setTitle(QApplication::translate("BbaroloWindow", "File", 0, QApplication::UnicodeUTF8));
+        HidetoolButton->setText(QApplication::translate("BBaroloWindow", "Tasks", 0, QApplication::UnicodeUTF8));
+        Fitslabel->setText(QApplication::translate("BBaroloWindow", "FITS file  ", 0, QApplication::UnicodeUTF8));
+        ParampushButton->setText(QApplication::translate("BBaroloWindow", "Open", 0, QApplication::UnicodeUTF8));
+        BoxcheckBox->setText(QApplication::translate("BBaroloWindow", "Box    ", 0, QApplication::UnicodeUTF8));
+        Inputlabel->setText(QApplication::translate("BBaroloWindow", "Input file", 0, QApplication::UnicodeUTF8));
+        FitspushButton->setText(QApplication::translate("BBaroloWindow", "Open", 0, QApplication::UnicodeUTF8));
+        Xboxlabel->setText(QApplication::translate("BBaroloWindow", "x =", 0, QApplication::UnicodeUTF8));
+        label_19->setText(QApplication::translate("BBaroloWindow", ":", 0, QApplication::UnicodeUTF8));
+        Yboxlabel->setText(QApplication::translate("BBaroloWindow", "  y =", 0, QApplication::UnicodeUTF8));
+        label_23->setText(QApplication::translate("BBaroloWindow", ":", 0, QApplication::UnicodeUTF8));
+        Zboxlabel->setText(QApplication::translate("BBaroloWindow", "  z =", 0, QApplication::UnicodeUTF8));
+        label_29->setText(QApplication::translate("BBaroloWindow", ":", 0, QApplication::UnicodeUTF8));
+        RunpushButton->setText(QApplication::translate("BBaroloWindow", "Run BBarolo!", 0, QApplication::UnicodeUTF8));
+        ResetpushButton->setText(QApplication::translate("BBaroloWindow", "Reset", 0, QApplication::UnicodeUTF8));
+        menuBBaroloQt->setTitle(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class BbaroloWindow: public Ui_BbaroloWindow {};
+    class BBaroloWindow: public Ui_BBaroloWindow {};
 } // namespace Ui
 
 QT_END_NAMESPACE

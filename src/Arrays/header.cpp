@@ -14,16 +14,17 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
 #include <iostream>
 #include <cstring>
 #include <cmath>
+#include <cctype>
 #include <vector>
 #include <fitsio.h>
 #include <wcslib/wcs.h>
@@ -272,15 +273,22 @@ bool Header::header_read (std::string fname) {
         }
     }
 
+    if (ctype[0].find("RA")>=0 && crval[0]<0) crval[0]+=360.;
+
     status=0;
     fits_read_keys_str (fptr, "CUNIT", 1, numAxes, Cunit, &nfound, &status);
     if (nfound==0) {
-        Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,M/S]");
         if (numAxes>0) cunit[0] = "DEGREE";
         if (numAxes>1) cunit[1] = "DEGREE";
         if (numAxes>2) {
-            if (ctype[2]=="FREQ" || ctype[2]=="freq" || ctype[2]=="Freq") cunit[2] = "HZ";
-            else cunit[2] = "M/S";
+            if (ctype[2]=="FREQ" || ctype[2]=="freq" || ctype[2]=="Freq") {
+                cunit[2] = "HZ";
+                Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,HZ]");
+            }
+            else {
+                cunit[2] = "M/S";
+                Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,M/S]");
+            }
         }
     }
     else {
@@ -389,10 +397,11 @@ bool Header::header_read (std::string fname) {
     }
     else object = name;
 
-    int found = object.find("/");
-    if (found>=0) object.replace(found,1, "-");
-	
-	
+    for (uint i=0; i<object.size();i++) {
+        if (object[i]=='/' || object[i]=='\\') object.replace(i,1, "-");
+        if (isspace(object[i])) object.replace(i,1, "_");
+    }
+
     status = 0;
     if (fits_read_key_str (fptr, "TELESCOP", Tel, comment, &status)) {
         status = 0;
@@ -477,7 +486,7 @@ bool Header::header_read (std::string fname) {
     fits_read_key_str (fptr, "BMMAJ", bm, comment, &status);
     std::string bmstr = bm;
     bool arcsecbeam = false;
-    found = bmstr.find("D");
+    int found = bmstr.find("D");
     if (found>=0) arcsecbeam = true;
     if (arcsecbeam) bmaj /= 3600.;
 	

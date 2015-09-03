@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BbaroloWindow</class>
- <widget class="QMainWindow" name="BbaroloWindow">
+ <class>BBaroloWindow</class>
+ <widget class="QMainWindow" name="BBaroloWindow">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>BbaroloGUI</string>
+   <string>BBaroloGUI</string>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
@@ -108,11 +108,11 @@
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Helvetica Neue DeskInterface'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Welcome to &lt;span style=&quot; font-weight:600;&quot;&gt;Bbarolo&lt;/span&gt;, a 3D-fitting tool to derive the kinematics of galaxies from emission-line observations. &lt;/p&gt;
+&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Welcome to &lt;span style=&quot; font-weight:600;&quot;&gt;BBarolo&lt;/span&gt;, a 3D-fitting tool to derive the kinematics of galaxies from emission-line observations. &lt;/p&gt;
 &lt;p align=&quot;justify&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;To start, insert a parameter file or a FITS file in the above fields and set the tasks in the left bar.&lt;/p&gt;
 &lt;p align=&quot;justify&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;When everything is set and ready, click on &amp;quot;Run Bbarolo!&amp;quot; and enjoy. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;When everything is set and ready, click on &amp;quot;Run BBarolo!&amp;quot; and enjoy. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -1979,7 +1979,7 @@ p, li { white-space: pre-wrap; }
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Kill Bbarolo</string>
+             <string>Kill BBarolo</string>
             </property>
            </widget>
           </item>
@@ -3772,7 +3772,7 @@ p, li { white-space: pre-wrap; }
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Run Bbarolo!</string>
+         <string>Run BBarolo!</string>
         </property>
         <property name="default">
          <bool>true</bool>
@@ -3822,7 +3822,7 @@ p, li { white-space: pre-wrap; }
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuBbaroloQt">
+   <widget class="QMenu" name="menuBBaroloQt">
     <property name="title">
      <string>File</string>
     </property>
@@ -3833,7 +3833,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="separator"/>
     <addaction name="actionReset_GUI"/>
    </widget>
-   <addaction name="menuBbaroloQt"/>
+   <addaction name="menuBBaroloQt"/>
   </widget>
   <action name="actionOpen_FITS_file">
    <property name="text">

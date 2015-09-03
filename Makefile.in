@@ -14,10 +14,10 @@ LIBDIR = @prefix@/lib
 INCDIR = @prefix@/include/barolo
 
 V = @PACKAGE_VERSION@
-EXEC = Bbarolo-$(V)
-EXEC-STUB = Bbarolo
+EXEC = BBarolo-$(V)
+EXEC-STUB = BBarolo
 
-EXEC-STUB = Bbarolo
+EXEC-STUB = BBarolo
 
 
 AR = ar cq
@@ -79,6 +79,7 @@ HEADS = $(BASE)/bbarolo.hh \
 	$(UTILDIR)/conv2D.hh\
 	$(UTILDIR)/smooth3D.hh\
 	$(UTILDIR)/galmod.hh\
+	$(UTILDIR)/ringmodel.hh\
 	$(UTILDIR)/galfit.hh\
 	$(UTILDIR)/utils.hh\
 	$(UTILDIR)/converter.hh
@@ -102,6 +103,7 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/galfit_errors.o\
 	 $(OBJDIR)/galfit_out.o\
 	 $(OBJDIR)/slitfit.o\
+	 $(OBJDIR)/ringmodel.o\
 	 $(OBJDIR)/progressbar.o\
 	 $(OBJDIR)/allocator.o\
 	 $(OBJDIR)/string.o\
@@ -192,8 +194,8 @@ gui :
 	rm BbaroloGUI.pro && mv BbaroloGUI.or BbaroloGUI.pro && \
 	make
 ifeq ($(OS),MACOSX)
-	cp ../../Bbarolo ../../BbaroloGUI.app/Contents/MacOS/
-	cp $(BASE)/GUI/Bbarolo.tiff ./BbaroloGUI.app/Contents/Resources/
+	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
+	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
 endif
 
 all: 
@@ -204,10 +206,10 @@ static: build $(OBJECTS)
 		make guistatic
 
 guistatic :
-		rm -rf ./BbaroloGUI.app/Contents/Resources/qt.conf
-		macdeployqt ./BbaroloGUI.app/
-		cp $(BASE)/GUI/Bbarolo.tiff ./BbaroloGUI.app/Contents/Resources/
-		$(LINK) -o ./BbaroloGUI.app/Contents/MacOS/Bbarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
+		rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
+		macdeployqt ./BBaroloGUI.app/
+		cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
+		$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
 
 guistaticlinux :
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \
@@ -223,4 +225,4 @@ guistaticlinux :
 	rm BbaroloGUI.pro && mv BbaroloGUI.or BbaroloGUI.pro && \
 	make && \
 	cd ../.. &&\
-	$(LINK) -o Bbarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
+	$(LINK) -o BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++

@@ -22,7 +22,7 @@ if test $? -ne 0 ; then
               setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell) 
 
              Then run again ./configure. 
-             Otherwise, Bbarolo won't produce all the output files.
+             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 ])
 	AC_SUBST([PYTHON], "")
@@ -78,10 +78,10 @@ AC_CHECK_HEADERS([unistd.h ctime cmath iostream fstream sstream iomanip vector s
 if test "x$ac_cv_header_stdc" = xno; then
   AC_MSG_ERROR([
     -------------------------------------------------------------------
-    An ANSI standard C library is required to build Bbarolo.  
+    An ANSI standard C library is required to build BBarolo.  
     One of the ANSI C header files it requires is missing or unusable.
 
-    ERROR: Bbarolo configuration failure.
+    ERROR: BBarolo configuration failure.
     -------------------------------------------------------------------], [1])
 fi
 
@@ -222,14 +222,14 @@ AC_CHECK_LIB([socket],  [recv],   [CFITSIOLIB="$CFITSIOLIB -lsocket"], [], [$LIB
 AC_CHECK_LIB([cfitsio], [ffopen], [CFITSIOLIB="$CFITSIOLIB -lcfitsio"], [],
              [$CFITSIOLIB $LIBS])
 
-# CFITSIO is essential for Bbarolo, so exit with error message if it
+# CFITSIO is essential for BBarolo, so exit with error message if it
 #   is not present.
 if test "x$CFITSIOINC" = x -o "x$CFITSIOLIB" = x; then
   AC_MSG_ERROR([
     -------------------------------------------------------------
     Could not find the CFITSIO library.
 
-    ERROR: Bbarolo configuration failure. If you have the libra-
+    ERROR: BBarolo configuration failure. If you have the libra-
            ry in non ordinary path, try to run ./configure with 
            --with-cfitsio=<dir> option
     -------------------------------------------------------------], [1])
@@ -304,14 +304,14 @@ AC_CHECK_LIB([fftw3], [fftw_execute], [FFTW3LIB="$FFTW3LIB -lfftw3"], [],
 #             [$FFTW3LIB $LIBS $CFITSIOLIB])
 
 
-# FFTW3 is essential for Bbarolo, so exit with error message if it
+# FFTW3 is essential for BBarolo, so exit with error message if it
 #   is not present. Need at least libfftw3 to be available.
 if test "x$FFTW3INC" = x -o "x$FFTW3LIB" = x; then
   AC_MSG_ERROR([
     ------------------------------------------------------------
     Could not find the FFTW3 library.
 
-    ERROR: Bbarolo configuration failure. If you have the libra-
+    ERROR: BBarolo configuration failure. If you have the libra-
            ry in non ordinary path, try to run ./configure with 
            --with-fftw3=<dir> option.
     ------------------------------------------------------------], [1])
@@ -409,7 +409,7 @@ if test "x$WCSINC" = x -o "x$WCSLIB" = x; then
     ------------------------------------------------------------
     Could not find the WCSLIB library.
 
-    ERROR: Bbarolo configuration failure. If you have the libra-
+    ERROR: BBarolo configuration failure. If you have the libra-
            ry in non ordinary path, try to run ./configure with 
            --with-wcslib=<dir> option.
     ------------------------------------------------------------], [1])
@@ -478,7 +478,7 @@ else
               sudo ln -s /yourgnuplotdir/gnuplot /usr/local/bin/gnuplot
 
              Then run again ./configure. 
-             Otherwise, Bbarolo won't produce all the output files.
+             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 ])
 fi
@@ -501,7 +501,7 @@ else
               setenv PATH \$PATH:/yourpythondir               (C-shell) 
 
              Then run again ./configure. 
-             Otherwise, Bbarolo won't produce all the output files.
+             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 ])
 fi
@@ -534,7 +534,7 @@ AC_MSG_NOTICE([
    --------------------------------------------------------
    CONGRATULATIONS!
 
-   It seems your computer has the needed to compile Bbarolo! 
+   It seems your computer has the needed to compile BBarolo! 
    Now type "make" and pray your favoured God.  
    --------------------------------------------------------])
 

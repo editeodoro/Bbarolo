@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -243,7 +243,7 @@ void Galmod<T>::calculate() {
 	}
 	else {
 		std::cout<< "GALMOD error: wrong or unknown input parameter.\n";
-		abort();
+		std::terminate();
 	}
 
 }
@@ -273,11 +273,12 @@ bool Galmod<T>::smooth(bool usescalefac) {
  	
  	Smooth3D<T> *smoothed = new Smooth3D<T>;	
  	smoothed->setUseScalefac(usescalefac);
- 	if(!smoothed->smooth(out, oldbeam, newbeam, out->Array(), out->Array()))
+    smoothed->setUseBlanks(false);
+    if(!smoothed->smooth(out, oldbeam, newbeam, out->Array(), out->Array()))
 		return false;	
 	
-	for (int i=0; i<out->NumPix(); i++) 
-		if (out->Array(i)<1.E-12) out->Array()[i] = 0;
+    for (int i=0; i<out->NumPix(); i++)
+        if (out->Array(i)<1.E-12) out->Array()[i] = 0;
 	
  	delete smoothed;
 	
@@ -372,7 +373,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 			std::cout << "GALMOD error (unknown CUNIT for RA-DEC): ";
 			std::cout << "cannot convert to ARCMIN.\n";
 			std::cout << cunit[i];
-			abort(); 
+			std::terminate(); 
 		}
 		cdelt[i]   = cdelt[i]*arcmconv;
 		pixsize[i] = fabs(cdelt[i]); 
@@ -385,13 +386,13 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 	
 	int ax[3]={bsize[0],bsize[1],nsubs};
  	out = new Cube<T>(ax);
- 	out->saveHead(c->Head());
+    out->saveHead(c->Head());
  	out->saveParam(c->pars());
- 	out->Head().setDimAx(0, bsize[0]);
- 	out->Head().setDimAx(1, bsize[1]);
- 	out->Head().setDimAx(2, nsubs);
- 	out->Head().setCrpix(0, c->Head().Crpix(0)-blo[0]);
- 	out->Head().setCrpix(1, c->Head().Crpix(1)-blo[1]);
+    out->Head().setDimAx(0, bsize[0]);
+    out->Head().setDimAx(1, bsize[1]);
+    out->Head().setDimAx(2, nsubs);
+    out->Head().setCrpix(0, c->Head().Crpix(0)-blo[0]);
+    out->Head().setCrpix(1, c->Head().Crpix(1)-blo[1]);
  	outDefined = true;
 	
 	/// Information about frequency/velocity axis and conversions.
@@ -416,7 +417,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 	}
 	else {
 		std::cout << "GALMOD error (unknown CUNIT for spectral axis): cannot convert.";
-		abort(); 
+		std::terminate(); 
 	}
 	
     if (axtyp==2) {
@@ -427,7 +428,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         else {
             std::cout << "GALMOD error (unknown CUNIT3): cannot convert to M.\n";
             std::cout << cunit3;
-            abort();
+            std::terminate();
         }
 
         crval3=crval3*mconv;
@@ -447,7 +448,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 		else {
 			std::cout << "GALMOD error (unknown CUNIT3): cannot convert to Hz.\n";
 			std::cout << cunit3;
-			abort(); 
+			std::terminate(); 
 		}
 		
 		crval3=crval3*hzconv;
@@ -465,7 +466,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 		else {
 			std::cout << "GALMOD error (unknown CUNIT3): cannot convert to M/S.\n";
 			std::cout << cunit3;
-			abort(); 
+			std::terminate(); 
 		}
 		
 		crval3=crval3*msconv;
@@ -477,7 +478,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 	}
     else { 
         std::cout << "Unknown axis type: no velocities along spectral axis.\n";
-        abort();
+        std::terminate();
 	}
 
  
@@ -531,11 +532,11 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 		if (uradii[i-1]+r->radsep>=uradii[i]) {
 			if (uradii[i-1]>uradii[i]) {
 				std::cout << "GALMOD error: Radii not in increasing order.\n";
-				abort();
+				std::terminate();
 			}
 			else {
 				std::cout << "GALMOD error: Radius separation too small.\n";
-				abort();
+				std::terminate();
 			}
 		}
 	}
@@ -556,20 +557,20 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 		uvdisp[i]=rings->vdisp[i]*1000;
 		if (uvdisp[i]<0) {
 			std::cout << "GALMOD error: Negative velocity dispersion not allowed.\n";
-			abort();
+			std::terminate();
 		}
 		
 		udens[i]=rings->dens[i]/1.0E20;
 
         if (udens[i]<0) {
 			std::cout << "GALMOD error: Negative column-density not allowed.\n";
-			abort(); 
+			std::terminate(); 
 		}
 		
 		uz0[i]=rings->z0[i]/60.;
 		if (uz0[i]<0) {
 			std::cout << "GALMOD error: Negative scale height not allowed.\n";
-			abort(); 
+			std::terminate(); 
 		}
 		
 		uinc[i]=rings->inc[i]*M_PI/180.;
@@ -679,7 +680,7 @@ void Galmod<T>::galmod() {
 			int nc = lround(pow(cdens*r->dens[ir],cmode)*twopi*rtmp*r->radsep/pixarea); 
 			if (nc==0) {
                 std::cout << "No clouds used. Choose higher CDENS " << std::endl;
-                abort();
+                std::terminate();
 //				Do next ring, jump to end of loop for rings.
 				continue;
 			}
@@ -759,8 +760,9 @@ void Galmod<T>::galmod() {
 //            	Get systematic velocity of cloud.
                	double vsys = vsystmp+vrottmp*caz*sinc;
 
+/* ORIGINAL BUILDING PROFILES
 // ==>>			Build velocity profile.
-				for (int iv=0; iv<nvtmp; iv++) {
+                for (int iv=0; iv<nvtmp; iv++) {
 //                 	Get deviate drawn from gaussian velocity profile and add
 //                 	to the systematic velocity.
 					double v	 = vsys+gasdev(isd)*vdisptmp;
@@ -772,11 +774,29 @@ void Galmod<T>::galmod() {
 //                 	Convert HI atom flux per pixel to flux per pixel of 21cm
 //                 	radiation expressed in W.U. and add subcloud to the data
 //                 	buffer.
-					datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
+                    datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
 				}
-			}
+
+*/
+
+//              PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
+                uint nlines = 1;
+                float relvel_lines[2] = {0,210000};
+                float relint_lines[2] = {1,1.45};
+
+                for (int iv=0; iv<nvtmp; iv++) {
+                    double vdev = gasdev(isd)*vdisptmp;
+                    for (int nl=0; nl<nlines; nl++) {
+                        double v	 = vsys+vdev+relvel_lines[nl];
+                        int isubs = lround(velgrid(v)+crpix3-1);
+                        if (isubs<0 || isubs>=nsubs) continue;
+                        int idat  = iprof+isubs*nprof;
+                        datbuf[idat] = datbuf[idat]+relint_lines[nl]*fluxsc*cd2i[isubs];
+                    }
+                }
+
+            }
 		}
-		
 //      Write data to output Cube.		
 		for (int isubs=0; isubs<nsubs; isubs++) {
 			int pixstart=isubs*bsize[0]*bsize[1];

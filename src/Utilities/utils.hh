@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -51,7 +51,7 @@ template <class T> T absval(T value);
 template <class T> void findMinMax(const T *array, const size_t size, T &min, T &max);
 template <class T> void findAllStats(T *array, size_t size, T &mean, T &stddev, T &median, T &madfm);
 template <class T> void findAllStats(T *array, size_t size, T &mean, T &stddev, T &median, T &madfm, T &maxx, T &minn);
-template <class T> void findAllStats(T *array, size_t size, bool *mask, T &mean, T &stddev, T &median, T &madfm);
+template <class T> void findAllStats(T *array, size_t size, bool *mask, T &mean, T &stddev, T &median, T &madfm, T &maxx, T &minn);
 template <class T> T findMean(T *array, size_t size); 
 template <class T> T findMean(T *array, bool *mask, size_t size);
 template <class T> T findStddev(T *array, size_t size);
@@ -131,6 +131,7 @@ double VeltoDist(double vsys);
 double RedtoDist(double redshift);
 
 template <class Type> bool isNaN (Type n);
+template <class T> bool isBlank(T val) {return (val==0 || isNaN(val));};
 bool fexists(std::string filename);
 
 double arcsconv(std::string cunit);

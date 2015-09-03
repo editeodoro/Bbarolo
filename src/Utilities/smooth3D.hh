@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -73,6 +73,7 @@ public:
 	Beam	Conbeam() {return conbeam;};					
 	double	Scalefac(){return scalefac;};
 	void 	setUseScalefac (bool ff) {usescalefac=ff;};
+    void    setUseBlanks(bool b) {useBlanks=b;};
 	
 	void cubesmooth(Cube<T> *c);
 	void smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam);
@@ -85,7 +86,10 @@ private:
 	Cube<T>	*in;						//< A pointer to the Cube to be smoothed.
 	T		*array;				 		//< The smoothed array.
 	bool	arrayAllocated;				//< Have been array allocated?
-	int 	NdatX;						//< X-box dimension.
+    bool    *blanks;                    //< An array with blank pixels.
+    bool    blanksAllocated;            //< Have been blanks allocated?
+    bool    useBlanks;
+    int 	NdatX;						//< X-box dimension.
 	int		NdatY;						//< Y-box dimension.
 	int		NdatZ;						//< Number of channels.
 	double	*confie;					//< The convolution field.

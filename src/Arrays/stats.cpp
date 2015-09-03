@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -286,7 +286,7 @@ namespace Statistics
   /// \param mask 		An array of the same length that says whether to
   /// 					include each member of the array in the calculations.
 
-		findAllStats(array, size, mask, mean, stddev, median, madfm);
+        findAllStats(array, size, mask, mean, stddev, median, madfm,max_val,min_val);
 		defined = true;
 	}
 	template void Stats<short>::calculate(short *, long, bool *);

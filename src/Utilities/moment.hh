@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -118,7 +118,7 @@ void MomentMap<T>::ZeroMoment (bool msk) {
 	if (!this->arrayAllocated) {
 		std::cout << "MOMENT MAPS error: ";
 		std::cout << "Array not allocated. Call 'input' first!!\n";
-		abort();
+		std::terminate();
 	}
 		
 	if (!(this->headDefined=setHead(0))) {
@@ -163,7 +163,7 @@ void MomentMap<T>::FirstMoment (bool msk) {
 	if (!this->arrayAllocated) {
 		std::cout << "MOMENT MAPS error: ";
 		std::cout << "Array not allocated. Call 'input' first!!\n";
-		abort();
+		std::terminate();
 	}
 		
 	if (!(this->headDefined=setHead(1))) {
@@ -219,7 +219,7 @@ void MomentMap<T>::SecondMoment (bool msk) {
 	if (!this->arrayAllocated) {
 		std::cout << "MOMENT MAPS error: ";
 		std::cout << "Array not allocated. Call 'input' first!!\n";
-		abort();
+		std::terminate();
 	}
 		
 	if (!(this->headDefined=setHead(2))) {
@@ -320,10 +320,11 @@ bool MomentMap<T>::setHead(int type) {
 
 
 template <class T>
-Image2D<T>* PositionVelocity (Cube<T> *c, int x0, int y0, T phi) {
+Image2D<T>* PositionVelocity (Cube<T> *c, T x0, T y0, T Phi) {
 	
-	while(phi>=360) phi -= 360;
-	while(phi<0) phi += 360;
+    T phi = Phi;
+    while(phi>=180) phi -= 180;
+    while(phi<0) phi += 180;
 	
 	double P = phi*M_PI/180.;
 	int dim[2] = {0, c->DimZ()}; 
@@ -332,20 +333,23 @@ Image2D<T>* PositionVelocity (Cube<T> *c, int x0, int y0, T phi) {
 	int xmax=xdim, ymax=ydim;
 	int xmin=0, ymin=0; 
 	
-	if (phi==90 || phi==270) {
-		dim[0] = xdim;
-		pv  = new Image2D<T>(dim);
-		for (int x=0; x<dim[0]; x++) 
-			for (int z=0; z<dim[1]; z++) 
-				pv->Array()[x+z*dim[0]] = c->Array(c->nPix(x,y0,z));				
-	}
-	else {	
+    Header &h = c->Head();
+    float cdelt0;
+
+    if (phi==90) {
+        dim[0] = xdim;
+        pv  = new Image2D<T>(dim);
+        for (int x=0; x<dim[0]; x++)
+            for (int z=0; z<dim[1]; z++)
+                pv->Array()[x+z*dim[0]] = c->Array(c->nPix(x,y0,z));
+        cdelt0 = fabs(h.Cdelt(0));
+    }
+    else {
 		std::vector<int> xx, yy; 
 		double mx=0, my=0;
 		
 		if (phi<90) my = tan(P+M_PI_2);
-		else if (phi>90 && phi<270) my = tan(P-M_PI_2);
-		else if (phi>270) my = tan(P-3*M_PI_2);
+        else my = tan(P-M_PI_2);
 
 		mx = 1./my;
 		
@@ -399,35 +403,33 @@ Image2D<T>* PositionVelocity (Cube<T> *c, int x0, int y0, T phi) {
 			for (int z=0; z<c->DimZ(); z++) {
 				pv->Array()[i+z*dim[0]] = c->Array(c->nPix(xx[i],yy[i],z));		
 			} 
-		}
-	}
+        }
+
+        float xdom = xdim*h.Cdelt(0);
+        float ydom = ydim*h.Cdelt(1);
+        cdelt0 = sqrt(xdom*xdom+ydom*ydom)/pv->DimX();
+    }
 	
-	Header &h = c->Head();
 	pv->copyHeader(h);
 	float crpix0 = xdim>ydim ? x0-xmin : y0-ymin;
-	float xdom = xdim*h.Cdelt(0);
-	float ydom = ydim*h.Cdelt(1);
-	float crdelt0 = sqrt(xdom*xdom+ydom*ydom)/pv->DimX();
     pv->Head().setCrpix(0, crpix0+1);
 	pv->Head().setCrval(0, 0);
-	pv->Head().setCdelt(0, crdelt0);
+    pv->Head().setCdelt(0, cdelt0);
 	pv->Head().setCtype(0, "Offset");
 	pv->Head().setCrpix(1, h.Crpix(2));
 	pv->Head().setCdelt(1, h.Cdelt(2));
 	pv->Head().setCrval(1, h.Crval(2));
 	pv->Head().setCunit(1, h.Cunit(2));
 	pv->Head().setCtype(1, h.Ctype(2));
-	pv->Head().setDataMax(0.);
-	pv->Head().setDataMin(0.);
+    pv->Head().setMinMax(0.,0.);
 	
-	std::string name = c->Head().Name()+"_pv"+to_string(phi);
+    std::string name = c->Head().Name()+"_pv"+to_string(Phi);
 	pv->Head().setName(name);
 
 	
 	return pv;
 	
 }
-
 
 
 #endif

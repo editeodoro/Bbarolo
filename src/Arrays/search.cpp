@@ -17,13 +17,13 @@
  along with Bbarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
 #include <iostream>
 #include <fstream>
-#include <cstring>
+#include <string>
 #include <cmath>
 #include <climits>
 #include <cfloat>
@@ -662,7 +662,7 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             << setw(m) << right << "[pix] "
             << setw(m) << right << "[km/s]"
             << setw(m) << right << "[km/s]"
-            << setw(m) << right << "[JY]  ";
+            << setw(m) << right << "[JY*km/s]  ";
 	
 	Stream 	<< endl;
 	
@@ -724,9 +724,9 @@ void Cube<T>::printDetections (std::ostream& Stream) {
         double world[3];
         pixToWCSSingle(head.WCS(), pix, world);
 
-        std::string Xint = to_string<int>(fabs(Xmax-Xmin));
-        std::string Yint = to_string<int>(fabs(Ymax-Ymin));
-        std::string Zint = to_string<int>(fabs(Zmax-Zmin));
+        std::string Xint = to_string<int>(fabs(Xmax-Xmin)+1);
+        std::string Yint = to_string<int>(fabs(Ymax-Ymin)+1);
+        std::string Zint = to_string<int>(fabs(Zmax-Zmin)+1);
 
         Stream 	<< setw(m-3) << right << Xint
                 << setw(m-3) << right << Yint
@@ -756,7 +756,7 @@ template void Cube<double>::printDetections(std::ostream&);
 
 template <class T>
 void Cube<T>::plotDetections() {
-	
+
 	int numObj = objectList->size();
     /*
     static int a=0;
@@ -883,7 +883,7 @@ void Cube<T>::plotDetections() {
     Vemap->Head().setMinMax(0,0);
     Vemap->Head().setBtype("velocity");
     Vemap->Head().setBunit("KM/S");
-    name = par.getOutfolder()+head.Obname()+"_mom1th.fits";
+    name = par.getOutfolder()+head.Obname()+"_mom1st.fits";
     Vemap->fitswrite_2d(name.c_str());
 	
     Dimap->copyHeader(head);

@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -176,6 +176,7 @@ T AlltoVel (T in, Header &h) {
   /// a output value in units of KM/S.
 	
     std::string cunit2 = h.Cunit(h.NumAx()-1);
+    if (h.NumAx()>3) cunit2 = h.Cunit(2);
 
     double freq0 = h.Freq0();
     const double c = 299792458;
@@ -196,13 +197,15 @@ T AlltoVel (T in, Header &h) {
 		T vel_m_s = c*(HIrest*HIrest-in*in)/(HIrest*HIrest+in*in);
 		vel_km_s = vel_m_s/1000.;
 	}
-	else if (cunit2=="MUM" || cunit2=="mum" || cunit2=="Mum" || cunit2=="um") {
+    else if (cunit2=="MUM" || cunit2=="mum" || cunit2=="Mum" || cunit2=="um" ||
+             cunit2=="A" || cunit2=="a" || cunit2=="Ang" || cunit2=="ang" ||
+             cunit2=="Angstrom" || cunit2=="angstrom" || cunit2=="ANGSTROM") {          // Micron or Angstrom for Hi-Z
         //int z_cent = floor(h.DimAx(2)/2.)-1;
         int z_cent = h.Crpix(2)-1;
-        double Ha_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-		T vel_m_s = c*(in*in-Ha_wave*Ha_wave)/(in*in+Ha_wave*Ha_wave);
+        double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+        T vel_m_s = c*(in*in-line_wave*line_wave)/(in*in+line_wave*line_wave);
 		vel_km_s = vel_m_s/1000.;
-	}	
+    }
 	else return in;
 	
 	return vel_km_s;
@@ -264,17 +267,19 @@ T DeltaVel (Header &h) {
 		deltaV = sum/(zdim-1);
 		deltaV /= 1000;
 	}
-	else if (h.Cunit(2)=="MUM" || h.Cunit(2)=="mum" || h.Cunit(2)=="Mum" || h.Cunit(2)=="um") {
+    else if (h.Cunit(2)=="MUM" || h.Cunit(2)=="mum" || h.Cunit(2)=="Mum" || h.Cunit(2)=="um" ||
+             h.Cunit(2)=="A" || h.Cunit(2)=="a" || h.Cunit(2)=="Ang" || h.Cunit(2)=="ang" ||
+             h.Cunit(2)=="Angstrom" || h.Cunit(2)=="angstrom" || h.Cunit(2)=="ANGSTROM") {            // Micron or Angstrom for Hi-Z
         const double c = 299792458;
         int z_cent = floor(h.DimAx(2)/2.)-1;
-        double Ha_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+        double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
 		
 		T sum=0;
 		for (int i=0; i<zdim-1; i++) {
 			T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T ivel = c*(ipix*ipix-Ha_wave*Ha_wave)/(ipix*ipix+Ha_wave*Ha_wave);
+            T ivel = c*(ipix*ipix-line_wave*line_wave)/(ipix*ipix+line_wave*line_wave);
 			T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T svel = c*(spix*spix-Ha_wave*Ha_wave)/(spix*spix+Ha_wave*Ha_wave);
+            T svel = c*(spix*spix-line_wave*line_wave)/(spix*spix+line_wave*line_wave);
 			T diff = svel - ivel;
 			sum += diff;
 		}
@@ -282,24 +287,6 @@ T DeltaVel (Header &h) {
         deltaV = sum/(zdim-1);
 		deltaV /= 1000;
 	}
-    else if (h.Cunit(2)=="A" || h.Cunit(2)=="a" || h.Cunit(2)=="Ang" || h.Cunit(2)=="ang") {
-        int z_cent = floor(h.DimAx(2)/2.)-1;
-        double Ha_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-        const double c = 299792458;
-
-        T sum=0;
-        for (int i=0; i<zdim-1; i++) {
-            T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T ivel = c*(ipix*ipix-Ha_wave*Ha_wave)/(ipix*ipix+Ha_wave*Ha_wave);
-            T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T svel = c*(spix*spix-Ha_wave*Ha_wave)/(spix*spix+Ha_wave*Ha_wave);
-            T diff = svel - ivel;
-            sum += diff;
-        }
-
-        deltaV = sum/(zdim-1);
-        deltaV /= 1000;
-    }
 	else return h.Cdelt(2);
 	
 	return deltaV;
@@ -512,7 +499,7 @@ double arcsconv(std::string cunit) {
 		std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
 		std::cout << "cannot convert to ARCSEC.\n";
 		std::cout << cunit;
-		abort(); 
+		std::terminate(); 
 	}
 	
 }
@@ -533,7 +520,7 @@ double degconv(std::string cunit) {
         std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
         std::cout << "cannot convert to DEGREE.\n";
         std::cout << cunit;
-        abort();
+        std::terminate();
     }
 }
 

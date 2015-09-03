@@ -10,10 +10,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -29,16 +29,16 @@
 #include "../Arrays/param.hh"
 
 namespace Ui {
-class BbaroloWindow;
+class BBaroloWindow;
 }
 
-class BbaroloWindow : public QMainWindow
+class BBaroloWindow : public QMainWindow
 {
     Q_OBJECT
     
 public:
-    explicit BbaroloWindow(QWidget *parent = 0);
-    ~BbaroloWindow();
+    explicit BBaroloWindow(QWidget *parent = 0);
+    ~BBaroloWindow();
 
 private slots:
     void on_ParampushButton_clicked();
@@ -170,7 +170,7 @@ private:
 
     void plotParameters();
 
-    Ui::BbaroloWindow *ui;
+    Ui::BBaroloWindow *ui;
     QProcess* proc;
     QString obj;
     QString out_path;

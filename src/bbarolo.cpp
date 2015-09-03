@@ -1,5 +1,5 @@
 /////////////////////////////////////////////
-// bbarolo.cpp: Main source file of Bbarolo
+// bbarolo.cpp: Main source file of BBarolo
 /////////////////////////////////////////////
 
 /*-----------------------------------------------------------------------
@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -31,6 +31,7 @@
 #include "./Arrays/cube.hh"
 #include "./Arrays/stats.hh"
 #include "./Utilities/moment.hh"
+#include "./Utilities/ringmodel.hh"
 #include "./Utilities/smooth3D.hh"
 #include "./Utilities/galfit.hh"
 #include "./Utilities/spacepar.hh"
@@ -143,7 +144,16 @@ int main (int argc, char *argv[]) {
             if (par->getNORM()=="LOCAL") fit->writeModel_norm();
             if (par->getNORM()=="AZIM") fit->writeModel_azim() ;
 			else {
+
                 Model::Galmod<float> *mod = fit->getModel();
+///////////////
+//                long axis[3] = {mod->Out()->DimX(),mod->Out()->DimY(),mod->Out()->DimZ()};
+//                float *ar = new float[c->NumPix()];
+//                for (int i=0; i<c->NumPix();i++) ar[i] = mod->Out()->Array(i);
+//                FitsWrite_3D("diocaro.fits",ar,axis);
+/////////////////
+
+
 				std::string mfile = c->pars().getOutfolder()+c->Head().Name()+"mod.fits";
 				mod->Out()->Head().setMinMax(0.,0.);
 				mod->Out()->Head().setName(c->Head().Name()+"mod");
@@ -160,6 +170,15 @@ int main (int argc, char *argv[]) {
 			sp->calculate();
 			delete sp;
         }
+
+        //<<<<<<< 2D Tilted-Ring Model
+        if (par->getFlagRing()) {
+            Ringmodel *trmod = new Ringmodel(c);
+            trmod->ringfit();
+            trmod->printfinal(std::cout);
+            delete trmod;
+        }
+        ///----------------------
 
 		if (par->getMaps()) {
             MomentMap<float> map;
@@ -198,8 +217,8 @@ int main (int argc, char *argv[]) {
 		
         // Giusto per prendere i PV lungo angoli
         if (par->getFlagPV()) {
-            int xpos = lround(par->getXPOS_PV());
-            int ypos = lround(par->getYPOS_PV());
+            float xpos = par->getXPOS_PV();
+            float ypos = par->getYPOS_PV();
             float ang = par->getPA_PV();
             std::string s = outfolder+c->Head().Name();
             Image2D<float> *pv = PositionVelocity(c,xpos,ypos,ang);

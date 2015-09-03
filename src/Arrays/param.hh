@@ -14,10 +14,10 @@
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
- Correspondence concerning Bbarolo may be directed to:
+ Correspondence concerning BBarolo may be directed to:
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
@@ -158,8 +158,6 @@ public:
     int		getBweight () {return BWEIGHT;};
     string  getNORM () {return NORM;};
     int     getStartRad() {return startRAD;};
-    bool    getNegStats() {return negStats;};
-
     
     bool	getflagSpace () {return flagSpace;};
     string  getP1 () {return P1;};
@@ -271,7 +269,7 @@ private:
 	int			WFUNC;						///< Weighting function.
 	int			NV;							///< Number of subclouds per profile.
 	double		TOL;						///< Tolerance for minimization.
-    string		MASK;						///< Type of mask to use: SEARCH, SMOOTH, THRESHOLD or NONE.
+    string		MASK;						///< Type of mask to use: SEARCH, SMOOTH, THRESHOLD, NEGATIVE or NONE.
 	bool		SM;
     string      NORM;                       ///< Normalization type: LOCAL, AZIM or NONE.
     string      FREE;						///< Free parameters.
@@ -281,7 +279,6 @@ private:
     string		POLYN;						///< Degree of polynomials fitting INC e PA.
 	int			BWEIGHT;					///< Power of the weighting function for Blank pixels.
     int         startRAD;                   ///< Starting radius
-    bool        negStats;                   ///< Calculate statistics and mask by using negatives.
 	
 	float		distance;
 	
