@@ -334,6 +334,11 @@ public:
     QPushButton *RunpushButton;
     QSpacerItem *verticalSpacer;
     QPushButton *ResetpushButton;
+    QHBoxLayout *horizontalLayout_4;
+    QLabel *Outfolderlabel;
+    QLineEdit *OutfolderlineEdit;
+    QPushButton *OutfolderpushButton;
+    QSpacerItem *horizontalSpacer_2;
     QStatusBar *statusBar;
     QMenuBar *menuBar;
     QMenu *menuBBaroloQt;
@@ -343,7 +348,7 @@ public:
         if (BBaroloWindow->objectName().isEmpty())
             BBaroloWindow->setObjectName(QString::fromUtf8("BBaroloWindow"));
         BBaroloWindow->setEnabled(true);
-        BBaroloWindow->resize(947, 760);
+        BBaroloWindow->resize(909, 802);
         BBaroloWindow->setUnifiedTitleAndToolBarOnMac(false);
         actionOpen_FITS_file = new QAction(BBaroloWindow);
         actionOpen_FITS_file->setObjectName(QString::fromUtf8("actionOpen_FITS_file"));
@@ -365,7 +370,7 @@ public:
         AutocheckBox->setObjectName(QString::fromUtf8("AutocheckBox"));
         AutocheckBox->setLayoutDirection(Qt::RightToLeft);
 
-        gridLayout->addWidget(AutocheckBox, 1, 0, 1, 1);
+        gridLayout->addWidget(AutocheckBox, 1, 1, 1, 1);
 
         MaingridLayout = new QGridLayout();
         MaingridLayout->setSpacing(6);
@@ -2098,7 +2103,7 @@ public:
         MaingridLayout->addWidget(HidetoolButton, 0, 0, 1, 1);
 
 
-        gridLayout->addLayout(MaingridLayout, 2, 0, 1, 1);
+        gridLayout->addLayout(MaingridLayout, 2, 1, 1, 1);
 
         gridLayout_4 = new QGridLayout();
         gridLayout_4->setSpacing(6);
@@ -2281,7 +2286,33 @@ public:
         gridLayout_4->addWidget(ResetpushButton, 4, 2, 1, 1);
 
 
-        gridLayout->addLayout(gridLayout_4, 0, 0, 1, 1);
+        gridLayout->addLayout(gridLayout_4, 0, 1, 1, 1);
+
+        horizontalLayout_4 = new QHBoxLayout();
+        horizontalLayout_4->setSpacing(6);
+        horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
+        Outfolderlabel = new QLabel(centralWidget);
+        Outfolderlabel->setObjectName(QString::fromUtf8("Outfolderlabel"));
+
+        horizontalLayout_4->addWidget(Outfolderlabel);
+
+        OutfolderlineEdit = new QLineEdit(centralWidget);
+        OutfolderlineEdit->setObjectName(QString::fromUtf8("OutfolderlineEdit"));
+        OutfolderlineEdit->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+
+        horizontalLayout_4->addWidget(OutfolderlineEdit);
+
+        OutfolderpushButton = new QPushButton(centralWidget);
+        OutfolderpushButton->setObjectName(QString::fromUtf8("OutfolderpushButton"));
+
+        horizontalLayout_4->addWidget(OutfolderpushButton);
+
+        horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_4->addItem(horizontalSpacer_2);
+
+
+        gridLayout->addLayout(horizontalLayout_4, 3, 1, 1, 1);
 
         BBaroloWindow->setCentralWidget(centralWidget);
         statusBar = new QStatusBar(BBaroloWindow);
@@ -2293,7 +2324,7 @@ public:
         BBaroloWindow->setStatusBar(statusBar);
         menuBar = new QMenuBar(BBaroloWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 947, 22));
+        menuBar->setGeometry(QRect(0, 0, 909, 22));
         menuBBaroloQt = new QMenu(menuBar);
         menuBBaroloQt->setObjectName(QString::fromUtf8("menuBBaroloQt"));
         BBaroloWindow->setMenuBar(menuBar);
@@ -2481,13 +2512,13 @@ public:
         textEdit->setHtml(QApplication::translate("BBaroloWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:'.Helvetica Neue DeskInterface'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Welcome to <span style=\" font-weight:600;\">BBarolo</span>, a 3D-fitting tool to derive the kinematics of galaxies from emission-line observations. </p>\n"
-"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">To start, insert a parameter file or a FITS file in t"
-                        "he above fields and set the tasks in the left bar.</p>\n"
-"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">When everything is set and ready, click on &quot;Run BBarolo!&quot; and enjoy. </p></body></html>", 0, QApplication::UnicodeUTF8));
+"</style></head><body style=\" font-family:'Lucida Grande'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
+"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'.Helvetica Neue DeskInterface';\">Welcome to </span><span style=\" font-family:'.Helvetica Neue DeskInterface'; font-weight:600;\">BBarolo</span><span style=\" font-family:'.Helvetica Neue DeskInterface';\">, a 3D-fitting tool to derive the kinematics of galaxies from emission-line observations. </span></p>\n"
+"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'.Helvetica Neue DeskInterface"
+                        "';\"><br /></p>\n"
+"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'.Helvetica Neue DeskInterface';\">To start, insert a parameter file or a FITS file in the above fields and set the tasks in the left bar.</span></p>\n"
+"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'.Helvetica Neue DeskInterface';\"><br /></p>\n"
+"<p align=\"justify\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'.Helvetica Neue DeskInterface';\">When everything is set and ready, click on &quot;Run BBarolo!&quot; and enjoy. </span></p></body></html>", 0, QApplication::UnicodeUTF8));
         Logolabel->setText(QString());
         GalfitgroupBox->setTitle(QString());
         label_25->setText(QApplication::translate("BBaroloWindow", "km/s", 0, QApplication::UnicodeUTF8));
@@ -2842,6 +2873,9 @@ public:
         label_29->setText(QApplication::translate("BBaroloWindow", ":", 0, QApplication::UnicodeUTF8));
         RunpushButton->setText(QApplication::translate("BBaroloWindow", "Run BBarolo!", 0, QApplication::UnicodeUTF8));
         ResetpushButton->setText(QApplication::translate("BBaroloWindow", "Reset", 0, QApplication::UnicodeUTF8));
+        Outfolderlabel->setText(QApplication::translate("BBaroloWindow", " Output folder ", 0, QApplication::UnicodeUTF8));
+        OutfolderlineEdit->setText(QString());
+        OutfolderpushButton->setText(QApplication::translate("BBaroloWindow", "Open", 0, QApplication::UnicodeUTF8));
         menuBBaroloQt->setTitle(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 

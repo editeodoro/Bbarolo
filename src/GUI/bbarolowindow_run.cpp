@@ -35,7 +35,6 @@ void BBaroloWindow::on_FitslineEdit_editingFinished()
 
     QString filename = ui->FitslineEdit->text().trimmed();
     static QString lastFilename = "";
-    out_path = QDir::currentPath()+"/output/";
 
     if (filename=="") {lastFilename = filename; return;}
     if(fexists(filename.toStdString())) {
@@ -67,6 +66,8 @@ void BBaroloWindow::on_FitslineEdit_editingFinished()
 
         obj = QString::fromStdString(h->Name());
         out_path = QDir::currentPath()+"/output/"+obj+"/";
+        ui->OutfolderlineEdit->setText(out_path);
+
         QString smo_out = out_path+obj+"_s";
         if (ui->FactorcheckBox->isChecked())
             smo_out += QString::number(lround(ui->FactordoubleSpinBox->value()*ui->ObmajSpinBox->value()));
@@ -122,6 +123,16 @@ void BBaroloWindow::on_ParampushButton_clicked()
     }
 }
 
+void BBaroloWindow::on_OutfolderpushButton_clicked()
+{
+    QString outdir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),QDir::currentPath(),QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if(!outdir.isNull()) {
+        outdir.append("/");
+        ui->OutfolderlineEdit->setText(outdir);
+        out_path = outdir;
+    }
+}
+
 void BBaroloWindow::updateText()
 {
     QString appendText(proc->readAll());
@@ -171,9 +182,8 @@ void BBaroloWindow::on_RunpushButton_clicked() {
     disable_All();
 
     ui->plot1->replot();
-
-    mkdir ("./output/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    mkdir (out_path.toStdString().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    out_path = ui->OutfolderlineEdit->text().trimmed();
+    mkdirp (out_path.toStdString().c_str());
 
     QFile::remove(out_path+"ringlog1.txt");
     QFile::remove(out_path+"ringlog2.txt");
@@ -236,6 +246,9 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         ui->FitslineEdit->setText(filename);
         on_FitslineEdit_editingFinished();
     }
+
+    QString outdir = QString::fromStdString(par->getOutfolder());
+    if (outdir!="") ui->OutfolderlineEdit->setText(outdir);
 
     if (par->getflagGalFit()) {
         set3DFitFlag(Qt::Checked);
@@ -398,6 +411,8 @@ void BBaroloWindow::writeParamFile(QString file) {
     }
     out << setw(n) << "FITSFILE" << filename.toStdString() << endl;
 
+    QString outdir = ui->OutfolderlineEdit->text().trimmed();
+    if (!outdir.isNull()) out << setw(n) << "OUTFOLDER" << outdir.toStdString() << endl;
 
     if (get3DFitFlag()) {
         out << setw(n) << "GALFIT" << "true" << endl;

@@ -51,6 +51,7 @@ BBaroloWindow::BBaroloWindow(QWidget *parent) :
     }
 
     out_path = QDir::currentPath()+"/output/";
+    ui->OutfolderlineEdit->setText(out_path);
 
     ui->plot1->setInteraction(QCP::iRangeDrag, true);
     ui->plot2->setInteraction(QCP::iRangeDrag, true);
@@ -87,6 +88,7 @@ void BBaroloWindow::resetGUI() {
     enable_All();
     ui->ParamlineEdit->clear();
     ui->FitslineEdit->clear();
+    ui->OutfolderlineEdit->clear();
 
     ui->BoxcheckBox->setChecked(false);
     ui->XminspinBox->setValue(0);
@@ -199,6 +201,8 @@ void BBaroloWindow::enable_All() {
     ui->FitspushButton->setEnabled(true);
     ui->ResetpushButton->setEnabled(true);
     ui->BoxcheckBox->setEnabled(true);
+    ui->OutfolderlineEdit->setEnabled(true);
+    ui->OutfolderpushButton->setEnabled(true);
 
     if (get3DFitFlag()) {
         ui->GalfitgroupBox->setEnabled(true);
@@ -219,6 +223,8 @@ void BBaroloWindow::disable_All() {
     ui->FitslineEdit->setDisabled(true);
     ui->ParampushButton->setDisabled(true);
     ui->ResetpushButton->setDisabled(true);
+    ui->OutfolderpushButton->setDisabled(true);
+    ui->OutfolderlineEdit->setDisabled(true);
     ui->ParamlineEdit->setDisabled(true);
     ui->FitspushButton->setDisabled(true);
     ui->BoxcheckBox->setDisabled(true);
@@ -741,3 +747,4 @@ int BBaroloWindow::readFileString(QString &s) {
 
     }
 }
+

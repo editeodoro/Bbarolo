@@ -844,10 +844,11 @@ void ParamGuess<T>::plotGuess() {
 	
 	/// Plotting axes in a .eps file.
 	std::ofstream outmaj1, outmaj2, outmin, velf;
-	outmaj1.open("./output/axmaj1.dat");
-	outmaj2.open("./output/axmaj2.dat");
-	outmin.open("./output/axmin.dat");
-	velf.open("./output/vfield.dat");
+    std::string outfolder = in->pars().getOutfolder();
+    outmaj1.open((outfolder+"axmaj1.dat").c_str());
+    outmaj2.open((outfolder+"axmaj2.dat").c_str());
+    outmin.open((outfolder+"axmin.dat").c_str());
+    velf.open((outfolder+"vfield.dat").c_str());
 	for (int x=coord_low[0]-range; x<=coord_low[0]+range; x++) 
 		for (int y=coord_low[1]-range; y<=coord_low[1]+range; y++) 
 			outmaj1 << x << "   " << y << std::endl;
@@ -878,8 +879,8 @@ void ParamGuess<T>::plotGuess() {
 	float minvel = *min_element(&vec[0], &vec[0]+vec.size());
 	vec.clear();
 	
-	std::string outfile = in->pars().getOutfolder()+"axis_major.eps";
-	std::ofstream gnu("./output/gnuscript.gnu");
+    std::string outfile = outfolder+"axis_major.eps";
+    std::ofstream gnu((outfolder+"gnuscript.gnu").c_str());
 	T Rmaxpix = Rmax/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
 	std::string amaj = to_string(Rmaxpix);
 	std::string amin = to_string(Rmaxpix*cos(inclin/180*M_PI));
@@ -903,15 +904,15 @@ void ParamGuess<T>::plotGuess() {
 	    << "set parametric\n"
 	    << "x(t)="+xcenter+"+"+amaj+"*cos("+posa+")*cos(t)-"+amin+"*sin("+posa+")*sin(t)\n"
 		<< "y(t)="+ycenter+"+"+amaj+"*sin("+posa+")*cos(t)+"+amin+"*cos("+posa+")*sin(t)\n"
-		<< "set table './output/ellipse.tab'\n"
+        << "set table '"+outfolder+"ellipse.tab'\n"
 		<< "plot x(t), y(t)\n"
 		<< "unset table\n"
 		<< "unset parametric\n"
 		<< "set terminal postscript eps enhanced color font 'Helvetica,14'\n"
 		<< "set output '"<<outfile<<"'\n"
-		<< "plot './output/vfield.dat' w image, './output/axmaj1.dat' ls 1 lc 3, "
-		<< "'./output/axmaj2.dat' ls 1 lc 1, './output/axmin.dat' lc 2, "
-		<< " './output/ellipse.tab' w l ls -1, f(x) ls 1, g(x) ls 3,'-' ls 5, '-' ls 7 \n"
+        << "plot '"+outfolder+"vfield.dat' w image, '"+outfolder+"axmaj1.dat' ls 1 lc 3, "
+        << "'"+outfolder+"axmaj2.dat' ls 1 lc 1, '"+outfolder+"axmin.dat' lc 2, "
+        << " '"+outfolder+"ellipse.tab' w l ls -1, f(x) ls 1, g(x) ls 3,'-' ls 5, '-' ls 7 \n"
 		<< to_string(xcentre)+" "+to_string(ycentre) << std::endl
 		<< "e" << std::endl
 		<< to_string(major_max[0])+" "+to_string(major_max[1]) << std::endl
@@ -923,16 +924,16 @@ void ParamGuess<T>::plotGuess() {
 #ifdef HAVE_GNUPLOT		
 	Gnuplot gp;
 	gp.begin();	
-	gp.commandln("load './output/gnuscript.gnu'");
+    gp.commandln(("load '"+outfolder+"gnuscript.gnu'").c_str());
 	gp.end();
-	remove("./output/ellipse.tab");
+    remove((outfolder+"ellipse.tab").c_str());
 
 #endif	
-	remove("./output/axmaj1.dat");
-	remove("./output/axmaj2.dat");
-	remove("./output/axmin.dat");
-	remove("./output/vfield.dat");
-	remove("./output/gnuscript.gnu");
+    remove((outfolder+"axmaj1.dat").c_str());
+    remove((outfolder+"axmaj2.dat").c_str());
+    remove((outfolder+"axmin.dat").c_str());
+    remove((outfolder+"vfield.dat").c_str());
+    remove((outfolder+"gnuscript.gnu").c_str());
 	
 }
 

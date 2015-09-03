@@ -33,6 +33,8 @@
 #include "../Map/voxel.hh"
 #include <fitsio.h>
 #include <wcslib/wcs.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 
 double KpcPerArc(double d) {return 2*d*tan(M_PI/2/180)/3.6;}
@@ -53,6 +55,28 @@ template bool isNaN (double);
 
 bool fexists(std::string filename) {std::ifstream ifile(filename.c_str()); return ifile;}
 
+
+bool mkdirp(const char* path, mode_t mode) {
+    /** Utility function to create directory tree */
+
+    if(path[0] == '\0') return false;
+
+    char* p = const_cast<char*>(path);
+    while (*p != '\0') {
+        p++;
+        while(*p != '\0' && *p != '/') p++;
+        char v = *p;
+        *p = '\0';
+
+        if(mkdir(path, mode) != 0 && errno != EEXIST) {
+            *p = v;
+            return false;
+        }
+        *p = v;
+    }
+
+    return true;
+}
 
 void FitsWrite_2D (const char *filename, float *image, long xsize, long ysize) {
 	

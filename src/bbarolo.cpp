@@ -60,11 +60,9 @@ int main (int argc, char *argv[]) {
     Param *par = new Param;
 
 	if (!par->getopts(argc, argv)) return EXIT_FAILURE;
-	if (par->getImageList()=="NONE") par->setImage(par->getImageFile());
+    if (par->getImageList()=="NONE") par->setImage(par->getImageFile());
 	std::cout << *par;
 
-	mkdir ("./output/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	
 	for (int im=0; im<par->getListSize(); im++) {
 		
 		if (par->getListSize()>1) {
@@ -102,10 +100,13 @@ int main (int argc, char *argv[]) {
 			continue;
         }
 
-		std::string outfolder = "./output/"+c->Head().Obname()+"/";
-		c->pars().setOutfolder(outfolder);
-		mkdir (outfolder.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	
+        std::string outfolder = c->pars().getOutfolder();
+        if (outfolder=="") {
+            outfolder = "./output/"+c->Head().Obname()+"/";
+            c->pars().setOutfolder(outfolder);
+        }
+        mkdirp(outfolder.c_str());
+
 		if (par->getCheckCh()) c->CheckChannels();
 	
 		if (par->getflagSmooth()) {
@@ -251,7 +252,7 @@ int main (int argc, char *argv[]) {
 	std::cout << "\nExecution time: " << int(time/60) 
 	   	  	  << " min and " << int(time)%60 << " sec.\n";
 	
-	
+
 	return EXIT_SUCCESS;
 	
 }

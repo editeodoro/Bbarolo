@@ -43,7 +43,7 @@ void Param::defaultValues() {
 	
 	imageFile         	= "";
     imageList			= "NONE";
-    outFolder			= "./";
+    outFolder			= "";
     verbose				= true;
     showbar             = true;
     beamFWHM			= 30.;
@@ -358,8 +358,9 @@ int Param::readParams(std::string paramfile) {
 			ss >> arg;
 			arg = makelower(arg);
             if(arg=="fitsfile")      	imageFile = readFilename(ss);
-            if(arg=="fitslist")		imageList = readFilename(ss);
+            if(arg=="fitslist")         imageList = readFilename(ss);
 			if(arg=="verbose")         	verbose = readFlag(ss);
+            if(arg=="outfolder")        outFolder = readFilename(ss);
             if(arg=="showbar")          showbar = readFlag(ss);
 			if(arg=="beamfwhm") 		beamFWHM = readFval(ss);
 			if(arg=="checkchannels")	checkChannels = readFlag(ss);
@@ -495,6 +496,8 @@ int Param::readParams(std::string paramfile) {
 bool Param::checkPars() {
 	
 	checkHome(imageFile);
+    checkHome(outFolder);
+    if (outFolder!="" && outFolder[outFolder.size()-1]!='/') outFolder.append("/");
 
     if (!verbose) showbar=false;
 

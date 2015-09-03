@@ -155,6 +155,8 @@ private slots:
 
 
 
+    void on_OutfolderpushButton_clicked();
+
 private:
     void readParamFromFile(std::string filein);
     void readModelParam(Param *par);

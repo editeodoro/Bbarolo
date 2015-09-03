@@ -33,6 +33,10 @@
 #include <fitsio.h>
 #include "../Arrays/header.hh"
 #include "../Map/voxel.hh"
+#include <sys/stat.h>
+
+
+#define DEFAULT_MODE      S_IRWXU | S_IRGRP |  S_IXGRP | S_IROTH | S_IXOTH
 
 
 /// Functions to allocate or deallocate multidimensional arrays.
@@ -111,6 +115,7 @@ template <class T> void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
 /// Other functions:
 /// Defined in utils.cpp
 
+bool mkdirp(const char* path, mode_t mode = DEFAULT_MODE);
 void FitsWrite_2D (const char *filename, float *image, long xsize, long ysize);
 void FitsWrite_2D (const char *filename, double *image, long xsize, long ysize);
 void FitsWrite_3D (const char *outfile, float *outcube, long *dimAxes);
