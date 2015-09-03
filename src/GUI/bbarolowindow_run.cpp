@@ -182,7 +182,10 @@ void BBaroloWindow::on_RunpushButton_clicked() {
     disable_All();
 
     ui->plot1->replot();
-    out_path = ui->OutfolderlineEdit->text().trimmed();
+    std::string outfolder = ui->OutfolderlineEdit->text().trimmed().toStdString();
+    checkHome(outfolder);
+    if (outfolder[outfolder.size()-1]!='/') outfolder.append("/");
+    out_path = QString::fromStdString(outfolder);
     mkdirp (out_path.toStdString().c_str());
 
     QFile::remove(out_path+"ringlog1.txt");
