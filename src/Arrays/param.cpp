@@ -579,6 +579,18 @@ bool Param::checkPars() {
 				good = false;
             }
 		}
+
+        if (NORM!="NONE" && NORM!="AZIM" && NORM!="LOCAL") {
+            std::cout << " ERROR: Unknown type of normalization: " << NORM << std::endl;
+            std::cout << "Setting to LOCAL" << std::endl;
+            NORM="LOCAL";
+        }
+
+        if (MASK!="NONE" && MASK!="SMOOTH" && MASK!="SEARCH" && MASK!="THRESHOLD" && MASK!="NEGATIVE") {
+            std::cout << " ERROR: Unknown type of mask: " << MASK << std::endl;
+            std::cout << "Setting to SMOOTH" << std::endl;
+            MASK="SMOOTH";
+        }
 		
         if (flagGalFit) {
             if (FREE=="") {
@@ -652,17 +664,7 @@ bool Param::checkPars() {
         checkHome(ivarfile);
     }
 	
-    if (NORM!="NONE" && NORM!="AZIM" && NORM!="LOCAL") {
-        std::cout << " ERROR: Unknown type of normalization: " << NORM << std::endl;
-        std::cout << "Setting to LOCAL" << std::endl;
-        NORM="LOCAL";
-    }
 
-    if (!(MASK=="NONE" || MASK=="SMOOTH" || MASK=="SEARCH" || MASK=="THRESHOLD" || MASK=="NEGATIVE")) {
-        std::cout << " ERROR: Unknown type of mask: " << MASK << std::endl;
-        std::cout << "Setting to SMOOTH" << std::endl;
-        MASK="SMOOTH";
-    }
 
 	return true;
 }

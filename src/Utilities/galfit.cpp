@@ -1141,7 +1141,7 @@ void Galfit<T>::createMask() {
     Cube<short> *m = new Cube<short>;
     m->saveHead(in->Head());
  	m->saveParam(in->pars());
-    m->Head().setMinMax(0.,1.);
+    m->Head().setMinMax(0.,0);
  	m->setCube(mask, in->AxisDim());
 	std::string outname = in->pars().getOutfolder()+"mask.fits";
     m->fitswrite_3d(outname.c_str());
