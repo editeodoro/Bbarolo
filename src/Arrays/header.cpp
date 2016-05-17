@@ -218,8 +218,8 @@ bool Header::header_read (std::string fname) {
 
     char *Bunit = new char [20];
     char *Btype = new char [20];
-    char *name = new char [20];
-    char *Tel = new char [20];
+    char *name = new char [100];
+    char *Tel = new char [100];
     char *Dunit3 = new char[20];
     char *Keys = new char[100];
     for (int i=0; i<20; i++) {
@@ -562,28 +562,28 @@ void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
 
     int status=0;
     char com[]= "  ";
-    char *ctype1 = new char[15];
+    char *ctype1 = new char[20];
     strcpy(ctype1, ctype[0].c_str());
-    char *ctype2 = new char[15];
+    char *ctype2 = new char[20];
     strcpy(ctype2, ctype[1].c_str());
-    char *ctype3 = new char[15];
+    char *ctype3 = new char[20];
     strcpy(ctype3, ctype[2].c_str());
-    char *cunit1 = new char [15];
+    char *cunit1 = new char [20];
 	strcpy(cunit1, cunit[0].c_str());
-	char *cunit2 = new char [15];
+	char *cunit2 = new char [20];
 	strcpy(cunit2, cunit[1].c_str());
-	char *cunit3 = new char [15];
+	char *cunit3 = new char [20];
     strcpy(cunit3, cunit[2].c_str());
     
-    char *Bunit = new char [15];
+    char *Bunit = new char [20];
     strcpy(Bunit, bunit.c_str());
-    char *Btype = new char [15];
+    char *Btype = new char [20];
     strcpy(Btype, btype.c_str());
-    char *Object = new char [30];
+    char *Object = new char [100];
     strcpy(Object, object.c_str());
-    char *Tel = new char [30];
+    char *Tel = new char [100];
     strcpy(Tel, telescope.c_str());
-    char *Dunit = new char [30];
+    char *Dunit = new char [20];
     strcpy(Dunit, dunit3.c_str());
     
     char *Keys = new char[100];
