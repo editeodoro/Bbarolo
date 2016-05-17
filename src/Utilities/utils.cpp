@@ -53,7 +53,7 @@ template bool isNaN (float);
 template bool isNaN (double);
 
 
-bool fexists(std::string filename) {std::ifstream ifile(filename.c_str()); return ifile;}
+bool fexists(std::string filename) {std::ifstream ifile(filename.c_str()); return ifile.good();}
 
 
 bool mkdirp(const char* path, mode_t mode) {
