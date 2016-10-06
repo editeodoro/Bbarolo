@@ -100,10 +100,11 @@ int main (int argc, char *argv[]) {
 
         std::string outfolder = c->pars().getOutfolder();
         if (outfolder=="") {
-            outfolder = "./output/"+c->Head().Obname()+"/";
+            std::string path = get_selfpath();
+            path.erase(path.size()-7);
+            outfolder = path+"output/"+c->Head().Obname()+"/";
             c->pars().setOutfolder(outfolder);
         }
-        mkdirp(outfolder.c_str());
 
 		if (par->getCheckCh()) c->CheckChannels();
 

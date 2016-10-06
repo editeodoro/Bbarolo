@@ -35,7 +35,19 @@
 #include <wcslib/wcs.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <libproc.h>
+#include <sys/types.h>
+#include <unistd.h>
 
+std::string get_selfpath() {
+    std::string path = "";
+    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+    pid_t pid = getpid();
+    int ret = proc_pidpath (pid, pathbuf, sizeof(pathbuf));
+    if (ret <= 0) std::cerr << "Could not find the current PID \n";
+    else path = pathbuf;
+    return path;
+}
 
 double KpcPerArc(double d) {return 2*d*tan(M_PI/2/180)/3.6;}
 double VeltoDist(double vsys) {return vsys/70.;}

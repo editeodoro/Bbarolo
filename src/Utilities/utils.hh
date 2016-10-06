@@ -128,6 +128,7 @@ template <class T> T Pbcor (PixelInfo::Voxel<T> &v, Header &h);
 template <class T> void Pbcor(long x, long y, long z, T &flux, Header &h);
 
 // Function to obtain a linear scale from an angular scale. 
+std::string get_selfpath();
 // d is in Mpc and the returned value is in Kpc/arc. 
 double KpcPerArc(double d);
 // Function for the distance from systemic velocity by Hubble law.
