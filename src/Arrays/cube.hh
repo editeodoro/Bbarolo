@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -48,9 +48,7 @@ public:
 
     // Overloadad () operator for easy access the main array. Any control on the index.
     inline T& operator() (unsigned x, unsigned y, unsigned z) {return array[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];};
-    inline T  operator() (unsigned x, unsigned y, unsigned z) const {return array[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];};
     inline T& operator() (unsigned i) {return array[i];};
-    inline T  operator() (unsigned i) const {return array[i];};
 	
 	/// Obvious inline functions to access a private member of class:	
 	
@@ -140,7 +138,7 @@ public:
 	/// Blanking and Maps functions, defined in mmaps.cpp.
 	
 	void 	BlankCube (T *Array, long size);			 /// Blank a input array using Cube::mask.
-	void 	BlankMask();									 /// Define Cube::mask;
+    void 	BlankMask(float *channel_noise=NULL);									 /// Define Cube::mask;
 	void 	MomentMaps ();									 /// Front-end to write moment maps.
 
 	//void 	WriteFITSMap (T *Array, int T);			 /// Write a map in a FITS file.

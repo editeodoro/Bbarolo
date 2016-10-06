@@ -9,7 +9,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -25,9 +25,12 @@
 #include <iostream>
 #include "../Arrays/cube.hh"
 #include "../Map/detection.hh"
+#include "../Utilities/galmod.hh"
 #include "utils.hh"
 #include "lsqfit.hh"
 #include "gnuplot.hh"
+#include "moment.hh"
+#include "ellprof.hh"
 
 template <class T>
 class ParamGuess 
@@ -46,13 +49,20 @@ public:
 	T		radsep;
 	T		axmin;
 	T		axmaj;
+	T*		Intmap;
 	T*		Vemap;
-
+	
 	ParamGuess(Cube<T> *c, Detection<T> *object);
 	~ParamGuess();
 	
+    void setPosang (T v) {posang=v;}
+    void setXcentre (T v) {xcentre=v;}
+    void setYcentre (T v) {ycentre=v;}
+
+
 	void findInitial();
 	void fitEllipse();
+	void fitIncfromMap();
 	void plotGuess();
 	
 private:
@@ -70,16 +80,26 @@ private:
 	int		minor_max[2];
 	int		major_min[2];
 	int		minor_min[2];
+	float 	totflux_obs;
 
 	T	  funcEllipse(T *mypar);
-	void  findGeometricalParameters();	
+	T	  funcIncfromMap(T *mypar);
+	
+	void  findGeometricalParameters();
+	bool  fitSimplex(int ndim, T **p);	
+	
+	typedef T (ParamGuess<T>::*funcPtr) (T *);
+    funcPtr func;
 };
+
 
 template <class T>
 ParamGuess<T>::ParamGuess(Cube<T> *c, Detection<T> *object) {
 	
 	in	= c;
 	obj	= object;
+	func = &ParamGuess<T>::funcEllipse;
+    
 	
 	obj->calcFluxes(obj->getPixelSet(in->Array(), in->AxisDim()));
 	obj->calcWCSparams(in->Head());
@@ -90,13 +110,15 @@ ParamGuess<T>::ParamGuess(Cube<T> *c, Detection<T> *object) {
 	zsize = fabs(obj->getZmax()-obj->getZmin())+1;
 	Xmin = obj->getXmin();
 	Ymin = obj->getYmin();
+	
 		
-	/// Extracting velocity field
+	/// Extracting intensity and velocity field
 	Vemap = new T[in->DimX()*in->DimY()];
+	Intmap = new T[in->DimX()*in->DimY()];
 	std::vector<Voxel<T> > voxelList = obj->getPixelSet(in->Array(), in->AxisDim());
 	float *fluxint = new float[in->DimX()*in->DimY()];
 	float *fluxsum = new float[in->DimX()*in->DimY()];
-	for (int i=0; i<in->DimX()*in->DimY();i++) fluxint[i] = fluxsum[i] = 0;
+	for (int i=0; i<in->DimX()*in->DimY();i++) fluxint[i] = fluxsum[i] = Intmap[i]= 0;
 	
 	for(typename std::vector<Voxel<T> >::iterator vox=voxelList.begin();vox<voxelList.end();vox++){
 		int x = vox->getX();
@@ -105,14 +127,17 @@ ParamGuess<T>::ParamGuess(Cube<T> *c, Detection<T> *object) {
 		float flux = FluxtoJy(in->Array(x,y,z),in->Head());
 		fluxsum[x+y*in->DimX()] += flux;
 		fluxint[x+y*in->DimX()] += flux*in->getZphys(z);
+        Intmap[x+y*in->DimX()] += flux;
 	}
 	
-	for (int i=0; i<in->DimX()*in->DimY();i++) 
+	totflux_obs=0;
+	for (int i=0; i<in->DimX()*in->DimY();i++) {
+		totflux_obs += fluxsum[i];
         Vemap[i] = AlltoVel(fluxint[i]/fluxsum[i], in->Head());
-
-	delete [] fluxint;
-	delete [] fluxsum;
+	}
 	
+	delete [] fluxint;
+    delete [] fluxsum;
 } 
 
 template <class T>
@@ -637,49 +662,22 @@ void ParamGuess<T>::findGeometricalParameters() {
 	
 }
 
-
 template <class T>
-void ParamGuess<T>::fitEllipse() {
+bool ParamGuess<T>::fitSimplex(int ndim, T **p) {
 	
 	const int NMAX=5000; 			
 	const double TINY=1.0e-10;
 	const double tol =1.E-03;
 	
-	int ndim=2;	
 	int mpts=ndim+1;	
-	T minimum, parmin[ndim];
-	T *point = new T[ndim];
-	T *dels  = new T[ndim];
-	T **p = allocate_2D<T>(mpts,ndim);
-	
-	point[0] = Rmax;
-	point[1] = inclin;
-	//point[2] = posang;
-	//point[3] = xcentre;
-	//point[4] = ycentre;
-	
-	/// Determine the initial simplex.
-	for (int i=0; i<ndim; i++) {
-		dels[i]  = 0.1*point[i]; 
-		point[i] = point[i]-0.05*point[i];		
-	}
-
-	
-	for (int i=0; i<mpts; i++) {
-			for (int j=0; j<ndim; j++) p[i][j]=point[j];
-		if (i!=0) p[i][i-1] += dels[i-1];
-	}
-	
-	delete [] point;
-	delete [] dels;
-	
+	T minimum;
 	
 	T psum[ndim], x[ndim];
 	T *y = new T[mpts];
 	
 	for (int i=0; i<mpts; i++) {
 		for (int j=0; j<ndim; j++) x[j]=p[i][j];
-		y[i]=funcEllipse(x); 
+		y[i]=(this->*func)(x); 
 	}
 	
 	int nfunc=0;
@@ -709,17 +707,14 @@ void ParamGuess<T>::fitEllipse() {
 			std::swap(y[0],y[ilo]);
 			for (int i=0; i<ndim; i++) {
 				std::swap(p[0][i],p[ilo][i]);
-				parmin[i]=p[0][i];
 			}
 			minimum=y[0];
-			deallocate_2D(p,ndim+1);
 			delete [] y;
 			Ok = true;
 			break;
 		}
 		
 		if (nfunc>=NMAX) {
-			deallocate_2D(p,ndim+1);
 			delete [] y;
 			Ok = false;
 			break;
@@ -731,7 +726,7 @@ void ParamGuess<T>::fitEllipse() {
 		double fac2=fac1-fac;
 		T ptry[ndim];
 		for (int j=0; j<ndim; j++) ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
-		T ytry=funcEllipse(ptry);			
+		T ytry=(this->*func)(ptry);			
 		if (ytry<y[ihi]) { 	
 			y[ihi]=ytry;
 			for (int j=0; j<ndim; j++) {
@@ -746,7 +741,7 @@ void ParamGuess<T>::fitEllipse() {
 			fac1=(1.0-fac)/ndim;
 			fac2=fac1-fac;
 			for (int j=0; j<ndim; j++) ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
-			ytry=funcEllipse(ptry);			
+			ytry=(this->*func)(ptry);			
 			if (ytry<y[ihi]) { 	
 				y[ihi]=ytry;
 				for (int j=0; j<ndim; j++) {
@@ -761,7 +756,7 @@ void ParamGuess<T>::fitEllipse() {
 			fac1=(1.0-fac)/ndim;
 			fac2=fac1-fac;
 			for (int j=0; j<ndim; j++) ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
-			ytry=funcEllipse(ptry);			
+			ytry=(this->*func)(ptry);			
 			if (ytry<y[ihi]) { 	
 				y[ihi]=ytry;
 				for (int j=0; j<ndim; j++) {
@@ -774,7 +769,7 @@ void ParamGuess<T>::fitEllipse() {
 					if (i!=ilo) {
 						for (int j=0; j<ndim; j++)
 							p[i][j]=psum[j]=0.5*(p[i][j]+p[ilo][j]);
-						y[i]=funcEllipse(psum);
+						y[i]=(this->*func)(psum);
 					}
 				}
 				
@@ -790,9 +785,47 @@ void ParamGuess<T>::fitEllipse() {
 		else --nfunc; 
 	}
 	
+	return Ok;
+}
+
+
+template <class T>
+void ParamGuess<T>::fitEllipse() {
+	
+	int ndim=2;	
+	int mpts=ndim+1;
+	
+	T *point = new T[ndim];
+	T *dels  = new T[ndim];
+	T **p = allocate_2D<T>(mpts,ndim);
+	
+	point[0] = Rmax;
+	point[1] = inclin;
+	//point[2] = posang;
+	//point[3] = xcentre;
+	//point[4] = ycentre;
+	
+	/// Determine the initial simplex.
+	for (int i=0; i<ndim; i++) {
+		dels[i]  = 0.1*point[i]; 
+		point[i] = point[i]-0.05*point[i];		
+	}
+	
+	for (int i=0; i<mpts; i++) {
+			for (int j=0; j<ndim; j++) p[i][j]=point[j];
+		if (i!=0) p[i][i-1] += dels[i-1];
+	}
+	
+	delete [] point;
+	delete [] dels;
+	
+	func = &ParamGuess<T>::funcEllipse;
+	
+	bool Ok = fitSimplex(ndim, p);
+		
 	if (Ok) {
-		Rmax   = parmin[0];
-		inclin = parmin[1];
+		Rmax   = p[0][0];
+		inclin = p[0][1];
         //double Axmin = Rmax*cos(inclin/180.*M_PI);
         //double Axmin_corr = Axmin - in->Head().Bmaj()/in->Head().PixScale();
         //double Axmaj_corr = Rmax - in->Head().Bmaj()/in->Head().PixScale();
@@ -800,7 +833,7 @@ void ParamGuess<T>::fitEllipse() {
 		//posang = parmin[2];
 		//xcentre= parmin[3];
 		//ycentre= parmin[4];
-		
+		deallocate_2D(p,ndim+1);
 	}
 	else {
 		std::cout << "Error while estimating inclination.";
@@ -840,8 +873,243 @@ T ParamGuess<T>::funcEllipse(T *mypar) {
 
 
 template <class T>
+void ParamGuess<T>::fitIncfromMap() {
+	
+    int ndim=2;
+	int mpts=ndim+1;
+	
+	T *point = new T[ndim];
+	T *dels  = new T[ndim];
+	T **p = allocate_2D<T>(mpts,ndim);
+	
+	point[0] = inclin;
+    point[1] = Rmax;
+
+	
+	/// Determine the initial simplex.
+	for (int i=0; i<ndim; i++) {
+		dels[i]  = 0.1*point[i]; 
+		point[i] = point[i];		
+	}
+	
+	for (int i=0; i<mpts; i++) {
+			for (int j=0; j<ndim; j++) p[i][j]=point[j];
+		if (i!=0) p[i][i-1] += dels[i-1];
+	}
+	
+	delete [] point;
+	delete [] dels;
+	
+	func = &ParamGuess<T>::funcIncfromMap;
+	
+	bool Ok = fitSimplex(ndim, p);
+		
+	if (Ok) {
+        inclin   = p[0][0];
+        Rmax     = p[0][1];
+		deallocate_2D(p,ndim+1);
+	}
+	else {
+		std::cout << "Error while estimating inclination.";
+		std::terminate();
+	}
+	 
+}
+
+
+template <class T> 
+T ParamGuess<T>::funcIncfromMap(T *mypar) {
+		
+    /*
+		if (mypar[0]<0) mypar[0]=1;
+		if (mypar[0]>90) mypar[0]=89;
+		
+		T inc = mypar[0];
+				
+		Rings<T> *rings = new Rings<T>;		
+		rings->radsep=radsep;
+		rings->nr = int(Rmax/radsep);
+		
+		T *prof = new T[rings->nr];
+		int *counter = new int[rings->nr];
+
+		cout << mypar[0] << " " << radsep << " " << rings->nr << " " << xcentre << " "<< ycentre << " " << posang <<  endl;
+		
+		for (int i=0; i<rings->nr; i++) {
+			rings->radii.push_back(i*rings->radsep);
+			float r1 = rings->radii[i]/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
+			float r2 = (i+1)*rings->radsep/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
+			prof[i]=counter[i]=0.;
+		}
+
+		for (int x=0; x<in->DimX();x++) {
+			for (int y=0; y<in->DimY(); y++) {
+				float xr = -(x-xcentre)*sin(posang*M_PI/360.)+(y-ycentre)*cos(posang*M_PI/360.);
+				float yr = (-(x-xcentre)*cos(posang*M_PI/360.)-(y-ycentre)*sin(posang*M_PI/360.))/cos(inc*M_PI/360.);
+				float rad = sqrt(xr*xr+yr*yr);
+				for (int i=0; i<rings->nr; i++) {
+					float r1 = rings->radii[i]/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
+					float r2 = (i+1)*rings->radsep/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
+					if (rad>=r1 && rad<r2) {
+						//cout << Intmap[x+y*in->DimX()] << endl;
+						prof[i]+=fabs(Intmap[x+y*in->DimX()]);
+						counter[i]++;
+					}
+				}
+			}
+		}		
+
+		for (int i=0; i<rings->nr; i++) prof[i]/=float(counter[i]);
+		
+		float minval = *min_element(&prof[0],&prof[0]+rings->nr);
+		float mulfac = pow(10,-int(log10(minval)));
+
+		for (int i=0; i<rings->nr; i++) {
+			if (counter[i]!=0) {
+				cout << setprecision(10);
+				cout << prof[i] << " " << std::flush;
+				prof[i]*= mulfac;
+				cout << prof[i] << " " << counter[i] <<endl;
+			}
+	        rings->vrot.push_back(AlltoVel(10*in->Head().Cdelt(2),in->Head()));
+	        rings->vdisp.push_back(8);
+	        rings->z0.push_back(0);
+	        rings->dens.push_back(prof[i]*1E20);
+	        rings->inc.push_back(inc);
+	        rings->phi.push_back(posang);
+	        rings->xpos.push_back(xcentre);
+	        rings->ypos.push_back(ycentre);
+	        rings->vsys.push_back(vsystem);
+		}
+
+		
+		Model::Galmod<T> *mod = new Model::Galmod<T>;
+
+		mod->input(in,rings,1);
+		mod->calculate();
+		mod->smooth();
+
+		delete rings;
+        delete [] prof;
+		
+		T *map_mod = new T[in->DimX()*in->DimY()];
+		
+		float totflux_mod=0;
+		for (int x=0; x<in->DimX(); x++){
+			for (int y=0; y<in->DimY(); y++){
+				map_mod[x+y*in->DimX()]=0;
+				for (int z=0; z<in->DimZ(); z++)
+					map_mod[x+y*in->DimX()]+=mod->Out()->Array(x,y,z);
+				totflux_mod += map_mod[x+y*in->DimX()];
+			}			
+		}
+		
+				
+		float factor = totflux_obs/totflux_mod;
+
+		float res_sum=0;
+		for (int i=0; i<in->DimX()*in->DimY();i++) {
+			if (map_mod[i]!=0) res_sum += fabs(Intmap[i]-map_mod[i]*factor);	
+		}
+
+		return res_sum;
+        */
+
+    bool verbosity = in->pars().isVerbose();
+    in->pars().setVerbosity(false);
+
+    if (mypar[0]<0) mypar[0]=1;
+    if (mypar[0]>90) mypar[0]=89;
+    if (mypar[1]<0) mypar[1]=2*radsep;
+    if (mypar[1]>1.5*Rmax) mypar[1]=Rmax;
+
+    T inc  = mypar[0];
+    T RMAX = mypar[1];
+
+    Rings<T> *rings = new Rings<T>;
+    rings->radsep=radsep/2.;
+    rings->nr = int(RMAX/rings->radsep);
+
+    cout << mypar[0] << " " << mypar[1]<<  "  " << radsep << " " << rings->nr << " " << xcentre << " "<< ycentre << " " << posang <<  endl;
+
+    for (int i=0; i<rings->nr; i++) {
+        rings->radii.push_back(i*rings->radsep+rings->radsep/2.);
+        rings->vrot.push_back(AlltoVel(10*in->Head().Cdelt(2),in->Head()));
+        rings->vdisp.push_back(5);
+        rings->z0.push_back(0);
+        rings->inc.push_back(inc);
+        rings->phi.push_back(posang);
+        rings->xpos.push_back(xcentre);
+        rings->ypos.push_back(ycentre);
+        rings->vsys.push_back(vsystem);
+        rings->dens.push_back(1E20);
+    }
+
+    MomentMap<T> *totalmap = new MomentMap<T>;
+    totalmap->input(in);
+    totalmap->SumMap(true);
+    for (int i=0; i<totalmap->NumPix();i++) totalmap->Array()[i] = Intmap[i];
+    Tasks::Ellprof<T> ell(totalmap,rings);
+    ell.RadialProfile();
+    delete totalmap;
+
+    double profmin=FLT_MAX;
+    for (size_t i=0; i<rings->nr; i++) {
+        double mean = ell.getMean(i);
+        if (!isNaN(mean) && profmin>mean && mean>0) profmin = mean;
+    }
+    float factor = 1;
+    while(profmin<0.1) {
+        profmin*=10;
+        factor *=10;
+    }
+    while (profmin>10) {
+        profmin /= 10;
+        factor /= 10;
+    }
+    for (size_t i=0; i<rings->nr; i++) {
+        rings->dens[i]=factor*fabs(ell.getMean(i))*1E20;
+        if (rings->dens[i]==0) rings->dens[i]=profmin*1E20;
+    }
+
+    Model::Galmod<T> *mod = new Model::Galmod<T>;
+    mod->input(in,rings,1);
+    mod->calculate();
+    mod->smooth();
+
+    delete rings;
+
+    T *map_mod = new T[in->DimX()*in->DimY()];
+
+    float totflux_mod=0;
+    for (int x=0; x<in->DimX(); x++){
+        for (int y=0; y<in->DimY(); y++){
+            map_mod[x+y*in->DimX()]=0;
+            for (int z=0; z<in->DimZ(); z++)
+                map_mod[x+y*in->DimX()]+=mod->Out()->Array(x,y,z);
+            totflux_mod += map_mod[x+y*in->DimX()];
+        }
+    }
+
+    factor = totflux_obs/totflux_mod;
+
+    float res_sum=0;
+    for (int i=0; i<in->DimX()*in->DimY();i++) {
+        res_sum += fabs(Intmap[i]-map_mod[i]*factor);
+    }
+
+    delete [] map_mod;
+
+    in->pars().setVerbosity(verbosity);
+
+    return res_sum;
+}
+
+template <class T>
 void ParamGuess<T>::plotGuess() {
 	
+
+    //cout << posang << " " << xcentre << " " << ycentre << endl;
 	/// Plotting axes in a .eps file.
 	std::ofstream outmaj1, outmaj2, outmin, velf;
     std::string outfolder = in->pars().getOutfolder();

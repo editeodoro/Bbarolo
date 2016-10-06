@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -99,6 +99,8 @@ public:
     void	setGrowthThreshold(float f){growthThreshold=f;};
     bool	getFlagUserGrowthThreshold(){return flagUserGrowthT;};
     void	setFlagUserGrowthThreshold(bool b){flagUserGrowthT=b;};
+    int     getThreads () {return threads;};
+    bool    getFlagDebug() {return debug;}
     
     void	setGlobProf (bool flag) {globprof = flag;};
     bool 	getGlobProf () {return globprof;};
@@ -176,6 +178,7 @@ public:
 	void	setflagFFT (bool f) {flagFFT=f;};
 	float 	getLinear () {return linear;};
 	float 	getFactor () {return factor;};
+    float   getScaleFactor () {return scalefactor;};
 	void 	setFactor (float f) {factor=f;};
 	bool	getflagReduce() {return flagReduce;};
     string  getSmoothOut () {return smo_out;};
@@ -185,6 +188,7 @@ public:
     string  getIvarfile () {return ivarfile;};
     string  getLine() {return linetofit;};
     double  getRedshift() {return redshift;};
+    size_t  getNlines () {return nlines;}
 
     bool    getFlagPV() {return flagPV;};
     float   getXPOS_PV() {return XPOS_PV;};
@@ -298,6 +302,7 @@ private:
 	bool		flagFFT;					///< Using FFT for convolution?
 	float 		linear;						///< Linear resolution to be achieved.
 	float		factor;						///< The newbeam is a factor of the old.
+    float       scalefactor;
 	bool		flagReduce;					
     string      smo_out;                    ///< Output file.
 
@@ -306,12 +311,15 @@ private:
     string      ivarfile;                   ///< Fitsfile containing the inverse-variance or a value.
     string      linetofit;                  ///< Line to fit: Ha, Hb, OIII etc...
     double      redshift;                   ///< Redshift of the galaxy.
+    size_t      nlines;                     ///< Number of lines
 
     bool        flagPV;                     ///< Extracting a position-velocity diagram.
     float       XPOS_PV;
     float       YPOS_PV;
     float       PA_PV;
 									
+    int         threads;
+    bool        debug;
 };
 
 

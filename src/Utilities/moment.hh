@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -44,7 +44,9 @@ public:
 
 	void input (Cube<T> *c, int *Blo, int *Bhi);
 	void input (Cube<T> *c);
-	void ZeroMoment (bool msk);
+    void SumMap (bool msk);
+    void HIMassDensityMap (bool msk);
+    void ZeroMoment (bool msk);
 	void FirstMoment (bool msk);
 	void SecondMoment (bool msk);
 	
@@ -111,6 +113,32 @@ void MomentMap<T>::input (Cube<T> *c) {
 	
 }
 
+template <class T>
+void MomentMap<T>::SumMap (bool msk) {
+
+    // Just sum over che channels
+    bool headdef = in->HeadDef();
+    in->setHeadDef(false);
+    ZeroMoment(msk);
+    in->setHeadDef(headdef);
+    this->headDefined=setHead(0);
+    this->head.setBunit(in->Head().Bunit());
+
+}
+
+template <class T>
+void MomentMap<T>::HIMassDensityMap (bool msk) {
+
+    // Write a Mass density map in Msun/pc2. BUNIT must be JY/beam
+    SumMap(msk);
+    double bmaj = in->Head().Bmaj()*arcsconv(in->Head().Cunit(0));
+    double bmin = in->Head().Bmin()*arcsconv(in->Head().Cunit(1));
+    double dvel = fabs(DeltaVel<T>(in->Head()));
+    for (int i=0; i<this->numPix; i++)
+        this->array[i]=8794*this->array[i]*dvel/(bmaj*bmin);
+
+    this->head.setBunit("Msun/pc2");
+}
 
 template <class T>
 void MomentMap<T>::ZeroMoment (bool msk) {
@@ -121,7 +149,7 @@ void MomentMap<T>::ZeroMoment (bool msk) {
 		std::terminate();
 	}
 		
-	if (!(this->headDefined=setHead(0))) {
+    if (!(this->headDefined=setHead(0)) && in->pars().isVerbose()) {
 		std::cout<< "MOMENT MAPS warning: cannot create new header.\n";
 	}
 	
@@ -140,11 +168,13 @@ void MomentMap<T>::ZeroMoment (bool msk) {
 		if (isVerbose) bar.update(x+1);
 		for (int y=0; y<this->axisDim[1]; y++) {
 			float fluxsum = 0;
+            this->array[x+y*this->axisDim[0]]=0;
 			for (int z=0; z<nsubs; z++) {
 				long npix = in->nPix(x+blo[0],y+blo[1],z+blo[2]);
 				if (msk)fluxsum += in->Array(npix)*in->Mask(npix);
 				else fluxsum += in->Array(npix);
 			}
+            if (fluxsum==0) fluxsum /= fluxsum;
             if (in->HeadDef())
                 this->array[x+y*this->axisDim[0]] = FluxtoJy(fluxsum, in->Head())*deltaV;
             else this->array[x+y*this->axisDim[0]] = fluxsum;
@@ -184,6 +214,7 @@ void MomentMap<T>::FirstMoment (bool msk) {
 		for (int y=0; y<this->axisDim[1]; y++) {
 			T num = 0;
 			T denom = 0;
+            this->array[x+y*this->axisDim[0]]=0;
 			for (int z=0; z<nsubs; z++) {
 				long npix = in->nPix(x+blo[0],y+blo[1],z+blo[2]);
 				T VEL;
@@ -240,6 +271,7 @@ void MomentMap<T>::SecondMoment (bool msk) {
 			T num=0, denom=0;
 			T numfrst=0, denomfrst=0;
 			T firstmoment=0;
+            this->array[x+y*this->axisDim[0]]=0;
 			for (int z=0; z<nsubs; z++) {
 				long npix = in->nPix(x+blo[0],y+blo[1],z+blo[2]);
 				T VEL;

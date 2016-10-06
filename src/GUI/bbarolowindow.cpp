@@ -4,7 +4,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -190,6 +190,7 @@ void BBaroloWindow::resetGUI() {
     ui->BlankcutSpinBox->setValue(3.00);
 
     out_path = QDir::currentPath()+"/output/";
+    ui->OutfolderlineEdit->setText(out_path);
     ui->stackedWidget->setCurrentIndex(0);
     ui->listWidget->setCurrentRow(0);
 }
@@ -314,15 +315,15 @@ void BBaroloWindow::on_wcscomboBox_activated(int index)
         break;
     case 1:
         ui->xposlineEdit->setInputMask("000.0000;_");
-        ui->yposlineEdit->setInputMask("#00.0000;_");
+        ui->yposlineEdit->setInputMask("#00.00000;_");
         ui->xposlineEdit->setText(tr("000.0000"));
-        ui->yposlineEdit->setText(tr("+00.0000"));
+        ui->yposlineEdit->setText(tr("+00.00000"));
         break;
     case 2:
         ui->xposlineEdit->setInputMask("00:00:00.00;_");
-        ui->yposlineEdit->setInputMask("#00:00:00.00;_");
+        ui->yposlineEdit->setInputMask("#00:00:00.000;_");
         ui->xposlineEdit->setText(tr("000000.00"));
-        ui->yposlineEdit->setText(tr("+000000.00"));
+        ui->yposlineEdit->setText(tr("+000000.000"));
         break;
     }
 

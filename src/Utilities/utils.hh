@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -136,7 +136,7 @@ double VeltoDist(double vsys);
 double RedtoDist(double redshift);
 
 template <class Type> bool isNaN (Type n);
-template <class T> bool isBlank(T val) {return (val==0 || isNaN(val));};
+template <class T> bool isBlank(T val) {return (val==0 || isNaN(val));}
 bool fexists(std::string filename);
 
 double arcsconv(std::string cunit);
@@ -160,5 +160,6 @@ template <class T> int selectDatatype();
 // WCS Utilities
 int pixToWCSSingle(struct wcsprm *wcs, const double *pix, double *world);
 int wcsToPixSingle(struct wcsprm *wcs, const double *world, double *pix);
+
 
 #endif

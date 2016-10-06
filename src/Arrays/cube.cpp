@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -444,75 +444,172 @@ template void Cube<double>::BlankCube (double*, long);
 
 
 template <class T>
-void Cube<T>::BlankMask () {
+void Cube<T>::BlankMask (float *channel_noise){
 	
-	
-	//	NEWER VERSION
-	 
-	/// This function is used for blanking a cube.
-	/// First of all, it smoothes the cube to a new resolution set by 
-	/// the user (BMAJ, BMIN, BPA, default=2*original beam). 
-	/// Then it creates a boolean mask: 
-	/// the mask takes into account only those regions of the smoothed cube
-	/// which show emission in three consecutive channels above a set level 
-	/// (BLANKCUT, default=3) and set bool value to 1.
-	
-	if (maskAllocated) delete [] mask;
-	mask = new bool[numPix];
+     /*/////////////////////////////////////////////////////////////////////////////////
+     * This function builds a mask for the cube. The type of mask depends on the
+     * parameter MASK:
+     *
+     *  - SEARCH:      Uses the source finding algorith and masks the largest object.
+     *                 All search-related parameters can be used.
+     *  - THRESHOLD:   Applies a simple threshold cut given by THRESHOLD parameter.
+     *  - SMOOTH:      Smooths the cube by a factor FACTOR and applies a S/N threshold
+     *                 on the smoothed cube given by BLANKCUT. Default are FACTOR=2
+     *                 and BLANKCUT=3. If BMAJ and BMIN parameters are, it smooths to
+     *                 these values.
+     *  - NEGATIVE:    Calculates the noise statitistics just on the negative pixels
+     *                 and builds the mask based on the S/N threshold BLANKCUT.
+     *  - FILE(Name):  User-provided mask. 'Name' is a fitsfile with same size of the
+     *                 cube and filled with 0(false) or 1(true).
+     *  - NONE:        No mask, just pixels > 0.
+     *
+     /////////////////////////////////////////////////////////////////////////////////*/
 
-	double bmaj = head.Bmaj()*arcsconv(head.Cunit(0));
-	double bmin = head.Bmin()*arcsconv(head.Cunit(0));
-	double bpa  = head.Bpa();
-    float factor = par.getFactor()==-1 ? 2 : par.getFactor();
-    double nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
-    double nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
-	double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
-	Beam oldbeam = {bmaj,bmin,bpa};	
-	Beam newbeam = {nbmaj,nbmin,nbpa};
-	Smooth3D<T> *sm = new Smooth3D<T>;	
-	sm->smooth(this, oldbeam, newbeam);
-	Statistics::Stats<T> *st = new Statistics::Stats<T>;
-	st->setRobust(par.getFlagRobustStats()); 
-	st->calculate(sm->Array(),numPix);
-	st->setThresholdSNR(par.getBlankCut());
-	/* Without three consecutive channel requirement
-	for (int i=0; i<numPix; i++) {
-		if (sm->Array(i)>st->getThreshold()) mask[i] = 1;
-		else mask[i] = 0;
-	}*/
+    if (maskAllocated) delete [] mask;
+    mask = new bool[numPix];
 
-    ProgressBar bar(" Blanking the data cube... ", true);
-    bar.setShowbar(par.getShowbar());
-    if (par.isVerbose()) bar.init(axisDim[2]);
-	T thr = st->getThreshold();
-	T *Array = sm->Array();
-	for (int z=1; z<axisDim[2]-1; z++) {
-        if (par.isVerbose()) bar.update(z+1);
-		for (int y=0; y<axisDim[1]; y++) {
-			for (int x=0; x<axisDim[0]; x++) {			
-				long npix = nPix(x,y,z);
-				long nchan = nPix(x,y,z+1);
-				long pchan = nPix(x,y,z-1);
-				mask[npix] = Array[npix]>thr && Array[pchan]>thr && Array[nchan]>thr;
-			}
-		}		
-	}
-	for (int y=0; y<axisDim[1]; y++) {
-		for (int x=0; x<axisDim[0]; x++) {	
-			mask[nPix(x,y,0)]=Array[nPix(x,y,0)]>thr && Array[nPix(x,y,1)]>thr && Array[nPix(x,y,2)]>thr;
-			int l = axisDim[2]-1;
-			mask[nPix(x,y,l)]=Array[nPix(x,y,l)]>thr && Array[nPix(x,y,l-1)]>thr && Array[nPix(x,y,l-2)]>thr;
-		}
-	}
+    for (int i=0; i<numPix; i++) mask[i]=0;
 
-    if (par.isVerbose()) bar.fillSpace(" Done.\n");
-	
-	delete sm;
-	delete st;
-	
-	maskAllocated = true;
-	
-	
+    bool verb = par.isVerbose();
+    if (verb) {
+        std::cout << " Creating mask (" << par.getMASK() << ") ..." << std::flush;
+        par.setVerbosity(false);
+    }
+
+    Statistics::Stats<T> *st = new Statistics::Stats<T>;
+    st->setRobust(par.getFlagRobustStats());
+
+    if (par.getMASK()=="SEARCH") {
+        // Masking using the search algorithm and mask the largest of object.
+        if (!isSearched) Search();
+        Detection<T> *larg = LargestDetection();
+        if (larg==NULL) {
+            std::cout << "3DFIT error: No sources detected in the datacube. Cannot build mask!!! \n";
+            std::terminate();
+        }
+        std::vector<Voxel<T> > voxlist = larg->getPixelSet();
+        typename std::vector<Voxel<T> >::iterator vox;
+        for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+            mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+        }
+    }
+    else if (par.getMASK()=="THRESHOLD") {
+        float thresh = par.getThreshold();
+        for (uint i=numPix; i--;) {
+            if (array[i]>thresh) mask[i] = 1;
+        }
+    }
+    else if (par.getMASK()=="SMOOTH") {
+        double bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
+        double bmin  = head.Bmin()*arcsconv(head.Cunit(0));
+        double bpa   = head.Bpa();
+        float factor = par.getFactor()==-1 ? 2 : par.getFactor();
+        double nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
+        double nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
+        double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
+        Beam oldbeam = {bmaj,bmin,bpa};
+        Beam newbeam = {nbmaj,nbmin,nbpa};
+
+        Smooth3D<T> *sm = new Smooth3D<T>;
+        sm->smooth(this, oldbeam, newbeam);
+        bool *blanks = new bool[numPix];
+        for (int i=0; i<numPix; i++) blanks[i] = isBlank(sm->Array(i)) ? false : true;
+        st->calculate(sm->Array(),numPix,blanks);
+        st->setThresholdSNR(par.getBlankCut());
+
+        ///* Without three consecutive channels requirement
+        for (size_t i=0; i<numPix; i++) {
+            if (sm->Array(i)>st->getThreshold()) mask[i] = 1;
+        }
+        //*/
+
+        /* With three consecutive channels requirement
+        T thr = st->getThreshold();
+        T *Array = sm->Array();
+        for (int z=1; z<axisDim[2]-1; z++) {
+            for (int y=0; y<axisDim[1]; y++) {
+                for (int x=0; x<axisDim[0]; x++) {
+                    long npix = nPix(x,y,z);
+                    long nchan = nPix(x,y,z+1);
+                    long pchan = nPix(x,y,z-1);
+                    mask[npix] = Array[npix]>thr && Array[pchan]>thr && Array[nchan]>thr;
+                }
+            }
+        }
+        for (int y=0; y<axisDim[1]; y++) {
+            for (int x=0; x<axisDim[0]; x++) {
+                mask[nPix(x,y,0)]=Array[nPix(x,y,0)]>thr && Array[nPix(x,y,1)]>thr && Array[nPix(x,y,2)]>thr;
+                int l = axisDim[2]-1;
+                mask[nPix(x,y,l)]=Array[nPix(x,y,l)]>thr && Array[nPix(x,y,l-1)]>thr && Array[nPix(x,y,l-2)]>thr;
+            }
+        }
+        */
+
+        delete sm;
+        delete [] blanks;
+    }
+    else if (par.getMASK()=="NEGATIVE") {
+        for (int z=0; z<DimZ(); z++) {
+            std::vector<T> onlyneg;
+            for (int i=0; i<DimX()*DimY(); i++)  {
+                if (array[i+z*DimX()*DimY()]<0) {
+                    onlyneg.push_back(array[i+z*DimX()*DimY()]);
+                    onlyneg.push_back(-array[i+z*DimX()*DimY()]);
+                }
+            }
+            st->calculate(&onlyneg[0], onlyneg.size());
+            st->setThresholdSNR(par.getBlankCut());
+
+            for (int i=0; i<DimX()*DimY(); i++)  {
+                if (array[i+z*DimX()*DimY()]>st->getThreshold()) mask[i+z*DimX()*DimY()]=1;
+            }
+            if (channel_noise!=NULL) channel_noise[z]=st->getSpread();
+        }
+    }
+    else if (par.getMASK().find("FILE(")!=-1) {
+        std::string str = par.getMASK();
+        size_t first = str.find_first_of("(");
+        size_t last = str.find_last_of(")");
+        if (first==-1 || last==-1) {
+            std::cerr << "\n  ERROR: MASK parameter is not correct. Provide file(Maskfitsfile)\n";
+            std::terminate();
+        }
+        std::string filename = str.substr (first+1,last-first-1);
+        Cube<short> *ma = new Cube<short>;
+
+        if (!fexists(filename) || !ma->readCube(filename)) {
+            std::cerr << "\n ERROR: Mask " << filename
+                      << " is not a readable FITS image! Exiting ...\n";
+            std::terminate();
+        }
+
+        if (ma->NumPix()!=numPix || ma->DimX()!=axisDim[0] ||
+            ma->DimY()!=axisDim[1] || ma->DimZ()!=axisDim[2]) {
+            std::cerr << "\n ERROR: Mask file and data file have different dimensions." << filename
+                      << " Exiting ...\n";
+            std::terminate();
+        }
+
+        for (size_t i=0; i<numPix; i++) mask[i] = ma->Array(i);
+
+        delete ma;
+
+    }
+    else if (par.getMASK()=="NONE") {
+        for (uint i=numPix; i--;) {
+            if (array[i]>0) mask[i] = 1;
+        }
+    }
+
+    delete st;
+
+
+    if (verb) {
+        std::cout << " Done." << std::endl;
+        par.setVerbosity(true);
+    }
+
+    maskAllocated = true;
 	
 	/*
 	//	OLD VERSION
@@ -599,11 +696,11 @@ void Cube<T>::BlankMask () {
 	if (par.isVerbose()) bar.fillSpace(" Done.\n");
 	*/
 }
-template void Cube<short>::BlankMask ();
-template void Cube<int>::BlankMask ();
-template void Cube<long>::BlankMask ();
-template void Cube<float>::BlankMask ();
-template void Cube<double>::BlankMask ();
+template void Cube<short>::BlankMask (float*);
+template void Cube<int>::BlankMask (float*);
+template void Cube<long>::BlankMask (float*);
+template void Cube<float>::BlankMask (float*);
+template void Cube<double>::BlankMask (float*);
 
 
 /**=====================================================================================*/ 

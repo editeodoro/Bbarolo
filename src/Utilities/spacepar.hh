@@ -4,7 +4,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -166,22 +166,16 @@ void Spacepar<T>::calculate() {
 				Rings<T> *inri = Galfit<T>::inr;
 				
 				dring->nr = 2;
-				if (ir==0) {
-					double radsep = (inri->radii[1]-inri->radii[0])/2;
-					dring->radii.push_back(inri->radii[0]);
-					dring->radii.push_back(inri->radii[0]+radsep);	
-				}
-				else if (ir==inri->nr-1) {
-					double radsep = (inri->radii[ir]-inri->radii[ir-1])/2;
-					dring->radii.push_back(inri->radii[ir]-radsep);
-                    dring->radii.push_back(inri->radii[ir]+radsep);
-				}
-				else {
-					double radsep1 = (inri->radii[ir]-inri->radii[ir-1])/2;
-					double radsep2 = (inri->radii[ir+1]-inri->radii[ir])/2;
-					dring->radii.push_back(inri->radii[ir]-radsep1);
-					dring->radii.push_back(inri->radii[ir]+radsep2);
-				}
+                float width1=0, width2=0;
+                if (ir==0) width1 = width2 = (inri->radii[1]-inri->radii[0])/2.;
+                else if (ir==inri->nr-1) width1 = width2 = (inri->radii[ir]-inri->radii[ir-1])/2.;
+                else {
+                    width1 = (inri->radii[ir]-inri->radii[ir-1])/2.;
+                    width2 = (inri->radii[ir+1]-inri->radii[ir])/2.;
+                }
+
+                dring->radii.push_back(max(double(inri->radii[ir]-width1),0.));
+                dring->radii.push_back(max(double(inri->radii[ir]+width2),0.));
 
                 for (int i=0; i<dring->nr; i++) {
 					if (p1=="VROT") dring->vrot.push_back(ip1);

@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -34,8 +34,8 @@
 //						In input, distances have to be in ARCSEC, 
 //						velocities in KM/S, angles in DEGREE and
 //						column densities in HI atoms/cm^2. Required
-//						quantities are nr, pos, vsystem, radii, vrot,
-//						vdisp, dens, z0, inc and phi.
+//						quantities are nr, xpos, ypos, radii, vrot,
+//						vsys, vdisp, dens, z0, inc and phi.
 //		-int NV:		Number of subclouds in the velocity profile of 
 //						a single cloud. Can be set equal to the number 
 //						of subset. 
@@ -71,8 +71,6 @@ template <class Type>
 struct Rings {
 	
 	int 	nr;						//< Number of rings.
-	//double pos[2];					//< Central position of galaxy.
-	//double vsystem;				//< Common systemic velocity for rings.
 	double radsep;					//< Separation between rings.
 	std::vector<Type> xpos;			//< X-center of each ring.
 	std::vector<Type> ypos;			//< Y-center of each ring.
@@ -124,9 +122,9 @@ public:
 	void defaults();
 	
 	// Obvious inline functions 
-	Cube<Type> 	*In () {return in;};
-	Cube<Type> 	*Out() {return out;};
-	Rings<Type> *Ring() {return r;};
+    Cube<Type> 	*In () {return in;}
+    Cube<Type> 	*Out() {return out;}
+    Rings<Type> *Ring() {return r;}
 		
 	
 	void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings, 

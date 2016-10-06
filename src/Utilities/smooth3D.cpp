@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -43,6 +43,7 @@ void Smooth3D<T>::defaults() {
 	confieAllocated	= false;
 	beamDefined 	= false;
 	usescalefac		= true;
+    scalefac        = -1;
 	fft				= true;
 	
 }
@@ -222,8 +223,9 @@ void Smooth3D<T>::cubesmooth(Cube<T> *c) {
 	}
 	
 	fft = c->pars().getflagFFT();
-	
-	smooth(c, Bhi, Blo, OB, NB);
+    scalefac = c->pars().getScaleFactor();
+
+    smooth(c, Bhi, Blo, OB, NB);
 }
 template void Smooth3D<short>::cubesmooth(Cube<short>*);
 template void Smooth3D<int>::cubesmooth(Cube<int>*);
@@ -269,11 +271,11 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
 	NdatZ = bhi[2]-blo[2];
 	
 	crota = c->Head().Crota();
-	
+
 	beamDefined = defineBeam(Oldbeam, Newbeam);
 	if (!beamDefined) std::terminate();
 	
-	if (c->pars().isVerbose()) {
+    if (c->pars().isVerbose()) {
 
 		int m=20;
 		int n=7;	
@@ -302,7 +304,7 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
 				  
 		cout << setfill('=') << setw(54) << " " << endl << endl;
 		cout << setfill(' '); 
-	}
+    }
 	
 	array = new T [NdatX*NdatY*NdatZ];
 	arrayAllocated =true;
@@ -497,7 +499,7 @@ bool Smooth3D<T>::defineBeam(Beam Oldbeam, Beam Newbeam) {
 			std::cin >> scalefac;
 			std::cout << std::endl;
 		}
-        else scalefac = 1.0/dataO[(lx*ly)/2+1];
+        else if (scalefac==-1) scalefac = 1.0/dataO[(lx*ly)/2+1];
 	}
 	oldbeam.bpa=oldbeam.bpa-90+crota;
 

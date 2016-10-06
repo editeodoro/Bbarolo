@@ -8,13 +8,13 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
 
  You should have received a copy of the GNU General Public License
- along with Bbarolo; if not, write to the Free Software Foundation,
+ along with BBarolo; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
@@ -110,7 +110,7 @@ void Cube<T>::CubicSearch() {
 
 	if(par.isVerbose()) std::cout << "  Updating detection map... " << std::flush;
  
-	updateDetectMap();
+    updateDetectMap();
 	if(par.isVerbose()) std::cout << "Done.\n";
 	
 }
@@ -185,7 +185,7 @@ std::vector <Detection<T> > Cube<T>::search3DArraySpectral() {
 				
 				for(obj=objlist.begin();obj<objlist.end();obj++){
 					Detection<T> newObject;
-					for(int z=obj->getX();z<=obj->getXmax();z++) {
+                    for(int z=obj->getX();z<=obj->getXmax();z++){
 						newObject.addPixel(x,y,z);
 					}
 					newObject.setOffsets();
@@ -230,38 +230,40 @@ std::vector <Detection<T> > Cube<T>::search3DArraySpatial() {
     bar.setShowbar(par.getShowbar());
     if(useBar && par.isVerbose()) bar.init(zdim);
 
-	int *imdim = new int[2];
-	imdim[0] = axisDim[0]; imdim[1] = axisDim[1];
-	Image2D<T> *channelImage = new Image2D<T>(imdim);
-	delete [] imdim;
-	channelImage->saveParam(par);
-	channelImage->saveStats(stats);
-	channelImage->setMinSize(1);
 
-	for(int z=0; z<zdim; z++){
-		
+    int nthreads=par.getThreads();
+#pragma omp parallel for num_threads(nthreads) reduction (+:num)
+    for(int z=0; z<zdim; z++) {
+        int imdim[2] = {axisDim[0],axisDim[1]};
+        Image2D<T> *channelImage = new Image2D<T>(imdim);
+        channelImage->saveParam(par);
+        channelImage->saveStats(stats);
+        channelImage->setMinSize(1);
         if(par.isVerbose() && useBar) bar.update(z+1);
-		channelImage->extractImage(array,axisDim,z);
-		std::vector<Object2D<T> > objlist = channelImage->findSources2D();
+        channelImage->extractImage(array,axisDim,z);
+        std::vector<Object2D<T> > objlist = channelImage->findSources2D();
 		typename std::vector<Object2D<T> >::iterator obj;
 		num += objlist.size();
-		for(obj=objlist.begin();obj!=objlist.end();obj++){
+        for(obj=objlist.begin();obj!=objlist.end();obj++){
 			Detection<T> newObject;
 			newObject.addChannel(z,*obj);
 			newObject.setOffsets();
-			if(par.getTwoStageMerging()) mergeIntoList(newObject,outputList);
-			else outputList.push_back(newObject);
-		}
-	}
+#pragma omp critical
+{
+            if(par.getTwoStageMerging()) mergeIntoList(newObject,outputList);
+            else outputList.push_back(newObject);
+}
+        }
+        delete channelImage;
+    }
 
-	delete channelImage;
 
 	if(par.isVerbose()){
         if(useBar) bar.remove();
         std::cout << "Found " << num << " items.\n";
-	}
+    }
 
-	return outputList;
+    return outputList;
 
 }
 template std::vector <Detection<short> > Cube<short>::search3DArraySpatial();
@@ -339,6 +341,8 @@ void Cube<T>::ObjectMerger() {
 		if(par.getFlagGrowth()) {
 			ObjectGrower<T> grower;
 			grower.define(this);
+            int nthreads=par.getThreads();
+#pragma omp parallel for num_threads(nthreads)
 			for(size_t i=0;i<currentList.size();i++){
                 if(par.isVerbose() && par.getShowbar()){
 					std::cout.setf(std::ios::right);
@@ -348,7 +352,6 @@ void Cube<T>::ObjectMerger() {
                     std::cout << std::setw(6) << currentList.size() << std::flush;
                     printBackSpace(22);
                     std::cout << std::flush;
-
 				}
 				grower.grow(&currentList[i]);
 			}
@@ -595,7 +598,7 @@ void Cube<T>::mergeIntoList(Detection<T> &object, std::vector <Detection<T> > &o
 			haveMerged = true;
 		}  
     }
-  
+
     if(!haveMerged) objList.push_back(object);
 
 }
@@ -975,9 +978,9 @@ void Cube<T>::plotDetections() {
 	
 	gp.end();
 #endif
-	
-	for (int i=0; i<numObj; i++)
-		remove((par.getOutfolder()+"spectrum"+to_string(i)+".dat").c_str());
+
+    for (int i=0; i<numObj; i++)
+        remove((par.getOutfolder()+"spectrum"+to_string(i)+".dat").c_str());
 	
 	
 	

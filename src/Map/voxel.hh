@@ -9,7 +9,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -22,8 +22,8 @@
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
-#ifndef VOXEL_H
-#define VOXEL_H
+#ifndef VOXEL_HH_
+#define VOXEL_HH_
 
 #include <iostream>
 

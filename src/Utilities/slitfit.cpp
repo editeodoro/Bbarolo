@@ -4,7 +4,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -236,9 +236,8 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     dens_b  = getDataColumn(file_rings.dens,p->getDENS());
     inc_b   = getDataColumn(file_rings.inc,p->getINC());
     pa_b 	= getDataColumn(file_rings.phi,p->getPHI());
-    bool onefile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||dens_b||inc_b||pa_b;
 
-    int size[10] = {file_rings.radii.size(),file_rings.xpos.size(),
+    size_t size[10] = {file_rings.radii.size(),file_rings.xpos.size(),
                     file_rings.ypos.size(), file_rings.vsys.size(),
                     file_rings.vrot.size(),file_rings.vdisp.size(),
                     file_rings.z0.size(),file_rings.dens.size(),
@@ -280,7 +279,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
      inr->radsep = radsep;
      for (int i=0; i<inr->nr; i++) {
         if (radii_b) inr->radii.push_back(file_rings.radii[i]);
-        else inr->radii.push_back(i*radsep);
+        else inr->radii.push_back(i*radsep+radsep/2.);
         if (vrot_b) inr->vrot.push_back(file_rings.vrot[i]);
         else inr->vrot.push_back(vrot);
         if (vdisp_b) inr->vdisp.push_back(file_rings.vdisp[i]);
@@ -489,7 +488,6 @@ void Galfit<T>::writeModel_slit() {
         float vel2 = outr->vsys[i]-(outr->vrot[i]*sin(outr->inc[i]*M_PI/180.));
         if (outr->phi.back()<90 || outr->phi.back()>270) std::swap(vel1,vel2);
         float radius = outr->radii[i];
-        if (i==0) radius += (outr->radsep/4.);
         outpv << -radius << "   " << vel1 << endl;
         outpv <<  radius << "   " << vel2 << endl;
     }

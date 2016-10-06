@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -108,7 +108,7 @@ void Param::defaultValues() {
 	SIDE				= "B";
 	SM					= true;
     NORM                = "LOCAL";
-    BWEIGHT				= 2;
+    BWEIGHT				= 1;
     startRAD            = 0;
 	TwoStage			= true;
 	flagErrors			= false;
@@ -126,6 +126,7 @@ void Param::defaultValues() {
     obpa				= 0;
 	linear				= -1;
     factor				= 2;
+    scalefactor         = -1;
 	flagReduce			= false;
     smo_out             = "NONE";
     for (int i=0; i<6; i++) BOX[i] = -1;
@@ -135,11 +136,15 @@ void Param::defaultValues() {
     ivarfile            = "NONE";
     linetofit           = "Ha";
     redshift            = 0.;
-
+    nlines              = 1;
+    
     flagPV              = false;
     XPOS_PV             = 0;
     YPOS_PV             = 0;
     PA_PV               = 0;
+    
+    threads             = 1;
+    debug               = false;
 }
 
   
@@ -248,6 +253,7 @@ Param& Param::operator= (const Param& p) {
     this->obpa				= p.obpa;
 	this->linear			= p.linear;	
 	this->factor			= p.factor;	
+    this->scalefactor       = p.scalefactor;
 	this->flagReduce		= p.flagReduce;
     this->smo_out           = p.smo_out;
 
@@ -256,12 +262,15 @@ Param& Param::operator= (const Param& p) {
     this->ivarfile          = p.ivarfile;
     this->linetofit         = p.linetofit;
     this->redshift          = p.redshift;
-    
+    this->nlines            = p.nlines;
+       
     this->flagPV            = p.flagPV;
     this->XPOS_PV           = p.XPOS_PV;
     this->YPOS_PV           = p.YPOS_PV;
     this->PA_PV             = p.PA_PV;
-
+    
+    this->threads           = p.threads;
+    this->debug             = p.debug;
 
     return *this;
 }
@@ -429,7 +438,7 @@ int Param::readParams(std::string paramfile) {
             if (arg=="tol")				TOL = readDval(ss);
             if (arg=="free")			FREE = readFilename(ss);
             if (arg=="side")			SIDE = readFilename(ss);
-            if (arg=="mask")			MASK = makeupper(readFilename(ss));
+            if (arg=="mask")			MASK = readFilename(ss);
             if (arg=="bweight")			BWEIGHT = readIval(ss);
             if (arg=="twostage")		TwoStage = readFlag(ss);
             if (arg=="flagerrors")		flagErrors = readFlag(ss);
@@ -453,6 +462,7 @@ int Param::readParams(std::string paramfile) {
             if (arg=="obpa")				obpa = readDval(ss);
 			if (arg=="linear")				linear = readDval(ss);
 			if (arg=="factor")				factor = readDval(ss);
+            if (arg=="scalefactor")			scalefactor = readDval(ss);
 			if (arg=="fft")					flagFFT = readFlag(ss);
 			if (arg=="reduce")				flagReduce = readFlag(ss);
             if (arg=="smoothoutput")        smo_out = readFilename(ss);
@@ -462,11 +472,15 @@ int Param::readParams(std::string paramfile) {
             if (arg=="ivarfile")            ivarfile = readFilename(ss);
             if (arg=="linetofit")           linetofit = readFilename(ss);
             if (arg=="redshift")            redshift = readDval(ss);
+            if (arg=="nlines")              nlines = readIval(ss);
 
             if (arg=="flagpv")              flagPV = readFlag(ss);
             if (arg=="xpos_pv")             XPOS_PV = readFval(ss);
             if (arg=="ypos_pv")             YPOS_PV = readFval(ss);
             if (arg=="pa_pv")               PA_PV = readFval(ss);
+
+            if (arg=="threads")             threads = readIval(ss);
+            if (arg=="debug")               debug = readFlag(ss);
 
 		}
     }
@@ -581,17 +595,31 @@ bool Param::checkPars() {
 		}
 
         if (NORM!="NONE" && NORM!="AZIM" && NORM!="LOCAL") {
-            std::cout << " ERROR: Unknown type of normalization: " << NORM << std::endl;
-            std::cout << "Setting to LOCAL" << std::endl;
-            NORM="LOCAL";
+            if (!(flagGalMod==true && NORM=="BOTH")) {
+                std::cout << " ERROR: Unknown type of normalization: " << NORM << std::endl;
+                std::cout << "Setting to LOCAL" << std::endl;
+                NORM="LOCAL";
+            }
         }
 
-        if (MASK!="NONE" && MASK!="SMOOTH" && MASK!="SEARCH" && MASK!="THRESHOLD" && MASK!="NEGATIVE") {
-            std::cout << " ERROR: Unknown type of mask: " << MASK << std::endl;
-            std::cout << "Setting to SMOOTH" << std::endl;
-            MASK="SMOOTH";
+        std::string maskstr = makeupper(MASK);
+
+        if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" ||
+            maskstr=="THRESHOLD" || maskstr=="NEGATIVE") {
+            MASK = maskstr;
         }
-		
+        else if (maskstr.find("FILE(")!=-1) {
+            size_t first = maskstr.find_first_of("(");
+            std::string sub1 = maskstr.substr(0,first);
+            std::string sub2 = MASK.substr(first);
+            MASK = sub1+sub2;
+        }
+        else {
+            std::cout << "\n ERROR: Unknown type of mask: " << MASK << std::endl;
+            std::cout << " Setting to SMOOTH" << std::endl;
+            MASK = "SMOOTH";
+        }
+
         if (flagGalFit) {
             if (FREE=="") {
                 std::cout << "3DFIT error: FREE" << str << std::endl;
@@ -664,6 +692,7 @@ bool Param::checkPars() {
         checkHome(ivarfile);
     }
 	
+	if (threads>1) showbar=false;
 
 
 	return true;
@@ -680,6 +709,7 @@ void Param::printDefaults (std::ostream& theStream) {
    
     recordParam(theStream, "[fitsFile]", "Image to be analysed", par.getImageFile());
     recordParam(theStream, "[fitsList]", "List of images to be analysed", par.getImageList());
+    recordParam(theStream, "[threads]", "Number of threads", par.getThreads());
     
     theStream  <<"--------------"<<std::endl;
 
@@ -882,6 +912,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
     if (par.getImageList()=="NONE") 
         recordParam(theStream, "[FitsFile]", "Image to be analysed", par.getImageFile());
     else recordParam(theStream, "[FitsList]", "List of images to be analysed", par.getImageList());
+    recordParam(theStream, "[threads]", "Number of threads", par.getThreads());
     
     theStream  <<"--------------"<<std::endl;
   

@@ -74,7 +74,7 @@ AC_CHECK_LIB([m], [log])
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([unistd.h ctime cmath iostream fstream sstream iomanip vector string algorithm map])
+AC_CHECK_HEADERS([unistd.h ctime cmath iostream fstream])
 if test "x$ac_cv_header_stdc" = xno; then
   AC_MSG_ERROR([
     -------------------------------------------------------------------
@@ -89,6 +89,10 @@ fi
 AC_HEADER_STDBOOL
 AC_C_CONST
 AC_C_INLINE
+
+#Check for openMP and set the flag
+AC_OPENMP
+CFLAGS=$OPENMP_CXXFLAGS
 
 BASEDIR=./src
 AC_SUBST([BASEDIR])
@@ -148,9 +152,10 @@ AC_SUBST([SHRLD])
 AC_SUBST([SHRSFX])
 AC_SUBST([SHRLN])
 
+
 # Checks for library functions.
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([floor cos sin lround pow sqrt strtol log atan fabs])
+AC_CHECK_FUNCS([floor cos lround])
 
 # Extra places to look for third-party include files and libraries.
 INCDIRS="$INCDIRS           \
@@ -455,35 +460,6 @@ AC_SUBST([WCSINC])
 AC_SUBST([WCSLIB])
 ##########################################################################
 
-
-################### CHECKING FOR GNUPLOT ################################
-AC_MSG_NOTICE([  -- GNUPLOT -- ])
-AC_CHECK_PROG(GNUPLOT, gnuplot, yes,no)
-if test "x$GNUPLOT" = "xyes"; then
-  AC_SUBST([GNUPLOT], "-DHAVE_GNUPLOT")
-else 
-  AC_SUBST([GNUPLOT], "")
-	AC_MSG_WARN([
-
-    -------------------------------------------------------------------
-    WARNING: Cannot find gnuplot in ordinary PATH. If you have gnuplot,
-             please permanently add its directory to the PATH variable 
-             in your .profile or .bash_profile with:
-
-              export PATH=\$PATH:/yourgnuplotdir           (BASH shell)
-              setenv PATH \$PATH:/yourgnuplotdir              (C-shell) 
-             
-             or create a link to ordinary path with:
-
-              sudo ln -s /yourgnuplotdir/gnuplot /usr/local/bin/gnuplot
-
-             Then run again ./configure. 
-             Otherwise, BBarolo won't produce all the output files.
-    -------------------------------------------------------------------
-])
-fi
-##########################################################################
-
 ################### CHECKING FOR PYTHON ##################################
 AC_MSG_NOTICE([  -- PYTHON -- ])
 AC_CHECK_PROG(PYTHON, python, yes,no)
@@ -507,9 +483,40 @@ else
 fi
 AC_PYTHON_MODULE(matplotlib)
 AC_PYTHON_MODULE(astropy)
-
-
 ##########################################################################
+
+
+################### CHECKING FOR GNUPLOT ################################
+AC_MSG_NOTICE([  -- GNUPLOT -- ])
+AC_CHECK_PROG(GNUPLOT, gnuplot, yes,no)
+if test "x$GNUPLOT" = "xyes"; then
+  AC_SUBST([GNUPLOT], "-DHAVE_GNUPLOT")
+else 
+  AC_SUBST([GNUPLOT], "")
+	AC_MSG_WARN([
+
+    -------------------------------------------------------------------
+    WARNING: Cannot find gnuplot in ordinary PATH. If you have gnuplot,
+             please permanently add its directory to the PATH variable 
+             in your .profile or .bash_profile with:
+
+              export PATH=\$PATH:/yourgnuplotdir           (BASH shell)
+              setenv PATH \$PATH:/yourgnuplotdir              (C-shell) 
+             
+             or create a link to ordinary path with:
+
+              sudo ln -s /yourgnuplotdir/gnuplot /usr/local/bin/gnuplot
+
+             Then run again ./configure. 
+             Gnuplot is however unnecessary if python is installed.
+    -------------------------------------------------------------------
+])
+fi
+##########################################################################
+
+
+
+
 
 AC_SUBST([LDFLAGS])
 

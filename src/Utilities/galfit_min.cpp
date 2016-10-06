@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -111,8 +111,20 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 //    }
     int n=1, k=0;
     if (global) n=dring->nr;
-    if (mpar[VROT])  for (int j=0;j<n;j++) {dels[k]=30.; point[k++]=dring->vrot[j];}
-    if (mpar[VDISP]) for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->vdisp[j];}
+    if (mpar[VROT]) {
+        for (int j=0;j<n;j++) {
+            if (dring->vrot[j]>40) dels[k]=30.;
+            else dels[k]=5;
+            point[k++]=dring->vrot[j];
+        }
+    }
+    if (mpar[VDISP]) {
+        for (int j=0;j<n;j++) {
+            if (dring->vdisp[j]>10+mins[VDISP]) dels[k]=10.;
+            else dels[k]=mins[VDISP];
+            point[k++]=dring->vdisp[j];
+        }
+    }
     if (mpar[DENS])  for (int j=0;j<n;j++) {dels[k]=0.2*dring->dens.front(); point[k++]=dring->dens[j];}
     if (mpar[Z0])    for (int j=0;j<n;j++) {dels[k]=0.2*dring->z0.front(); point[k++]=dring->z0[j];}
     if (mpar[INC])   for (int j=0;j<n;j++) {dels[k]=5.; point[k++]=dring->inc[j];}
@@ -590,7 +602,7 @@ template void Galfit<double>::Convolve_fft(double*,int*);
 ///*
 // ANELLO 2D
 template <class T>
-double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
+double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
 	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
 
@@ -598,24 +610,18 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 	
 	int numPix_ring=0, numBlanks=0, numPix_tot=0;
 	double minfunc = 0;
-    int ftype = in->pars().getFTYPE();
     //int bweight = second ? 0 : in->pars().getBweight();
     int bweight = in->pars().getBweight();
-	int side;
-	if (in->pars().getSIDE()=="R") side=1;
-	else if (in->pars().getSIDE()=="A") side=2;
-	else side=3;
 		
 	for (uint y=bsize[1]; y--;) {
 		for (uint x=bsize[0]; x--;) {
 			double theta;			
 			if (!IsIn(x,y,blo,dring,theta)) continue;
+            if (!getSide(theta)) continue;
 			numPix_ring++;
 			
 			//< Factor for normalization.
-			T modSum = 0;
-			T obsSum = 0;
-			T factor = 0;	
+            T modSum=0, obsSum = 0, factor=0;
 			for (uint z=in->DimZ(); z--;) {
 				long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
 				long obsPix = in->nPix(x+blo[0],y+blo[1],z);
@@ -627,23 +633,6 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 			
 			double costh = fabs(cos(theta*M_PI/180.));
 			double wi = std::pow(costh, double(wpow));
-			
-            bool use=false;
-			switch (side) {					// Which side of galaxy.				
-				case 1: 						//< Receding half. 								
-					use = (fabs(theta)<=90.0);		
-					break;		
-				case 2: 						//< Approaching half. 
-					use = (fabs(theta)>=90.0);
-					break;
-				case 3: 						//< Both halves.
-                    use = true;
-					break;                 
-				default: 
-					break;	
-			}
-			
-			if (!use) continue;
 			
 			// Normalizing and residuals.
 			for (uint z=in->DimZ(); z--;) {
@@ -659,28 +648,7 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 				}
 				
 				numPix_tot++;
-				
-				switch(ftype) {
-					case 1:
-                        minfunc += wi*std::pow(mod-obs,2)/std::sqrt(obs)/chan_noise[z];
-						break;
-						
-					case 2:
-                        minfunc += wi*fabs(mod-obs)/chan_noise[z];
-						break;
-					
-					case 3:
-                        minfunc += wi*fabs(mod-obs)/(mod+obs)/chan_noise[z];
-						break;
-						
-					case 4:
-                        minfunc += wi*std::pow(mod-obs,2)/chan_noise[z];
-						break;
-						
-					default:
-						break;
-				}
-
+                minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
 			}
 		}
 	}	
@@ -689,14 +657,14 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
     return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
 	
 }
-template double Galfit<float>::normalize(Rings<float>*,float*,int*,int*);
-template double Galfit<double>::normalize(Rings<double>*,double*,int*,int*);
+template double Galfit<float>::norm_local(Rings<float>*,float*,int*,int*);
+template double Galfit<double>::norm_local(Rings<double>*,double*,int*,int*);
 //*/
 
 /*
 //ANELLO 3D
 template <class T>
-double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
+double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
 	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
 
@@ -706,13 +674,8 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 	
 	int numPix_ring=0, numBlanks=0, numPix_tot=0;
 	double minfunc = 0;
-	int ftype = in->pars().getFTYPE();
     //int bweight = second ? 0 : in->pars().getBweight();
     int bweight = in->pars().getBweight();
-    int side;
-    if (in->pars().getSIDE()=="R") side=1;
-    else if (in->pars().getSIDE()=="A") side=2;
-    else side=3;
 
 	typename std::vector<Pixel<T> >::iterator pix;
 	for(pix=anulus->begin();pix<anulus->end();pix++) {
@@ -720,11 +683,10 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 		long x = pix->getX();
 		long y = pix->getY();
 		T theta = pix->getF();
-		
+        if (!getSide(theta)) continue;
+
 		//< Factor for normalization.
-		T modSum = 0;
-		T obsSum = 0;
-		T factor = 0;	
+        T modSum=0, obsSum = 0, factor=0;
 		for (uint z=in->DimZ(); z--;) {
 			long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
 			long obsPix = in->nPix(x+blo[0],y+blo[1],z);
@@ -736,23 +698,6 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 		
 		double costh = fabs(cos(theta*M_PI/180.));
 		double wi = std::pow(costh, double(wpow));
-
-        bool use=false;
-        switch (side) {					// Which side of galaxy.
-            case 1: 						//< Receding half.
-                use = (fabs(theta)<=90.0);
-                break;
-            case 2: 						//< Approaching half.
-                use = (fabs(theta)>=90.0);
-                break;
-            case 3: 						//< Both halves.
-                use = true;
-                break;
-            default:
-                break;
-        }
-
-        if (!use) continue;
 
 		// Normalizing and residuals.
 		for (uint z=in->DimZ(); z--;) {
@@ -769,291 +714,134 @@ double Galfit<T>::normalize (Rings<T> *dring, T *array, int *bhi, int *blo) {
 			}
 
 			numPix_tot++;
-			switch(ftype) {
-				case 1:
-					minfunc += wi*std::pow(mod-obs,2)/std::sqrt(obs);
-					break;	
-				case 2:
-					minfunc += wi*fabs(mod-obs);
-					break;
-				case 3:
-					minfunc += wi*fabs(mod-obs)/(mod+obs);
-					break;
-				case 4:
-					minfunc += wi*std::pow(mod-obs,2);
-					break;
-				default:
-					break;
-			}
+            minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
+
 		}	
 	}
 	
 	//numPix_ring=1;
-	return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
-	
+    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+
 }
-template double Galfit<float>::normalize(Rings<float>*,float*,int*,int*);
-template double Galfit<double>::normalize(Rings<double>*,double*,int*,int*);
+template double Galfit<float>::norm_local(Rings<float>*,float*,int*,int*);
+template double Galfit<double>::norm_local(Rings<double>*,double*,int*,int*);
 */
 
-/* anello 3D
 template <class T>
-double Galfit<T>::residuals (Rings<T> *dring, T *array, int *bhi, int *blo) {
+double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
-	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
+    int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
-	if (!in->StatsDef()) in->setCubeStats();
+    if (!in->StatsDef()) in->setCubeStats();
 
-	static int a=0;
-	a++;
-	std::string pippa = "pippo_"+to_string(dring->inc.back())+"_"+to_string(a)+".txt";
-	//std::ofstream pippo(pippa.c_str());
-	
-	std::vector<Pixel<T> > *anulus = getRingRegion(dring, bhi, blo);
+    int numPix_ring=0, numBlanks=0, numPix_tot=0;
+    double minfunc = 0;
+    int bweight = in->pars().getBweight();
 
-	float *modmap = new float[bsize[0]*bsize[1]]; 
-	int numBlanks=0, numPix_tot=0, numPix_ring=anulus->size();
-	double az_mean=0;
-	unsigned int count=0;
-	typename std::vector<Pixel<T> >::iterator pix;
-	for(pix=anulus->begin();pix<anulus->end();pix++) {
-		long x = pix->getX();
-		long y = pix->getY();
-		modmap[x+y*bsize[0]]=0;
-		for (int z=0; z<in->DimZ(); z++) {
-			T obsSum=0;
-			for (int z=0; z<in->DimZ(); z++) {
-				unsigned long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-				unsigned long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-				modmap[x+y*bsize[0]]+=array[modPix];
-				obsSum += in->Array(obsPix)*mask[obsPix];
-			}
-			if (obsSum!=0) {az_mean+=obsSum; count++;}
-		}
-	}
-	
-	az_mean /= count;
-	
-	double minfunc = 0;
-	int ftype = in->pars().getFTYPE();
-	int bweight = in->pars().getBweight();
-	for(pix=anulus->begin();pix<anulus->end();pix++) {
-		long x = pix->getX();
-		long y = pix->getY();
-		T theta = pix->getF();
-		double wi = std::pow(fabs(cos(theta*M_PI/180.)), wpow);
-		double factor = modmap[x+y*bsize[0]]!=0 ? az_mean/modmap[x+y*bsize[0]] : 0;
-		
-		T obsSumz=0, modSum=0, obsSum=0;	
-			
-		for (int z=0; z<in->DimZ(); z++) {
-			unsigned long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-			unsigned long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-			T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
-			array[modPix] *= factor; 
-			T mod = array[modPix];
-			
-			if (mod>0 && mod<in->stat().getSpread()) continue;			
-			if (mask[obsPix]==0) {
-				numBlanks++;
-				obs = 0;//in->stat().getSpread();
-			}
-				
-			numPix_tot++;
-			switch(ftype) {
-				case 1:
-					minfunc += wi*std::pow(mod-obs,2)/std::sqrt(obs);
-					break;
-						
-				case 2:
-					minfunc += wi*fabs(mod-obs);
-					break;
-				
-				case 3:
-					minfunc += wi*fabs(mod-obs)/(mod+obs);
-					break;
-						
-				case 4:
-					minfunc += wi*std::pow(mod-obs,2);
-					break;
-						
-				default:
-					break;
-			}
-				
-				
-			obsSumz += wi*fabs(mod-obs)/(mod+obs);
-					
-			obsSum += obs;
-			modSum += mod;
-				
-		}
-			
-			//pippo << setprecision(6) << theta << "  " << obsSum << "  " <<  modSum << "  " << obsSumz << "  " << dring->vrot[0] <<endl; 
-		
-	}
-	
-	//double funcc = std::pow(1+numBlanks/T(numPix_tot),bweight)*minfunc/numPix_tot;
-	double funcc = minfunc/(numPix_tot-numBlanks);
-	if (numPix_tot==0) funcc = DBL_MAX;
-	
-	printDetails(dring,funcc, numPix_tot);
-	details = false;
+    //< Factor for normalization.
+    T obsSum=0, modSum=0, factor=1;
+    for (uint y=bsize[1]; y--;) {
+        for (uint x=bsize[0]; x--;) {
+            double theta;
+            if (!IsIn(x,y,blo,dring,theta)) continue;
+            if (!getSide(theta)) continue;
 
-	//static int a=0;													//////// ROBE DA CANCELLARE
-	string name = "pippa"+to_string(dring->inc.back())+"_"+to_string(dring->vrot.back())+".fits";
-	//double b = a % 50;
-	long axis[3] = {bsize[0],bsize[1],in->DimZ()};
-	Cube<float> *cuu = new Cube<float>(axis);
+            for (uint z=in->DimZ(); z--;) {
+                long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
+                long obsPix = in->nPix(x+blo[0],y+blo[1],z);
+                modSum += array[modPix];
+                obsSum += in->Array(obsPix)*mask[obsPix];
+            }
+        }
+    }
 
-	for (int i=0; i<cuu->NumPix(); i++) {cuu->Array()[i]=array[i];}
-	cuu->saveHead(in->Head());
-	cuu->Head().setCrpix(0, in->Head().Crpix(0)-blo[0]);
- 	cuu->Head().setCrpix(1, in->Head().Crpix(1)-blo[1]);
- 	cuu->Head().setMinMax(0,0);
-	cuu->fitswrite_3d(name.c_str());
-	//if (b==0) 
-		//FitsWrite_3D(name.c_str(),(float*)(array),axis);
-	//a++;
-	
-	delete cuu;
+    if (modSum!=0) factor = obsSum/modSum;
+    else factor=0;
 
-	delete anulus;
-	delete [] modmap;
-	return funcc;
-	
+    for (uint y=bsize[1]; y--;) {
+        for (uint x=bsize[0]; x--;) {
+            double theta;
+            if (!IsIn(x,y,blo,dring,theta)) continue;
+            if (!getSide(theta)) continue;
+            numPix_ring++;
+            double costh = fabs(cos(theta*M_PI/180.));
+            double wi = std::pow(costh, double(wpow));
+
+            // Normalizing and residuals.
+            for (uint z=in->DimZ(); z--;) {
+                long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
+                long obsPix = in->nPix(x+blo[0],y+blo[1],z);
+                array[modPix] *= factor;
+                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+                T mod = array[modPix];
+
+                if (mask[obsPix]==0) {
+                    if (mod==0) continue;
+                    else numBlanks++;
+                }
+
+                numPix_tot++;
+                minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
+            }
+        }
+    }
+    //numPix_ring=1;
+    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+
 }
-template double Galfit<float>::residuals(Rings<float>*,float*,int*,int*);
-template double Galfit<double>::residuals(Rings<double>*,double*,int*,int*);
-*/
-///*
+template double Galfit<float>::norm_azim(Rings<float>*,float*,int*,int*);
+template double Galfit<double>::norm_azim(Rings<double>*,double*,int*,int*);
+
+
 template <class T>
-double Galfit<T>::residuals (Rings<T> *dring, T *array, int *bhi, int *blo) {
+double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
-	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
+    int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
-	if (!in->StatsDef()) in->setCubeStats();
+    if (!in->StatsDef()) in->setCubeStats();
 
-	static int a=0;
-	a++;
-	std::string pippa = "pippo_"+to_string(dring->inc.back())+"_"+to_string(a)+".txt";
-	//std::ofstream pippo(pippa.c_str());
+    int numPix_ring=0, numBlanks=0, numPix_tot=0;
+    double minfunc = 0;
+    int bweight = in->pars().getBweight();
 
-	double minfunc = 0;
-	float *modmap = new float[bsize[0]*bsize[1]]; 
-	
-	int numPix_ring=0, numBlanks=0, numPix_tot=0;
-	int ftype = in->pars().getFTYPE();
-	int bweight = in->pars().getBweight();
-	double az_mean=0;
-	uint count=0;
-	for (int y=0; y<bsize[1]; y++) {
-		for (int x=0; x<bsize[0]; x++) {
-			modmap[x+y*bsize[0]]=0;
-			double theta;			
-			if (!IsIn(x,y,blo,dring,theta)) {
-				for (int z=0; z<in->DimZ(); z++)  ///////////////////<<<<<<<<<<<<<<< DA TOGLIERE UN GIORNO!!!!!
-                    //array[x+y*bsize[0]+z*bsize[0]*bsize[1]]=0; ///////////////<<<<<<<<<<<< LASCIARE SOLO IL CONTINUE
-				continue;
-			}
-			numPix_ring++;
-			//< Factor for normalization.
-			T obsSum=0;
-			for (int z=0; z<in->DimZ(); z++) {
-				unsigned long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-				unsigned long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-				modmap[x+y*bsize[0]]+=array[modPix];
-				obsSum += in->Array(obsPix)*mask[obsPix];
-			}
-			if (obsSum!=0) {az_mean+=obsSum; count++;}
-		}
-	}
-	
-	az_mean /= count;
+    for (uint y=bsize[1]; y--;) {
+        for (uint x=bsize[0]; x--;) {
+            double theta;
+            if (!IsIn(x,y,blo,dring,theta)) continue;
+            if (!getSide(theta)) continue;
 
-	for (int y=0; y<bsize[1]; y++) {
-		for (int x=0; x<bsize[0]; x++) {
-			double theta;	
-			if (!IsIn(x,y,blo,dring,theta)) continue;
-			double wi = std::pow(fabs(cos(theta*M_PI/180.)), wpow);
-			double factor = modmap[x+y*bsize[0]]!=0 ? az_mean/modmap[x+y*bsize[0]] : 0;
-			
-			T obsSumz=0, modSum=0, obsSum=0;
-			
-			
-			for (int z=0; z<in->DimZ(); z++) {
-				unsigned long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-				unsigned long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-				T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
-				array[modPix] *= factor; 
-				T mod = array[modPix];
-								
-				if (mask[obsPix]==0 && mod<in->stat().getSpread()) continue;
-				else if (mask[obsPix]==0 && mod!=0) {
-					numBlanks++;
-					obs = 0;//in->stat().getSpread();
-				}
-				
-				numPix_tot++;
-				switch(ftype) {
-					case 1:
-						minfunc += wi*std::pow(mod-obs,2)/std::sqrt(obs);
-						break;
-						
-					case 2:
-						minfunc += wi*fabs(mod-obs);
-						break;
-					
-					case 3:
-						minfunc += wi*fabs(mod-obs)/(mod+obs);
-						break;
-						
-					case 4:
-						minfunc += wi*std::pow(mod-obs,2);
-						break;
-						
-					default:
-						break;
-				}
-				
-				obsSumz += wi*fabs(mod-obs)/(mod+obs);			
-				obsSum += obs;
-				modSum += mod;	
- 			}
-		}
-	}	
-	
-	//double funcc = std::pow(1+numBlanks/T(numPix_tot),bweight)*minfunc/numPix_ring;
-	double funcc = minfunc/(numPix_tot-numBlanks);
+            numPix_ring++;
 
-	printDetails(dring,funcc, numPix_tot);
-	details = false;
-///*
-	//static int a=0;													//////// ROBE DA CANCELLARE
-	//string name = "pippa"+to_string(dring->inc.back())+"_"+to_string(dring->vrot.back())+".fits";
-	//double b = a % 50;
-	//long axis[3] = {bsize[0],bsize[1],in->DimZ()};
-	//Cube<float> *cuu = new Cube<float>(axis);
+            double costh = fabs(cos(theta*M_PI/180.));
+            double wi = std::pow(costh, double(wpow));
 
-	//for (int i=0; i<cuu->NumPix(); i++) {cuu->Array()[i]=array[i];}
-	//cuu->saveHead(in->Head());
-	//cuu->Head().setCrpix(0, in->Head().Crpix(0)-blo[0]);
- 	//cuu->Head().setCrpix(1, in->Head().Crpix(1)-blo[1]);
- 	//cuu->Head().setMinMax(0,0);
-	//cuu->fitswrite_3d(name.c_str());
-	//if (b==0) 
-		//FitsWrite_3D(name.c_str(),(float*)(array),axis);
-	//a++;
-	
-	//delete cuu;
-//	
-	delete [] modmap;
-	return funcc;
-	
+            // Normalizing and residuals.
+            for (uint z=in->DimZ(); z--;) {
+                long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
+                long obsPix = in->nPix(x+blo[0],y+blo[1],z);
+                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+                T mod = array[modPix];
+
+                if (mask[obsPix]==0) {
+                    if (mod==0) continue;
+                    else numBlanks++;
+                }
+
+                numPix_tot++;
+                minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
+            }
+        }
+    }
+    //numPix_ring=1;
+    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+
 }
-template double Galfit<float>::residuals(Rings<float>*,float*,int*,int*);
-template double Galfit<double>::residuals(Rings<double>*,double*,int*,int*);
-//*/
+template double Galfit<float>::norm_none(Rings<float>*,float*,int*,int*);
+template double Galfit<double>::norm_none(Rings<double>*,double*,int*,int*);
+
 
 template <class T> 
 inline bool Galfit<T>::IsIn (int x, int y, int *blo, Rings<T> *dr, double &th) {
@@ -1080,6 +868,45 @@ inline bool Galfit<T>::IsIn (int x, int y, int *blo, Rings<T> *dr, double &th) {
 }
 template bool Galfit<float>::IsIn(int,int,int*,Rings<float>*,double&);
 template bool Galfit<double>::IsIn(int,int,int*,Rings<double>*,double&);
+
+
+template <class T>
+inline bool Galfit<T>::getSide (double theta) {
+
+    if (in->pars().getSIDE()=="R") return (fabs(theta)<=90.0);
+    else if (in->pars().getSIDE()=="A") return (fabs(theta)>=90.0);
+    else return true;
+
+}
+template bool Galfit<float>::getSide(double);
+template bool Galfit<double>::getSide(double);
+
+
+template <class T>
+inline double Galfit<T>::getFuncValue(T obs, T mod, double weight, double noise_weight) {
+
+    double value = 0;
+    switch(in->pars().getFTYPE()) {
+        case 1:
+            value = weight*std::pow(mod-obs,2)/std::sqrt(obs)/noise_weight;
+            break;
+        case 2:
+            value = weight*fabs(mod-obs)/noise_weight;
+            break;
+        case 3:
+            value = weight*fabs(mod-obs)/(mod+obs)/noise_weight;
+            break;
+        case 4:
+            value = weight*std::pow(mod-obs,2)/noise_weight;
+            break;
+        default:
+            break;
+    }
+    return value;
+
+}
+template double Galfit<float>::getFuncValue(float,float,double,double);
+template double Galfit<double>::getFuncValue(double,double,double,double);
 
 
 template <class T>
@@ -1150,12 +977,12 @@ T* Galfit<T>::getFinalRingsRegion () {
 	T *ringregion = new T[bsize[0]*bsize[1]];
 	for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
 	
-	T R1  = outr->radii.front()/(in->Head().PixScale()*arcconv);
-    T R2  = outr->radii.back()/(in->Head().PixScale()*arcconv)+sqrt(in->Head().BeamArea()/M_PI);
+    T R1  = max(outr->radii.front()/(in->Head().PixScale()*arcconv)-outr->radsep/2.,0.);
+    T R2  = outr->radii.back()/(in->Head().PixScale()*arcconv)+outr->radsep/2.;//#+sqrt(in->Head().BeamArea()/M_PI);
 	T phi = outr->phi.back();
 	T inc = outr->inc.back();
 	T psi = 0.;
-	T z0  = outr->z0.back()/(in->Head().PixScale()*arcconv); //prima prendevo 3*dring->....
+    T z0  = 3*outr->z0.back()/(in->Head().PixScale()*arcconv); //prima prendevo 3*dring->....
 	T x0  = outr->xpos.back()-1;
 	T y0  = outr->ypos.back()-1;
 	

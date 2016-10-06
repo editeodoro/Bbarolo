@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include "../Arrays/cube.hh"
+#include "../Arrays/image.hh"
 #include "galmod.hh"
 
 namespace Model {
@@ -41,21 +42,20 @@ public:
 	Galfit(const Galfit &g);   					//< Copy constructor.
     Galfit& operator=(const Galfit &g);			//< Copy operator.
 	
-	Cube<T>  *In () {return in;};
-	Rings<T> *Inrings  () {return inr;};
-	Rings<T> *Outrings () {return outr;};
-	
+    Cube<T>  *In () {return in;}
+    Rings<T> *Inrings  () {return inr;}
+    Rings<T> *Outrings () {return outr;}
+
     /// Functions defined in galfit.cpp
 	void input (Cube<T> *c, Rings<T> *inrings, bool *maskpar, double TOL=1E-03);
     void galfit();
 	Galmod<T>* getModel();
-	void SecondStage();
+    bool SecondStage();
 
     /// Functions defined in galfit_out.cpp
-    void writeModel_norm();
-	void writeModel_azim();
-	void plotParam(Cube<T>* mod, Cube<T>* res);
-    void plotChanMaps ();
+    void writeModel(std::string normtype);
+    void writePVs(Cube<T> *mod, std::string suffix="");
+
 
     /// Functions defined in slitfit.cpp
     void slit_init(Cube<T> *c);
@@ -70,8 +70,7 @@ protected:
 	bool	 inDefined;			//< Wheter inr have been defined inside Galfit.
     bool	 outDefined;		//< Whether the output rings have been defined.
 	bool 	 mpar[9];			//< Mask for parameters to be used.
-	short	 *mask;				//< Mask for areas to be used for chi2 calculation.
-	bool	 maskDefined;		
+    bool	 *mask;				//< Mask for areas to be used for chi2 calculation.
 	double	 tol;				//< Tolerance criterium for minimization.
 	double	 arcconv;			//< Conversion factor to arcsec.
 	int 	 nfree;				//< Number of free parameters.
@@ -91,9 +90,9 @@ protected:
     bool	 verb;
     Cube<T>	 *line_im;          //< Line Image;
     bool     line_imDefined;
-    float   *chan_noise;        //< Noise in each channel map.
-    bool    chan_noiseAllocated;
-    bool    global;             //< Whether to fit all parameters at once.
+    float    *chan_noise;        //< Noise in each channel map.
+    bool     chan_noiseAllocated;
+    bool     global;             //< Whether to fit all parameters at once.
 
 
     /// Pointer to the function to be minimized (3d or 2d slit)
@@ -102,8 +101,6 @@ protected:
 
 	
     void defaults ();
-	void createMask();
-	void createMap();
 	bool setCfield ();
     void setFree();
     T getCenterCoord (std::string pos, std::string type);
@@ -116,10 +113,14 @@ protected:
 	T  	   model(Rings<T> *dring);
 	void   Convolve(T *array, int *bsize);
 	void   Convolve_fft(T *array, int *bsize);
-	double normalize (Rings<T> *dring, T *array, int *bhi, int *blo);
-	double residuals (Rings<T> *dring, T *array, int *bhi, int *blo);
+    double norm_local(Rings<T> *dring, T *array, int *bhi, int *blo);
+    double norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo);
+    double norm_none (Rings<T> *dring, T *array, int *bhi, int *blo);
+
     double slitfunc  (Rings<T> *dring, T *array, int *bhi, int *blo);
 	inline bool IsIn (int x, int y, int *blo, Rings<T> *dr, double &th);
+    inline bool getSide (double theta);
+    inline double getFuncValue(T obs, T mod, double weight, double noise_weight);
 	std::vector<Pixel<T> >* getRingRegion (Rings<T> *dring, int *bhi, int *blo);
 	T* getFinalRingsRegion ();
 
@@ -127,7 +128,13 @@ protected:
     void printDetails  (Rings<T> *dr, T fmin, long pix, std::ostream& str=std::cout);
 	void showInitial (Rings<T> *inr, std::ostream& Stream);
 	void printInitial (Rings<T> *inr);
-	
+    void DensityProfile (T *surf_dens, int *count);
+    int* getErrorColumns();
+    int  plotParam() {plotPar_Gnuplot(); return plotAll_Python();}
+    void plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T> *pva_m, Image2D<T> *pvb_m);
+    void plotPar_Gnuplot();
+    int  plotAll_Python ();
+
 	/// Functions defined in galfit_erros.cpp
 	void getErrors(Rings<T> *dring, T** err, int ir, T minimum);
 

@@ -40,7 +40,8 @@ SOURCES +=     bbarolo.cpp \
     Utilities/utils.cpp \
     Utilities/galfit_out.cpp \
     Utilities/slitfit.cpp \
-    Utilities/wcsUtils.cpp
+    Utilities/wcsUtils.cpp \
+    Utilities/ellprof.cpp
 
 HEADERS += Arrays/cube.hh \
     Arrays/header.hh \
@@ -69,6 +70,7 @@ HEADERS += Arrays/cube.hh \
     Utilities/smooth3D.hh \
     Utilities/spacepar.hh \
     Utilities/utils.hh \
+    Utilities/ellprof.hh \
     GUI/consolestream.h \
     GUI/q_streamdebug.h
 

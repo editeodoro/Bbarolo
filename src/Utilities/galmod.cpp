@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -214,7 +214,7 @@ void Galmod<T>::input(Cube<T> *c, Rings<T> *rings, int LTYPE) {
 	
 	ltype = LTYPE;
 	cmode = 1;
-	cdens = 1.0;
+    cdens = 1;
 	
 	int nvtmp = nsubs;
 	for (int i=0; i<r->nr; i++) {
@@ -780,7 +780,7 @@ void Galmod<T>::galmod() {
 */
 
 //              PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
-                uint nlines = 1;
+                uint nlines = in->pars().getNlines();
                 float relvel_lines[2] = {0,210000};
                 float relint_lines[2] = {1,1.45};
 
@@ -794,6 +794,7 @@ void Galmod<T>::galmod() {
                         datbuf[idat] = datbuf[idat]+relint_lines[nl]*fluxsc*cd2i[isubs];
                     }
                 }
+
 
             }
 		}

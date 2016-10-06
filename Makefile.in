@@ -1,6 +1,6 @@
-CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized 
-#CFLAGS = -O0 -g -fbounds-check -Wall -Wextra 
-#CFLAGS = -fast -openmp -Wall
+CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized @CFLAGS@
+#CFLAGS = -O0 -g -fbounds-check -Wall -Wextra @CFLAGS@ 
+#CFLAGS = -fast -Wall @CFLAGS@
 
 OS = @OP@
 CC =    @CC@ $(CFLAGS)
@@ -74,6 +74,7 @@ HEADS = $(BASE)/bbarolo.hh \
 	$(UTILDIR)/gnuplot.hh\
 	$(UTILDIR)/progressbar.hh\
 	$(UTILDIR)/lsqfit.hh\
+	$(UTILDIR)/ellprof.hh\
 	$(UTILDIR)/moment.hh\
 	$(UTILDIR)/paramguess.hh\
 	$(UTILDIR)/conv2D.hh\
@@ -105,6 +106,7 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/slitfit.o\
 	 $(OBJDIR)/ringmodel.o\
 	 $(OBJDIR)/progressbar.o\
+	 $(OBJDIR)/ellprof.o\
 	 $(OBJDIR)/allocator.o\
 	 $(OBJDIR)/string.o\
 	 $(OBJDIR)/statistics.o\
@@ -198,18 +200,25 @@ ifeq ($(OS),MACOSX)
 	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
 endif
 
+justgui : 
+	cd ./src/GUI && make
+ifeq ($(OS),MACOSX)
+	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
+	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
+endif
+    
 all: 
 	make && make gui
 
 static: build $(OBJECTS)
-		$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT)
-		make guistatic
+	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT)
+	make guistatic
 
 guistatic :
-		rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
-		macdeployqt ./BBaroloGUI.app/
-		cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
-		$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
+	rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
+	macdeployqt ./BBaroloGUI.app/
+	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
+	$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
 
 guistaticlinux :
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \

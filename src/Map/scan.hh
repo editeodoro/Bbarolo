@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -46,7 +46,7 @@ namespace PixelInfo
     Scan(long y, long x, long xl);
     Scan(const Scan& s);
     Scan& operator= (const Scan& s);
-    virtual ~Scan(){};
+    virtual ~Scan(){}
 	
 	/// Overloaded operators:
 	template <class Type>
@@ -60,19 +60,19 @@ namespace PixelInfo
 
     /// Inline functions to access private members:
     
-    long getY()	{return itsY;};
-    void setY(long l) {itsY=l;};
-    long getX() {return itsX;};
-    void setX(long l) {itsX=l;};
-    long getXlen() {return itsXLen;};
-    void setXlen(long l) {itsXLen=l;}; 
-    void define(long y, long x, long xl){itsY=y; itsX=x; itsXLen=xl;};
-    void clear(){itsY=-1;itsX=-1;itsXLen=0;};
-    long getXmax(){return itsX+itsXLen-1;};
-    void setXmax(long l){itsXLen = l-itsX+1;};
-    void growLeft(){itsX--;itsXLen++;};
-    void growRight(){itsXLen++;};
-    void addOffsets(long xoff, long yoff){itsY+=yoff; itsX+=xoff;};
+    long getY()	{return itsY;}
+    void setY(long l) {itsY=l;}
+    long getX() {return itsX;}
+    void setX(long l) {itsX=l;}
+    long getXlen() {return itsXLen;}
+    void setXlen(long l) {itsXLen=l;}
+    void define(long y, long x, long xl){itsY=y; itsX=x; itsXLen=xl;}
+    void clear(){itsY=-1;itsX=-1;itsXLen=0;}
+    long getXmax(){return itsX+itsXLen-1;}
+    void setXmax(long l){itsXLen = l-itsX+1;}
+    void growLeft(){itsX--;itsXLen++;}
+    void growRight(){itsXLen++;}
+    void addOffsets(long xoff, long yoff){itsY+=yoff; itsX+=xoff;}
     
     /// Other utility functions:
     

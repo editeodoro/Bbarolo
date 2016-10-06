@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -39,7 +39,7 @@
 
 double KpcPerArc(double d) {return 2*d*tan(M_PI/2/180)/3.6;}
 double VeltoDist(double vsys) {return vsys/70.;}
-double RedtoDist(double redshift) {return redshift*299792.458/70.;};
+double RedtoDist(double redshift) {return redshift*299792.458/70.;}
 
 template <class Type> 
 bool isNaN (Type n) {
@@ -78,6 +78,7 @@ bool mkdirp(const char* path, mode_t mode) {
     return true;
 }
 
+
 void FitsWrite_2D (const char *filename, float *image, long xsize, long ysize) {
 	
 	fitsfile *fptr;
@@ -110,7 +111,6 @@ void FitsWrite_2D (const char *filename, float *image, long xsize, long ysize) {
 	}
 	
 }
-
 
 
 void FitsWrite_2D (const char *filename, double *image, long xsize, long ysize) {
@@ -331,17 +331,17 @@ T FluxtoJy (T in, Header &h) {
 	T fluxvalue, fluxJY;
 	
 	fluxvalue = in;
-	
-	if (h.Bunit()=="W.U." || h.Bunit()=="w.u." || h.Bunit()=="W.u.") {
+    std::string bunit = makelower(h.Bunit());
+
+    if (bunit=="w.u." || bunit=="wu") {
 		fluxJY = 5E-3*fluxvalue;
 		if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
 	}
-	else if (h.Bunit()=="JY/BEAM" || h.Bunit()=="Jy/beam" ||
-		     h.Bunit()=="jy/beam" || h.Bunit()=="Jy/Beam") {
+    else if (bunit=="jy/beam") {
 		fluxJY = fluxvalue;
 		if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
 	}
-	else if (h.Bunit()=="JY" || h.Bunit()=="Jy" || h.Bunit()=="jy") {
+    else if (bunit=="jy") {
 		return fluxvalue; 
 	}
 	else return fluxvalue;
@@ -501,45 +501,31 @@ T angularSeparation(T &ra1, T &dec1, T &ra2, T &dec2) {
   	}
 
 }
-template short angularSeparation(short&,short&,short&,short&);
-template int angularSeparation(int&,int&,int&,int&);
-template long angularSeparation(long&,long&,long&,long&);
 template float angularSeparation(float&,float&,float&,float&);
 template double angularSeparation(double&,double&,double&,double&);
 
 
 double arcsconv(std::string cunit) {
 	
-	if (cunit=="DEGREE" || cunit=="DEGREES" || cunit=="DEG" ||
-		cunit=="degree" || cunit=="degrees" || cunit=="deg") 
-		return 3600.;
-	else if (cunit=="ARCSEC" || cunit=="ARCS" ||
-			 cunit=="arcsec" || cunit=="arcs") 
-		return 1.;
-	else if (cunit=="ARCMIN" || cunit=="ARCM" ||
-			 cunit=="arcmin" || cunit=="arcm") 
-		return 60.;
+    std::string Cunit = makelower(cunit);
+    if (Cunit=="degree" || Cunit=="degrees" || Cunit=="deg") return 3600.;
+    else if (Cunit=="arcmin" || Cunit=="arcm") return 60.;
+    else if (Cunit=="arcsec" || Cunit=="arcs") return 1.;
 	else {
 		std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
 		std::cout << "cannot convert to ARCSEC.\n";
 		std::cout << cunit;
 		std::terminate(); 
 	}
-	
 }
 
 
 double degconv(std::string cunit) {
 
-    if (cunit=="DEGREE" || cunit=="DEGREES" || cunit=="DEG" ||
-        cunit=="degree" || cunit=="degrees" || cunit=="deg")
-        return 1.;
-    else if (cunit=="ARCSEC" || cunit=="ARCS" ||
-        cunit=="arcsec" || cunit=="arcs")
-        return 1/3600;
-    else if (cunit=="ARCMIN" || cunit=="ARCM" ||
-        cunit=="arcmin" || cunit=="arcm")
-        return 1/60.;
+    std::string Cunit = makelower(cunit);
+    if (Cunit=="degree" || Cunit=="degrees" || Cunit=="deg") return 1.;
+    else if (Cunit=="arcmin" || Cunit=="arcm") return 1./60.;
+    else if (Cunit=="arcsec" || Cunit=="arcs") return 1./3600.;
     else {
         std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
         std::cout << "cannot convert to DEGREE.\n";
@@ -820,14 +806,14 @@ template bool getDataColumn (std::vector<double> &,std::string);
 
 
 
-template <> int selectBitpix<short>() {return SHORT_IMG;};
-template <> int selectBitpix<int>() {return SHORT_IMG;};
-template <> int selectBitpix<long>() {return LONG_IMG;};
-template <> int selectBitpix<float>() {return FLOAT_IMG;};
-template <> int selectBitpix<double>() {return DOUBLE_IMG;};
+template <> int selectBitpix<short>() {return SHORT_IMG;}
+template <> int selectBitpix<int>() {return SHORT_IMG;}
+template <> int selectBitpix<long>() {return LONG_IMG;}
+template <> int selectBitpix<float>() {return FLOAT_IMG;}
+template <> int selectBitpix<double>() {return DOUBLE_IMG;}
 
-template <> int selectDatatype<short>() {return TSHORT;};
-template <> int selectDatatype<int>() {return TINT;};
-template <> int selectDatatype<long>() {return TLONG;};
-template <> int selectDatatype<float>() {return TFLOAT;};
-template <> int selectDatatype<double>() {return TDOUBLE;};
+template <> int selectDatatype<short>() {return TSHORT;}
+template <> int selectDatatype<int>() {return TINT;}
+template <> int selectDatatype<long>() {return TLONG;}
+template <> int selectDatatype<float>() {return TFLOAT;}
+template <> int selectDatatype<double>() {return TDOUBLE;}

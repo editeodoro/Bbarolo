@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -451,6 +451,12 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
 		err[0][nf] = low_err;
 		err[1][nf] = upp_err;
 	}
+    
+    for (int nf=nfree; nf--;) {
+		if (err[0][nf]==0) err[0][nf] = findMean(err[0],nfree);
+		if (err[1][nf]==0) err[1][nf] = findMean(err[1],nfree);
+    }
+    
 	//*/	
 	if (verb) bar.fillSpace("Done.\n");
 

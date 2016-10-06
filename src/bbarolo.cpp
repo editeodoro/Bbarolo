@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -36,7 +36,7 @@
 #include "./Utilities/galfit.hh"
 #include "./Utilities/spacepar.hh"
 #include "./Utilities/utils.hh"
-
+#include "./Utilities/ellprof.hh"
 /*
 #include<signal.h>
 struct sigaction osa;
@@ -87,8 +87,6 @@ int main (int argc, char *argv[]) {
 			continue;
 		}
 
-
-
         Cube<float> *c = new Cube<float>;
 		c->saveParam(*par);
 		
@@ -108,7 +106,7 @@ int main (int argc, char *argv[]) {
         mkdirp(outfolder.c_str());
 
 		if (par->getCheckCh()) c->CheckChannels();
-	
+
 		if (par->getflagSmooth()) {
             Smooth3D<float> *sm = new Smooth3D<float>;
 			sm->cubesmooth(c);
@@ -122,46 +120,26 @@ int main (int argc, char *argv[]) {
 			c->plotDetections();
             std::ofstream detout((outfolder+"detections.txt").c_str());
             c->printDetections(detout);
-
         }
 	
 		///<<<<< Cube Fitting
 		if (par->getflagGalFit()) {
             Model::Galfit<float> *fit = new Model::Galfit<float>(c);
             fit->galfit();
-            if (par->getNORM()=="AZIM") fit->writeModel_azim();
-            if (par->getTwoStage()) {
-                fit->SecondStage();
-                fit->writeModel_norm();
-            } else if (!par->getTwoStage() && par->getNORM()!="AZIM") fit->writeModel_norm();
+            if (par->getTwoStage()) fit->SecondStage();
+            if (par->getFlagDebug()) fit->writeModel("BOTH");
+            else fit->writeModel(par->getNORM());
+
+
 			delete fit;
 		}
 		///----------------------
 	
-		
 		///<<<<< Cube Model
 		if (par->getflagGalMod()) {
             Model::Galfit<float> *fit = new Model::Galfit<float>(c);
-            if (par->getNORM()=="LOCAL") fit->writeModel_norm();
-            if (par->getNORM()=="AZIM") fit->writeModel_azim() ;
-			else {
-
-                Model::Galmod<float> *mod = fit->getModel();
-///////////////
-//                long axis[3] = {mod->Out()->DimX(),mod->Out()->DimY(),mod->Out()->DimZ()};
-//                float *ar = new float[c->NumPix()];
-//                for (int i=0; i<c->NumPix();i++) ar[i] = mod->Out()->Array(i);
-//                FitsWrite_3D("diocaro.fits",ar,axis);
-/////////////////
-
-
-				std::string mfile = c->pars().getOutfolder()+c->Head().Name()+"mod.fits";
-				mod->Out()->Head().setMinMax(0.,0.);
-				mod->Out()->Head().setName(c->Head().Name()+"mod");
-				mod->Out()->fitswrite_3d(mfile.c_str());
-                fit->plotParam(mod->Out(), mod->Out());
-				delete mod;
-			}
+            if (par->getFlagDebug()) fit->writeModel("BOTH");
+            else fit->writeModel(par->getNORM());
 			delete fit;
 		}
 		///----------------------

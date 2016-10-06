@@ -9,7 +9,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -56,6 +56,7 @@ void findMinMax(const T *array, const size_t size, T &min, T &max) {
   
 	min = max = array[0];
 	for(size_t i=1;i<size;i++) {
+        if (array[i]!=array[i]) continue;
 		if(array[i]<min) min=array[i];
 		if(array[i]>max) max=array[i];
 	}

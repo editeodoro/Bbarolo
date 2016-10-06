@@ -9,7 +9,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -253,7 +253,7 @@ namespace PixelInfo
  
     if(s1.getX() > s2.getXmax()) return hypot(s1.getX()-s2.getXmax(),s1.getY()-s2.getY());
     else if(s2.getX() > s1.getXmax()) return hypot(s2.getX()-s1.getXmax(),s1.getY()-s2.getY());
-    else return fabsf(s1.getY()-s2.getY());
+    else return float(labs(s1.getY()-s2.getY()));
    
   }
   

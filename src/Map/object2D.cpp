@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -505,7 +505,7 @@ namespace PixelInfo
 		if(iter1->itsY >= ycommonMin && iter1->itsY<=ycommonMax){
 			for(iter2=other.scanlist.begin();!close && iter2!=other.scanlist.end();iter2++){
 				if(iter2->itsY >= ycommonMin && iter2->itsY<=ycommonMax){	      
-					if(abs(iter1->itsY-iter2->itsY)<=gap){
+                    if(labs(iter1->itsY-iter2->itsY)<=gap){
 						if(flagAdj) {
 							if((iter1->itsX-gap)>iter2->itsX) 
 								close=((iter2->itsX+iter2->itsXLen-1)>=(iter1->itsX-gap));

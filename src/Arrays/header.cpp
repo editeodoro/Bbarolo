@@ -8,7 +8,7 @@
  Free Software Foundation; either version 2 of the License, or (at your
  option) any later version.
 
- Bbarp;p is distributed in the hope that it will be useful, but WITHOUT
+ BBarolo is distributed in the hope that it will be useful, but WITHOUT
  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
@@ -183,7 +183,7 @@ bool Header::header_read (std::string fname) {
 	
 
     fitsname = fname;
-    char *filename = new char[100];
+    char filename[100];
     strcpy(filename, fname.c_str());
  
     if (fits_open_file(&fptr, filename, READONLY, &status)) {
@@ -216,12 +216,7 @@ bool Header::header_read (std::string fname) {
       fits_report_error(stderr, status);
     }
 
-    char *Bunit = new char [20];
-    char *Btype = new char [20];
-    char *name = new char [100];
-    char *Tel = new char [100];
-    char *Dunit3 = new char[20];
-    char *Keys = new char[100];
+    char Bunit[20], Btype[20], name[20], Tel[20], Dunit3[20], Keys[100];
     for (int i=0; i<20; i++) {
             Bunit[i]=Btype[i]=name[i]=Tel[i]=Dunit3[i]=Keys[i]=' ';
     }
@@ -273,7 +268,7 @@ bool Header::header_read (std::string fname) {
         }
     }
 
-    if (ctype[0].find("RA")>=0 && crval[0]<0) crval[0]+=360.;
+    if (ctype[0].find("RA")!=std::string::npos && crval[0]<0) crval[0]+=360.;
 
     status=0;
     fits_read_keys_str (fptr, "CUNIT", 1, numAxes, Cunit, &nfound, &status);
@@ -302,14 +297,14 @@ bool Header::header_read (std::string fname) {
         delete [] Cunit[i];
     }
     delete [] Cunit;
-
+    delete [] Ctype;
+        
     status=0;
     if (fits_read_key_str (fptr, "DUNIT3", Dunit3, comment, &status)) {
         if (status!=202) fits_report_error(stderr, status);
         dunit3 = "NONE";
     }
     else dunit3 = Dunit3;
-
 
     status=0;
     if (fits_read_key_str (fptr, "BUNIT", Bunit, comment, &status)) {
@@ -383,6 +378,7 @@ bool Header::header_read (std::string fname) {
             }
         }
     }
+
 
     status=0;
     if (fits_read_key_dbl (fptr, "CROTA", &crota, comment, &status)) {
@@ -481,7 +477,7 @@ bool Header::header_read (std::string fname) {
         }
     }
 	
-    char *bm = new char [30];
+    char bm[30];
     status=0;
     fits_read_key_str (fptr, "BMMAJ", bm, comment, &status);
     std::string bmstr = bm;
@@ -500,7 +496,6 @@ bool Header::header_read (std::string fname) {
 	
     if (clbmaj!=0) bmaj = clbmaj/3600.;
     if (clbmin!=0) bmin = clbmin/3600.;
-
 
 
 
@@ -537,14 +532,6 @@ bool Header::header_read (std::string fname) {
 
    status = spctyp(wcs->ctype[wcs->spec],stype,scode,sname,units,&ptype,&xtype,&restreq);
 
-	
-    delete [] name;
-    delete [] Bunit;
-    delete [] Btype;
-    delete [] filename;
-    delete [] bm;
-    delete [] Tel;
-    delete [] Keys;
 
 	// Close the FITS File
     status=0;
@@ -562,64 +549,37 @@ void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
 
     int status=0;
     char com[]= "  ";
-    char *ctype1 = new char[20];
-    strcpy(ctype1, ctype[0].c_str());
-    char *ctype2 = new char[20];
-    strcpy(ctype2, ctype[1].c_str());
-    char *ctype3 = new char[20];
-    strcpy(ctype3, ctype[2].c_str());
-    char *cunit1 = new char [20];
-	strcpy(cunit1, cunit[0].c_str());
-	char *cunit2 = new char [20];
-	strcpy(cunit2, cunit[1].c_str());
-	char *cunit3 = new char [20];
-    strcpy(cunit3, cunit[2].c_str());
-    
-    char *Bunit = new char [20];
-    strcpy(Bunit, bunit.c_str());
-    char *Btype = new char [20];
-    strcpy(Btype, btype.c_str());
-    char *Object = new char [100];
-    strcpy(Object, object.c_str());
-    char *Tel = new char [100];
-    strcpy(Tel, telescope.c_str());
-    char *Dunit = new char [20];
-    strcpy(Dunit, dunit3.c_str());
-    
-    char *Keys = new char[100];
     
     fits_update_key_dbl(fptr, "CRPIX1", crpix[0], 10, com, &status);
 	fits_update_key_dbl(fptr, "CRVAL1", crval[0], 10, com, &status);
 	fits_update_key_dbl(fptr, "CDELT1", cdelt[0], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE1", ctype1, com, &status);
-	fits_update_key_str(fptr, "CUNIT1", cunit1, com, &status);
+	fits_update_key_str(fptr, "CTYPE1", ctype[0].c_str(), com, &status);
+	fits_update_key_str(fptr, "CUNIT1", cunit[0].c_str(), com, &status);
 	
 	fits_update_key_dbl(fptr, "CRPIX2", crpix[1], 10, com, &status);
 	fits_update_key_dbl(fptr, "CRVAL2", crval[1], 10, com, &status);
 	fits_update_key_dbl(fptr, "CDELT2", cdelt[1], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE2", ctype2, com, &status);
-	fits_update_key_str(fptr, "CUNIT2", cunit2, com, &status);	
+	fits_update_key_str(fptr, "CTYPE2", ctype[1].c_str(), com, &status);
+	fits_update_key_str(fptr, "CUNIT2", cunit[1].c_str(), com, &status);	
 	
 	fits_update_key_dbl(fptr, "CRPIX3", crpix[2], 10, com, &status);
 	fits_update_key_dbl(fptr, "CRVAL3", crval[2], 10, com, &status);
 	fits_update_key_dbl(fptr, "CDELT3", cdelt[2], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE3", ctype3, com, &status);
-	fits_update_key_str(fptr, "CUNIT3", cunit3, com, &status);
+	fits_update_key_str(fptr, "CTYPE3", ctype[2].c_str(), com, &status);
+	fits_update_key_str(fptr, "CUNIT3", cunit[2].c_str(), com, &status);
 	if (drval3!=0) fits_update_key_dbl(fptr, "DRVAL3", drval3, 10, com, &status);
-	if (dunit3!="NONE") fits_update_key_str(fptr, "DUNIT3", Dunit, com, &status);
-	fits_update_key_str(fptr, "BUNIT", Bunit, com, &status);
+	if (dunit3!="NONE") fits_update_key_str(fptr, "DUNIT3", dunit3.c_str(), com, &status);
+	fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
 	
 	if (bmaj!=0) fits_update_key_dbl(fptr, "BMAJ", bmaj, 10, com, &status);
 	if (bmin!=0) fits_update_key_dbl(fptr, "BMIN", bmin, 10, com, &status);
 	fits_update_key_dbl(fptr, "BPA", bpa, 10, com, &status);
-	if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", Btype, com, &status);
-	//fits_update_key_flt(fptr, "BZERO", bzero, 10, com, &status);
-	//fits_update_key_flt(fptr, "BSCALE", bscale, 10, com, &status);
+	if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
 	//fits_update_key_flt(fptr, "BLANK", blank, 10, com, &status);
 	
-	if (object!="NONE") fits_update_key_str(fptr, "OBJECT", Object, com, &status);
+	if (object!="NONE") fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
 	if (epoch!=0) fits_update_key_flt(fptr, "EPOCH", epoch, 10, com, &status);
-	if (telescope!="NONE") fits_update_key_str(fptr, "TELESCOP", Tel, com, &status);
+	if (telescope!="NONE") fits_update_key_str(fptr, "TELESCOP", telescope.c_str(), com, &status);
 	if (freq0!=0) fits_update_key_dbl(fptr, "FREQ0", freq0, 10, com, &status);
 	if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);
 	if (datamin!=0) fits_update_key_dbl(fptr, "DATAMIN", datamin, 10, com, &status);
@@ -642,8 +602,7 @@ void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
 			}
 			if (towrite) {
 				status=0;
-				strcpy(Keys, keys[i].c_str());
-				fits_write_record(fptr, Keys, &status);
+				fits_write_record(fptr, keys[i].c_str(), &status);
 			}
 		}
 		
@@ -651,19 +610,6 @@ void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
 	
 	
 	fits_report_error(stderr, status); 
-	
-	delete [] Bunit;
-	delete [] Btype; 
-	delete [] Object;
-	delete [] Tel;
-	delete [] ctype1;
-	delete [] ctype2;
-	delete [] ctype3;
-	delete [] cunit1;
-	delete [] cunit2;
-	delete [] cunit3;
-	delete [] Dunit;
-	delete [] Keys;
 }
 
 
@@ -671,45 +617,27 @@ void Header::headwrite_2d (fitsfile *fptr, bool fullHead) {
 
 	int status=0;
 	char com[]= "  ";
-
-	char *ctype1 = new char[15];
-    strcpy(ctype1, ctype[0].c_str());
-    char *ctype2 = new char[15];
-    strcpy(ctype2, ctype[1].c_str());
-    char *cunit1 = new char [15];
-	strcpy(cunit1, cunit[0].c_str());
-	char *cunit2 = new char [15];
-	strcpy(cunit2, cunit[1].c_str());
-	
-	char *Bunit = new char [15];
-    strcpy(Bunit, bunit.c_str());
-    char *Btype = new char [15];
-    strcpy(Btype, btype.c_str());
-    char *Object = new char [30];
-    strcpy(Object, object.c_str());
-	    
-    char *Keys = new char[100];
     
 	fits_update_key_dbl(fptr, "CRPIX1", crpix[0], 10, com, &status);
 	fits_update_key_dbl(fptr, "CRVAL1", crval[0], 10, com, &status);
 	fits_update_key_dbl(fptr, "CDELT1", cdelt[0], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE1", ctype1, com, &status);
-	fits_update_key_str(fptr, "CUNIT1", cunit1, com, &status);
+	fits_update_key_str(fptr, "CTYPE1", ctype[0].c_str(), com, &status);
+	fits_update_key_str(fptr, "CUNIT1", cunit[0].c_str(), com, &status);
 	
 	fits_update_key_dbl(fptr, "CRPIX2", crpix[1], 10, com, &status);
 	fits_update_key_dbl(fptr, "CRVAL2", crval[1], 10, com, &status);
 	fits_update_key_dbl(fptr, "CDELT2", cdelt[1], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE2", ctype2, com, &status);
-	fits_update_key_str(fptr, "CUNIT2", cunit2, com, &status);
+	fits_update_key_str(fptr, "CTYPE2", ctype[1].c_str(), com, &status);
+	fits_update_key_str(fptr, "CUNIT2", cunit[1].c_str(), com, &status);
 	
-	fits_update_key_str(fptr, "BUNIT", Bunit, com, &status);
+	fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
 	
 	if (bmaj!=0) fits_update_key_dbl(fptr, "BMAJ", bmaj, 10, com, &status);
 	if (bmin!=0) fits_update_key_dbl(fptr, "BMIN", bmin, 10, com, &status);
 	if (bpa!=0)  fits_update_key_dbl(fptr, "BPA", bpa, 10, com, &status);
-	if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", Btype, com, &status);
+	if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
 	if (epoch!=0) fits_update_key_flt(fptr, "EPOCH", epoch, 10, com, &status);
-	fits_update_key_str(fptr, "OBJECT", Object, com, &status);
+	fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
 	//fits_update_key_flt(fptr, "BZERO", bzero, 12, com, &status);
 	//fits_update_key_flt(fptr, "BSCALE", bscale, 12, com, &status);
 	//fits_update_key_flt(fptr, "BLANK", blank, 12, com, &status);
@@ -735,24 +663,13 @@ void Header::headwrite_2d (fitsfile *fptr, bool fullHead) {
             }
             if (towrite) {
                 status=0;
-                strcpy(Keys, keys[i].c_str());
-                fits_write_record(fptr, Keys, &status);
+                fits_write_record(fptr, keys[i].c_str(), &status);
             }
         }
 
     }
 	
 	fits_report_error(stderr, status);  
-	
-	delete [] Bunit;
-	delete [] Object;
-	delete [] Btype; 
-	delete [] ctype1;
-	delete [] ctype2;
-	delete [] cunit1;
-	delete [] cunit2;
-	delete [] Keys;
-
 }
 
 template <class T>
