@@ -128,7 +128,6 @@ template <class T> T Pbcor (PixelInfo::Voxel<T> &v, Header &h);
 template <class T> void Pbcor(long x, long y, long z, T &flux, Header &h);
 
 // Function to obtain a linear scale from an angular scale. 
-std::string get_selfpath();
 std::string get_currentpath();
 // d is in Mpc and the returned value is in Kpc/arc. 
 double KpcPerArc(double d);
