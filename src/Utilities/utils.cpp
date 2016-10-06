@@ -49,6 +49,14 @@ std::string get_selfpath() {
     return path;
 }
 
+std::string get_currentpath() {
+    std::string path = "";
+    char pathbuf[1024];
+    if (getcwd(pathbuf, sizeof(pathbuf))==NULL) std::cerr << "Could not find the current PID \n";
+    else path = pathbuf;
+    return path;
+}
+
 double KpcPerArc(double d) {return 2*d*tan(M_PI/2/180)/3.6;}
 double VeltoDist(double vsys) {return vsys/70.;}
 double RedtoDist(double redshift) {return redshift*299792.458/70.;}
@@ -758,7 +766,7 @@ bool getDataColumn (std::vector<T> &data, std::string filestring) {
 	
 	std::string filename = filestring;
 	std::string column = filestring;
-	std::string rows = filestring;	
+	std::string rows = filestring;
 	int col=0, row_low=0, row_high=INT_MAX;
 	
 	found = filename.find(",");
