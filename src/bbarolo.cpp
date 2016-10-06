@@ -105,6 +105,7 @@ int main (int argc, char *argv[]) {
             outfolder = path+"output/"+c->Head().Obname()+"/";
             c->pars().setOutfolder(outfolder);
         }
+        mkdirp(outfolder.c_str());
 
 		if (par->getCheckCh()) c->CheckChannels();
 

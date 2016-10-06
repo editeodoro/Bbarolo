@@ -38,7 +38,14 @@ void BBaroloWindow::on_FitslineEdit_editingFinished()
 
     if (filename=="") {lastFilename = filename; return;}
     if(fexists(filename.toStdString())) {
+        
+        if (filename.toStdString().find("./")==0) {
+            filename.remove(0,1);
+            filename = QDir::currentPath()+filename;
+        }
+        
         ui->FitslineEdit->setText(filename);
+
         Header *h = new Header;
         h->header_read(filename.toStdString());
 
@@ -146,7 +153,7 @@ void BBaroloWindow::updateExit()
 {
     ui->RunpushButton->setEnabled(true);
     enable_All();
-
+    
     if (proc->exitCode()==0 && proc->exitStatus()==0) ui->statusBar->showMessage("  BBarolo successfully terminated");
     else {
         if (proc->exitStatus()==0)  ui->statusBar->showMessage("  BBarolo exited with errors");
@@ -210,6 +217,7 @@ void BBaroloWindow::on_RunpushButton_clicked() {
     connect(proc, SIGNAL(readyReadStandardError()), this, SLOT(updateText()));
     connect(proc, SIGNAL(finished(int)), this, SLOT(updateExit()));
     proc->start(cmd);
+    
 }
 
 void BBaroloWindow::readParamFromFile(std::string filein) {
