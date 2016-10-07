@@ -108,6 +108,7 @@ void Galfit<T>::writeModel (std::string normtype) {
     ell.RadialProfile();
     std::ofstream fileo(outfold+"densprof.txt");
     ell.printProfile(fileo,nseg-1);
+    fileo.close();
     //ell.printProfile(std::cout);
     delete totalmap;
 
@@ -249,7 +250,7 @@ void Galfit<T>::writeModel (std::string normtype) {
     int ret = plotParam();
     if (verb) {
         if (ret==0) std::cout << " Done." << std::endl;
-        else std::cout << " Something went wrong. Check the python script!" << std::endl;
+        else std::cout << " Something went wrong! Check pyscript.py in the output folder." << std::endl;
     }
 
     in->pars().setVerbosity(verb);
@@ -981,7 +982,7 @@ int Galfit<T>::plotAll_Python() {
     py_file << std::endl
             << "axis=ax[0][2]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('$\\Sigma_\\mathrm{gas}$ ("+in->Head().Bunit()+"/arcs$^2$)', fontsize=14)  \n"
+            << "axis.set_ylabel('$\\Sigma}$ ("+in->Head().Bunit()+"/arcs$^2$)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')  \n"
             << "axis.errorbar(rad_sd,surfdens, yerr=sd_err,fmt='o', color=color2)  \n";
 
@@ -1064,12 +1065,12 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tplt.subplot(grid[j][0,i]) \n"
             << "\t\t\tplt.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
             << "\t\t\tplt.title(velo, fontsize=8,loc='left') \n"
-            << "\t\t\tplt.imshow(z,origin='lower',cmap = matplotlib.cm.Greys,norm=norm) \n"
+            << "\t\t\tplt.imshow(z,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto') \n"
             << "\t\t\tplt.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
             << "\t\t\tplt.contour(z,v_neg,origin='lower',linewidths=0.1,colors='gray') \n"
             << "\t\t\tplt.subplot(grid[j][1,i]) \n"
             << "\t\t\tplt.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
-            << "\t\t\tplt.imshow(z_mod,origin='lower',cmap = matplotlib.cm.Greys,norm=norm ) \n"
+            << "\t\t\tplt.imshow(z_mod,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto') \n"
             << "\t\t\tplt.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
             << "\t\t\tnum = num+1 \n"
             << std::endl
@@ -1106,62 +1107,71 @@ int Galfit<T>::plotAll_Python() {
             << "imagedata_min = image_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
             << "xmin_wcs = ((xminpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
             << "xmax_wcs = ((xmaxpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
-            << "zmin_wcs, zmax_wcs = " << zmin_wcs << ", " << zmax_wcs << std::endl
-            << "ext = [xmin_wcs[0],xmax_wcs[0],zmin_wcs,zmax_wcs],[xmin_wcs[1],xmax_wcs[1],zmin_wcs,zmax_wcs] \n";
+            << "zmin_wcs, zmax_wcs = " << zmin_wcs << ", " << zmax_wcs << std::endl;
 
     py_file << std::endl
             << "radius = np.concatenate((rad,-rad)) \n"
-            << "vrotation, inclin, vsystem = vrot, inc, vsys \n"
+            << "vrotation, inclin, vsystem, posang = vrot, inc, vsys, pa  \n"
             << "if twostage==True:\n "
-            << "\tradius, vrotation, inclin, vsystem = np.concatenate((rad2,-rad2)), vrot2, inc2, vsys2 \n"
+            << "\tradius, vrotation, inclin, vsystem, posang = np.concatenate((rad2,-rad2)), vrot2, inc2, vsys2, pa2 \n"
             << "vlos1 = vrotation*np.sin(np.deg2rad(inclin))+vsystem \n"
             << "vlos2 = vsystem-vrotation*np.sin(np.deg2rad(inclin)) \n";
     if (reverse) py_file << "reverse = True \n";
     else py_file << "reverse = False \n";
     py_file << "if reverse==True: vlos1, vlos2 = vlos2, vlos1 \n"
-            << "vlos = np.concatenate((vlos1,vlos2)) \n\n";
-
+            << "vlos = np.concatenate((vlos1,vlos2)) \n"
+            << "vsysmean, pamean = np.nanmean(vsystem), np.nanmean(posang) \n"
+            << "ext = [[xmin_wcs[0],xmax_wcs[0],zmin_wcs-vsysmean,zmax_wcs-vsysmean],\\" << std::endl
+            << "       [xmin_wcs[1],xmax_wcs[1],zmin_wcs-vsysmean,zmax_wcs-vsysmean]] \n"
+            << "labsize = 15 \n"
+            << "palab = ['$\\phi = $" << pa_av <<"$^\\circ$', '$\\phi = $" << pa_min << "$^\\circ$'] \n";
+    
     py_file << "# Beginning PV plot \n"
             << "for k in range (len(files_mod)): \n"
             << "\timage_mod_maj = fits.open(outfolder+files_pva_mod[k]) \n"
             << "\timage_mod_min = fits.open(outfolder+files_pvb_mod[k]) \n"
             << "\timagedata_mod_maj = image_mod_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"    
             << "\timagedata_mod_min = image_mod_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
+            << "\ttoplot = [[imagedata_maj,imagedata_min],[imagedata_mod_maj,imagedata_mod_min]] \n"
             << std::endl
-            << "\tplt.figure(figsize=(8.27, 11.69), dpi=100) \n"
-            << "\tgrid = gridspec.GridSpec(2,1) \n"
-            << "\tgrid.update(top=0.95, bottom=0.05, left=0.10, right=0.90) \n"
-            << "\tplt.subplot(grid[0,0]) \n"
-            << "\tplt.xlabel('Offset (arcsec)',fontsize=14) \n"
-            << "\tplt.ylabel('V$_\\mathrm{LOS}$ (km/s)',fontsize=14) \n"
-            << "\tplt.title('$\\phi = $" << pa_av <<"$^\\circ$',loc='right',fontsize=20) \n"
-            << "\tplt.imshow(imagedata_maj,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,extent=ext[0],aspect='auto') \n"
-            << "\tplt.contour(imagedata_maj,v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[0],aspect='auto') \n"
-            << "\tplt.contour(imagedata_maj,v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[0],aspect='auto') \n"
-            << "\tplt.contour(imagedata_mod_maj,v,origin='lower',linewidths=0.7,colors='#B22222',extent=ext[0],aspect='auto') \n"
-            << "\tplt.axhline(y=" << vsys_av << ",color='black') \n"
-            << "\tplt.axvline(x=0,color='black') \n"
-            << "\tplt.plot(radius,vlos,'yo') \n"
-            << "\tplt.subplot(grid[1,0]) \n"
-            << "\tplt.xlabel('Offset (arcsec)',fontsize=14) \n"
-            << "\tplt.ylabel('V$_\\mathrm{LOS}$ (km/s)',fontsize=14) \n"
-            << "\tplt.title('$\\phi = $" << pa_min << "$^\\circ$',loc='right',fontsize=20) \n"
-            << "\tplt.imshow(imagedata_min,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,extent=ext[1],aspect='auto') \n"
-            << "\tplt.contour(imagedata_min,v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[1],aspect='auto') \n"
-            << "\tplt.contour(imagedata_min,v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[1],aspect='auto') \n"
-            << "\tplt.contour(imagedata_mod_min,v,origin='lower',linewidths=0.7,colors='#B22222',extent=ext[1],aspect='auto') \n"
-            << "\tplt.axhline(y=" << vsys_av << ",color='black') \n"
-            << "\tplt.axvline(x=0,color='black') \n"
-
+            << "\tfig=plt.figure(figsize=(11.69,8.27), dpi=150) \n"
+            << "\tfig_ratio = 11.69/8.27 \n"
+            << "\tx_len, y_len, y_sep = 0.6, 0.42, 0.08 \n"
+            << "\tax, bottom_corner = [], [0.1,0.7] \n"
+            << "\tfor i in range (2): \n"
+            << "\t\tbottom_corner[0], axcol = 0.1, [] \n"
+            << "\t\tax.append(fig.add_axes([bottom_corner[0],bottom_corner[1],x_len,y_len*fig_ratio])) \n"
+            << "\t\tbottom_corner[1]-=(y_len+y_sep)*fig_ratio \n"
+            << std::endl
+            << "\tfor i in range (2): \n"
+            << "\t\taxis = ax[i] \n"
+            << "\t\taxis.tick_params(which='major',length=8, labelsize=labsize) \n"
+            << "\t\taxis.set_xlabel('Offset (arcsec)',fontsize=labsize+2) \n"
+            << "\t\taxis.set_ylabel('$\\mathrm{\\Delta V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
+            << "\t\taxis.text(1, 1.02,palab[i],ha='right',transform=axis.transAxes,fontsize=labsize+4) \n"
+            << "\t\taxis2 = axis.twinx() \n"
+            << "\t\taxis2.set_xlim([ext[i][0],ext[i][1]]) \n"
+            << "\t\taxis2.set_ylim([ext[i][2]+vsysmean,ext[i][3]+vsysmean]) \n"
+            << "\t\taxis2.tick_params(which='major',length=8, labelsize=labsize) \n"
+            << "\t\taxis2.set_ylabel('$\\mathrm{V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
+            << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = matplotlib.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
+            << "\t\taxis.contour(toplot[0][i],v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[i],aspect='auto') \n"
+            << "\t\taxis.contour(toplot[0][i],v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[i],aspect='auto') \n"
+            << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=0.7,colors='#B22222',extent=ext[i],aspect='auto') \n"
+            << "\t\taxis.axhline(y=0,color='black') \n"
+            << "\t\taxis.axvline(x=0,color='black') \n"
+            << "\t\tif i==0 :axis2.plot(radius,vlos,'yo') \n"
+            << std::endl
             << "\toutfile = 'plot_pv.pdf' \n"
             << "\tif (typ[k]=='AZIM'): outfile = 'plot_pv_azim.pdf' \n"
             << "\tif (typ[k]=='LOCAL'): outfile = 'plot_pv_local.pdf' \n"
-            << "\tplt.savefig(outfolder+outfile, orientation = 'portrait', format = 'pdf') \n"
+            << "\tplt.savefig(outfolder+outfile, bbox_inches='tight') \n"
             << "\timage_mod_maj.close() \n"
             << "\timage_mod_min.close() \n"
             << std::endl
             << "image_maj.close() \n"
             << "image_min.close() \n";
+	
 
 
     py_file << std::endl << "# Now plotting moment maps \n"
@@ -1238,7 +1248,7 @@ int Galfit<T>::plotAll_Python() {
     py_file.close();
 
 #ifdef HAVE_PYTHON
-    std::string cmd = "python "+in->pars().getOutfolder()+scriptname+">/dev/null 2>&1";
+    std::string cmd = "python "+in->pars().getOutfolder()+scriptname+" > /dev/null 2>&1";
     return system(cmd.c_str());
 #endif
 

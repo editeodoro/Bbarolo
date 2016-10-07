@@ -542,6 +542,6 @@ AC_MSG_NOTICE([
    CONGRATULATIONS!
 
    It seems your computer has the needed to compile BBarolo! 
-   Now type "make" and pray your favoured God.  
+   Now type "make" and pray to your favoured God.  
    --------------------------------------------------------])
 
