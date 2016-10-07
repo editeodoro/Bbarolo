@@ -1124,7 +1124,7 @@ int Galfit<T>::plotAll_Python() {
             << "ext = [[xmin_wcs[0],xmax_wcs[0],zmin_wcs-vsysmean,zmax_wcs-vsysmean],\\" << std::endl
             << "       [xmin_wcs[1],xmax_wcs[1],zmin_wcs-vsysmean,zmax_wcs-vsysmean]] \n"
             << "labsize = 15 \n"
-            << "palab = ['$\\phi = $" << pa_av <<"$^\\circ$', '$\\phi = $" << pa_min << "$^\\circ$'] \n";
+            << "palab = ['$\\phi = $" << pa_av <<"$^\\circ$', '$\\phi = $" << pa_min << "$^\\circ$'] \n\n";
     
     py_file << "# Beginning PV plot \n"
             << "for k in range (len(files_mod)): \n"
@@ -1230,6 +1230,8 @@ int Galfit<T>::plotAll_Python() {
             << "\t\tfor j in range (ncols): \n"
             << "\t\t\taxis = ax[i][j] \n"
             << "\t\t\taxis.tick_params(labelbottom='off',labelleft='off') \n"
+            << "\t\t\taxis.set_xlim(ext[0],ext[1]) \n"
+            << "\t\t\taxis.set_ylim(ext[2],ext[3]) \n"
             << "\t\t\taxis.imshow(to_plot[j][i],origin='lower',cmap=cmaps[i],norm=norm[i],aspect='auto',extent=ext) \n"
             << "\t\t\taxis.plot(xcen,ycen,'x',color='#000000',markersize=7,mew=1.5) \n"
             << std::endl
