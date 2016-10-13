@@ -35,6 +35,10 @@
 #include "moment.hh"
 #include "ellprof.hh"
 
+//#ifdef HAVE_PYTHON
+//    #include <Python.h>
+//#endif
+
 #define VROT  0
 #define VDISP 1
 #define DENS  2
@@ -106,7 +110,9 @@ void Galfit<T>::writeModel (std::string normtype) {
     Tasks::Ellprof<T> ell(totalmap,outr,nseg,segments);
     ell.setOptions(mass,distance);  //To set the mass and the distance
     ell.RadialProfile();
-    std::ofstream fileo(outfold+"densprof.txt");
+    std::string dens_out = outfold+"densprof.txt";
+    std::ofstream fileo;
+    fileo.open(dens_out.c_str());
     ell.printProfile(fileo,nseg-1);
     fileo.close();
     //ell.printProfile(std::cout);
@@ -1252,6 +1258,13 @@ int Galfit<T>::plotAll_Python() {
 #ifdef HAVE_PYTHON
     std::string cmd = "python "+in->pars().getOutfolder()+scriptname+" > /dev/null 2>&1";
     return system(cmd.c_str());
+    //Py_Initialize();
+    //std::string cmd = "import subprocess, os\n";
+    //cmd += "FNULL = open(os.devnull, 'w')\n";
+    //cmd += "subprocess.call(['python','"+in->pars().getOutfolder()+scriptname+"'],stdout=FNULL, stderr=FNULL)\n";
+    //int ret = PyRun_SimpleString(cmd.c_str());
+    //Py_Finalize();
+    //return ret;    
 #endif
 
     return -1;
