@@ -19,7 +19,7 @@
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
-						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.2/BBaroloGUI_MacOSX.zip</string>
+						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.2.1/BBaroloGUI_MacOSX.zip</string>
 					</dict>
 					<dict>
 						<key>Description</key>
@@ -29,7 +29,7 @@
 						<key>Type</key>
 						<integer>1</integer>
 						<key>URL</key>
-						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.2/BBaroloGUI_Linux64.zip</string>
+						<string>https://github.com/editeodoro/Bbarolo/releases/download/1.2.1/BBaroloGUI_Linux64.zip</string>
 					</dict>
 				</array>
 			</dict>
