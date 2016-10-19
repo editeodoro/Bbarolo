@@ -145,55 +145,56 @@ public:
 	int		getFTYPE () {return FTYPE;};					
 	int		getWFUNC () {return WFUNC;};					
 	int		getNV () {return NV;};					
-	double	getTOL () {return TOL;};		
-    string	getMASK() {return MASK;};
-	bool	getSM () {return SM;};				
-	void	setSM	(bool a) {SM=a;};
-    void	setSIDE (string a) {SIDE=a;};
-    string  getSIDE() {return SIDE;};
-	bool	getTwoStage () {return TwoStage;};	
-	void	setTwoStage (bool b) {TwoStage=b;};	
-	bool	getflagErrors() {return flagErrors;};
-    string 	getPOLYN () {return POLYN;};
-    string  getFREE () {return FREE;};
-    double	getDistance () {return distance;};
-    int		getBweight () {return BWEIGHT;};
-    string  getNORM () {return NORM;};
-    int     getStartRad() {return startRAD;};
-    
-    bool	getflagSpace () {return flagSpace;};
-    string  getP1 () {return P1;};
-    string  getP2 () {return P2;};
-    float	getP1p (int i) {return P1p[i];};
-    float	getP2p (int i) {return P2p[i];};
-    
-    bool	getflagSmooth () {return flagSmooth;};
-	double	getBmaj	() {return bmaj;};
-	double	getBmin	() {return bmin;};
-	double	getBpa	() {return bpa;};
-    double	getOBmaj	() {return obmaj;};
-    double	getOBmin	() {return obmin;};
-    double	getOBpa	() {return obpa;};
-	bool	getflagFFT () {return flagFFT;};
-	void	setflagFFT (bool f) {flagFFT=f;};
-	float 	getLinear () {return linear;};
-	float 	getFactor () {return factor;};
-    float   getScaleFactor () {return scalefactor;};
-	void 	setFactor (float f) {factor=f;};
-	bool	getflagReduce() {return flagReduce;};
-    string  getSmoothOut () {return smo_out;};
-
-    bool    getFlagSlitfit () {return flagSlitfit;};
-    string  getWavefile () {return wavefile;};
-    string  getIvarfile () {return ivarfile;};
-    string  getLine() {return linetofit;};
-    double  getRedshift() {return redshift;};
+        double	getTOL () {return TOL;}
+    string	getMASK() {return MASK;}
+        bool	getSM () {return SM;}
+        void	setSM	(bool a) {SM=a;}
+    void	setSIDE (string a) {SIDE=a;}
+    string  getSIDE() {return SIDE;}
+        bool	getTwoStage () {return TwoStage;}
+        void	setTwoStage (bool b) {TwoStage=b;}
+        bool	getflagErrors() {return flagErrors;}
+    string 	getPOLYN () {return POLYN;}
+    string  getFREE () {return FREE;}
+    double	getDistance () {return distance;}
+    int		getBweight () {return BWEIGHT;}
+    string  getNORM () {return NORM;}
+    int     getStartRad() {return startRAD;}
+    double  getRedshift() {return redshift;}
+    double  getRestwave() {return restwave;}
     size_t  getNlines () {return nlines;}
 
-    bool    getFlagPV() {return flagPV;};
-    float   getXPOS_PV() {return XPOS_PV;};
-    float   getYPOS_PV() {return YPOS_PV;};
-    float   getPA_PV() {return PA_PV;};
+    bool	getflagSpace () {return flagSpace;}
+    string  getP1 () {return P1;}
+    string  getP2 () {return P2;}
+    float	getP1p (int i) {return P1p[i];}
+    float	getP2p (int i) {return P2p[i];}
+    
+    bool	getflagSmooth () {return flagSmooth;}
+        double	getBmaj	() {return bmaj;}
+        double	getBmin	() {return bmin;}
+        double	getBpa	() {return bpa;}
+    double	getOBmaj	() {return obmaj;}
+    double	getOBmin	() {return obmin;}
+    double	getOBpa	() {return obpa;}
+        bool	getflagFFT () {return flagFFT;}
+        void	setflagFFT (bool f) {flagFFT=f;}
+        float 	getLinear () {return linear;}
+        float 	getFactor () {return factor;}
+    float   getScaleFactor () {return scalefactor;}
+        void 	setFactor (float f) {factor=f;}
+        bool	getflagReduce() {return flagReduce;}
+    string  getSmoothOut () {return smo_out;}
+
+    bool    getFlagSlitfit () {return flagSlitfit;}
+    string  getWavefile () {return wavefile;}
+    string  getIvarfile () {return ivarfile;}
+    string  getLine() {return linetofit;}
+
+    bool    getFlagPV() {return flagPV;}
+    float   getXPOS_PV() {return XPOS_PV;}
+    float   getYPOS_PV() {return YPOS_PV;}
+    float   getPA_PV() {return PA_PV;}
 
     
     /// Utility functions:
@@ -209,117 +210,118 @@ public:
     friend class Image;
   
 private:
-    string  	imageFile;      			///< The image to be analysed.  
-    string		imageList;					///< A file with list of images to be analized.
-    vector<string> images;					///< A vector with single images in the list.
-    string 		outFolder;					///< Folder where saving output files.
-    bool	 	verbose;					///< Is verbosity activated? 
-    bool        showbar;                    ///< Show progress bar?
-    bool		checkChannels;				///< Checking for bad channels in the cube?
-    float		beamFWHM;					///< Beam to adopt if any information in header.
-    bool        flagRobustStats;  			///< Whether to use robust statistics.
+    string          imageFile;          ///< The image to be analysed.
+    string          imageList;          ///< A file with list of images to be analized.
+    vector<string>  images;             ///< A vector with single images in the list.
+    string          outFolder;          ///< Folder where saving output files.
+    bool            verbose;            ///< Is verbosity activated?
+    bool            showbar;            ///< Show progress bar?
+    bool            checkChannels;      ///< Checking for bad channels in the cube?
+    float           beamFWHM;           ///< Beam to adopt if any information in header.
+    bool            flagRobustStats;    ///< Whether to use robust statistics.
     
-    bool		flagSearch;					///< Should search for sources in cube?
-    string  	searchType;					///< "Spectral" or "Spatial" search?
-    float       snrCut;           			///< Signal to Noise for detection when sigma-clipping.
-    float       threshold;        			///< What the threshold is (when sigma-clipping).
-    bool        flagUserThreshold;			///< Whether the user has defined a threshold of their own.
-    bool  		flagAdjacent;    			///< Use the adjacent criterion for objects merger?
-    float  		threshSpatial;   			///< Maximum spatial separation between objects.
-    float  		threshVelocity;  			///< Maximum channels separation between objects.
-    int    		minChannels;     			///< Minimum channels to make an object. 
-    bool   		RejectBeforeMerge; 			///< Whether to reject sources before merging.
-    bool   		TwoStageMerging;  			///< Whether to do a partial merge during search.
-    int			minVoxels;       			///< Minimum voxels required in an object.
-    int 		minPix;						///< Minimum pixels required in an object.
-    int         maxChannels;                ///< Maximum channels to accept an object.
-    float       maxAngSize;                 ///< Maximum angular size in the object in arcmin.
-    bool		flagGrowth;					///< Are we growing objects once they are found?
-    float		growthCut;       			///< The SNR that we are growing objects down to.
-    bool		flagUserGrowthT;			///< Whether the user has manually defined a threshold
-    float		growthThreshold; 			///< The threshold for growing objects down to
+    bool            flagSearch;         ///< Should search for sources in cube?
+    string          searchType;         ///< "Spectral" or "Spatial" search?
+    float           snrCut;             ///< Signal to Noise for detection when sigma-clipping.
+    float           threshold;          ///< What the threshold is (when sigma-clipping).
+    bool            flagUserThreshold;  ///< Whether the user has defined a threshold of their own.
+    bool            flagAdjacent;       ///< Use the adjacent criterion for objects merger?
+    float           threshSpatial;      ///< Maximum spatial separation between objects.
+    float           threshVelocity;     ///< Maximum channels separation between objects.
+    int             minChannels;        ///< Minimum channels to make an object.
+    bool            RejectBeforeMerge;  ///< Whether to reject sources before merging.
+    bool            TwoStageMerging;    ///< Whether to do a partial merge during search.
+    int             minVoxels;          ///< Minimum voxels required in an object.
+    int             minPix;             ///< Minimum pixels required in an object.
+    int             maxChannels;        ///< Maximum channels to accept an object.
+    float           maxAngSize;         ///< Maximum angular size in the object in arcmin.
+    bool            flagGrowth;         ///< Are we growing objects once they are found?
+    float           growthCut;          ///< The SNR that we are growing objects down to.
+    bool            flagUserGrowthT;    ///< Whether the user has manually defined a threshold
+    float           growthThreshold;    ///< The threshold for growing objects down to
     
-    bool		globprof;					///< Whether the user wants the global profile.
-    bool	 	totalmap;					///< Whether the user wants the total HI map.
-    bool		velocitymap;				///< Whether the user wants the velocity field.
-    bool		dispersionmap;				///< Whether the user wants the velocity dispersion field.
-    bool		useBlankCube;				///< Using a blanked cube for extracting maps?
-    float		blankCut;					///< SNR clipping cut for blanked area.
+    bool            globprof;           ///< Whether the user wants the global profile.
+    bool            totalmap;           ///< Whether the user wants the total HI map.
+    bool            velocitymap;        ///< Whether the user wants the velocity field.
+    bool            dispersionmap;      ///< Whether the user wants the velocity dispersion field.
+    bool            useBlankCube;       ///< Using a blanked cube for extracting maps?
+    float           blankCut;           ///< SNR clipping cut for blanked area.
 
-	bool		flagRing;					///< Do you want to fit a tilted ring model?
-	bool		interactive;				///< Do you want interactive mode during fit?
-	int			nrings;						///< How many rings for fitting?
+    bool            flagRing;           ///< Do you want to fit a tilted ring model?
+    bool            interactive;        ///< Do you want interactive mode during fit?
+    int             nrings;             ///< How many rings for fitting?
 	
-	bool 		flagGalFit;
-	bool 		flagGalMod;
-	int			BOX[6];						///< A box in RA-DEC-VELO.
-	int			NRADII;						///< Number of rings for Galfit.
-    string      RADII;						///< A list of radii
-    string      XPOS;						///< X center of the galaxy (pixel).
-    string      YPOS;						///< Y center of the galaxy (pixel).
-	double		RADSEP;						///< Separation between rings (arcs).
-    string      VSYS;						///< Systemic velocity (km/s).
-    string      VROT;						///< Circular velocity (km/s).
-    string      VDISP;						///< Rotation velocity (km/s).
-    string      INC;						///< Inclination angle (degrees).
-	float		DELTAINC;					///< Inclination angle variation (degrees).
-    string      PHI;						///< Position angle from north anti-clockwise.
-	float		DELTAPHI;					///< Position angle variation (degrees).
-    string      Z0;							///< Height scale of the disk (arcs).
-    string      DENS;						///< Column density of gas (atoms/cm2).
-	int			CDENS;						///< Surface density of clouds in the plane of ring (1e20).
-	int			LTYPE;						///< Layer type along z.
-	int			FTYPE;						///< Type of function to be minimized;
-	int			WFUNC;						///< Weighting function.
-	int			NV;							///< Number of subclouds per profile.
-	double		TOL;						///< Tolerance for minimization.
-    string		MASK;						///< Type of mask to use: SEARCH, SMOOTH, THRESHOLD, NEGATIVE or NONE.
-	bool		SM;
-    string      NORM;                       ///< Normalization type: LOCAL, AZIM or NONE.
-    string      FREE;						///< Free parameters.
-    string      SIDE;						///< Approaching(A), Receding(R), Both(B), Single(S)
-	bool		TwoStage;
-    bool		flagErrors;                 ///< Whether estimating errors.
-    string		POLYN;						///< Degree of polynomials fitting INC e PA.
-	int			BWEIGHT;					///< Power of the weighting function for Blank pixels.
-    int         startRAD;                   ///< Starting radius
-	
-	float		distance;
-	
-	bool		flagSpace;
-    string      P1;
-    string      P2;
-	float		P1p[3];
-	float		P2p[3];
-	
-	bool		flagSmooth;
-	double		bmaj;						///< Beam of the smoothed array (arcs).
-	double		bmin;						///< Beam of the smoothed array (arcs).
-	double		bpa;						///< Beam of the smoothed array (deg).
-    double      obmaj;                      ///< Beam of the original array.
-    double      obmin;
-    double      obpa;
-	bool		flagFFT;					///< Using FFT for convolution?
-	float 		linear;						///< Linear resolution to be achieved.
-	float		factor;						///< The newbeam is a factor of the old.
-    float       scalefactor;
-	bool		flagReduce;					
-    string      smo_out;                    ///< Output file.
+    bool            flagGalFit;
+    bool            flagGalMod;
+    int             BOX[6];             ///< A box in RA-DEC-VELO. Not used anymore!
+    int             NRADII;             ///< Number of rings for Galfit.
+    string          RADII;              ///< A list of radii
+    string          XPOS;               ///< X center of the galaxy (pixel).
+    string          YPOS;               ///< Y center of the galaxy (pixel).
+    double          RADSEP;             ///< Separation between rings (arcs).
+    string          VSYS;               ///< Systemic velocity (km/s).
+    string          VROT;               ///< Circular velocity (km/s).
+    string          VDISP;              ///< Rotation velocity (km/s).
+    string          INC;                ///< Inclination angle (degrees).
+    float           DELTAINC;           ///< Inclination angle variation (degrees).
+    string          PHI;                ///< Position angle from north anti-clockwise.
+    float           DELTAPHI;           ///< Position angle variation (degrees).
+    string          Z0;                 ///< Height scale of the disk (arcs).
+    string          DENS;               ///< Column density of gas (atoms/cm2).
+    int             CDENS;              ///< Surface density of clouds in the plane of ring (1e20).
+    int             LTYPE;              ///< Layer type along z.
+    int             FTYPE;              ///< Type of function to be minimized;
+    int             WFUNC;              ///< Weighting function.
+    int             NV;                 ///< Number of subclouds per profile.
+    double          TOL;                ///< Tolerance for minimization.
+    string          MASK;///< Type of mask to use: SEARCH, SMOOTH, THRESHOLD, NEGATIVE or NONE.
+    bool            SM;
+    string          NORM;               ///< Normalization type: LOCAL, AZIM or NONE.
+    string          FREE;               ///< Free parameters.
+    string          SIDE;               ///< Approaching(A), Receding(R), Both(B), Single(S)
+    bool            TwoStage;
+    bool            flagErrors;         ///< Whether estimating errors.
+    string          POLYN;              ///< Degree of polynomials fitting INC e PA.
+    int             BWEIGHT;            ///< Power of the weighting function for Blank pixels.
+    int             startRAD;           ///< Starting radius
+    float           distance;           ///< Distance of the galaxy to convert arcs to kpc.
+    double          redshift;           ///< Redshift of the galaxy.
+    double          restwave;           ///< Rest wavelength
+    size_t          nlines;             ///< Number of lines
 
-    bool        flagSlitfit;                ///< Fitting a 3D model to a slit observation.
-    string      wavefile;                   ///< Fitsfile containing the wavelegths.
-    string      ivarfile;                   ///< Fitsfile containing the inverse-variance or a value.
-    string      linetofit;                  ///< Line to fit: Ha, Hb, OIII etc...
-    double      redshift;                   ///< Redshift of the galaxy.
-    size_t      nlines;                     ///< Number of lines
+    bool            flagSpace;
+    string          P1;
+    string          P2;
+    float           P1p[3];
+    float           P2p[3];
 
-    bool        flagPV;                     ///< Extracting a position-velocity diagram.
-    float       XPOS_PV;
-    float       YPOS_PV;
-    float       PA_PV;
-									
-    int         threads;
-    bool        debug;
+    bool            flagSmooth;
+    double          bmaj;               ///< Beam of the smoothed array (arcs).
+    double          bmin;               ///< Beam of the smoothed array (arcs).
+    double          bpa;                ///< Beam of the smoothed array (deg).
+    double          obmaj;              ///< Beam of the original array.
+    double          obmin;
+    double          obpa;
+    bool            flagFFT;            ///< Using FFT for convolution?
+    float           linear;             ///< Linear resolution to be achieved.
+    float           factor;             ///< The newbeam is a factor of the old.
+    float           scalefactor;
+    bool            flagReduce;
+    string          smo_out;            ///< Output file.
+
+    bool            flagSlitfit;        ///< Fitting a 3D model to a slit observation.
+    string          wavefile;           ///< Fitsfile containing the wavelegths.
+    string          ivarfile;           ///< Fitsfile containing the inverse-variance or a value.
+    string          linetofit;          ///< Line to fit: Ha, Hb, OIII etc...
+
+
+    bool            flagPV;                 ///< Extracting a position-velocity diagram.
+    float           XPOS_PV;
+    float           YPOS_PV;
+    float           PA_PV;
+
+    int             threads;
+    bool            debug;
 };
 
 

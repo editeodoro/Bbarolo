@@ -242,4 +242,12 @@ void checkHome(std::string &s) {
 		s.erase(0,1);
 		s.insert(0, home);
 	}
+    /*
+	if (s.find("./")==0) {
+		std::string path = std::getenv("PWD");
+		s.erase(0,1);
+		s.insert(0, path);
+	}
+    */
+    
 }

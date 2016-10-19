@@ -169,7 +169,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
 		if (p->getPHI()!="-1")  init_par->setPosang(atof(p->getPHI().c_str()));
 
         init_par->fitEllipse();
-        //if (p->getFlagDebug()) init_par->fitIncfromMap();
+        if (p->getFlagDebug()) init_par->fitIncfromMap();
         if (p->getFlagDebug()) init_par->plotGuess();
         if (verb) std::cout << "Done." << std::endl;
 

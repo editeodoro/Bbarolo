@@ -208,41 +208,36 @@ T AlltoVel (T in, Header &h) {
 	
   /// This function convert a spectral input value "in" in 
   /// a output value in units of KM/S.
+  /// No errors if can not convert, just return input value
 	
-    std::string cunit2 = h.Cunit(h.NumAx()-1);
+    std::string cunit2 = makelower(h.Cunit(h.NumAx()-1));
     if (h.NumAx()>3) cunit2 = h.Cunit(2);
 
     double freq0 = h.Freq0();
     const double c = 299792458;
-    T vel_km_s;
+    T vel_km_s = in;
 
-
-	if (cunit2=="KM/S" || cunit2=="Km/s" || cunit2=="km/s" || cunit2=="kms") return in;
-    else if (cunit2=="M/S" || cunit2=="m/s" || cunit2=="M/s" || cunit2=="ms") {
-		vel_km_s = in/1000.;
-	}
-	else if (cunit2=="HZ" || cunit2=="Hz" || cunit2=="hz") {
-		const double HIrest = freq0;
-		T vel_m_s = c*(HIrest*HIrest-in*in)/(HIrest*HIrest+in*in);
-		vel_km_s = vel_m_s/1000.;
-	}
-	else if (cunit2=="MHZ" || cunit2=="MHz" || cunit2=="Mhz") {
+    if (cunit2=="km/s" || cunit2=="kms") vel_km_s = in;
+    else if (cunit2=="m/s" || cunit2=="ms") vel_km_s = in/1000.;
+    else if (cunit2=="hz" || cunit2=="mhz") {
         const double HIrest = freq0;
-		T vel_m_s = c*(HIrest*HIrest-in*in)/(HIrest*HIrest+in*in);
-		vel_km_s = vel_m_s/1000.;
-	}
-    else if (cunit2=="MUM" || cunit2=="mum" || cunit2=="Mum" || cunit2=="um" ||
-             cunit2=="A" || cunit2=="a" || cunit2=="Ang" || cunit2=="ang" ||
-             cunit2=="Angstrom" || cunit2=="angstrom" || cunit2=="ANGSTROM") {          // Micron or Angstrom for Hi-Z
-        //int z_cent = floor(h.DimAx(2)/2.)-1;
-        int z_cent = h.Crpix(2)-1;
+        T vel_m_s = c*(HIrest*HIrest-in*in)/(HIrest*HIrest+in*in);
+        vel_km_s = vel_m_s/1000.;
+    }
+    else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
+             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {          // Micron or Angstrom for Hi-Z
+        //int z_cent = floor(h.DimAx(2)/2.)-1;        
+        double z_cent = h.Crpix(2)-1;
+        double restw = h.Wave0(), reds = h.Redshift();
+        if (restw!=-1 && reds!=-1) {
+            z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
+        }
         double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
         T vel_m_s = c*(in*in-line_wave*line_wave)/(in*in+line_wave*line_wave);
-		vel_km_s = vel_m_s/1000.;
+        vel_km_s = vel_m_s/1000.;
     }
-	else return in;
 	
-	return vel_km_s;
+    return vel_km_s;
 	
 }
 template short AlltoVel (short, Header &);
@@ -258,17 +253,18 @@ T DeltaVel (Header &h) {
  /// This function convert the spectral cdelt value 
  /// in a output cdelt value in units of KM/S.	
 	
-	T deltaV=0;
-	long zdim = h.DimAx(2);
-	
-	if (h.Cunit(2)=="KM/S" || h.Cunit(2)=="Km/s" || h.Cunit(2)=="km/s" || h.Cunit(2)=="kms") return h.Cdelt(2);
-	else if (h.Cunit(2)=="M/S" || h.Cunit(2)=="m/s" || h.Cunit(2)=="M/s") {
+        T deltaV = h.Cdelt(2);
+        long zdim = h.DimAx(2);
+        std::string cunit2 = makelower(h.Cunit(h.NumAx()-1));
+        const double c = 299792458;
+
+        if (cunit2=="km/s" || cunit2=="kms") deltaV = h.Cdelt(2);
+        else if (cunit2=="m/s" || cunit2=="ms") {
 		deltaV =h.Cdelt(2)/1000.;
 	}
-	else if (h.Cunit(2)=="HZ" || h.Cunit(2)=="Hz" || h.Cunit(2)=="hz") {
+        else if (cunit2=="hz" || cunit2=="mhz") {
 		
 		const double HIrest = h.Freq0();
-		const double c = 299792458;
 
 		T sum=0;
 		for (int i=0; i<zdim-1; i++) {
@@ -283,46 +279,31 @@ T DeltaVel (Header &h) {
 		deltaV = sum/(zdim-1);
 		deltaV /= 1000;
 	}	
-	else if (h.Cunit(2)=="MHZ" || h.Cunit(2)=="MHz" || h.Cunit(2)=="Mhz") {
-		
-        const double HIrest = h.Freq0();
-		const double c = 299792458;
-		
-		T sum=0;
-		for (int i=0; i<zdim-1; i++) {
-			T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-			T ivel = c*(HIrest*HIrest-ipix*ipix)/(HIrest*HIrest+ipix*ipix);
-			T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-			T svel = c*(HIrest*HIrest-spix*spix)/(HIrest*HIrest+spix*spix);
-			T diff = svel - ivel;
-			sum += diff;
-		}
-	
-		deltaV = sum/(zdim-1);
-		deltaV /= 1000;
-	}
-    else if (h.Cunit(2)=="MUM" || h.Cunit(2)=="mum" || h.Cunit(2)=="Mum" || h.Cunit(2)=="um" ||
-             h.Cunit(2)=="A" || h.Cunit(2)=="a" || h.Cunit(2)=="Ang" || h.Cunit(2)=="ang" ||
-             h.Cunit(2)=="Angstrom" || h.Cunit(2)=="angstrom" || h.Cunit(2)=="ANGSTROM") {            // Micron or Angstrom for Hi-Z
-        const double c = 299792458;
-        int z_cent = floor(h.DimAx(2)/2.)-1;
-        double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-		
-		T sum=0;
-		for (int i=0; i<zdim-1; i++) {
-			T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T ivel = c*(ipix*ipix-line_wave*line_wave)/(ipix*ipix+line_wave*line_wave);
-			T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T svel = c*(spix*spix-line_wave*line_wave)/(spix*spix+line_wave*line_wave);
-			T diff = svel - ivel;
-			sum += diff;
-		}
+        else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
+                 cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {            // Micron or Angstrom for Hi-Z
 
-        deltaV = sum/(zdim-1);
-		deltaV /= 1000;
+            double z_cent = h.DimAx(2)/2.-1;
+
+            double restw = h.Wave0(), reds = h.Redshift();
+            if (restw!=-1 && reds!=-1) {
+                z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
+            }
+
+            double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+
+            T sum=0;
+            for (int i=0; i<zdim-1; i++) {
+                T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+                T ivel = c*(ipix*ipix-line_wave*line_wave)/(ipix*ipix+line_wave*line_wave);
+                T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+                T svel = c*(spix*spix-line_wave*line_wave)/(spix*spix+line_wave*line_wave);
+                T diff = svel - ivel;
+                sum += diff;
+            }
+
+            deltaV = sum/(zdim-1);
+            deltaV /= 1000;
 	}
-	else return h.Cdelt(2);
-	
 	return deltaV;
 }
 template short DeltaVel (Header&);

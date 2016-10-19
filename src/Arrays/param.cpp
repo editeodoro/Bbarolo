@@ -41,14 +41,14 @@ Param::Param() {
 
 void Param::defaultValues() {
 	
-	imageFile         	= "";
+    imageFile         	= "";
     imageList			= "NONE";
     outFolder			= "";
     verbose				= true;
     showbar             = true;
     beamFWHM			= 30.;
     checkChannels		= false;
-	flagRobustStats   	= true;
+    flagRobustStats   	= true;
 
     flagSearch			= false;
     searchType        	= "spatial";
@@ -83,38 +83,41 @@ void Param::defaultValues() {
 
     flagGalFit			= true;
     flagGalMod			= false;
-	NRADII				= -1;
-	RADII				= "-1";
-	XPOS				= "-1";							
-	YPOS				= "-1";						
-	RADSEP				= -1;						
-	VSYS				= "-1";						
-	VROT				= "-1";						
-	VDISP				= "-1";						
-	INC					= "-1";						
+    NRADII				= -1;
+    RADII				= "-1";
+    XPOS				= "-1";
+    YPOS				= "-1";
+    RADSEP				= -1;
+    VSYS				= "-1";
+    VROT				= "-1";
+    VDISP				= "-1";
+    INC					= "-1";
     DELTAINC			= 5;
-	PHI					= "-1";
+    PHI					= "-1";
     DELTAPHI			= 15;
-	Z0					= "-1";							
+    Z0					= "-1";
     DENS				= "-1";
     CDENS				= 10;
-	LTYPE				= 1;
-	FTYPE				= 2;
+    LTYPE				= 1;
+    FTYPE				= 2;
     WFUNC				= 2;
-	NV					= -1;							
-	TOL					= 1.0E-3;						
-	FREE				= "VROT VDISP INC PA";
+    NV					= -1;
+    TOL					= 1.0E-3;
+    FREE				= "VROT VDISP INC PA";
     MASK				= "SMOOTH";
-	SIDE				= "B";
-	SM					= true;
+    SIDE				= "B";
+    SM					= true;
     NORM                = "LOCAL";
     BWEIGHT				= 1;
     startRAD            = 0;
-	TwoStage			= true;
-	flagErrors			= false;
+    TwoStage			= true;
+    flagErrors			= false;
     POLYN				= "bezier";
     flagSpace			= false;
-	distance			= -1;	
+    distance			= -1;
+    redshift            = -1;
+    restwave            = -1;
+    nlines              = 1;
 
     flagSmooth			= false;
 	flagFFT				= true;
@@ -135,8 +138,7 @@ void Param::defaultValues() {
     wavefile            = "NONE";
     ivarfile            = "NONE";
     linetofit           = "Ha";
-    redshift            = 0.;
-    nlines              = 1;
+
     
     flagPV              = false;
     XPOS_PV             = 0;
@@ -230,8 +232,11 @@ Param& Param::operator= (const Param& p) {
 	this->SM				= p.SM;
 	this->WFUNC				= p.WFUNC;
 	this->BWEIGHT			= p.BWEIGHT;
-    this->NORM              = p.NORM;
-    this->startRAD          = p.startRAD;
+        this->NORM              = p.NORM;
+        this->startRAD          = p.startRAD;
+        this->redshift          = p.redshift;
+        this->nlines            = p.nlines;
+        this->restwave          = p.restwave;
 	
 	this->flagSpace		= p.flagSpace;
 	this->P1				= p.P1;
@@ -261,8 +266,7 @@ Param& Param::operator= (const Param& p) {
     this->wavefile          = p.wavefile;
     this->ivarfile          = p.ivarfile;
     this->linetofit         = p.linetofit;
-    this->redshift          = p.redshift;
-    this->nlines            = p.nlines;
+
        
     this->flagPV            = p.flagPV;
     this->XPOS_PV           = p.XPOS_PV;
@@ -446,6 +450,9 @@ int Param::readParams(std::string paramfile) {
             if (arg=="polyn")           POLYN = readFilename(ss);
             if (arg=="sm")				SM = readFlag(ss);
             if (arg=="startrad")        startRAD = readIval(ss);
+            if (arg=="redshift")            redshift = readDval(ss);
+            if (arg=="nlines")              nlines = readIval(ss);
+            if (arg=="restwave")            restwave = readDval(ss);
 
             if (arg=="p1")				P1 = readFilename(ss);
             if (arg=="p1par")			readVec<float>(ss,P1p,3);
@@ -471,8 +478,7 @@ int Param::readParams(std::string paramfile) {
             if (arg=="wavefile")            wavefile = readFilename(ss);
             if (arg=="ivarfile")            ivarfile = readFilename(ss);
             if (arg=="linetofit")           linetofit = readFilename(ss);
-            if (arg=="redshift")            redshift = readDval(ss);
-            if (arg=="nlines")              nlines = readIval(ss);
+
 
             if (arg=="flagpv")              flagPV = readFlag(ss);
             if (arg=="xpos_pv")             XPOS_PV = readFval(ss);
@@ -659,6 +665,11 @@ bool Param::checkPars() {
             std::cout << "Assuming 1 (gaussian layer).\n";
 			LTYPE = 1;
 		}
+
+         if ((restwave!=-1 && redshift==-1) || (restwave==-1 && redshift!=-1)) {
+            std::cout<< "3DFIT warning: Restwave and Redshift must be set both. Exiting...\n";
+            std::abort();
+         }
 		
 
         if (flagSlitfit==true) {

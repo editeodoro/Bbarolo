@@ -262,6 +262,9 @@ bool Cube<T>::readCube (std::string fname) {
     if(!head.header_read(par.getImageFile())) return false;
 
 	headDefined = true;
+        // I do not like the two folliwing 2 lines, I should think something better
+        if (par.getRedshift()!=-1) head.setRedshift(par.getRedshift());
+        if (par.getRestwave()!=-1) head.setWave0(par.getRestwave());
 	axisDim = new int [numAxes];
 	axisDimAllocated = true; 
 	for (int i=0; i<numAxes; i++) axisDim[i] = head.DimAx(i);

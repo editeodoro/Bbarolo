@@ -422,9 +422,9 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 	
     if (axtyp==2) {
         float mconv=0;
-        if (cunit3=="um") mconv = 1.E-06;
-        else if (cunit3=="nm") mconv = 1.0E-09;
-        else if (cunit3=="ang") mconv = 1.0E-10;
+        if (cunit3=="um"||cunit3=="mum"||cunit3=="micron") mconv = 1.E-06;
+        else if (cunit3=="nm"||cunit3=="nanom") mconv = 1.0E-09;
+        else if (cunit3=="a" ||cunit3=="ang"||cunit3=="angstrom") mconv = 1.0E-10;
         else {
             std::cout << "GALMOD error (unknown CUNIT3): cannot convert to M.\n";
             std::cout << cunit3;
@@ -435,12 +435,18 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         cdelt3=cdelt3*mconv;
 
         double crvalfreq = C/crval3;
-        freq0 = crvalfreq;                      // Velocity is 0 always at the reference channel
+
+        // If redshift and wavelength parameters are set, take them for freq0, otherwise central channel
+        double restw = in->pars().getRestwave(), reds = in->pars().getRedshift();
+        if (restw!=-1 && reds!=-1) freq0 = C/(restw*(1+reds)*mconv);
+        else freq0 = crvalfreq;                      // Velocity is 0 always at the reference channel
+
         drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
+
     }
     else if (axtyp==3) {
 		
-		float hzconv=0;
+        float hzconv=0;
         if (cunit3=="hz") hzconv = 1;
         else if (cunit3=="khz") hzconv = 1.0E03;
         else if (cunit3=="mhz") hzconv = 1.0E06;
@@ -782,7 +788,7 @@ void Galmod<T>::galmod() {
 //              PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
                 uint nlines = in->pars().getNlines();
                 float relvel_lines[2] = {0,210000};
-                float relint_lines[2] = {1,1.45};
+                float relint_lines[2] = {1,1.70};
 
                 for (int iv=0; iv<nvtmp; iv++) {
                     double vdev = gasdev(isd)*vdisptmp;

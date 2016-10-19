@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'bbarolowindow.ui'
 **
-** Created by: Qt User Interface Compiler version 4.8.6
+** Created by: Qt User Interface Compiler version 4.8.7
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -215,7 +215,6 @@ public:
     QWidget *page_7;
     QGridLayout *gridLayout_16;
     QTextEdit *LogtextEdit;
-    QPushButton *KillpushButton;
     QWidget *page_3;
     QGridLayout *gridLayout_17;
     QCustomPlot *plot1;
@@ -339,6 +338,7 @@ public:
     QLineEdit *OutfolderlineEdit;
     QPushButton *OutfolderpushButton;
     QSpacerItem *horizontalSpacer_2;
+    QPushButton *KillpushButton;
     QStatusBar *statusBar;
     QMenuBar *menuBar;
     QMenu *menuBBaroloQt;
@@ -348,7 +348,7 @@ public:
         if (BBaroloWindow->objectName().isEmpty())
             BBaroloWindow->setObjectName(QString::fromUtf8("BBaroloWindow"));
         BBaroloWindow->setEnabled(true);
-        BBaroloWindow->resize(909, 802);
+        BBaroloWindow->resize(909, 803);
         BBaroloWindow->setUnifiedTitleAndToolBarOnMac(false);
         actionOpen_FITS_file = new QAction(BBaroloWindow);
         actionOpen_FITS_file->setObjectName(QString::fromUtf8("actionOpen_FITS_file"));
@@ -1445,16 +1445,6 @@ public:
 
         gridLayout_16->addWidget(LogtextEdit, 0, 0, 1, 1);
 
-        KillpushButton = new QPushButton(page_7);
-        KillpushButton->setObjectName(QString::fromUtf8("KillpushButton"));
-        QSizePolicy sizePolicy9(QSizePolicy::Maximum, QSizePolicy::Fixed);
-        sizePolicy9.setHorizontalStretch(0);
-        sizePolicy9.setVerticalStretch(0);
-        sizePolicy9.setHeightForWidth(KillpushButton->sizePolicy().hasHeightForWidth());
-        KillpushButton->setSizePolicy(sizePolicy9);
-
-        gridLayout_16->addWidget(KillpushButton, 1, 0, 1, 1);
-
         stackedWidget->addWidget(page_7);
         page_3 = new QWidget();
         page_3->setObjectName(QString::fromUtf8("page_3"));
@@ -1470,6 +1460,9 @@ public:
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         Plot1comboBox = new QComboBox(plot1);
         Plot1comboBox->setObjectName(QString::fromUtf8("Plot1comboBox"));
+        QSizePolicy sizePolicy9(QSizePolicy::Maximum, QSizePolicy::Fixed);
+        sizePolicy9.setHorizontalStretch(0);
+        sizePolicy9.setVerticalStretch(0);
         sizePolicy9.setHeightForWidth(Plot1comboBox->sizePolicy().hasHeightForWidth());
         Plot1comboBox->setSizePolicy(sizePolicy9);
         Plot1comboBox->setLayoutDirection(Qt::RightToLeft);
@@ -2311,6 +2304,13 @@ public:
 
         horizontalLayout_4->addItem(horizontalSpacer_2);
 
+        KillpushButton = new QPushButton(centralWidget);
+        KillpushButton->setObjectName(QString::fromUtf8("KillpushButton"));
+        sizePolicy9.setHeightForWidth(KillpushButton->sizePolicy().hasHeightForWidth());
+        KillpushButton->setSizePolicy(sizePolicy9);
+
+        horizontalLayout_4->addWidget(KillpushButton);
+
 
         gridLayout->addLayout(horizontalLayout_4, 3, 1, 1, 1);
 
@@ -2427,8 +2427,7 @@ public:
         QWidget::setTabOrder(MaskgroupBox, BlankfactordoubleSpinBox);
         QWidget::setTabOrder(BlankfactordoubleSpinBox, BlankcutSpinBox);
         QWidget::setTabOrder(BlankcutSpinBox, LogtextEdit);
-        QWidget::setTabOrder(LogtextEdit, KillpushButton);
-        QWidget::setTabOrder(KillpushButton, Plot1comboBox);
+        QWidget::setTabOrder(LogtextEdit, Plot1comboBox);
         QWidget::setTabOrder(Plot1comboBox, Plot2comboBox);
         QWidget::setTabOrder(Plot2comboBox, Plot3comboBox);
         QWidget::setTabOrder(Plot3comboBox, Plot4comboBox);
@@ -2686,7 +2685,6 @@ public:
         label_22->setText(QApplication::translate("BBaroloWindow", ") pixels", 0, QApplication::UnicodeUTF8));
         label_21->setText(QApplication::translate("BBaroloWindow", ",", 0, QApplication::UnicodeUTF8));
         label_27->setText(QApplication::translate("BBaroloWindow", "Angle (degrees N->W)", 0, QApplication::UnicodeUTF8));
-        KillpushButton->setText(QApplication::translate("BBaroloWindow", "Kill BBarolo", 0, QApplication::UnicodeUTF8));
         Plot1comboBox->clear();
         Plot1comboBox->insertItems(0, QStringList()
          << QApplication::translate("BBaroloWindow", "VROT", 0, QApplication::UnicodeUTF8)
@@ -2876,6 +2874,7 @@ public:
         Outfolderlabel->setText(QApplication::translate("BBaroloWindow", " Output folder ", 0, QApplication::UnicodeUTF8));
         OutfolderlineEdit->setText(QString());
         OutfolderpushButton->setText(QApplication::translate("BBaroloWindow", "Open", 0, QApplication::UnicodeUTF8));
+        KillpushButton->setText(QApplication::translate("BBaroloWindow", "Kill BBarolo", 0, QApplication::UnicodeUTF8));
         menuBBaroloQt->setTitle(QApplication::translate("BBaroloWindow", "File", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 

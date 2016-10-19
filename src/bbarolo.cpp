@@ -24,7 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <time.h>
+#include <sys/time.h>
 #include <iomanip>
 #include <sys/stat.h>
 #include "./Arrays/param.hh"
@@ -47,7 +47,6 @@ void action_sigint(int sig_no)
     kill(0,SIGINT);
 }
 */
-
 int main (int argc, char *argv[]) {
 
 //    struct sigaction act;
@@ -55,8 +54,10 @@ int main (int argc, char *argv[]) {
 //    sigemptyset(&act.sa_mask);
 //    act.sa_flags = 0;
 //    sigaction(SIGINT, &act, 0);
+    
+    struct timeval begin, end;
+    gettimeofday(&begin, NULL);
 
-	clock_t start = clock();
     Param *par = new Param;
 
 	if (!par->getopts(argc, argv)) return EXIT_FAILURE;
@@ -226,11 +227,11 @@ int main (int argc, char *argv[]) {
 	
 	delete par;
 	
-	clock_t end = clock();
-	double time=(double(end-start))/CLOCKS_PER_SEC;
+
+        gettimeofday(&end, NULL);
+        double time = (end.tv_sec - begin.tv_sec) + ((end.tv_usec - begin.tv_usec)/1000000.0);
 	std::cout << "\nExecution time: " << int(time/60) 
 	   	  	  << " min and " << int(time)%60 << " sec.\n";
-	
 
 	return EXIT_SUCCESS;
 	

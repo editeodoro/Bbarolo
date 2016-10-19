@@ -35,12 +35,13 @@
 
 Header::Header () {
 	
-	bitpix = FLOAT_IMG;
+    bitpix = FLOAT_IMG;
     numAxes = bmaj = bmin = bpa = beamArea = freq0 = 0.;
+    wave0 = redshift = -1;
     datamin = datamax = 0.;
     dunit3 = "";
     object = "NONE";
-	pointAllocated = false;
+    pointAllocated = false;
     warning = true;
     wcs = new struct wcsprm;
     wcs->flag=-1;
@@ -113,6 +114,7 @@ Header& Header::operator=(const Header& h) {
 	this->beamArea	= h.beamArea;
 	this->epoch		= h.epoch;
 	this->freq0		= h.freq0;
+        this->wave0		= h.wave0;
 	this->fitsname 	= h.fitsname;
 	this->bunit		= h.bunit;	
 	this->btype		= h.btype;
@@ -122,7 +124,7 @@ Header& Header::operator=(const Header& h) {
 	this->drval3	= h.drval3;
 	this->datamin	= h.datamin;
 	this->datamax	= h.datamax;
-    this->warning   = h.warning;
+        this->warning   = h.warning;
 	
 
     this->wcs = new struct wcsprm;
