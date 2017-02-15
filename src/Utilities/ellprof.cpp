@@ -26,9 +26,10 @@
 #include <cmath>
 #include <algorithm>
 #include <iomanip>
-#include "ellprof.hh"
-#include "galmod.hh"
-#include "utils.hh"
+#include <cstdlib>
+#include <Utilities/ellprof.hh>
+#include <Utilities/galmod.hh>
+#include <Utilities/utils.hh>
 
 namespace Tasks {
 
@@ -229,7 +230,7 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
         Cosinc[r] = cos(Inc[r]*M_PI/180.);
         if (fabs(Cosinc[r]) <= 0.0001) {
             std::cerr << "ELLPROF ERROR: " << r+1 << "th inclination (" << Inc[r] << ") is illegal! (COS(inc) = 0). Exiting...\n";
-            std::abort();
+            abort();
          }
 
         Annuli[r][0] = max(Radius[r] - 0.5*Width[r], 0.0);
@@ -268,7 +269,7 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
     if (Position[0]>=im->DimX() || Position[0]<0 ||
         Position[1]>=im->DimY() || Position[1]<0) {
             std::cerr << "ELLPROF ERROR: The center of galaxy must be inside the map. Exiting...\n ";
-            std::abort();
+            abort();
     }
 
     //Setting spacings in arcsec
@@ -276,7 +277,7 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
     Dy = im->Head().Cdelt(1)*arcsconv(im->Head().Cunit(1));
     if (Dx==0 || Dy==0) {
         std::cerr << "ELLPROF ERROR: Null spacing. Check CUNIT and CDELT keywords in the header. Exiting...\n ";
-      std::abort();
+        abort();
     }
 
     stepxy[0] = fabs(Dx) / (float) subpix[0];
@@ -656,38 +657,38 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     int m=16;
     std::string unit = im->Head().Bunit();
     theStream << fixed << setprecision(6);
-    theStream << "#" << setw(m-1) << "RADIUS"
-              << setw(m) << "SUM"
-              << setw(m) << "MEAN"
-    //          << setw(m) << "MEDIAN"
-              << setw(m) << "ERR_RMS"
-              << setw(m-5) << "NUMPIX"
-              << setw(m) << "SURFDENS"
-              << setw(m) << "SURFDENS_FO"
-              << setw(m) << "MSURFDENS"
+    theStream << "#" << setw(m-1) << "RADIUS" << " "
+              << setw(m) << "SUM" << " "
+              << setw(m) << "MEAN" << " "
+    //          << setw(m) << "MEDIAN" << " "
+              << setw(m) << "ERR_RMS" << " "
+              << setw(m-5) << "NUMPIX" << " "
+              << setw(m) << "SURFDENS" << " "
+              << setw(m) << "SURFDENS_FO" << " "
+              << setw(m) << "MSURFDENS" << " "
               << std::endl;
 
-    theStream << "#" << setw(m-1) << "arcsec"
-              << setw(m) << unit
-              << setw(m) << unit
-    //          << setw(m) << unit
-              << setw(m) << unit
-              << setw(m-5) << "numb"
-              << setw(m) << unit+"/arcs2"
-              << setw(m) << unit+"/arcs2"
-              << setw(m) << "Msun/pc2"
+    theStream << "#" << setw(m-1) << "arcsec" << " "
+              << setw(m) << unit << " "
+              << setw(m) << unit << " "
+    //          << setw(m) << unit << " "
+              << setw(m) << unit << " "
+              << setw(m-5) << "numb" << " "
+              << setw(m) << unit+"/arcs2" << " "
+              << setw(m) << unit+"/arcs2" << " "
+              << setw(m) << "Msun/pc2" << " "
               << std::endl << "#" << std::endl;
 
     for (size_t i=0; i<Nrad; i++) {
-        theStream << setw(m) << Radius[i]
-                  << setw(m) << Sum[i][seg]
-                  << setw(m) << Mean[i][seg]
-      //            << setw(m) << Median[i][seg]
-                  << setw(m) << sqrt(fabs(Var[i][seg]))
-                  << setw(m-5) << Num[i][seg]
-                  << setw(m) << Surfdens[i][seg]
-                  << setw(m) << getSurfDensFaceOn(i,seg)
-                  << setw(m) << Mass_Surfdens[i]
+        theStream << setw(m) << Radius[i] << " "
+                  << setw(m) << Sum[i][seg] << " "
+                  << setw(m) << Mean[i][seg] << " "
+      //            << setw(m) << Median[i][seg] << " "
+                  << setw(m) << sqrt(fabs(Var[i][seg])) << " "
+                  << setw(m-5) << Num[i][seg] << " "
+                  << setw(m) << Surfdens[i][seg] << " "
+                  << setw(m) << getSurfDensFaceOn(i,seg) << " "
+                  << setw(m) << Mass_Surfdens[i] << " "
                   << std::endl;
     }
 }

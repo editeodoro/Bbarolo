@@ -31,7 +31,7 @@
 #include <wcslib/wcsunits.h>
 #include <wcslib/wcshdr.h>
 #include <wcslib/wcsfix.h>
-#include "header.hh"
+#include <Arrays/header.hh>
 
 Header::Header () {
 	
@@ -114,7 +114,8 @@ Header& Header::operator=(const Header& h) {
 	this->beamArea	= h.beamArea;
 	this->epoch		= h.epoch;
 	this->freq0		= h.freq0;
-        this->wave0		= h.wave0;
+    this->wave0		= h.wave0;
+    this->redshift	= h.redshift;
 	this->fitsname 	= h.fitsname;
 	this->bunit		= h.bunit;	
 	this->btype		= h.btype;
@@ -124,7 +125,7 @@ Header& Header::operator=(const Header& h) {
 	this->drval3	= h.drval3;
 	this->datamin	= h.datamin;
 	this->datamax	= h.datamax;
-        this->warning   = h.warning;
+    this->warning   = h.warning;
 	
 
     this->wcs = new struct wcsprm;
