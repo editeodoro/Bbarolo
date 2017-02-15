@@ -28,8 +28,8 @@
 #include <string>
 #include <cmath>
 #include <unistd.h>
-#include "param.hh"
-#include "../Utilities/utils.hh"
+#include <Arrays/param.hh>
+#include <Utilities/utils.hh>
 
 
 
@@ -668,7 +668,7 @@ bool Param::checkPars() {
 
          if ((restwave!=-1 && redshift==-1) || (restwave==-1 && redshift!=-1)) {
             std::cout<< "3DFIT warning: Restwave and Redshift must be set both. Exiting...\n";
-            std::abort();
+            abort();
          }
 		
 
