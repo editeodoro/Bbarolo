@@ -26,14 +26,14 @@
 #include <algorithm>
 #include <cmath>
 #include <cfloat>
-#include "../Arrays/cube.hh"
-#include "../Arrays/image.hh"
-#include "galfit.hh"
-#include "galmod.hh"
-#include "utils.hh"
-#include "gnuplot.hh"
-#include "moment.hh"
-#include "ellprof.hh"
+#include <Arrays/cube.hh>
+#include <Arrays/image.hh>
+#include <Utilities/galfit.hh>
+#include <Utilities/galmod.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/gnuplot.hh>
+#include <Utilities/moment.hh>
+#include <Utilities/ellprof.hh>
 
 //#ifdef HAVE_PYTHON
 //    #include <Python.h>
@@ -144,6 +144,7 @@ void Galfit<T>::writeModel (std::string normtype) {
     Model::Galmod<T> *mod = getModel();
     mod->Out()->Head().setMinMax(0.,0.);
     mod->Out()->Head().setName(object+"mod");
+
     T *outarray = mod->Out()->Array();
 
     if (normtype=="AZIM" || normtype=="BOTH") {
@@ -157,6 +158,10 @@ void Galfit<T>::writeModel (std::string normtype) {
                 for (size_t z=0; z<in->DimZ(); z++)
                     totflux_model += outarray[i+z*in->DimY()*in->DimX()];
             }
+            else {
+                 // for (size_t z=0; z<in->DimZ(); z++)
+                   //      outarray[i+z*in->DimY()*in->DimX()]=0;
+              }
         }
 
         double factor = totflux_data/totflux_model;
@@ -232,6 +237,19 @@ void Galfit<T>::writeModel (std::string normtype) {
     }
 
     if (normtype=="NONE") {
+        
+        // Calculate total flux of model within last ring
+        for (size_t i=0; i<in->DimX()*in->DimY(); i++) {
+            if (!isNaN(ringreg[i])) {
+                for (size_t z=0; z<in->DimZ(); z++)
+                    totflux_model += outarray[i+z*in->DimY()*in->DimX()];
+            }
+        }
+
+        double factor = totflux_data/totflux_model;
+        for (int i=0; i<in->NumPix(); i++) outarray[i] *= factor;
+        if (verb) std::cout << " Done." << std::endl;
+        
         if (verb) std::cout << "    Writing model..." << std::flush;
         std::string mfile = outfold+object+"mod_nonorm.fits";
         mod->Out()->fitswrite_3d(mfile.c_str());
@@ -249,6 +267,22 @@ void Galfit<T>::writeModel (std::string normtype) {
         map->fitswrite_2d((outfold+"maps/"+object+"_nonorm_2mom.fits").c_str());
         delete map;
         if (verb) std::cout << " Done." << std::endl;
+        
+/*////////        TO BE REMOVED ////////////////////////////////////////////////////////
+        map = new MomentMap<T>;
+        map->input(mod->Out());
+        map->SumMap(false);
+        Tasks::Ellprof<T> ell(map,outr,nseg,segments);
+        ell.setOptions(mass,distance);  //To set the mass and the distance
+        ell.RadialProfile();
+        std::string dens_out = outfold+"densprofmod.txt";
+        std::ofstream fileo;
+        fileo.open(dens_out.c_str());
+        ell.printProfile(fileo,nseg-1);
+        fileo.close();
+//////////////////////////////////////////////////////////////////////////////////////////*/
+        
+        
     }
 
     // Now plotting everything
@@ -513,10 +547,13 @@ void Galfit<T>::plotPar_Gnuplot () {
     std::string mfile = outfold+"gnuscript.gnu";
     gnu.open(mfile.c_str());
 
-    float xtics = lround(outr->nr/5.);
+    float xtics = ceil(outr->nr/5.);
     xtics *= outr->radsep;
-    while (outr->radii.back()/xtics>5) xtics*=2;
-    while (outr->radii.back()/xtics<2) xtics/=2;
+    
+    while (outr->radii.back()/xtics>5.) xtics*=2.;
+    while (outr->radii.back()/xtics<2.) xtics/=2.;
+    
+    
     int *nc = getErrorColumns();
 
     /// Setting global option
@@ -1200,7 +1237,7 @@ int Galfit<T>::plotAll_Python() {
             << "norm1 = ImageNormalize(np.nanmin(mom1), np.nanmax(mom1), stretch=LinearStretch()) \n"
             << "norm2 = ImageNormalize(np.nanmin(mom2), np.nanmax(mom2), stretch=LinearStretch()) \n"
             << "norm = [norm0, norm1, norm2] \n"
-            << "cmaps = [matplotlib.cm.jet,matplotlib.cm.jet_r,matplotlib.cm.jet] \n"
+            << "cmaps = [matplotlib.cm.jet,matplotlib.cm.jet,matplotlib.cm.jet] \n"
             << "barlab = ['Intensity (" << in->Head().Bunit() <<")', 'V$_\\mathrm{LOS}$ (km/s)', '$\\sigma$ (km/s)'] \n"
             << "titles = ['DATA', 'MODEL'] \n"
             << "mapname = ['INTENSITY', 'VELOCITY', 'DISPERSION'] \n"
