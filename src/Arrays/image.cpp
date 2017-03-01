@@ -25,13 +25,13 @@
 #include <fstream>
 #include <cstring>
 #include <fitsio.h>
-#include "stats.hh"
-#include "header.hh"
-#include "image.hh"
-#include "../Map/object2D.hh"
-#include "../Map/voxel.hh"
-#include "../Map/scan.hh"
-#include "../Utilities/utils.hh"
+#include <Arrays/stats.hh>
+#include <Arrays/header.hh>
+#include <Arrays/image.hh>
+#include <Map/object2D.hh>
+#include <Map/voxel.hh>
+#include <Map/scan.hh>
+#include <Utilities/utils.hh>
 
 template <class Type>
 void Image2D<Type>::defaults() {

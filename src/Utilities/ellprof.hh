@@ -102,8 +102,8 @@
 
 #include <iostream>
 #include <vector>
-#include "moment.hh"
-#include "galmod.hh"
+#include <Utilities/moment.hh>
+#include <Utilities/galmod.hh>
 
 namespace Tasks {
 template <class T>

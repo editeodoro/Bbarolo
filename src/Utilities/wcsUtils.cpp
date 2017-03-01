@@ -22,7 +22,7 @@
 #include <math.h>
 #include <wcslib/wcs.h>
 #include <wcslib/wcsunits.h>
-#include "utils.hh"
+#include <Utilities/utils.hh>
 
 int pixToWCSSingle(struct wcsprm *wcs, const double *pix, double *world) {
 

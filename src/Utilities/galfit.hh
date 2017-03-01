@@ -26,9 +26,9 @@
 
 
 #include <iostream>
-#include "../Arrays/cube.hh"
-#include "../Arrays/image.hh"
-#include "galmod.hh"
+#include <Arrays/cube.hh>
+#include <Arrays/image.hh>
+#include <Utilities/galmod.hh>
 
 namespace Model {
 
@@ -130,7 +130,7 @@ protected:
 	void printInitial (Rings<T> *inr);
     void DensityProfile (T *surf_dens, int *count);
     int* getErrorColumns();
-    int  plotParam() {plotPar_Gnuplot(); return plotAll_Python();}
+    int  plotParam() {plotPar_Gnuplot();return plotAll_Python();}
     void plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T> *pva_m, Image2D<T> *pvb_m);
     void plotPar_Gnuplot();
     int  plotAll_Python ();

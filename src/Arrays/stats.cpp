@@ -22,8 +22,8 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
-#include "stats.hh"
-#include "../Utilities/utils.hh"
+#include <Arrays/stats.hh>
+#include <Utilities/utils.hh>
 
 
 namespace Statistics

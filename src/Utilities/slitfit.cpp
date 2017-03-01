@@ -17,11 +17,11 @@
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
-#include "galfit.hh"
-#include "../Arrays/cube.hh"
-#include "../Arrays/image.hh"
-#include "utils.hh"
-#include "gnuplot.hh"
+#include <Utilities/galfit.hh>
+#include <Arrays/cube.hh>
+#include <Arrays/image.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/gnuplot.hh>
 
 
 #define Ha  6562.81

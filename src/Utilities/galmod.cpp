@@ -24,11 +24,11 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "galmod.hh"
-#include "../Arrays/cube.hh"
-#include "smooth3D.hh"
-#include "moment.hh"
-#include "utils.hh"
+#include <Utilities/galmod.hh>
+#include <Arrays/cube.hh>
+#include <Utilities/smooth3D.hh>
+#include <Utilities/moment.hh>
+#include <Utilities/utils.hh>
 
 
 #define C  2.99792458E08 			// Speed of light in M/S

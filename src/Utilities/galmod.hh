@@ -65,7 +65,7 @@
 
 #include <iostream>
 #include <vector>
-#include "../Arrays/cube.hh"
+#include <Arrays/cube.hh>
 
 template <class Type>
 struct Rings {

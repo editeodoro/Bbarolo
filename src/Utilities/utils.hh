@@ -31,8 +31,8 @@
 #include <fstream>
 #include <time.h>
 #include <fitsio.h>
-#include "../Arrays/header.hh"
-#include "../Map/voxel.hh"
+#include <Arrays/header.hh>
+#include <Map/voxel.hh>
 #include <sys/stat.h>
 
 

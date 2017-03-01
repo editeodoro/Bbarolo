@@ -24,8 +24,8 @@
 #include <iostream>
 #include <cmath>
 #include <cfloat>
-#include "lsqfit.hh"
-#include "utils.hh"
+#include <Utilities/lsqfit.hh>
+#include <Utilities/utils.hh>
 
 #define	LABMIN		1.0e-10			// Minimum value for labda.
 #define	LABFAC		10.0			// Labda step factor.

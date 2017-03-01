@@ -27,10 +27,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "voxel.hh"
-#include "object3D.hh"
-#include "../Arrays/param.hh"
-#include "../Arrays/header.hh"
+#include <Map/voxel.hh>
+#include <Map/object3D.hh>
+#include <Arrays/param.hh>
+#include <Arrays/header.hh>
 
 
 using namespace PixelInfo;
@@ -292,14 +292,14 @@ public:
   //////////////////////////////////////////////////////
 
   //----------------
-  // These are in sorting.cc
+  // These are in detection.cpp
   //
   /// @brief Sort a list of Detections by Z-pixel value. 
-  //void SortByZ(std::vector <Detection> &inputList);
+  template <class T>  void SortByZ(std::vector <Detection<T> > *inputList);
 
   /// @brief Sort a list of Detections by Velocity.
-  //void SortByVel(std::vector <Detection> &inputList);
-
+  template <class T> void SortByVel(std::vector <Detection<T> > *inputList);
+  
   /// @brief Sort a list of Detections by a nominated parameter
   //void SortDetections(std::vector <Detection> &inputList, std::string parameter);
 

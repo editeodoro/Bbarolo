@@ -23,7 +23,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include "voxel.hh"
+#include <Map/voxel.hh>
 
 namespace PixelInfo
 {

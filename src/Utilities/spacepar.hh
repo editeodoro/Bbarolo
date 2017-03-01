@@ -22,11 +22,11 @@
 
 #include <iostream> 
 #include <cfloat> 
-#include "../Arrays/cube.hh"
-#include "galfit.hh"
-#include "utils.hh"
-#include "gnuplot.hh"
-#include "progressbar.hh"
+#include <Arrays/cube.hh>
+#include <Utilities/galfit.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/gnuplot.hh>
+#include <Utilities/progressbar.hh>
 
 using namespace Model;
 template <class T>

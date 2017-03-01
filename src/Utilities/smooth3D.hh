@@ -43,7 +43,7 @@
 #define SMOOTH3D_HH_
 
 #include <iostream>
-#include "../Arrays/cube.hh"
+#include <Arrays/cube.hh>
 
 
 struct Beam {

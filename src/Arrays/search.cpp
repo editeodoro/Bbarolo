@@ -29,13 +29,13 @@
 #include <cfloat>
 #include <iomanip>
 #include <algorithm>
-#include "cube.hh"
-#include "image.hh"
-#include "../Map/objectgrower.hh"
-#include "../Map/detection.hh"
-#include "../Utilities/gnuplot.hh"
-#include "../Utilities/progressbar.hh"
-#include "../Utilities/utils.hh"
+#include <Arrays/cube.hh>
+#include <Arrays/image.hh>
+#include <Map/objectgrower.hh>
+#include <Map/detection.hh>
+#include <Utilities/gnuplot.hh>
+#include <Utilities/progressbar.hh>
+#include <Utilities/utils.hh>
 
 
 
@@ -621,21 +621,21 @@ void Cube<T>::printDetections (std::ostream& Stream) {
     string str;
 
 	Stream 	<< showpoint << fixed;
-    Stream 	<< endl << endl;
+    Stream 	<< "#" << endl;
 	
 	if (headDefined) {		
-        Stream 	<< "  Detections for " << head.Name() << " " << endl;
-        Stream 	<< setw(126) << setfill('_') << " " << endl << endl;
+        Stream 	<< "# Detections for " << head.Name() << " " << endl;
+        Stream 	<< "#" << setw(150) << setfill('_') << " " << endl << "#" << endl;
 	}
 	else { 
-        Stream 	<< "  Detections for " << par.getImageFile() << " " << endl;
+        Stream 	<< "# Detections for " << par.getImageFile() << " " << endl;
 				
-        Stream 	<< setw(94) << setfill('_') << " " << endl << endl;
+        Stream 	<< "#" << setw(104) << setfill('_') << " " << endl << endl;
 	}
 	
 	Stream 	<< setfill(' ');
 	
-	Stream 	<< setw(m-2) << left << "  Source" 
+	Stream 	<< "#" << setw(m-2) << left << "  Source" 
             << setw(m+6)  << right << "Center    ";
 	
     if (headDefined) Stream << setw(k) << right << "Center (WCS)       ";
@@ -644,14 +644,16 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             << setw(m-3) << right << "Ywidth"
             << setw(m-3) << right << "Zwidth"
             << setw(m) << right << "NumPix"
+            << setw(m) << right << "NumVox"
             << setw(m) << right << "Vsys "
             << setw(m) << right << "W20  "
-            << setw(m) << right << "Flux "
-            << setw(m) << right << "PeakSNR";
+            << setw(m+5) << right << "Flux "
+            << setw(m-2) << right << "PeakSNR"
+            << setw(m) << right << "PeakFlux";
 
 	Stream 	<< endl;
 	
-	Stream 	<< setw(m-2)<< left  << "    [#]" 
+	Stream 	<< "#" << setw(m-2)<< left  << "    [#]" 
             << setw(m+6)  << right << "[pix,pix,chan]";
 	
     if (headDefined) {
@@ -663,14 +665,17 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             << setw(m-3) << right << "[pix] "
             << setw(m-3) << right << "[chan]"
             << setw(m) << right << "[pix] "
+            << setw(m) << right << "[pix] "    
             << setw(m) << right << "[km/s]"
             << setw(m) << right << "[km/s]"
-            << setw(m) << right << "[JY*km/s]  ";
+            << setw(m+5) << right << "[JY*km/s]"
+            << setw(m-2) << right << " "
+            << setw(m) << right << head.Bunit();
 	
 	Stream 	<< endl;
 	
-    if (headDefined) Stream << setw(126) << setfill('_') << " " << endl << endl;
-    else Stream << setw(94) << setfill('_') << " " << endl << endl;
+    if (headDefined) Stream << "#" << setw(150) << setfill('_') << " " << endl <<  "#" << endl;
+    else Stream << "#" << setw(104) << setfill('_') << " " << endl << "#" << endl;
 	
 	Stream 	<< setfill(' ');
 		
@@ -706,7 +711,7 @@ void Cube<T>::printDetections (std::ostream& Stream) {
 		}
 		
         //str = to_string(Xcenter,0)+"  "+to_string(Ycenter,0)+"  "+to_string(Zcenter,0);
-        Stream 	<< "     " << setw(m-7) << left << i+1
+        Stream 	<< "      " << setw(m-7) << left << i+1
                 << setw(6) << right << to_string(Xcenter,0)
                 << setw(5) << right << to_string(Ycenter,0)
                 << setw(5) << right << to_string(Zcenter,0);
@@ -734,13 +739,14 @@ void Cube<T>::printDetections (std::ostream& Stream) {
         Stream 	<< setw(m-3) << right << Xint
                 << setw(m-3) << right << Yint
                 << setw(m-3) << right << Zint
-				<< setw(m) << right << obj->getSize();
+                << setw(m) << right << obj->getSpatialSize()
+                << setw(m) << right << obj->getSize();
 
         Stream << right << setw(m)  << setprecision(1) << obj->getVsys()
                << right << setw(m)  << setprecision(1) << obj->getW20()
-               << right << setw(m) << setprecision(3)  << obj->getIntegFlux()
-               << right << setw(m) << setprecision(1)  << obj->getPeakFlux()/stats.getSpread();
-
+               << right << setw(m+5) << setprecision(3)  << obj->getIntegFlux()
+               << right << setw(m-2) << setprecision(1)  << obj->getPeakFlux()/stats.getSpread()
+               << right << setw(m) << setprecision(3)  << obj->getPeakFlux();
 
 		Stream 	<< endl;
 		

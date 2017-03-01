@@ -23,12 +23,12 @@
 
 #include <iostream>
 #include <fstream>
-#include "cube.hh"
-#include "stats.hh"
-#include "../Map/detection.hh"
-#include "../Utilities/utils.hh"
-#include "../Utilities/progressbar.hh"
-#include "../Utilities/smooth3D.hh"
+#include <Arrays/cube.hh>
+#include <Arrays/stats.hh>
+#include <Map/detection.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/progressbar.hh>
+#include <Utilities/smooth3D.hh>
 
 
 template <class T>

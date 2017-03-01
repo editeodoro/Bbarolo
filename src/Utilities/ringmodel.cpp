@@ -26,13 +26,13 @@
 #include <cmath>
 #include <cfloat>
 #include <iomanip>
-#include "ringmodel.hh"
-#include "../Arrays/cube.hh"
-#include "../Arrays/param.hh"
-#include "moment.hh"
-#include "lsqfit.hh"
-#include "utils.hh"
-#include "progressbar.hh"
+#include <Utilities/ringmodel.hh>
+#include <Arrays/cube.hh>
+#include <Arrays/param.hh>
+#include <Utilities/moment.hh>
+#include <Utilities/lsqfit.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/progressbar.hh>
 
 #define VSYS 	0
 #define VROT		1

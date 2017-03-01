@@ -27,18 +27,18 @@
 #include <iostream>
 #include <fitsio.h>
 
-#include "../Arrays/cube.hh"
-#include "../Arrays/image.hh"
-#include "../Utilities/utils.hh"
-#include "../Utilities/progressbar.hh"
+#include <Arrays/cube.hh>
+#include <Arrays/image.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/progressbar.hh>
 
 
 template <class T> 
 class MomentMap : public Image2D <T> 
 {
 public:
-	MomentMap();
-	~MomentMap() {};
+    MomentMap();
+    ~MomentMap() {}
     MomentMap(const MomentMap &i);		
     MomentMap& operator=(const MomentMap &i);
 

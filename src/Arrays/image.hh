@@ -26,9 +26,9 @@
 
 #include <iostream>
 #include <string>
-#include "stats.hh"
-#include "header.hh"
-#include "cube.hh"
+#include <Arrays/stats.hh>
+#include <Arrays/header.hh>
+#include <Arrays/cube.hh>
 
 using namespace Statistics;
 

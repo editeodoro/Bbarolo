@@ -24,13 +24,13 @@
 #include <iostream>
 #include <cfloat>
 #include <cmath>
-#include "../Arrays/cube.hh"
-#include "../Arrays/image.hh"
-#include "../Map/voxel.hh"
-#include "galfit.hh"
-#include "utils.hh"
-#include "galmod.hh"
-#include "conv2D.hh"
+#include <Arrays/cube.hh>
+#include <Arrays/image.hh>
+#include <Map/voxel.hh>
+#include <Utilities/galfit.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/galmod.hh>
+#include <Utilities/conv2D.hh>
 
 using namespace PixelInfo;
 

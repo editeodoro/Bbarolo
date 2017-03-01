@@ -21,7 +21,7 @@
     Internet email: enrico.diteodoro@unibo.it
 -----------------------------------------------------------------------*/
 
-#include "conv2D.hh"
+#include <Utilities/conv2D.hh>
 #include <fftw3.h>
 #include <cmath>
 #include <iostream>

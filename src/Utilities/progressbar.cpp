@@ -27,8 +27,8 @@
 #include <ctime>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include "progressbar.hh"
-#include "utils.hh"
+#include <Utilities/progressbar.hh>
+#include <Utilities/utils.hh>
 
 void ProgressBar::defaults() {
 	

@@ -24,7 +24,7 @@
 #ifndef RINGMODEL_HH_
 #define RINGMODEL_HH_
 
-#include "../Arrays/cube.hh"
+#include <Arrays/cube.hh>
 
 class Ringmodel							/// A class to make a least-square fitting
 {										/// of velocity field with a tilted rings

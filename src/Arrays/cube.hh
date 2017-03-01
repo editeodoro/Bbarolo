@@ -26,10 +26,10 @@
 
 #include <string>
 #include <fitsio.h>
-#include "header.hh"
-#include "stats.hh"
-#include "param.hh"
-#include "../Map/detection.hh"
+#include <Arrays/header.hh>
+#include <Arrays/stats.hh>
+#include <Arrays/param.hh>
+#include <Map/detection.hh>
 
 using namespace Statistics;
 

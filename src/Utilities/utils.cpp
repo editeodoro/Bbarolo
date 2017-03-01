@@ -28,9 +28,9 @@
 #include <sstream>
 #include <algorithm>
 #include <cmath>
-#include "utils.hh"
-#include "../Arrays/header.hh"
-#include "../Map/voxel.hh"
+#include <Utilities/utils.hh>
+#include <Arrays/header.hh>
+#include <Map/voxel.hh>
 #include <fitsio.h>
 #include <wcslib/wcs.h>
 #include <sys/stat.h>
@@ -253,58 +253,55 @@ T DeltaVel (Header &h) {
  /// This function convert the spectral cdelt value 
  /// in a output cdelt value in units of KM/S.	
 	
-        T deltaV = h.Cdelt(2);
-        long zdim = h.DimAx(2);
-        std::string cunit2 = makelower(h.Cunit(h.NumAx()-1));
-        const double c = 299792458;
+    T deltaV = h.Cdelt(2);
+    long zdim = h.DimAx(2);
+    std::string cunit2 = makelower(h.Cunit(2));
 
-        if (cunit2=="km/s" || cunit2=="kms") deltaV = h.Cdelt(2);
-        else if (cunit2=="m/s" || cunit2=="ms") {
-		deltaV =h.Cdelt(2)/1000.;
-	}
-        else if (cunit2=="hz" || cunit2=="mhz") {
-		
-		const double HIrest = h.Freq0();
+    const double c = 299792458;
 
-		T sum=0;
-		for (int i=0; i<zdim-1; i++) {
-			T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-			T ivel = c*(HIrest*HIrest-ipix*ipix)/(HIrest*HIrest+ipix*ipix);
-			T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-			T svel = c*(HIrest*HIrest-spix*spix)/(HIrest*HIrest+spix*spix);
-			T diff = svel - ivel;
-			sum += diff;
-		}
-	
-		deltaV = sum/(zdim-1);
-		deltaV /= 1000;
-	}	
-        else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
-                 cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {            // Micron or Angstrom for Hi-Z
+    if (cunit2=="km/s" || cunit2=="kms") deltaV = h.Cdelt(2);
+    else if (cunit2=="m/s" || cunit2=="ms") {
+        deltaV =h.Cdelt(2)/1000.;
+    }
+    else if (cunit2=="hz" || cunit2=="mhz") {
+        const double HIrest = h.Freq0();
+        T sum=0;
+        for (int i=0; i<zdim-1; i++) {
+            T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+            T ivel = c*(HIrest*HIrest-ipix*ipix)/(HIrest*HIrest+ipix*ipix);
+            T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+            T svel = c*(HIrest*HIrest-spix*spix)/(HIrest*HIrest+spix*spix);
+            T diff = svel - ivel;
+            sum += diff;
+        }
+        deltaV = sum/(zdim-1);
+        deltaV /= 1000; 
+    }
+    else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
+             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {            // Micron or Angstrom for Hi-Z
 
-            double z_cent = h.DimAx(2)/2.-1;
+        double z_cent = h.DimAx(2)/2.-1;
+        double restw = h.Wave0(), reds = h.Redshift();
+        if (restw!=-1 && reds!=-1) {
+            z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
+        }
 
-            double restw = h.Wave0(), reds = h.Redshift();
-            if (restw!=-1 && reds!=-1) {
-                z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
-            }
+        double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
 
-            double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+        T sum=0;
+        for (int i=0; i<zdim-1; i++) {
+            T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+            T ivel = c*(ipix*ipix-line_wave*line_wave)/(ipix*ipix+line_wave*line_wave);
+            T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+            T svel = c*(spix*spix-line_wave*line_wave)/(spix*spix+line_wave*line_wave);
+            T diff = svel - ivel;
+            sum += diff;
+        }
 
-            T sum=0;
-            for (int i=0; i<zdim-1; i++) {
-                T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-                T ivel = c*(ipix*ipix-line_wave*line_wave)/(ipix*ipix+line_wave*line_wave);
-                T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-                T svel = c*(spix*spix-line_wave*line_wave)/(spix*spix+line_wave*line_wave);
-                T diff = svel - ivel;
-                sum += diff;
-            }
-
-            deltaV = sum/(zdim-1);
-            deltaV /= 1000;
-	}
-	return deltaV;
+        deltaV = sum/(zdim-1);
+        deltaV /= 1000;
+    }
+    return deltaV;
 }
 template short DeltaVel (Header&);
 template int DeltaVel (Header&);

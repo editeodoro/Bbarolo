@@ -2,42 +2,22 @@
 // galfit.cpp: Members functions of the Galfit class.
 //--------------------------------------------------------------------
 
-/*-----------------------------------------------------------------------
- This program is free software; you can redistribute it and/or modify it
- under the terms of the GNU General Public License as published by the
- Free Software Foundation; either version 2 of the License, or (at your
- option) any later version.
-
- BBarolo is distributed in the hope that it will be useful, but WITHOUT
- ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
-
- You should have received a copy of the GNU General Public License
- along with BBarolo; if not, write to the Free Software Foundation,
- Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
-
- Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
------------------------------------------------------------------------*/
-
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
 #include <iterator>
 #include <cmath>
 #include <ctime>
-#include <string>
-#include <Arrays/cube.hh>
-#include <Arrays/image.hh>
-#include <Utilities/galfit.hh>
-#include <Utilities/galmod.hh>
-#include <Utilities/utils.hh>
-#include <Utilities/lsqfit.hh>
-#include <Map/detection.hh>
-#include <Utilities/progressbar.hh>
-#include <Utilities/smooth3D.hh>
-#include <Utilities/paramguess.hh>
+#include "../Arrays/cube.hh"
+#include "../Arrays/image.hh"
+#include "galfit.hh"
+#include "galmod.hh"
+#include "utils.hh"
+#include "lsqfit.hh"
+#include "../Map/detection.hh"
+#include "progressbar.hh"
+#include "smooth3D.hh"
+#include "paramguess.hh"
 
 #define VROT  0
 #define VDISP 1
@@ -58,6 +38,7 @@ void Galfit<T>::defaults() {
 	inDefined 	= false;
 	outDefined	= false;
     line_imDefined = false;
+	maskDefined = false;
 	cfieldAllocated = false;
     chan_noiseAllocated = false;
 	wpow = 1;
@@ -65,9 +46,7 @@ void Galfit<T>::defaults() {
 	second = false;
 	details = false;
     flagErrors=false;
-    global=false;
-    verb = true;
-    func_norm = &Model::Galfit<T>::norm_local;
+    func_norm = &Model::Galfit<T>::normalize;
 }
 template void Galfit<float>::defaults();
 template void Galfit<double>::defaults();
@@ -88,7 +67,6 @@ Galfit<T>::Galfit(Cube<T> *c) {
 	defaults();
     in = c;
     Param *p = &c->pars();
-    verb = p->isVerbose();
 
     arcconv = arcsconv(in->Head().Cunit(0));
     distance = in->pars().getDistance();
@@ -101,10 +79,6 @@ Galfit<T>::Galfit(Cube<T> *c) {
 		in->Head().setBmin(in->pars().getBeamFWHM());
 		in->Head().calcArea();
 	}
-
-    chan_noise = new float[in->DimZ()];
-    chan_noiseAllocated = true;
-    for (int z=0; z< in->DimZ(); z++) chan_noise[z]=1;
 
     // Try to read ring information from an input file
     Rings<T> file_rings;
@@ -121,57 +95,41 @@ Galfit<T>::Galfit(Cube<T> *c) {
     pa_b 	= getDataColumn(file_rings.phi,p->getPHI());
     bool onefile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||dens_b||inc_b||pa_b;
 
-    size_t size[10] = {file_rings.radii.size(),file_rings.xpos.size(),
-                       file_rings.ypos.size(), file_rings.vsys.size(),
-                       file_rings.vrot.size(),file_rings.vdisp.size(),
-                       file_rings.z0.size(),file_rings.dens.size(),
-                       file_rings.inc.size(),file_rings.phi.size()};
+    int size[10] = {file_rings.radii.size(),file_rings.xpos.size(),
+                    file_rings.ypos.size(), file_rings.vsys.size(),
+                    file_rings.vrot.size(),file_rings.vdisp.size(),
+                    file_rings.z0.size(),file_rings.dens.size(),
+                    file_rings.inc.size(),file_rings.phi.size()};
 
     int max_size=INT_MAX;
     for (int i=0; i<10; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
 
     int nr=0;
     T radsep, xpos, ypos, vsys, vrot, vdisp, z0, dens, inc, pa;
-
-    bool toEstimate =  (p->getRADII()=="-1" && (p->getNRADII()==-1 || p->getRADSEP()==-1)) ||
-                        p->getXPOS()=="-1" || p->getYPOS()=="-1" || p->getVSYS()=="-1" ||
-                        p->getVROT()=="-1" || p->getPHI()=="-1"  || p->getINC()=="-1";
-
-
-    // Creating mask if does not exist and write it in a fitsfile.
-    if (!in->MaskAll()) in->BlankMask(chan_noise);
-    mask = in->Mask();
-
-    Cube<short> *m = new Cube<short>(in->AxisDim());
-    m->saveHead(in->Head());
-    m->saveParam(in->pars());
-    m->Head().setMinMax(0.,0);
-    for (size_t i=in->NumPix(); i--;) m->Array()[i] = short(mask[i]);
-    m->fitswrite_3d((in->pars().getOutfolder()+"mask.fits").c_str());
-    delete m;
-
-    if (toEstimate) {
-
-        if (!in->getIsSearched()) in->Search();
-        Detection<T> *largest = in->LargestDetection();
-
-        if (largest==NULL) {
-            std::cout << "3DFIT error: No sources detected in the datacube. Cannot fit!!! \n";
-            std::terminate();
+    if (p->getSearch()) {
+        int numObj = in->getObjectList().size();
+        if (numObj==0)  {
+            std::cerr << "GALFIT error: No sources detected in the datacube. Cannot fit!!! \n";
+            abort();
+        }
+        uint n=0, size=0;
+        for (int i=0; i<numObj; i++) {
+            Detection<T> *obj = in->pObject(i);
+            if (obj->getSize()>size) {n=i;size=obj->getSize();}
+        }
+        for (int i=0; i<numObj; i++) {
+            if (i!=n) in->pObjectList()->erase(in->pObjectList()->begin()+i);
         }
 
-        if (verb) std::cout << "\n Estimating initial parameters... " << std::flush;
-        ParamGuess<T> *init_par = new ParamGuess<T>(in,largest);
+        if (p->getMASK()) createMask();
+        else createMaskSearch();
+
+        if (verb) std::cout << "Estimating initial parameters... " << std::flush;
+        ParamGuess<T> *init_par = new ParamGuess<T>(in,in->pObject(0));
         init_par->findInitial();
-
-		if (p->getXPOS()!="-1")	init_par->setXcentre(getCenterCoord(p->getXPOS(),in->Head().Ctype(0)));
-		if (p->getYPOS()!="-1") init_par->setYcentre(getCenterCoord(p->getYPOS(),in->Head().Ctype(1)));
-		if (p->getPHI()!="-1")  init_par->setPosang(atof(p->getPHI().c_str()));
-
         init_par->fitEllipse();
-        if (p->getFlagDebug()) init_par->fitIncfromMap();
-        if (p->getFlagDebug()) init_par->plotGuess();
-        if (verb) std::cout << "Done." << std::endl;
+        init_par->plotGuess();
+        if (verb) std::cout << "Done" << std::endl;
 
         nr 	  = p->getNRADII()!=-1 ? p->getNRADII() : init_par->nrings;
         radsep= p->getRADSEP()!=-1 ? p->getRADSEP() : init_par->radsep;
@@ -188,23 +146,20 @@ Galfit<T>::Galfit(Cube<T> *c) {
         delete init_par;
     }
     else {
+        createMask();
         nr 	  = p->getNRADII();
         radsep= p->getRADSEP();
+
         xpos = getCenterCoord(p->getXPOS(),in->Head().Ctype(0));
         ypos = getCenterCoord(p->getYPOS(),in->Head().Ctype(1));
         vsys  = atof(p->getVSYS().c_str());
-        if (distance==-1) distance = VeltoDist(fabs(vsys));
         vrot  = atof(p->getVROT().c_str());
         vdisp = p->getVDISP()!="-1" ? atof(p->getVDISP().c_str()): 8.;					// default is 8 km/s
         z0    = p->getZ0()!="-1" ? atof(p->getZ0().c_str()) : 0.15/KpcPerArc(distance);	// default is 150 parsec
         dens  = p->getDENS()!="-1" ? atof(p->getDENS().c_str()) : 1.;
         inc   = atof(p->getINC().c_str());
         pa    = atof(p->getPHI().c_str());
-    }
-
-    if (nr==0) {
-        std::cout << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
-        std::terminate();
+        if (distance==-1) distance = VeltoDist(vsys);
     }
 
     nr = nr>0 && nr<max_size ? nr : max_size;
@@ -221,7 +176,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
     inr->radsep = radsep;
     for (int i=0; i<inr->nr; i++) {
         if (radii_b) inr->radii.push_back(file_rings.radii[i]);
-        else inr->radii.push_back(i*radsep+radsep/2.);
+        else inr->radii.push_back(i*radsep);
         if (vrot_b) inr->vrot.push_back(file_rings.vrot[i]);
         else inr->vrot.push_back(vrot);
         if (vdisp_b) inr->vdisp.push_back(file_rings.vdisp[i]);
@@ -241,6 +196,8 @@ Galfit<T>::Galfit(Cube<T> *c) {
         if (vsys_b) inr->vsys.push_back(file_rings.vsys[i]);
         else inr->vsys.push_back(vsys);
     }
+
+    if (inr->radii[0]!=0) inr->radii[0]=0;
 	
     setFree();
 
@@ -251,6 +208,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
     tol = p->getTOL();
     flagErrors = p->getflagErrors();
 	
+
 	if (!in->pars().getflagGalMod()) {
 		if (!onefile) showInitial(inr, std::cout);
         else printInitial(inr);
@@ -261,9 +219,8 @@ Galfit<T>::Galfit(Cube<T> *c) {
     *outr = *inr;
     outDefined = true;
 
-    if (p->getNORM()=="NONE") func_norm = &Model::Galfit<T>::norm_none;
-    else if (p->getNORM()=="AZIM") func_norm = &Model::Galfit<T>::norm_azim;
-    else func_norm = &Model::Galfit<T>::norm_local;
+    if (p->getAZIM()) func_norm = &Model::Galfit<T>::residuals;
+    else func_norm = &Model::Galfit<T>::normalize;
 }
 template Galfit<float>::Galfit(Cube<float>*);
 template Galfit<double>::Galfit(Cube<double>*);
@@ -274,6 +231,7 @@ Galfit<T>::~Galfit () {
 	if (outDefined) delete outr;
 	if (inDefined) delete inr;
     if (line_imDefined) delete line_im;
+	if (maskDefined) delete [] mask;
 	if (cfieldAllocated) delete [] cfield; 
     if (chan_noiseAllocated) delete [] chan_noise;
 }
@@ -309,7 +267,13 @@ Galfit<T>& Galfit<T>::operator=(const Galfit &g) {
 		*outr = *g.outr;
 	}
 	
-    this->mask = g.mask;
+	if (maskDefined) delete [] mask;
+	this->maskDefined = g.maskDefined;
+	if (maskDefined) {
+		mask = new short[in->NumPix()];
+		for (int i=0; i<in->NumPix(); i++)
+			this->mask[i] = g.mask[i];
+	}
 	
 	for (int i=0; i<MAXPAR; i++) {
 		this->mpar[i] = g.mpar[i];
@@ -318,13 +282,12 @@ Galfit<T>& Galfit<T>::operator=(const Galfit &g) {
     }
 		
 	this->tol		= g.tol;
-    this->nfree     = g.nfree;
+    this->nfree	= g.nfree;
 	this->arcconv	= g.arcconv;							
 	this->distance	= g.distance;	
-    this->NconX     = g.NconX;
-    this->NconY     = g.NconY;
+    this->NconX	= g.NconX;
+    this->NconY	= g.NconY;
 	this->wpow		= g.wpow;
-    this->global    = g.global;
 
 	if (cfieldAllocated) delete [] cfield;
 	this->cfieldAllocated = g.cfieldAllocated;
@@ -349,7 +312,6 @@ Galfit<T>& Galfit<T>::operator=(const Galfit &g) {
     if (this->line_imDefined) {
         this->line_im = g.line_im;
     }
-
     return *this;
 }
 template Galfit<float>& Galfit<float>::operator=(const Galfit<float>&);
@@ -369,29 +331,29 @@ void Galfit<T>::input (Cube<T> *c, Rings<T> *inrings, bool *maskpar, double TOL)
 		nfixed += (1-mpar[i]);
 	}
     if (nfixed == MAXPAR) {
-        std::cout << "GALFIT error: NO free parameters!\n";
-        std::terminate();
+		std::cerr << "GALFIT error: NO free parameters!\n";
+		abort();
 	}
 	nfree = MAXPAR-nfixed;
 	
 	double kpcperarc = KpcPerArc(distance);
 	// Max scaleheight allowed is 2 Kpc.
 	maxs[Z0] = 2/kpcperarc;					
-	// Min scaleheight allowed is 0 pc.
-	mins[Z0] = 0.;					
-//	if ((inr->z0.front()>maxs[Z0] || inr->z0.front()<mins[Z0]) && !mpar[Z0]) {
-//		std::cout << "GALFIT warning: you set a scale height for the disk of "
-//				  << inr->z0.front()*kpcperarc*1000 << " pc.\n Do you want to "
-//				  << "continue with this value? [Y/N] ";
-//		std::string a;
-//		std::cin >> a;
-//		if (a=="n" || a=="N" || a=="no" || a=="NO") std::terminate();
-//	}
+	// Min scaleheight allowed is 50 pc.
+	mins[Z0] = 0.05/kpcperarc;					
+	if ((inr->z0.front()>maxs[Z0] || inr->z0.front()<mins[Z0]) && !mpar[Z0]) {
+		std::cout << "GALFIT warning: you set a scale height for the disk of "
+				  << inr->z0.front()*kpcperarc*1000 << " pc.\n Do you want to "
+				  << "continue with this value? [Y/N] ";
+		std::string a;
+		std::cin >> a;
+		if (a=="n" || a=="N" || a=="no" || a=="NO") abort();
+	}
 	
-	maxs[VROT]	= 600;
+	maxs[VROT]	= 500;
 	mins[VROT]	= 0;
-	maxs[VDISP]	= 200;
-    mins[VDISP]	= 1;
+	maxs[VDISP]	= 150;
+    mins[VDISP]	= 3;
 	maxs[INC] = *max_element(inr->inc.begin(),inr->inc.end())+in->pars().getDELTAINC();
 	mins[INC] = *min_element(inr->inc.begin(),inr->inc.end())-in->pars().getDELTAINC();
 	maxs[PA]  = *max_element(inr->phi.begin(),inr->phi.end())+in->pars().getDELTAPHI();
@@ -404,22 +366,25 @@ void Galfit<T>::input (Cube<T> *c, Rings<T> *inrings, bool *maskpar, double TOL)
 	mins[XPOS] = *min_element(inr->xpos.begin(),inr->xpos.end())-10;
 	maxs[YPOS] = *max_element(inr->ypos.begin(),inr->ypos.end())+10;
 	mins[YPOS] = *min_element(inr->ypos.begin(),inr->ypos.end())-10;
-    maxs[VSYS] = AlltoVel(in->getZphys(in->DimZ()-1), in->Head());
-    mins[VSYS] = AlltoVel(in->getZphys(0), in->Head());
+	maxs[VSYS] = AlltoVel(in->getZphys(in->DimZ()-1), in->Head().Cunit(2), in->Head().Freq0());
+	mins[VSYS] = AlltoVel(in->getZphys(0), in->Head().Cunit(2), in->Head().Freq0());
 	if (maxs[XPOS]>in->DimX()) maxs[XPOS] = in->DimX();
 	if (maxs[YPOS]>in->DimY()) maxs[YPOS] = in->DimY();
 	if (mins[XPOS]<0)  mins[XPOS] = 0;
 	if (mins[YPOS]<0)  mins[YPOS] = 0;
-    if (maxs[VSYS]<mins[VSYS]) std::swap(maxs[VSYS],mins[VSYS]);
 
     if (in->pars().getSM()) {
 		if (!setCfield()) {
-            std::cout << "GALFIT warning: can not set an appropriate convolution "
+			std::cerr << "GALFIT warning: can not set an appropriate convolution "
 					  << "field. Turning off the convolution step.\n";
 			in->pars().setSM(false);
 		}
 	}
 
+    if (in->pars().getNegStats()) {
+        chan_noise = new float[in->DimZ()];
+        chan_noiseAllocated = true;
+    }
 }
 template void Galfit<float>::input(Cube<float>*,Rings<float>*,bool*,double);
 template void Galfit<double>::input(Cube<double>*,Rings<double>*,bool*,double);
@@ -427,29 +392,27 @@ template void Galfit<double>::input(Cube<double>*,Rings<double>*,bool*,double);
 
 template <class T>
 void Galfit<T>::galfit() {
-
+	
 	using namespace std;
 	verb = in->pars().isVerbose();
 	
 	static int n=0;
 	n++;
-    std::string fileo = in->pars().getOutfolder()+"ringlog"+to_string(n)+".txt";
-    remove(fileo.c_str());
-
-    std::ofstream fileout;
-    fileout.open(fileo.c_str(), std::ios_base::app);
+	std::ofstream fileout;
+	std::string fileo = in->pars().getOutfolder()+"ringlog"+to_string(n)+".dat";
+	fileout.open(fileo.c_str());
 	
 	int m=10;
-    fileout	<< left << setw(m) << "#RAD(Kpc)"
-            << setw(m+1)   << "RAD(arcs)"
+	fileout	<< left << setw(m) << "RAD(Kpc)"
+			<< setw(m)   << "RAD(arcs)"
 			<< setw(m+1) << "VROT(km/s)"
 			<< setw(m+1) << "DISP(km/s)"
 			<< setw(m)   << "INC(deg)" 
 			<< setw(m)   << "P.A.(deg)" 
-            << setw(m)   << "Z0(pc)"
+			<< setw(m)   << "Z0 (pc)"
 			<< setw(m)   << "Z0(arcs)"
 			<< setw(m)   << "SIG(E20)"
-            << setw(m)   << "XPOS(pix)"
+			<< setw(m)   << "XPOS(pix)"
 			<< setw(m)   << "YPOS(pix)"
 			<< setw(m+1) << "VSYS(km/s)";
 			
@@ -471,118 +434,86 @@ void Galfit<T>::galfit() {
 	if (verb) {	
 		in->pars().setVerbosity(false);
 		cout << showpoint << fixed << setprecision(2) << endl ;
-        cout << setfill('=') << setw(40) << right << " 3DFIT " << setw(34) << " ";
+        cout << setfill('=') << setw(40) << right << " GALFIT " << setw(34) << " ";
 		cout << setfill(' ') << endl;
 	}
 
     *outr = *inr;
-//    global=false;
-//    if (global) {
-//        Rings<T> *dring = new Rings<T>;
-//        *dring = *inr;
-//        T minimum=0;
-//        T pmin[nfree*dring->nr];
-//        if (!minimize(dring, minimum, pmin)) cout << "DIOCANEEEEEE" << endl;
 
-//        int k=0;
-//        if (mpar[VROT])  for (int ir=0; ir<inr->nr; ir++) outr->vrot[ir]=pmin[k++];
-//        if (mpar[VDISP]) for (int ir=0; ir<inr->nr; ir++) outr->vdisp[ir]=pmin[k++];
-//        if (mpar[DENS])  for (int ir=0; ir<inr->nr; ir++) outr->dens[ir]=pmin[k++];
-//        if (mpar[Z0])    for (int ir=0; ir<inr->nr; ir++) outr->z0[ir]=pmin[k++];
-//        if (mpar[INC])   for (int ir=0; ir<inr->nr; ir++) outr->inc[ir]=pmin[k++];
-//        if (mpar[PA])    for (int ir=0; ir<inr->nr; ir++) outr->phi[ir]=pmin[k++];
-//        if (mpar[XPOS])  for (int ir=0; ir<inr->nr; ir++) outr->xpos[ir]=pmin[k++];
-//        if (mpar[YPOS])  for (int ir=0; ir<inr->nr; ir++) outr->ypos[ir]=pmin[k++];
-//        if (mpar[VSYS])  for (int ir=0; ir<inr->nr; ir++) outr->vsys[ir]=pmin[k++];
+    int start_rad = in->pars().getStartRad()<inr->nr ? in->pars().getStartRad() : 0;
+    for (int ir=start_rad; ir<inr->nr; ir++) {
+        w_r = ir;
+        float radius = ir==0 ?  inr->radsep/4. : inr->radii[ir];
+        double toKpc = KpcPerArc(distance);
+        if (verb) {
+            time_t t = time(NULL);
+            char Time[11] = "          ";
+            strftime (Time,11,"[%T]",localtime(&t));
+            cout << fixed << setprecision(2)<<"\n\n Working on ring #"
+                 << ir+1 << " with radius " << radius << " arcsec ("
+                 << radius*toKpc << " Kpc)... " << Time << std::endl;
+        }
 
-//        for (int ir=0; ir<inr->nr; ir++) {
-//            float radius = ir==0 ?  inr->radsep/4. : inr->radii[ir];
-//            double toKpc = KpcPerArc(distance);
-//            fileout << setprecision(3) << fixed << left;
-//            fileout << setw(m) << radius*toKpc
-//                    << setw(m) << radius
-//                    << setw(m+1) << outr->vrot[ir]
-//                    << setw(m+1) << outr->vdisp[ir]
-//                    << setw(m) << outr->inc[ir]
-//                    << setw(m) << outr->phi[ir]
-//                    << setw(m) << outr->z0[ir]*toKpc*1000
-//                    << setw(m) << outr->z0[ir]
-//                    << setw(m) << outr->dens[ir]/1E20
-//                    << setw(m) << outr->xpos[ir]
-//                    << setw(m) << outr->ypos[ir]
-//                    << setw(m+1) << outr->vsys[ir]
-//                    << endl;
-
-//        }
-//    }
-//    else {
-        int start_rad = in->pars().getStartRad()<inr->nr ? in->pars().getStartRad() : 0;
-        for (int ir=start_rad; ir<inr->nr; ir++) {
-            w_r = ir;
-            double toKpc = KpcPerArc(distance);
-            if (verb) {
-                time_t t = time(NULL);
-                char Time[11] = "          ";
-                strftime (Time,11,"[%T]",localtime(&t));
-                cout << fixed << setprecision(2)<<"\n\n Working on ring #"
-                     << ir+1 << " with radius " << inr->radii[ir] << " arcsec ("
-                     << inr->radii[ir]*toKpc << " Kpc)... " << Time << std::endl;
+        if (ir!=inr->nr-1) {
+            if (inr->radii[ir+1]<=inr->radii[ir]) {
+                cerr << "GALFIT error: Radii not in increasing order.\n";
+                abort();
             }
+        }
+        if (inr->radii[ir]<0) {
+            cerr << "GALFIT error: Negative radius!!!\n";
+            abort();
+        }
 
-            if (ir!=inr->nr-1) {
-                if (inr->radii[ir+1]<=inr->radii[ir]) {
-                    cout << "3DFIT error: Radii not in increasing order.\n";
-                    std::terminate();
-                }
-            }
-            if (inr->radii[ir]<0) {
-                cout << "3DFIT error: Negative radius!!!\n";
-                std::terminate();
-            }
+        details = true;
+        Rings<T> *dring = new Rings<T>;
+        dring->nr = 2;
 
-            details = false;
-            Rings<T> *dring = new Rings<T>;
-            dring->nr = 2;
+        if (ir==0) {
+            double radsep = (inr->radii[1]-inr->radii[0])/2;
+            dring->radii.push_back(inr->radii[0]);
+            dring->radii.push_back(inr->radii[0]+radsep);
+        }
+        else if (ir==inr->nr-1) {
+            double radsep = (inr->radii[ir]-inr->radii[ir-1])/2;
+            dring->radii.push_back(inr->radii[ir]-radsep);
+            dring->radii.push_back(inr->radii[ir]+radsep);
+        }
+        else {
+            double radsep1 = (inr->radii[ir]-inr->radii[ir-1])/2;
+            double radsep2 = (inr->radii[ir+1]-inr->radii[ir])/2;
+            dring->radii.push_back(inr->radii[ir]-radsep1);
+            dring->radii.push_back(inr->radii[ir]+radsep2);
+        }
 
-            float width1=0, width2=0;
-            if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
-            else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
-            else {
-                width1 = (inr->radii[ir]-inr->radii[ir-1])/2.;
-                width2 = (inr->radii[ir+1]-inr->radii[ir])/2.;
-            }
+        for (int i=0; i<dring->nr; i++) {
+            dring->vrot.push_back(inr->vrot[ir]);
+            dring->vdisp.push_back(inr->vdisp[ir]);
+            dring->dens.push_back(inr->dens[ir]);
+            dring->z0.push_back(inr->z0[ir]);
+            dring->inc.push_back(inr->inc[ir]);
+            dring->phi.push_back(inr->phi[ir]);
+            dring->xpos.push_back(inr->xpos[ir]);
+            dring->ypos.push_back(inr->ypos[ir]);
+            dring->vsys.push_back(inr->vsys[ir]);
+        }
 
-            dring->radii.push_back(max(double(inr->radii[ir]-width1),0.));
-            dring->radii.push_back(max(double(inr->radii[ir]+width2),0.));
+        T minimum=0;
+        T pmin[nfree];
 
-            for (int i=0; i<dring->nr; i++) {
-                dring->vrot.push_back(inr->vrot[ir]);
-                dring->vdisp.push_back(inr->vdisp[ir]);
-                dring->dens.push_back(inr->dens[ir]);
-                dring->z0.push_back(inr->z0[ir]);
-                dring->inc.push_back(inr->inc[ir]);
-                dring->phi.push_back(inr->phi[ir]);
-                dring->xpos.push_back(inr->xpos[ir]);
-                dring->ypos.push_back(inr->ypos[ir]);
-                dring->vsys.push_back(inr->vsys[ir]);
-            }
+        if (!minimize(dring, minimum, pmin)) continue;
 
-            T minimum=0;
-            T pmin[nfree];
-
-            if (!minimize(dring, minimum, pmin)) continue;
-
-            int k=0;
-            if (mpar[VROT])  outr->vrot[ir]=pmin[k++];
-            if (mpar[VDISP]) outr->vdisp[ir]=pmin[k++];
-            if (mpar[DENS])  outr->dens[ir]=pmin[k++];
-            if (mpar[Z0])    outr->z0[ir]=pmin[k++];
-            if (mpar[INC])   outr->inc[ir]=pmin[k++];
-            if (mpar[PA])    outr->phi[ir]=pmin[k++];
-            if (mpar[XPOS])  outr->xpos[ir]=pmin[k++];
-            if (mpar[YPOS])  outr->ypos[ir]=pmin[k++];
-            if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
-            /*
+        int k=0;
+        if (mpar[VROT])  outr->vrot[ir]=pmin[k++];
+        if (mpar[VDISP]) outr->vdisp[ir]=pmin[k++];
+        if (mpar[DENS])  outr->dens[ir]=pmin[k++];
+        if (mpar[Z0])    outr->z0[ir]=pmin[k++];
+        if (mpar[INC])   outr->inc[ir]=pmin[k++];
+        if (mpar[PA])    outr->phi[ir]=pmin[k++];
+        if (mpar[XPOS])  outr->xpos[ir]=pmin[k++];
+        if (mpar[YPOS])  outr->ypos[ir]=pmin[k++];
+        if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
+        /*
         //////// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         long axis[3] = {in->DimX(),in->DimY(),in->DimZ()};
 
@@ -713,61 +644,61 @@ void Galfit<T>::galfit() {
         else remove((in->Head().Obname()+"temp.fits").c_str());
         */
 
-            /////////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        /////////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
-            if (verb) {
-                int m=8;
-                int n=11;
-                cout << "  Best parameters for ring #" << ir+1
-                     << " (fmin = " << setprecision(6) << minimum << "):\n";
+        if (verb) {
+            int m=8;
+            int n=11;
+            cout << "  Best parameters for ring #" << ir+1
+                 << " (fmin = " << setprecision(6) << minimum << "):\n";
 
-                cout << setprecision(2);
+            cout << setprecision(2);
 
-                string s;
-                s = "    Vrot";
-                if (!mpar[VROT]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->vrot[ir] << left << setw(m) << "  km/s";
+            string s;
+            s = "    Vrot";
+            if (!mpar[VROT]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->vrot[ir] << left << setw(m) << "  km/s";
 
-                s = "        Disp";
-                if (!mpar[VDISP]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->vdisp[ir]
-                        << left << setw(m) << "  km/s" << endl;
+            s = "        Disp";
+            if (!mpar[VDISP]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->vdisp[ir]
+                 << left << setw(m) << "  km/s" << endl;
 
-                s = "    Inc";
-                if (!mpar[INC]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->inc[ir] << left << setw(m) << "  deg";
+            s = "    Inc";
+            if (!mpar[INC]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->inc[ir] << left << setw(m) << "  deg";
 
-                s = "        PA";
-                if (!mpar[PA]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->phi[ir] << left << setw(m) << "  deg" << endl;
+            s = "        PA";
+            if (!mpar[PA]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->phi[ir] << left << setw(m) << "  deg" << endl;
 
-                s = "    Z0";
-                if (!mpar[Z0]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->z0[ir]*toKpc << left << setw(m) << "  Kpc";
+            s = "    Z0";
+            if (!mpar[Z0]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->z0[ir]*toKpc << left << setw(m) << "  Kpc";
 
-                s = "        Vsys";
-                if (!mpar[VSYS]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->vsys[ir] << left << setw(m) << "  km/s" << endl;
+            s = "        Vsys";
+            if (!mpar[VSYS]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->vsys[ir] << left << setw(m) << "  km/s" << endl;
 
-                s = "    Xpos";
-                if (!mpar[XPOS]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->xpos[ir] << left << setw(m) << "  pix";
+            s = "    Xpos";
+            if (!mpar[XPOS]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->xpos[ir] << left << setw(m) << "  pix";
 
-                s = "        Ypos";
-                if (!mpar[YPOS]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->ypos[ir] << left << setw(m) << "  pix";
+            s = "        Ypos";
+            if (!mpar[YPOS]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->ypos[ir] << left << setw(m) << "  pix";
 
-                /*
+            /*
             s = "        CD";----
             if (!mpar[DENS]) s += "(f)";
             cout << setw(n+4) << left << s << setw(3) << right << "= "
@@ -775,44 +706,41 @@ void Galfit<T>::galfit() {
                  << outr->dens[ir] << left << setw(m) << "  a/cm2";
             */
 
-                cout << endl;
-
-            }
-
-
-            fileout << setprecision(3) << fixed << left;
-            fileout << setw(m) << outr->radii[ir]*toKpc
-                    << setw(m+1) << outr->radii[ir]
-                    << setw(m+1) << outr->vrot[ir]
-                    << setw(m+1) << outr->vdisp[ir]
-                    << setw(m) << outr->inc[ir]
-                    << setw(m) << outr->phi[ir]
-                    << setw(m) << outr->z0[ir]*toKpc*1000
-                    << setw(m) << outr->z0[ir]
-                    << setw(m) << outr->dens[ir]/1E20
-                    << setw(m) << outr->xpos[ir]
-                    << setw(m) << outr->ypos[ir]
-                    << setw(m+1) << outr->vsys[ir];
-
-
-            T **errors=allocate_2D<T>(2,nfree);
-            if (flagErrors) getErrors(dring,errors,ir,minimum);
-
-            if (flagErrors) {
-                for (int kk=0; kk<nfree; kk++) {
-                    fileout << setw(m) << errors[0][kk] << setw(m) << errors[1][kk];
-                }
-            }
-
-            fileout << endl;
-            deallocate_2D<T>(errors,2);
-            delete dring;
+            cout << endl;
 
         }
-  //  }
 
-    fileout.close();
 
+        fileout << setprecision(3) << fixed << left;
+        fileout << setw(m) << radius*toKpc
+                << setw(m) << radius
+                << setw(m+1) << outr->vrot[ir]
+                << setw(m+1) << outr->vdisp[ir]
+                << setw(m) << outr->inc[ir]
+                << setw(m) << outr->phi[ir]
+                << setw(m) << outr->z0[ir]*toKpc*1000
+                << setw(m) << outr->z0[ir]
+                << setw(m) << outr->dens[ir]/1E20
+                << setw(m) << outr->xpos[ir]
+                << setw(m) << outr->ypos[ir]
+                << setw(m+1) << outr->vsys[ir];
+
+
+        T **errors=allocate_2D<T>(2,nfree);
+        if (flagErrors) getErrors(dring,errors,ir,minimum);
+
+
+        if (flagErrors) {
+            for (int kk=0; kk<nfree; kk++) {
+                fileout << setw(m) << errors[0][kk] << setw(m) << errors[1][kk];
+            }
+        }
+
+        fileout << endl;
+        delete dring;
+        deallocate_2D<T>(errors,2);
+
+    }
 
 	if (verb) {				  
 		cout << setfill('=') << setw(74) << " " << endl << endl; 
@@ -820,6 +748,7 @@ void Galfit<T>::galfit() {
 		in->pars().setVerbosity(true);
 	}
 	
+	fileout.close();
 	
 }
 template void Galfit<float>::galfit();
@@ -827,13 +756,13 @@ template void Galfit<double>::galfit();
 
 
 template <class T> 
-bool Galfit<T>::SecondStage() {
+void Galfit<T>::SecondStage() {
 	
 	bool isNeeded = mpar[INC] || mpar[PA]   || mpar[Z0] ||
 					mpar[XPOS]|| mpar[YPOS] || mpar[VSYS];
-    if (!isNeeded) {in->pars().setTwoStage(false); return isNeeded;}
+	if (!isNeeded) {in->pars().setTwoStage(false); return;}
 	second = true;
-    if (!in->pars().getFlagSlitfit()) func_norm = &Model::Galfit<T>::norm_local;
+    if (!in->pars().getFlagSlitfit()) func_norm = &Model::Galfit<T>::normalize;
 
 	int n = outr->nr;
 	
@@ -887,15 +816,15 @@ bool Galfit<T>::SecondStage() {
     else {
         // Make a polynomial fit
         if (n<=anglepar) {
-            std::cout << "3DFIT ERROR - Second stage: too few degree of freedom.\n";
-            return false;
+            std::cout << "GALFIT ERROR - Second stage: too few degree of freedom.\n";
+            return;
         }
 	
         cout << setprecision(4);
 	
         Statistics::Stats<T> stats;
         typename std::vector<T>::iterator where;
-        T ww[n], cinc[anglepar], cincout[anglepar];
+        T ww[n], cinc[anglepar], cincerr[anglepar];
         T cpa[anglepar], cpaerr[anglepar];
         T cz0[anglepar], cz0err[anglepar];
 	
@@ -919,19 +848,19 @@ bool Galfit<T>::SecondStage() {
 		
             stats.calculate(&yy[0], yy.size());
 
-            Lsqfit<T> lsq(&xx[0],1,&yy[0],ww,xx.size(),cinc,cincout,mp,anglepar,&polyn,&polynd);
+            Lsqfit<T> lsq(&xx[0],1,&yy[0],ww,xx.size(),cinc,cincerr,mp,anglepar,&polyn,&polynd);
             int nrt = lsq.fit();
             if (nrt<0) {
-                std::cout << "3DFIT error: cannot least-square fit the inclination.\n";
+                std::cerr << "GALFIT error: cannot least-square fit the inclination.\n";
                 in->pars().setTwoStage(false);
-                return false;
+                return;
             }
             if (verb) {
                 cout << "  Best parameters for inclination:\n";
                 for (int i=0; i<anglepar; i++) {
                     string a = "a"+to_string<int>(i)+" = ";
                     cout << setw(43) << right << a << setw(9) << cinc[i] << setw(4)
-                         << " ±" << setw(9) << cincout[i] << endl;
+                         << " ±" << setw(9) << cincerr[i] << endl;
                 }
             }
             xx.clear();
@@ -953,9 +882,9 @@ bool Galfit<T>::SecondStage() {
             Lsqfit<T> lsq(&xx[0],1,&yy[0],ww,xx.size(),cpa,cpaerr,mp,anglepar,&polyn,&polynd);
             int nrt = lsq.fit();
             if (nrt<0) {
-                std::cout << "3DFIT error: cannot least-square fit the position angle.\n";
+                std::cerr << "GALFIT error: cannot least-square fit the position angle.\n";
                 in->pars().setTwoStage(false);
-                return false;
+                return;
             }
             if (verb) {
                 cout << "  Best parameters for position angle:\n";
@@ -984,9 +913,9 @@ bool Galfit<T>::SecondStage() {
             Lsqfit<T> lsq(&xx[0],1,&yy[0],ww,xx.size(),cz0,cz0err,mp,anglepar,&polyn,&polynd);
             int nrt = lsq.fit();
             if (nrt<0) {
-                std::cout << "3DFIT error: cannot least-square fit the thickness.\n";
+                std::cerr << "GALFIT error: cannot least-square fit the thickness.\n";
                 in->pars().setTwoStage(false);
-                return false;
+                return;
             }
             if (verb) {
                 cout << "  Best parameters for thickness:\n";
@@ -1036,17 +965,138 @@ bool Galfit<T>::SecondStage() {
 	mpar[INC] = mpar[PA] = false;
 	mpar[XPOS]= mpar[YPOS] = false;
 	mpar[VSYS]= mpar[Z0] = false;
-    nfree = mpar[VROT]+mpar[VDISP];
+	nfree = 2;
 
-    galfit();
+	galfit();
 	
 	for (int i=MAXPAR; i--;) mpar[i]=oldmpar[i];
 	nfree = oldnfree;
-
-    return isNeeded;
 }
-template bool Galfit<float>::SecondStage();
-template bool Galfit<double>::SecondStage();
+template void Galfit<float>::SecondStage();
+template void Galfit<double>::SecondStage();
+
+
+template <class T> 
+void Galfit<T>::createMask() {
+		
+	if (maskDefined) delete [] mask;
+	mask = new short[in->NumPix()];
+	
+	ProgressBar bar;
+	
+    Statistics::Stats<T> *st = new Statistics::Stats<T>;
+    st->setRobust(in->pars().getFlagRobustStats());
+
+    if (in->pars().getMASK() && !in->pars().getFlagUserThreshold()) {
+        double bmaj = in->Head().Bmaj()*arcconv;
+        double bmin = in->Head().Bmin()*arcconv;
+        double bpa  = in->Head().Bpa();
+        Beam oldbeam = {bmaj,bmin,bpa};
+        Beam newbeam = {2*bmaj,2*bmin,bpa};
+        Smooth3D<T> *sm = new Smooth3D<T>;
+        sm->smooth(in, oldbeam, newbeam);
+        st->calculate(sm->Array(),in->NumPix());
+        st->setThresholdSNR(in->pars().getBlankCut());
+
+        for (uint i=in->NumPix(); i--;) {
+            mask[i] = 0;
+            if (sm->Array(i)>st->getThreshold()) mask[i] = 1;
+        }
+
+        delete sm;
+    }
+    else if (in->pars().getNegStats()) {
+//        std::ofstream outfile("pippo3.txt");
+        for (int z=0; z<in->DimZ(); z++) {
+            std::vector<T> onlyneg;
+            for (int i=0; i<in->DimX()*in->DimY(); i++)  {
+                if (in->Array(i+z*in->DimX()*in->DimY())<0) {
+                    onlyneg.push_back(in->Array(i+z*in->DimX()*in->DimY()));
+                    onlyneg.push_back(-in->Array(i+z*in->DimX()*in->DimY()));                 }
+                }
+
+                st->calculate(&onlyneg[0], onlyneg.size());
+                st->setThresholdSNR(in->pars().getBlankCut());
+
+//                outfile << z << "    " << setw(12) << st.getMean() << setw(12) << st.getStddev()
+//                        << setw(12) << st.getMedian() << setw(12) << MADFMtosigma << std::endl;
+
+                for (int i=0; i<in->DimX()*in->DimY(); i++)  {
+                    if (in->Array(i+z*in->DimX()*in->DimY())>st->getThreshold()) mask[i+z*in->DimX()*in->DimY()]=1;
+                    else mask[i+z*in->DimX()*in->DimY()]=0;
+                }
+
+                chan_noise[z]=st->getSpread();
+
+            }
+
+    }
+    else {
+        float thresh;
+        if (in->pars().getFlagUserThreshold()) thresh = in->pars().getThreshold();
+        else {
+            st->calculate(in->Array(),in->NumPix());
+            st->setThresholdSNR(1);
+            thresh = st->getThreshold();
+        }
+        for (uint i=in->NumPix(); i--;) {
+            mask[i] = 0;
+            if (in->Array(i)>thresh) mask[i] = 1;
+        }
+
+    }
+	
+    delete st;
+
+
+	Cube<short> *m = new Cube<short>;
+	m->saveHead(in->Head());
+ 	m->saveParam(in->pars());
+ 	m->Head().setMinMax(0.,0.);
+ 	m->setCube(mask, in->AxisDim());
+	std::string outname = in->pars().getOutfolder()+"mask.fits";
+	m->fitswrite_3d(outname.c_str());
+	delete m;
+	
+	maskDefined = true;
+
+}
+template void Galfit<float>::createMask();
+template void Galfit<double>::createMask();
+
+
+template <class T> 
+void Galfit<T>::createMaskSearch() {
+		
+	if (maskDefined) delete [] mask;
+	mask = new short[in->NumPix()];
+	
+	if (verb) std::cout << " Creating mask for the fit..." << std::flush;
+	
+	for (int i=0; i<in->NumPix(); i++) mask[i]=0;
+	
+	std::vector<Voxel<T> > voxlist = in->pObject(0)->getPixelSet();
+    typename std::vector<Voxel<T> >::iterator vox;
+	for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+ 		mask[in->nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+    }
+	
+	Cube<short> *m = new Cube<short>;
+	m->saveHead(in->Head());
+ 	m->Head().setMinMax(0.,0.);
+ 	m->saveParam(in->pars());
+ 	m->setCube(mask, in->AxisDim());
+	std::string outname = in->pars().getOutfolder()+"mask.fits";
+	m->fitswrite_3d(outname.c_str());
+	delete m;
+	
+	if (verb) std::cout << "Done." << std::endl;
+	
+	maskDefined = true;
+
+}
+template void Galfit<float>::createMaskSearch();
+template void Galfit<double>::createMaskSearch();
 
 
 template <class T> 
@@ -1070,7 +1120,7 @@ bool Galfit<T>::setCfield() {
 	bool agreed = ((New.bmaj>=Old.bmaj) && (New.bmin>=Old.bmin)); 
  
 	if (!agreed) {
-        std::cout << "3DFIT error: new beam smaller than old beam\n";
+        std::cerr << "GALFIT error: new beam smaller than old beam\n";
         return false;
 	}
 	if (New.bmaj<New.bmin) {
@@ -1092,14 +1142,14 @@ bool Galfit<T>::setCfield() {
 	
 	double arg = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2+D1); 
 	if (arg<0) {
-        std::cout << "3DFIT error: unsuitable new beam parameters!\n";
+        std::cerr << "GALFIT error: unsuitable new beam parameters!\n";
 	return false;
 	}
 	else a1 = sqrt(arg);
       
 	arg = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2-D1); 
 	if (arg<0) {
-        std::cout << "3DFIT error: unsuitable new beam parameters!\n";
+        std::cerr << "GALFIT error: unsuitable new beam parameters!\n";
 	return false;
 	}
 	else b1 = sqrt(arg);
@@ -1112,7 +1162,7 @@ bool Galfit<T>::setCfield() {
 		th1 = twoth1/2;          
     }
     
-    Beam Con = {2*a1, 2*b1, (th1*45./atan(1.))-90.};
+    Beam Con = {2*a1, 2*b1, th1*45./atan(1.)};
 
 
 	// Building the convolution field.
@@ -1160,7 +1210,7 @@ bool Galfit<T>::setCfield() {
 			double c = exp(arg);
 			if (c>=1E-04) {
 				cfield[pos] = c;
-                totalarea += c;
+				totalarea += c;
 			} 
 			else cfield[pos] = 0;
 		}
@@ -1276,9 +1326,9 @@ T Galfit<T>::getCenterCoord(std::string pos, std::string type) {
         coord_str = in->pars().getYPOS();
     }
     else {
-        std::cout << "3DFIT error: unknown coordinate type: " << type
-                  << "\n             Cannot convert to grid. \n";
-        std::terminate();
+        std::cerr << "GALFIT error: unknown coordinate type: " << type
+                  << "\n              Cannot convert to grid. \n";
+        abort();
     }
 
     if (coord_str.find('d')!=-1) {                              // Found degrees
@@ -1297,36 +1347,6 @@ T Galfit<T>::getCenterCoord(std::string pos, std::string type) {
 }
 template float Galfit<float>::getCenterCoord (std::string, std::string);
 template double Galfit<double>::getCenterCoord (std::string, std::string);
-
-template <class T>
-double* Galfit<T>::getCenterCoordinates(std::string *pos, std::string *type) {
-
-    double *pixels = new double[3];
-    double world[3]={0,0,0};
-    bool isPOS[3]={false,false,false};
-    for (int i=0; i<2; i++) {
-        std::string coord_str = pos[i];
-        std::string coord_typ = makelower(type[i]);
-        if (coord_str.find('d')!=-1) {
-            std::string substr = coord_str.erase(coord_str.find('d'),coord_str.size()-1);
-            world[i] = atof(substr.c_str());
-        }
-        else if (coord_str.find(':')!=-1) {                         // Found sexagesimal
-            double pos_deg = dmsToDec(coord_str);
-            if (coord_typ.find("ra")!=-1) pos_deg*=15;
-            world[i] = pos_deg;
-        }
-        else isPOS[i]=true;
-    }
-
-    wcsToPixSingle(in->Head().WCS(),world,pixels);
-
-    if (isPOS[0]) pixels[0]=atof(in->pars().getXPOS().c_str());
-    if (isPOS[1]) pixels[1]=atof(in->pars().getYPOS().c_str());
-    return pixels;
-}
-template double* Galfit<float>::getCenterCoordinates (std::string*, std::string*);
-template double* Galfit<double>::getCenterCoordinates (std::string*, std::string*);
 
 }
 

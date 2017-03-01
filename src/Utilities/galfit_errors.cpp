@@ -24,12 +24,12 @@
 
 #include <iostream>
 //#include <random>
-#include "galfit.hh"
-#include "galmod.hh"
-#include "../Arrays/cube.hh"
-#include "utils.hh"
-#include "lsqfit.hh"
-#include "progressbar.hh"
+#include <Utilities/galfit.hh>
+#include <Utilities/galmod.hh>
+#include <Arrays/cube.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/lsqfit.hh>
+#include <Utilities/progressbar.hh>
 
 #define VROT  0
 #define VDISP 1

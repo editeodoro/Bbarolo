@@ -24,11 +24,11 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
-#include "../Arrays/cube.hh"
-#include "smooth3D.hh"
-#include "utils.hh"
-#include "progressbar.hh"
-#include "conv2D.hh"
+#include <Arrays/cube.hh>
+#include <Utilities/smooth3D.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/progressbar.hh>
+#include <Utilities/conv2D.hh>
 
 #define BLANK 0xff800000	
 

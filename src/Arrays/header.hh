@@ -108,8 +108,8 @@ public:
 	void	setTelesc(std::string s) {telescope = s;};
     void	setPointAllocated (bool b) {pointAllocated=b;};
     void    setWarning (bool b) {warning=b;};
-    void setWave0 (double w) {wave0=w;}
-    void setRedshift (double r) {redshift=r;}
+    void    setWave0 (double w) {wave0=w;}
+    void    setRedshift (double r) {redshift=r;}
 
     void    Warning(std::string s) {if (warning) std::cout << s << std::endl;};
 

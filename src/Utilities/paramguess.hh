@@ -1,6 +1,5 @@
 //--------------------------------------------------------------------
-// galfit_initial.cpp: Members functions of the Galfit class for the
-// initial estimate of fitting parameter.
+// paramguess.hh: A class to estimate initial parameters for 3D Fit
 //--------------------------------------------------------------------
 
 /*-----------------------------------------------------------------------
@@ -23,14 +22,14 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
-#include "../Arrays/cube.hh"
-#include "../Map/detection.hh"
-#include "../Utilities/galmod.hh"
-#include "utils.hh"
-#include "lsqfit.hh"
-#include "gnuplot.hh"
-#include "moment.hh"
-#include "ellprof.hh"
+#include <Arrays/cube.hh>
+#include <Map/detection.hh>
+#include <Utilities/galmod.hh>
+#include <Utilities/utils.hh>
+#include <Utilities/lsqfit.hh>
+#include <Utilities/gnuplot.hh>
+#include <Utilities/moment.hh>
+#include <Utilities/ellprof.hh>
 
 template <class T>
 class ParamGuess 
