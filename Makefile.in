@@ -1,6 +1,6 @@
 CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized @CFLAGS@
 #CFLAGS = -O0 -g -fbounds-check -Wall -Wextra @CFLAGS@ 
-#CFLAGS = -fast -Wall @CFLAGS@
+#CFLAGS = -fast -Wall @CFLAGS@ 
 
 OS = @OP@
 CC =    @CC@ $(CFLAGS)
@@ -15,8 +15,6 @@ INCDIR = @prefix@/include/barolo
 
 V = @PACKAGE_VERSION@
 EXEC = BBarolo-$(V)
-EXEC-STUB = BBarolo
-
 EXEC-STUB = BBarolo
 
 
@@ -41,7 +39,10 @@ FFTW3LIB = @FFTW3LIB@
 WCSINC = @WCSINC@
 WCSLIB = @WCSLIB@
 
-OPT = @GNUPLOT@ @FFTW3@ @PYTHON@
+PYINC = @PYTHON_INCLUDE@
+PYLIB = @PYTHON_LIBS@
+
+OPT = @GNUPLOT@ @FFTW3@ @HAVEPYTHON@
 
 ifeq ($(OS),MACOSX)
 	OPT += -DMACOSX
@@ -49,10 +50,10 @@ endif
 
 OTHERLIB = -lm 
 
-CINC = -I$(BASE) $(FFTW3INC) $(CFITSIOINC) $(WCSINC)
+CINC = -I$(BASE) $(FFTW3INC) $(CFITSIOINC) $(WCSINC) #$(PYINC)
 
-LIBS = $(FFTW3LIB) $(CFITSIOLIB) $(WCSLIB) $(OTHERLIB)
-STATICLIBS = $(LIBDIR)/libcfitsio.a $(LIBDIR)/libfftw3.a $(LIBDIR)/libwcs.a 
+LIBS = $(FFTW3LIB) $(CFITSIOLIB) $(WCSLIB) $(OTHERLIB) #$(PYLIB)
+STATICLIBS = $(LIBDIR)/libcfitsio.a $(LIBDIR)/libfftw3.a $(LIBDIR)/libwcs.a #$(PYLIB)/libpython3.5.a
 
 ARRAYDIR = $(BASE)/Arrays
 MAPDIR = $(BASE)/Map
@@ -124,7 +125,7 @@ lib     : $(OBJECTS)
 #	$(CXX) $(SHAREDFLAGS) -o $(LIBSO) $(OBJECTS)
 
 linux : $(OBJECTS)
-	$(LINK) -o Bbarololinux $(OBJECTS) $(LIBS)
+	$(LINK) -o BBarololinux $(OBJECTS) $(LIBS)
 
 install : 
 	$(INSTALL) -d -m 2755 $(INSTALLDIR)
