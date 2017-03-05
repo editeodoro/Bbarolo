@@ -69,14 +69,14 @@ protected:
 	Rings<T> *outr;				//< Output rings.
 	bool	 inDefined;			//< Wheter inr have been defined inside Galfit.
     bool	 outDefined;		//< Whether the output rings have been defined.
-	bool 	 mpar[9];			//< Mask for parameters to be used.
+	bool 	 *mpar;	    		//< Mask for parameters to be used.
     bool	 *mask;				//< Mask for areas to be used for chi2 calculation.
 	double	 tol;				//< Tolerance criterium for minimization.
 	double	 arcconv;			//< Conversion factor to arcsec.
 	int 	 nfree;				//< Number of free parameters.
 	float	 distance;			//< Distance of the galaxy in Mpc.	
-	T		 maxs[9];			//< Maximum values allowed for parameters.
-	T		 mins[9];			//< Minimum values allowed for parameters.
+	T		 *maxs; 			//< Maximum values allowed for parameters.
+	T		 *mins;	    		//< Minimum values allowed for parameters.
 	double	 *cfield;			//< Convolution field.	
 	bool	 cfieldAllocated;
 	int		 NconX;				//< Convolution field X-dimension.

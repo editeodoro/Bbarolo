@@ -78,7 +78,7 @@ struct Rings {
 	std::vector<Type> radii;		//< Radius of each ring.
 	std::vector<Type> vrot;			//< Rotational velocities.
 	std::vector<Type> vdisp;		//< Velocity dispersions.
-	std::vector<Type> vexp;			//< Radial velocities. 
+	std::vector<Type> vrad;			//< Radial velocities. 
 	std::vector<Type> dens;			//< Column densities.
 	std::vector<Type> z0;			//< Scaleheights of the HI-layer.
 	std::vector<Type> inc;			//< Inclination angles.
@@ -97,7 +97,7 @@ struct Ring {
 	Type 	radius;			
 	Type 	vrot;			
 	Type 	vdisp;			
-	Type 	vexp;			
+	Type 	vrad;			
 	Type 	dens;			
 	Type 	z0;			
 	Type 	inc;		

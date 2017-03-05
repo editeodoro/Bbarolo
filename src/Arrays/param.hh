@@ -130,30 +130,31 @@ public:
     string  getRADII () {return RADII;};
     string	getXPOS () {return XPOS;};
     string	getYPOS () {return YPOS;};
-	double	getRADSEP () {return RADSEP;};						
+    double	getRADSEP () {return RADSEP;};						
     string	getVSYS () {return VSYS;};
     string	getVROT () {return VROT;};
+    string	getVRAD () {return VRAD;};
     string	getVDISP () {return VDISP;};
     string	getINC () {return INC;};
-	float	getDELTAINC () {return DELTAINC;};					
+    float	getDELTAINC () {return DELTAINC;};					
     string	getPHI () {return PHI;};
-	float	getDELTAPHI () {return DELTAPHI;};											
+    float	getDELTAPHI () {return DELTAPHI;};											
     string	getZ0 () {return Z0;};
     string	getDENS () {return DENS;};
-	int		getCDENS () {return CDENS;};				
-	int		getLTYPE () {return LTYPE;};					
-	int		getFTYPE () {return FTYPE;};					
-	int		getWFUNC () {return WFUNC;};					
-	int		getNV () {return NV;};					
-        double	getTOL () {return TOL;}
+    int		getCDENS () {return CDENS;};				
+    int		getLTYPE () {return LTYPE;};					
+    int		getFTYPE () {return FTYPE;};					
+    int		getWFUNC () {return WFUNC;};					
+    int		getNV () {return NV;};					
+    double	getTOL () {return TOL;}
     string	getMASK() {return MASK;}
-        bool	getSM () {return SM;}
-        void	setSM	(bool a) {SM=a;}
+    bool	getSM () {return SM;}
+    void	setSM	(bool a) {SM=a;}
     void	setSIDE (string a) {SIDE=a;}
     string  getSIDE() {return SIDE;}
-        bool	getTwoStage () {return TwoStage;}
-        void	setTwoStage (bool b) {TwoStage=b;}
-        bool	getflagErrors() {return flagErrors;}
+    bool	getTwoStage () {return TwoStage;}
+    void	setTwoStage (bool b) {TwoStage=b;}
+    bool	getflagErrors() {return flagErrors;}
     string 	getPOLYN () {return POLYN;}
     string  getFREE () {return FREE;}
     double	getDistance () {return distance;}
@@ -171,19 +172,19 @@ public:
     float	getP2p (int i) {return P2p[i];}
     
     bool	getflagSmooth () {return flagSmooth;}
-        double	getBmaj	() {return bmaj;}
-        double	getBmin	() {return bmin;}
-        double	getBpa	() {return bpa;}
+    double	getBmaj	() {return bmaj;}
+    double	getBmin	() {return bmin;}
+    double	getBpa	() {return bpa;}
     double	getOBmaj	() {return obmaj;}
     double	getOBmin	() {return obmin;}
     double	getOBpa	() {return obpa;}
-        bool	getflagFFT () {return flagFFT;}
-        void	setflagFFT (bool f) {flagFFT=f;}
-        float 	getLinear () {return linear;}
-        float 	getFactor () {return factor;}
+    bool	getflagFFT () {return flagFFT;}
+    void	setflagFFT (bool f) {flagFFT=f;}
+    float 	getLinear () {return linear;}
+    float 	getFactor () {return factor;}
     float   getScaleFactor () {return scalefactor;}
-        void 	setFactor (float f) {factor=f;}
-        bool	getflagReduce() {return flagReduce;}
+    void 	setFactor (float f) {factor=f;}
+    bool	getflagReduce() {return flagReduce;}
     string  getSmoothOut () {return smo_out;}
 
     bool    getFlagSlitfit () {return flagSlitfit;}
@@ -261,6 +262,7 @@ private:
     double          RADSEP;             ///< Separation between rings (arcs).
     string          VSYS;               ///< Systemic velocity (km/s).
     string          VROT;               ///< Circular velocity (km/s).
+    string          VRAD;               ///< Radial velocity (km/s).
     string          VDISP;              ///< Rotation velocity (km/s).
     string          INC;                ///< Inclination angle (degrees).
     float           DELTAINC;           ///< Inclination angle variation (degrees).

@@ -48,7 +48,8 @@
 #define XPOS  6
 #define YPOS  7
 #define VSYS  8
-#define MAXPAR 9
+#define VRAD  9
+#define MAXPAR 10
 
 namespace Model {
 
@@ -1426,6 +1427,12 @@ void Galfit<T>::showInitial (Rings<T> *inr, std::ostream& Stream) {
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
          << setw(m-1) << inr->vdisp[0]
          << left << setw(m) << "  km/s" << endl;
+    
+    s = "    Vrad";
+    if (in->pars().getVRAD()=="-1") s += " (d)";
+    else s += " (i)";
+    Stream << setw(n) << left << s << setw(3) << right << "= "
+           << setw(m) << inr->vrad[0] << left << setw(m) << "  km/s";
 
     Stream   << endl << endl;
 
@@ -1495,9 +1502,9 @@ void Galfit<T>::DensityProfile (T *surf_dens, int *count) {
         surf_bright_faceon[i] *= cos(outr->inc[i]*M_PI/180.)/count[i];
         surf_bright_tot += surf_dens[i];
         //surf_dens[i]/=count[i];
-        cout << surf_bright_tot << endl;
+        //cout << surf_bright_tot << endl;
     }
-    cout << scientific<< obj->getMass() << std::endl << surf_bright_tot;
+    //cout << scientific<< obj->getMass() << std::endl << surf_bright_tot;
 
     std::ofstream fileout((in->pars().getOutfolder()+"surface_dens.txt").c_str());
 
@@ -1528,4 +1535,5 @@ template void Galfit<double>::DensityProfile (double*, int *);
 #undef XPOS
 #undef YPOS
 #undef VSYS
+#undef VRAD
 #undef MAXPAR

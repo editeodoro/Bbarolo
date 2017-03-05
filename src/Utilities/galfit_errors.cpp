@@ -40,7 +40,8 @@
 #define XPOS  6
 #define YPOS  7
 #define VSYS  8
-#define MAXPAR 9
+#define VRAD  9
+#define MAXPAR 10
 
 using namespace std;
 namespace Model {
@@ -63,6 +64,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
 		dr->xpos[ii]=outr->xpos[ir];
 		dr->ypos[ii]=outr->ypos[ir];
 		dr->vsys[ii]=outr->vsys[ir];
+		dr->vrad[ii]=outr->vrad[ir];
 	}
 			
 	int free_var[nfree];
@@ -81,6 +83,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
 			else if(nm==XPOS) 	midval[k]=outr->xpos[ir];
 			else if(nm==YPOS) 	midval[k]=outr->ypos[ir];
 			else if(nm==VSYS) 	midval[k]=outr->vsys[ir];
+			else if(nm==VRAD) 	midval[k]=outr->vrad[ir];
 			k++;
 		}
 	}
@@ -159,6 +162,11 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
 					dr->vsys[1]=var_val[nm][nf];
 					var_val[nm][nf]-=outr->vsys[ir];
 					break;
+				case VRAD:
+					dr->vrad[0]=var_val[nm][nf];
+					dr->vrad[1]=var_val[nm][nf];
+					var_val[nm][nf]-=outr->vrad[ir];
+					break;
 			}
 					
 			if (var_val[nm][nf]>maxval[nf]) maxval[nf] = var_val[nm][nf];
@@ -229,6 +237,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
 			dr->xpos[ii]=outr->xpos[ir];
 			dr->ypos[ii]=outr->ypos[ir];
 			dr->vsys[ii]=outr->vsys[ir];
+			dr->vrad[ii]=outr->vrad[ir];
 		}
 
 		T *var_func = new T[n_models];
@@ -306,6 +315,11 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
 					dr->vsys[0]=var_val[nm];
 					dr->vsys[1]=var_val[nm];
 					var_val[nm]-=outr->vsys[ir];
+					break;
+    			case VRAD:
+    				dr->vrad[0]=var_val[nm];
+    				dr->vrad[1]=var_val[nm];
+    				var_val[nm]-=outr->vrad[ir];
 					break;
 			}
 					
@@ -475,4 +489,5 @@ template void Galfit<double>::getErrors (Rings<double>*,double**,int,double);
 #undef XPOS
 #undef YPOS
 #undef VSYS
+#undef VRAD
 #undef MAXPAR

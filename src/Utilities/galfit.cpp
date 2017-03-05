@@ -48,7 +48,8 @@
 #define XPOS  6
 #define YPOS  7
 #define VSYS  8
-#define MAXPAR 9
+#define VRAD  9
+#define MAXPAR 10
 
 namespace Model {
 	
@@ -68,6 +69,9 @@ void Galfit<T>::defaults() {
     global=false;
     verb = true;
     func_norm = &Model::Galfit<T>::norm_local;
+    mins = new T[MAXPAR];
+    maxs = new T[MAXPAR];
+    mpar = new bool[MAXPAR];
 }
 template void Galfit<float>::defaults();
 template void Galfit<double>::defaults();
@@ -108,30 +112,32 @@ Galfit<T>::Galfit(Cube<T> *c) {
 
     // Try to read ring information from an input file
     Rings<T> file_rings;
-    bool radii_b,xpos_b,ypos_b,vsys_b,vrot_b,vdisp_b,z0_b,dens_b,inc_b,pa_b;
+    bool radii_b,xpos_b,ypos_b,vsys_b,vrot_b,vdisp_b,z0_b,dens_b,inc_b,pa_b,vrad_b;
     radii_b = getDataColumn(file_rings.radii,p->getRADII());
     xpos_b  = getDataColumn(file_rings.xpos,p->getXPOS());
     ypos_b  = getDataColumn(file_rings.ypos,p->getYPOS());
     vsys_b  = getDataColumn(file_rings.vsys,p->getVSYS());
     vrot_b  = getDataColumn(file_rings.vrot,p->getVROT());
+    vrad_b  = getDataColumn(file_rings.vrad,p->getVRAD());
     vdisp_b = getDataColumn(file_rings.vdisp,p->getVDISP());
     z0_b    = getDataColumn(file_rings.z0,p->getZ0());
     dens_b  = getDataColumn(file_rings.dens,p->getDENS());
     inc_b   = getDataColumn(file_rings.inc,p->getINC());
     pa_b 	= getDataColumn(file_rings.phi,p->getPHI());
-    bool onefile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||dens_b||inc_b||pa_b;
+    bool onefile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||dens_b||inc_b||pa_b||vrad_b;
 
-    size_t size[10] = {file_rings.radii.size(),file_rings.xpos.size(),
-                       file_rings.ypos.size(), file_rings.vsys.size(),
-                       file_rings.vrot.size(),file_rings.vdisp.size(),
-                       file_rings.z0.size(),file_rings.dens.size(),
-                       file_rings.inc.size(),file_rings.phi.size()};
+    size_t size[MAXPAR+1] = {file_rings.radii.size(),file_rings.xpos.size(),
+                             file_rings.ypos.size(), file_rings.vsys.size(),
+                             file_rings.vrot.size(),file_rings.vdisp.size(),
+                             file_rings.z0.size(),file_rings.dens.size(),
+                             file_rings.inc.size(),file_rings.phi.size(),
+                             file_rings.vrad.size()};
 
     int max_size=INT_MAX;
-    for (int i=0; i<10; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
+    for (int i=0; i<MAXPAR+1; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
 
     int nr=0;
-    T radsep, xpos, ypos, vsys, vrot, vdisp, z0, dens, inc, pa;
+    T radsep, xpos, ypos, vsys, vrot, vdisp, z0, dens, inc, pa, vrad;
 
     bool toEstimate =  (p->getRADII()=="-1" && (p->getNRADII()==-1 || p->getRADSEP()==-1)) ||
                         p->getXPOS()=="-1" || p->getYPOS()=="-1" || p->getVSYS()=="-1" ||
@@ -180,11 +186,12 @@ Galfit<T>::Galfit(Cube<T> *c) {
         vsys  = p->getVSYS()!="-1" ? atof(p->getVSYS().c_str()) : init_par->vsystem;
         if (distance==-1) distance = VeltoDist(fabs(vsys));
         vrot  = p->getVROT()!="-1" ? atof(p->getVROT().c_str()) : init_par->vrot;
-        vdisp = p->getVDISP()!="-1" ? atof(p->getVDISP().c_str()): 8.;					// default is 8 km/s
+        vdisp = p->getVDISP()!="-1" ? atof(p->getVDISP().c_str()): 8.;// default is 8 km/s
         z0    = p->getZ0()!="-1" ? atof(p->getZ0().c_str()) : 0.15/KpcPerArc(distance);	// default is 150 parsec
         dens  = p->getDENS()!="-1" ? atof(p->getDENS().c_str()) : 1.;
         inc   = p->getINC()!="-1" ? atof(p->getINC().c_str()) : init_par->inclin;
         pa    = p->getPHI()!="-1" ? atof(p->getPHI().c_str()) : init_par->posang;
+        vrad  = p->getVRAD()!="-1" ? atof(p->getVRAD().c_str()) : 0.;
         delete init_par;
     }
     else {
@@ -197,6 +204,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
         vrot  = atof(p->getVROT().c_str());
         vdisp = p->getVDISP()!="-1" ? atof(p->getVDISP().c_str()): 8.;					// default is 8 km/s
         z0    = p->getZ0()!="-1" ? atof(p->getZ0().c_str()) : 0.15/KpcPerArc(distance);	// default is 150 parsec
+        vrad  = p->getVRAD()!="-1" ? atof(p->getVRAD().c_str()) : 0.;
         dens  = p->getDENS()!="-1" ? atof(p->getDENS().c_str()) : 1.;
         inc   = atof(p->getINC().c_str());
         pa    = atof(p->getPHI().c_str());
@@ -240,6 +248,8 @@ Galfit<T>::Galfit(Cube<T> *c) {
         else inr->ypos.push_back(ypos);
         if (vsys_b) inr->vsys.push_back(file_rings.vsys[i]);
         else inr->vsys.push_back(vsys);
+        if (vrad_b) inr->vrad.push_back(file_rings.vrad[i]);
+        else inr->vrad.push_back(vrad);
     }
 	
     setFree();
@@ -276,6 +286,9 @@ Galfit<T>::~Galfit () {
     if (line_imDefined) delete line_im;
 	if (cfieldAllocated) delete [] cfield; 
     if (chan_noiseAllocated) delete [] chan_noise;
+    delete [] mins;
+    delete [] maxs;
+    delete [] mpar;
 }
 template Galfit<float>::~Galfit();
 template Galfit<double>::~Galfit();
@@ -411,7 +424,9 @@ void Galfit<T>::input (Cube<T> *c, Rings<T> *inrings, bool *maskpar, double TOL)
 	if (mins[XPOS]<0)  mins[XPOS] = 0;
 	if (mins[YPOS]<0)  mins[YPOS] = 0;
     if (maxs[VSYS]<mins[VSYS]) std::swap(maxs[VSYS],mins[VSYS]);
-
+	maxs[VRAD]	= 100;
+	mins[VRAD]	= -100;
+        
     if (in->pars().getSM()) {
 		if (!setCfield()) {
             std::cout << "GALFIT warning: can not set an appropriate convolution "
@@ -451,7 +466,8 @@ void Galfit<T>::galfit() {
 			<< setw(m)   << "SIG(E20)"
             << setw(m)   << "XPOS(pix)"
 			<< setw(m)   << "YPOS(pix)"
-			<< setw(m+1) << "VSYS(km/s)";
+			<< setw(m+1) << "VSYS(km/s)"
+            << setw(m+1) << "VRAD(km/s)";
 			
 	if (flagErrors) {		
 		if (mpar[VROT])  fileout << setw(m) << "E_VROT1" << setw(m) << "E_VROT2";
@@ -463,7 +479,8 @@ void Galfit<T>::galfit() {
 		if (mpar[XPOS])  fileout << setw(m) << "E_XPOS1" << setw(m) << "E_XPOS2";
 		if (mpar[YPOS])  fileout << setw(m) << "E_YPOS1" << setw(m) << "E_YPOS2";
 		if (mpar[VSYS])  fileout << setw(m) << "E_VSYS1" << setw(m) << "E_VSYS2";
-	}
+		if (mpar[VRAD])  fileout << setw(m) << "E_VRAD1" << setw(m) << "E_VRAD2";
+    }
 		
 	fileout << endl; 
 	
@@ -494,6 +511,7 @@ void Galfit<T>::galfit() {
 //        if (mpar[XPOS])  for (int ir=0; ir<inr->nr; ir++) outr->xpos[ir]=pmin[k++];
 //        if (mpar[YPOS])  for (int ir=0; ir<inr->nr; ir++) outr->ypos[ir]=pmin[k++];
 //        if (mpar[VSYS])  for (int ir=0; ir<inr->nr; ir++) outr->vsys[ir]=pmin[k++];
+//        if (mpar[VRAD])  for (int ir=0; ir<inr->nr; ir++) outr->vrad[ir]=pmin[k++];
 
 //        for (int ir=0; ir<inr->nr; ir++) {
 //            float radius = ir==0 ?  inr->radsep/4. : inr->radii[ir];
@@ -511,6 +529,7 @@ void Galfit<T>::galfit() {
 //                    << setw(m) << outr->xpos[ir]
 //                    << setw(m) << outr->ypos[ir]
 //                    << setw(m+1) << outr->vsys[ir]
+//                    << setw(m+1) << outr->vrad[ir]
 //                    << endl;
 
 //        }
@@ -565,6 +584,7 @@ void Galfit<T>::galfit() {
                 dring->xpos.push_back(inr->xpos[ir]);
                 dring->ypos.push_back(inr->ypos[ir]);
                 dring->vsys.push_back(inr->vsys[ir]);
+                dring->vrad.push_back(inr->vrad[ir]);
             }
 
             T minimum=0;
@@ -582,139 +602,7 @@ void Galfit<T>::galfit() {
             if (mpar[XPOS])  outr->xpos[ir]=pmin[k++];
             if (mpar[YPOS])  outr->ypos[ir]=pmin[k++];
             if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
-            /*
-        //////// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        long axis[3] = {in->DimX(),in->DimY(),in->DimZ()};
-
-        Model::Galmod<T> *mod = new Model::Galmod<T>;
-        int bhi[2] = {in->DimX(), in->DimY()};
-        int blo[2] = {0,0};
-        int nv;
-        if (in->pars().getNV()==-1) nv=in->DimZ();
-        else nv = in->pars().getNV();
-        int ltype = in->pars().getLTYPE();
-        int cdens = in->pars().getCDENS();
-        for (int ii=0; ii<2; ii++) {
-            dring->vrot[ii]=outr->vrot[ir];
-            dring->vdisp[ii]=outr->vdisp[ir];
-            dring->dens[ii]=outr->dens[ir];
-            dring->z0[ii]=outr->z0[ir];
-            dring->inc[ii]=outr->inc[ir];
-            dring->phi[ii]=outr->phi[ir];
-            dring->xpos[ii]=outr->xpos[ir];
-            dring->ypos[ii]=outr->ypos[ir];
-            dring->vsys[ii]=outr->vsys[ir];
-        }
-
-        mod->input(in,bhi,blo,dring,nv,ltype,1,cdens);
-        mod->calculate();
-        mod->smooth();
-        residuals(dring,mod->Out()->Array(),bhi,blo);
-        std::string mfile = "maremmabucaiola"+to_string(dring->inc.back())+".fits";
-        mod->Out()->Head().setDataMax(0.);
-        mod->Out()->Head().setDataMin(0.);
-        mod->Out()->fitswrite_3d(mfile.c_str());
-
-
-        ///-------------- SCRITTURA DELL'ANELLO CON ANGOLO AZIMUTHALE -------------
-        std::vector<Pixel<T> > *ppix = getRingRegion(dring,bhi,blo);
-        T *ringmap = new T[in->DimX()*in->DimY()];
-        for (int k=in->DimX()*in->DimY(); k--;) ringmap[k]=log(-1);
-        typename std::vector<Pixel<T> >::iterator pix;
-        for(pix=ppix->begin();pix<ppix->end();pix++)
-            ringmap[pix->getX()+pix->getY()*in->DimX()]=pix->getF();
-
-        Image2D<T> *mm = new Image2D<T>(in->AxisDim());
-        mm->saveHead(in->Head());
-        mm->Head().setCrpix(0,in->Head().Crpix(0)-blo[0]);
-        mm->Head().setCrpix(1,in->Head().Crpix(1)-blo[1]);
-        mm->Head().setMinMax(0.,0.);
-        mm->saveParam(in->pars());
-        mm->setImage(ringmap, in->AxisDim());
-        std::string outname = "Ring_"+to_string(ir)+"_"+to_string(outr->inc[ir])
-                                +"_"+to_string(outr->phi[ir])+".fits";
-        mm->fitswrite_2d(outname.c_str());
-        delete mm;
-        /// --------------------------------------------------------------------------
-
-        Cube<T> *cuu = new Cube<T>(axis);
-        mfile = "pluto"+to_string(dring->inc[0])+".txt";
-        std::ofstream outz(mfile.c_str());
-        for (int k=in->NumPix(); k--;) cuu->Array()[k] = 0;
-
-        int numPixels=0, numPix_ring=0;
-        double reszsum=0, resz[in->DimZ()];
-        for (int z=0; z<in->DimZ(); z++) {
-            resz[z]=0;
-            for(int y=0; y<in->DimY(); y++) {
-                for (int x=0; x<in->DimX();x++) {
-                    long npix = in->nPix(x,y,z);
-                    cuu->Array()[npix] = 0;
-                    if (!isNaN(ringmap[x+y*in->DimX()])) {
-                        T model = mod->Out()->Array(npix);
-                        T obs = in->Array(npix)>0 ? in->Array(npix) : in->stat().getSpread();
-                        if (mask[npix]==0 && model==0) continue;
-                        else if (mask[npix]==0 && model!=0) obs = 0;
-                        numPixels++;
-                        resz[z] += fabs(model-obs);
-                        cuu->Array()[cuu->nPix(x,y,z)] = in->Array(npix)*mask[npix];
-                    }
-                }
-            }
-            reszsum += resz[z];
-        }
-
-        for (int z=in->DimZ();z--;) {
-        outz << z+1 << "  "<< setw(10) << setprecision(10) << resz[z]/numPixels << " "
-                 << setw(10) << resz[z] << endl;
-        }
-
-        cout << endl <<setprecision(10)<< reszsum/numPixels <<endl << numPix_ring << " "<<numPixels <<endl;
-        outz.close();
-
-
-        cuu->saveHead(in->Head());
-        cuu->Head().setMinMax(0,0);
-        std::string name = "diocan_"+to_string(dring->inc.back())+".fits";
-        cuu->fitswrite_3d(name.c_str());
-        delete cuu;
-        delete mod;
-        delete ppix;
-        delete [] ringmap;
-
-
-
-
-        if (ir<inr->nr-2) {
-            Model::Galmod<T> *modd = new Model::Galmod<T>;
-            int xdis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(0))*arcconv));
-            int ydis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(1))*arcconv));
-            int blo[2] = {dring->xpos.back()-xdis, dring->ypos.back()-ydis};
-            int bhi[2] = {dring->xpos.back()+xdis, dring->ypos.back()+ydis};
-            if (blo[0]<0) blo[0] = 0;
-            if (blo[1]<0) blo[1] = 0;
-            if (bhi[0]>in->DimX()) bhi[0] = in->DimX();
-            if (bhi[1]>in->DimY()) bhi[1] = in->DimY();
-            int nv;
-            if (in->pars().getNV()==-1) nv=in->DimZ();
-            else nv = in->pars().getNV();
-            int ltype = in->pars().getLTYPE();
-            int cdens = in->pars().getCDENS();
-            modd->input(in,bhi,blo,outr,nv,ltype,1,cdens);
-            modd->calculate();
-            modd->smooth();
-            modd->normalize();
-            std::string mfile = in->Head().Obname()+"temp.fits";
-            modd->Out()->Head().setDataMax(0.);
-            modd->Out()->Head().setDataMin(0.);
-            modd->Out()->fitswrite_3d(mfile.c_str());
-            delete modd;
-        }
-        else remove((in->Head().Obname()+"temp.fits").c_str());
-        */
-
-            /////////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+            if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
 
 
             if (verb) {
@@ -737,6 +625,16 @@ void Galfit<T>::galfit() {
                      << setw(m-1) << outr->vdisp[ir]
                         << left << setw(m) << "  km/s" << endl;
 
+                s = "    Vrad";
+                if (!mpar[VRAD]) s += "(f)";
+                cout << setw(n) << left << s << setw(3) << right << "= "
+                     << setw(m) << outr->vrad[ir] << left << setw(m) << "  km/s";
+                
+                s = "        Vsys";
+                if (!mpar[VSYS]) s += "(f)";
+                cout << setw(n+4) << left << s << setw(3) << right << "= "
+                     << setw(m-1) << outr->vsys[ir] << left << setw(m) << "  km/s" << endl;
+                
                 s = "    Inc";
                 if (!mpar[INC]) s += "(f)";
                 cout << setw(n) << left << s << setw(3) << right << "= "
@@ -747,16 +645,6 @@ void Galfit<T>::galfit() {
                 cout << setw(n+4) << left << s << setw(3) << right << "= "
                      << setw(m-1) << outr->phi[ir] << left << setw(m) << "  deg" << endl;
 
-                s = "    Z0";
-                if (!mpar[Z0]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->z0[ir]*toKpc << left << setw(m) << "  Kpc";
-
-                s = "        Vsys";
-                if (!mpar[VSYS]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->vsys[ir] << left << setw(m) << "  km/s" << endl;
-
                 s = "    Xpos";
                 if (!mpar[XPOS]) s += "(f)";
                 cout << setw(n) << left << s << setw(3) << right << "= "
@@ -765,7 +653,12 @@ void Galfit<T>::galfit() {
                 s = "        Ypos";
                 if (!mpar[YPOS]) s += "(f)";
                 cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->ypos[ir] << left << setw(m) << "  pix";
+                     << setw(m-1) << outr->ypos[ir] << left << setw(m) << "  pix" << endl;
+                
+                s = "    Z0";
+                if (!mpar[Z0]) s += "(f)";
+                cout << setw(n) << left << s << setw(3) << right << "= "
+                     << setw(m) << outr->z0[ir]*toKpc << left << setw(m) << "  Kpc";
 
                 /*
             s = "        CD";----
@@ -1036,7 +929,7 @@ bool Galfit<T>::SecondStage() {
 	mpar[INC] = mpar[PA] = false;
 	mpar[XPOS]= mpar[YPOS] = false;
 	mpar[VSYS]= mpar[Z0] = false;
-    nfree = mpar[VROT]+mpar[VDISP];
+    nfree = mpar[VROT]+mpar[VDISP]+mpar[VRAD];
 
     galfit();
 	
@@ -1234,6 +1127,10 @@ void Galfit<T>::setFree() {
     found = FREE.find("vsys");
     if (found<0) mpar[VSYS]=false;
     else mpar[VSYS]=true;
+    
+    found = FREE.find("vrad");
+    if (found<0) mpar[VRAD]=false;
+    else mpar[VRAD]=true;
 
     found = FREE.find("all");
     if (found>=0)
@@ -1376,4 +1273,5 @@ template void fpolyn(double,double*,int,double&,double*);
 #undef XPOS
 #undef YPOS
 #undef VSYS
+#undef VRAD
 #undef MAXPAR

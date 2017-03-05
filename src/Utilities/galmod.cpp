@@ -522,6 +522,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 	int nur = rings->nr;
 	T *uradii = new T[nur];
 	T *uvrot  = new T[nur];
+	T *uvrad  = new T[nur];
 	T *uvdisp = new T[nur];
 	T *udens  = new T[nur];
 	T *uz0    = new T[nur];
@@ -559,6 +560,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 
 	for (int i=0; i<nur; i++) {
 		uvrot[i]=rings->vrot[i]*1000;
+		uvrad[i]=rings->vrad[i]*1000;
 		
 		uvdisp[i]=rings->vdisp[i]*1000;
 		if (uvdisp[i]<0) {
@@ -592,6 +594,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         r->radii.push_back(r->radsep/2.0);
         while (r->radii.back()<uradii[0]) {
 			r->vrot.push_back(uvrot[0]);
+			r->vrad.push_back(uvrad[0]);
 			r->vdisp.push_back(uvdisp[0]);
 			r->dens.push_back(udens[0]);
 			r->z0.push_back(uz0[0]);
@@ -607,6 +610,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 	for (int i=1; i<nur; i++) {
 		T dur	 	= uradii[i]-uradii[i-1];
 		T dvrotdr	= (uvrot[i]-uvrot[i-1])/dur;
+		T dvraddr	= (uvrad[i]-uvrad[i-1])/dur;
 		T dvdispdr	= (uvdisp[i]-uvdisp[i-1])/dur;
 		T ddensdr	= (udens[i]-udens[i-1])/dur;
 		T dz0dr		= (uz0[i]-uz0[i-1])/dur;
@@ -618,6 +622,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 		while (r->radii.back()<uradii[i]) {
 			T dr = r->radii.back()-uradii[i-1];
             r->vrot.push_back(uvrot[i-1]+dvrotdr*dr);
+            r->vrad.push_back(uvrad[i-1]+dvraddr*dr);
 			r->vdisp.push_back(uvdisp[i-1]+dvdispdr*dr);
 			r->dens.push_back(udens[i-1]+ddensdr*dr);
 			r->z0.push_back(uz0[i-1]+dz0dr*dr);
@@ -638,6 +643,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 	
 	delete [] uradii;
 	delete [] uvrot;
+	delete [] uvrad;
 	delete [] uvdisp;
 	delete [] udens;
 	delete [] uz0;
@@ -692,6 +698,8 @@ void Galmod<T>::galmod() {
 			}
 //			Get values of ir-radius. 			
            	double vrottmp = r->vrot[ir];
+           	double vradtmp = r->vrad[ir];
+            
 			//  The VDISP should be such that VDISP^2 + chwidth^2 / 12 = sig_instr^2 + sig_v^2
             //double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr-(chwidth*chwidth)/12.);
             double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr);
@@ -764,7 +772,7 @@ void Galmod<T>::galmod() {
 //				If outside any of the ranges, jump to next cloud.
 				int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0]; 	
 //            	Get systematic velocity of cloud.
-               	double vsys = vsystmp+vrottmp*caz*sinc;
+               	double vsys = vsystmp+vrottmp*caz*sinc+vradtmp*saz*sinc;
 
 /* ORIGINAL BUILDING PROFILES
 // ==>>			Build velocity profile.
