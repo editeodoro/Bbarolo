@@ -685,7 +685,8 @@ void Galfit<T>::galfit() {
                     << setw(m) << outr->dens[ir]/1E20
                     << setw(m) << outr->xpos[ir]
                     << setw(m) << outr->ypos[ir]
-                    << setw(m+1) << outr->vsys[ir];
+                    << setw(m+1) << outr->vsys[ir]
+                    << setw(m+1) << outr->vrad[ir];;
 
 
             T **errors=allocate_2D<T>(2,nfree);
