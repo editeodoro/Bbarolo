@@ -9,7 +9,7 @@ AC_INIT([BAROLO], [1.0], [enrico.diteodoro@unibo.it])
 ##### ------ Macro that checks for specific modules in python ----- ######
 AC_DEFUN([AC_PYTHON_MODULE],
 [AC_MSG_CHECKING(for module $1 in python)
-echo "import $1" | python -
+echo "import $1" | ${PYTHON} -
 if test $? -ne 0 ; then
 	AC_MSG_RESULT(no)
 	AC_MSG_WARN([
@@ -31,6 +31,9 @@ else
 fi
 ])
 ##########################################################################
+
+
+
 
 AC_CONFIG_AUX_DIR([config])
 
@@ -181,6 +184,7 @@ AC_MSG_NOTICE(LIBDIRS)
 for LIBDIR in $LIBDIRS ; do
   AC_CHECK_FILE([$LIBDIR], [LDFLAGS="$LDFLAGS -L$LIBDIR"], [continue])
 done
+
 
 ##########################################################################
 # Search for CFITSIO.
@@ -461,13 +465,27 @@ AC_SUBST([WCSLIB])
 ##########################################################################
 
 ################### CHECKING FOR PYTHON ##################################
-AC_MSG_NOTICE([  -- PYTHON -- ])
-AC_CHECK_PROG(PYTHON, python, yes,no)
-if test "x$PYTHON" = "xyes"; then
-  AC_SUBST([PYTHON], "-DHAVE_PYTHON")
-else 
-  AC_SUBST([PYTHON], "")
-	AC_MSG_WARN([
+AM_PATH_PYTHON
+AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
+AC_ARG_VAR([PYTHON_LIBS], [Library flags for python, bypassing python-config])
+AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
+AS_IF([test -z "$PYTHON_INCLUDE"], [
+  AS_IF([test -z "$PYTHON_CONFIG"], [
+    AC_PATH_PROGS([PYTHON_CONFIG],
+                  [python$PYTHON_VERSION-config python-config],
+                  [no],
+                  [`dirname $PYTHON`])
+    AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
+  ])
+  AC_MSG_CHECKING([python include flags])
+  PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
+  AC_MSG_RESULT([$PYTHON_INCLUDE])
+  AC_MSG_CHECKING([python lib flags])
+  PYTHON_LIBS=`$PYTHON_CONFIG --ldflags`
+  AC_MSG_RESULT([$PYTHON_LIBS])
+  AC_SUBST([HAVEPYTHON], "-DHAVE_PYTHON")], [
+  AC_SUBST([HAVEPYTHON], "")
+  AC_MSG_WARN([
     -------------------------------------------------------------------
     WARNING: Cannot find python in ordinary PATH. If you have python,
              please permanently add its directory to the PATH variable 
@@ -479,8 +497,8 @@ else
              Then run again ./configure. 
              Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
+  ])
 ])
-fi
 AC_PYTHON_MODULE(matplotlib)
 AC_PYTHON_MODULE(astropy)
 ##########################################################################
@@ -534,7 +552,7 @@ AC_MSG_NOTICE([
       FFTW3 library:     ${FFTW3LIB}
       WCS library:       ${WCSLIB}
       Have Gnuplot:      ${GNUPLOT}
-      Have Python:       ${PYTHON}
+      Have Python:       ${HAVEPYTHON}
 ])
 
 AC_MSG_NOTICE([
