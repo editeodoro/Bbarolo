@@ -575,13 +575,13 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "XTICS   = 'set xtics " << to_string(xtics) << "; set mxtics 2; set format x \"%g\" '" << endl
         << "NOXTICS = 'unset xlabel; set xtics  " << to_string(xtics) << "; set mxtics 2; set format x '' '" << endl
         << "LABELF  = 'set xlabel font \"Helvetica,13\"; "
-        <<			  "set ylabel font \"Helvetica,13\" '" << endl
-        << "TICSF	= 'set xtics font \"Helvetica,12\"; "
-        <<			  "set ytics font \"Helvetica,12\" '" << endl
+        <<            "set ylabel font \"Helvetica,13\" '" << endl
+        << "TICSF   = 'set xtics font \"Helvetica,12\"; "
+        <<            "set ytics font \"Helvetica,12\" '" << endl
         << "TMARGIN = 'set tmargin at screen 0.95; set bmargin at screen 0.47; "
-        << 			  "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
+        <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "MMARGIN = 'set tmargin at screen 0.47; set bmargin at screen 0.27; "
-        << 			  "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
+        <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "BMARGIN = 'set tmargin at screen 0.27; set bmargin at screen 0.10; "
         <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "set multiplot layout 3,1 rowsfirst" << endl;
@@ -634,7 +634,7 @@ void Galfit<T>::plotPar_Gnuplot () {
         gnu << ", '" << outfold << "ringlog2.txt' u 2:5 w lp ls 2";
 
 
-    gnu	<< endl;
+    gnu << endl;
 
     /// Plotting position angle
     maxa = *max_element(&outr->phi[0], &outr->phi[0]+outr->nr);
@@ -669,9 +669,9 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set mxtics 2" << endl
         << "set macros" << endl
         << "TMARGIN = 'set tmargin at screen 0.94; set bmargin at screen 0.66; "
-        << 			  "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
+        <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "MMARGIN = 'set tmargin at screen 0.66; set bmargin at screen 0.38; "
-        << 			  "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
+        <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "BMARGIN = 'set tmargin at screen 0.38; set bmargin at screen 0.10; "
         <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "set multiplot layout 3,1 rowsfirst" << endl;
@@ -701,7 +701,7 @@ void Galfit<T>::plotPar_Gnuplot () {
         }
         else gnu << "u 2:4 w lp ls 2";
     }
-    gnu	<< endl;
+    gnu << endl;
 
 
     // Plotting systemic velocity
@@ -722,7 +722,7 @@ void Galfit<T>::plotPar_Gnuplot () {
 
     if (in->pars().getTwoStage())
         gnu << ", '" << outfold << "ringlog2.txt' u 2:12 w lp ls 2";
-    gnu	<< endl;
+    gnu << endl;
 
 
     // Plotting scale height
@@ -744,7 +744,7 @@ void Galfit<T>::plotPar_Gnuplot () {
 
     if (in->pars().getTwoStage())
         gnu << ", '" << outfold << "ringlog2.txt' u 2:8 w lp ls 2";
-    gnu	<< endl;
+    gnu << endl;
 
     gnu << "unset multiplot" << endl;
 
@@ -773,7 +773,7 @@ void Galfit<T>::plotPar_Gnuplot () {
 
     if (in->pars().getTwoStage())
         gnu << ", '" << outfold << "ringlog2.txt' u 2:10 w lp ls 2";
-    gnu	<< endl;
+    gnu << endl;
 
     // Plotting ycenter
     maxa = *max_element(&outr->ypos[0], &outr->ypos[0]+outr->nr);
@@ -794,7 +794,7 @@ void Galfit<T>::plotPar_Gnuplot () {
 
     if (in->pars().getTwoStage())
         gnu << ", '" << outfold << "ringlog2.txt' u 2:11 w lp ls 2";
-    gnu	<< endl;
+    gnu << endl;
 
 
     if (mpar[DENS]) {
@@ -810,7 +810,7 @@ void Galfit<T>::plotPar_Gnuplot () {
 
         if (in->pars().getTwoStage())
             gnu << ", '" << outfold << "ringlog2.txt' u 2:8 w lp ls 2";
-        gnu	<< endl;
+        gnu << endl;
     }
 
     gnu << "unset multiplot; reset" << endl;
@@ -881,7 +881,7 @@ int Galfit<T>::plotAll_Python() {
     else {
         if (!in->StatsDef()) in->setCubeStats();
         cont = 2.5*in->stat().getSpread();
-		if (in->pars().getFlagUserThreshold()) cont=in->pars().getThreshold();
+        if (in->pars().getFlagUserThreshold()) cont=in->pars().getThreshold();
         std::vector<T> maxv(outr->nr);
         for (int i=0; i<outr->nr; i++) maxv[i]=outr->vrot[i]*sin(outr->inc[i]*M_PI/180.)+outr->vdisp[i];
        //float max_vrot = *max_element(&outr->vrot[0],&outr->vrot[0]+outr->nr);
@@ -932,7 +932,7 @@ int Galfit<T>::plotAll_Python() {
     for (int i=0; i<MAXPAR; i++) {
         if (nc[i]>0) {
             py_file << "err1_l[" << i << "], err1_h[" << i << "] = np.genfromtxt(file1,skip_header=1,usecols=("
-                    << nc[i]-1 << "," << nc[i] << "),unpack=True) \n";
+                    << nc[i] << "," << nc[i]+1 << "),unpack=True) \n";
         }
     }
 
@@ -946,7 +946,7 @@ int Galfit<T>::plotAll_Python() {
     for (int i=0; i<2; i++) {
         if (nc[i]>0) {
             py_file << "\terr2_l[" << i << "], err2_h[" << i << "] = np.genfromtxt(file2,skip_header=1,usecols=("
-                    << nc[i]-1 << "," << nc[i] << "),unpack=True) \n";
+                    << nc[i] << "," << nc[i]+1 << "),unpack=True) \n";
         }
     }
 
@@ -1215,7 +1215,7 @@ int Galfit<T>::plotAll_Python() {
             << std::endl
             << "image_maj.close() \n"
             << "image_min.close() \n";
-	
+    
 
 
     py_file << std::endl << "# Now plotting moment maps \n"
