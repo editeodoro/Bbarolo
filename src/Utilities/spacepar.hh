@@ -114,8 +114,8 @@ Spacepar<T>::Spacepar(Cube<T> *c) : Galfit<T>::Galfit(c) {
     Galfit<T>::mins[XPOS] = 0;
     Galfit<T>::maxs[YPOS] = Galfit<T>::in->DimY()-1;
     Galfit<T>::mins[YPOS] = 0;
-    Galfit<T>::maxs[VRAD] = 1000;
-    Galfit<T>::mins[VRAD] = 0;
+    Galfit<T>::maxs[VRAD] = 10000;
+    Galfit<T>::mins[VRAD] = -10000;
 
     std::string cunit2 = Galfit<T>::in->Head().Cunit(2);
     Galfit<T>::maxs[VSYS] = AlltoVel(Galfit<T>::in->getZphys(Galfit<T>::in->DimZ()-1), Galfit<T>::in->Head());
