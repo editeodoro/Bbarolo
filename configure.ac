@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([BAROLO], [1.0], [enrico.diteodoro@unibo.it])
+AC_INIT([BAROLO], [1.3], [enrico.diteodoro@anu.edu.au])
 #AC_CONFIG_HEADER([src/config.h])
 #AC_PREFIX_DEFAULT(/usr/local)
 

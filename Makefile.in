@@ -129,25 +129,26 @@ linux : $(OBJECTS)
 
 install : 
 	$(INSTALL) -d -m 2755 $(INSTALLDIR)
+	mv $(EXEC-STUB) $(EXEC)
 	$(INSTALL) -m 755 $(EXEC) $(INSTALLDIR)
-	$(RM) $(INSTALLDIR)/$(EXEcC-STUB)
+	$(RM) $(INSTALLDIR)/$(EXEC-STUB)
 	cd $(INSTALLDIR) && $(LN_S) $(EXEC) $(EXEC-STUB)
-	-test ! -f $(LIB) || $(INSTALL) -d -m 2755 $(LIBDIR)
-	-test ! -f $(LIB) || $(INSTALL) -m 644 $(LIB) $(LIBDIR)
-	-test ! -f $(LIB) || cd $(LIBDIR) && $(RM) $(LIB_LN) && $(LN_S) $(LIB) $(LIB_LN)
-	-test ! -f $(LIBSO) || $(INSTALL) -m 755 $(LIBSO) $(LIBDIR) && \
-		if [ "@SHRLN@" != "" ] ; then \
-			cd $(LIBDIR) && $(RM) $(LIBSO_LN) && $(LN_S) $(LIBSO) $(LIBSO_LN); \
-		fi
-	$(INSTALL) -d -m 2755 $(INCDIR)
-	$(INSTALL) -m 644 $(BASE)/*.hh $(INCDIR)
-	$(INSTALL) -m 644 $(BASE)/*.h $(INCDIR)
-	$(INSTALL) -d -m 2755 $(INCDIR)/Arrays
-	$(INSTALL) -m 644 $(ARRAYDIR)/*.hh $(INCDIR)/Arrays
-	$(INSTALL) -d -m 2755 $(INCDIR)/Map
-	$(INSTALL) -m 644 $(MAPDIR)/*.hh $(INCDIR)/Map
-	$(INSTALL) -d -m 2755 $(INCDIR)/Utilities
-	$(INSTALL) -m 644 $(UTILDIR)/*.hh $(INCDIR)/Utilities
+#	-test ! -f $(LIB) || $(INSTALL) -d -m 2755 $(LIBDIR)
+#	-test ! -f $(LIB) || $(INSTALL) -m 644 $(LIB) $(LIBDIR)
+#	-test ! -f $(LIB) || cd $(LIBDIR) && $(RM) $(LIB_LN) && $(LN_S) $(LIB) $(LIB_LN)
+#	-test ! -f $(LIBSO) || $(INSTALL) -m 755 $(LIBSO) $(LIBDIR) && \
+#		if [ "@SHRLN@" != "" ] ; then \
+#			cd $(LIBDIR) && $(RM) $(LIBSO_LN) && $(LN_S) $(LIBSO) $(LIBSO_LN); \
+#		fi
+#	$(INSTALL) -d -m 2755 $(INCDIR)
+#	$(INSTALL) -m 644 $(BASE)/*.hh $(INCDIR)
+#	$(INSTALL) -m 644 $(BASE)/*.h $(INCDIR)
+#	$(INSTALL) -d -m 2755 $(INCDIR)/Arrays
+#	$(INSTALL) -m 644 $(ARRAYDIR)/*.hh $(INCDIR)/Arrays
+#	$(INSTALL) -d -m 2755 $(INCDIR)/Map
+#	$(INSTALL) -m 644 $(MAPDIR)/*.hh $(INCDIR)/Map
+#	$(INSTALL) -d -m 2755 $(INCDIR)/Utilities
+#	$(INSTALL) -m 644 $(UTILDIR)/*.hh $(INCDIR)/Utilities
 
 
 $(OBJECTS) : $(HEADS)
