@@ -1234,9 +1234,9 @@ int Galfit<T>::plotAll_Python() {
             << "\tif 'local_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
             << "\tif 'local_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
             << std::endl
-            << "norm0 = ImageNormalize(np.nanmin(mom0), np.nanmax(mom0), stretch=LinearStretch()) \n"
-            << "norm1 = ImageNormalize(np.nanmin(mom1), np.nanmax(mom1), stretch=LinearStretch()) \n"
-            << "norm2 = ImageNormalize(np.nanmin(mom2), np.nanmax(mom2), stretch=LinearStretch()) \n"
+            << "norm0 = ImageNormalize(vmin=np.nanmin(mom0), vmax=np.nanmax(mom0), stretch=LinearStretch()) \n"
+            << "norm1 = ImageNormalize(vmin=np.nanmin(mom1), vmax=np.nanmax(mom1), stretch=LinearStretch()) \n"
+            << "norm2 = ImageNormalize(vmin=np.nanmin(mom2), vmax=np.nanmax(mom2), stretch=LinearStretch()) \n"
             << "norm = [norm0, norm1, norm2] \n"
             << "cmaps = [matplotlib.cm.jet,matplotlib.cm.jet,matplotlib.cm.jet] \n"
             << "barlab = ['Intensity (" << in->Head().Bunit() <<")', 'V$_\\mathrm{LOS}$ (km/s)', '$\\sigma$ (km/s)'] \n"
