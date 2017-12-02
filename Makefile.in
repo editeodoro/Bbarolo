@@ -1,4 +1,4 @@
-CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized @CFLAGS@
+CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @CFLAGS@
 #CFLAGS = -O0 -g -fbounds-check -Wall -Wextra @CFLAGS@ 
 #CFLAGS = -fast -Wall @CFLAGS@ 
 
@@ -19,8 +19,8 @@ EXEC-STUB = BBarolo
 
 
 AR = ar cq
-LIB = libbarolo-$(V).a
-LIB_LN = libbarolo.a
+LIB = libBBarolo-$(V).a
+LIB_LN = libBBarolo.a
 RANLIB = ranlib
 SHAREDLIB = @SHRLD@
 #SHAREDFLAGS = -shared -Wl,-soname,@SHRLIB@
@@ -58,10 +58,11 @@ STATICLIBS = $(LIBDIR)/libcfitsio.a $(LIBDIR)/libfftw3.a $(LIBDIR)/libwcs.a #$(P
 ARRAYDIR = $(BASE)/Arrays
 MAPDIR = $(BASE)/Map
 UTILDIR = $(BASE)/Utilities
+TASKDIR = $(BASE)/Tasks
+PYBBDIR = $(BASE)/../pyBBarolo
 OBJDIR = $(BASE)/Build
 
-HEADS = $(BASE)/bbarolo.hh \
-  	$(ARRAYDIR)/param.hh\
+HEADS = $(ARRAYDIR)/param.hh\
 	$(ARRAYDIR)/header.hh\
 	$(ARRAYDIR)/cube.hh\
 	$(ARRAYDIR)/image.hh\
@@ -75,16 +76,17 @@ HEADS = $(BASE)/bbarolo.hh \
 	$(UTILDIR)/gnuplot.hh\
 	$(UTILDIR)/progressbar.hh\
 	$(UTILDIR)/lsqfit.hh\
-	$(UTILDIR)/ellprof.hh\
-	$(UTILDIR)/moment.hh\
 	$(UTILDIR)/paramguess.hh\
 	$(UTILDIR)/conv2D.hh\
-	$(UTILDIR)/smooth3D.hh\
-	$(UTILDIR)/galmod.hh\
-	$(UTILDIR)/ringmodel.hh\
-	$(UTILDIR)/galfit.hh\
 	$(UTILDIR)/utils.hh\
-	$(UTILDIR)/converter.hh
+	$(UTILDIR)/converter.hh\
+	$(TASKDIR)/galmod.hh\
+	$(TASKDIR)/ringmodel.hh\
+	$(TASKDIR)/galfit.hh\
+	$(TASKDIR)/smooth3D.hh\
+	$(TASKDIR)/galwind.hh\
+	$(TASKDIR)/ellprof.hh\
+	$(TASKDIR)/moment.hh\
 
 OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/header.o\
@@ -100,6 +102,7 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/conv2D.o\
 	 $(OBJDIR)/smooth3D.o\
 	 $(OBJDIR)/galmod.o\
+	 $(OBJDIR)/galwind.o\
 	 $(OBJDIR)/galfit.o\
 	 $(OBJDIR)/galfit_min.o\
 	 $(OBJDIR)/galfit_errors.o\
@@ -114,14 +117,18 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/interpolation.o\
 	 $(OBJDIR)/converter.o\
 	 $(OBJDIR)/wcsUtils.o\
+	 $(OBJDIR)/BB_interface.o\
 
 bbarolo : build $(OBJECTS)
 	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(LIBS) $(OPT)
 
-lib     : $(OBJECTS)
+lib : build $(OBJECTS)
 	$(AR) $(LIB) $(OBJECTS)
 	$(RANLIB) $(LIB)
 	$(SHAREDLIB) $(CINC) $(LIBS) -o $(LIBSO) $(OBJECTS)
+	rm -rf $(LIBSO_LN) $(LIB_LN)
+	$(LN_S) $(LIBSO) $(LIBSO_LN)
+	$(LN_S) $(LIB) $(LIB_LN)
 #	$(CXX) $(SHAREDFLAGS) -o $(LIBSO) $(OBJECTS)
 
 linux : $(OBJECTS)
@@ -165,6 +172,12 @@ $(OBJDIR)/%.o: $(MAPDIR)/%.cpp
 $(OBJDIR)/%.o: $(UTILDIR)/%.cpp
 	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 
+$(OBJDIR)/%.o: $(TASKDIR)/%.cpp
+	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
+
+$(OBJDIR)/%.o: $(PYBBDIR)/%.cpp
+	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
+    
 .cc.o:
 	$(CXX) -c $< $(CINC) -o $@ $(OPT)
 
@@ -175,12 +188,15 @@ $(OBJDIR)/%.o: $(UTILDIR)/%.cpp
 build: 
 	mkdir -p $(OBJDIR)
 	
-clean : 
-	rm -rf $(OBJDIR) $(LIB) $(LIBSO) && \
+clean : cleanup
+	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
 	cd ./src/GUI && make clean
 
 cleanest: clean
-	rm -rf Makefile autom4te.cache config.log config.status src/config.h $(EXEC)
+	rm -rf Makefile $(EXEC) $(EXEC-STUB)
+
+cleanup:
+	rm -rf autom4te.cache config.log config.status
 
 cleangui:
 	cd ./src/GUI && make clean
@@ -237,3 +253,10 @@ guistaticlinux :
 	make && \
 	cd ../.. &&\
 	$(LINK) -o BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
+    
+pybb : lib
+	mv $(LIB) $(PYBBDIR)
+	mv $(LIBSO) $(PYBBDIR)
+	mv $(LIB_LN) $(PYBBDIR)
+	mv $(LIBSO_LN) $(PYBBDIR)
+

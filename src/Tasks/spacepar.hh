@@ -14,7 +14,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #ifndef SPACEPAR_HH_
@@ -23,7 +23,7 @@
 #include <iostream> 
 #include <cfloat> 
 #include <Arrays/cube.hh>
-#include <Utilities/galfit.hh>
+#include <Tasks/galfit.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/gnuplot.hh>
 #include <Utilities/progressbar.hh>
@@ -121,11 +121,11 @@ Spacepar<T>::Spacepar(Cube<T> *c) : Galfit<T>::Galfit(c) {
     Galfit<T>::maxs[VSYS] = AlltoVel(Galfit<T>::in->getZphys(Galfit<T>::in->DimZ()-1), Galfit<T>::in->Head());
     Galfit<T>::mins[VSYS] = AlltoVel(Galfit<T>::in->getZphys(0), Galfit<T>::in->Head());
     
-    if (Galfit<T>::in->pars().getSM()) {
+    if (Galfit<T>::par.SM) {
         if (!Galfit<T>::setCfield()) {
             std::cout << "GALFIT warning: can not set an appropriate convolution "
                       << "field. Turning off the convolution step.\n";
-            Galfit<T>::in->pars().setSM(false);
+            Galfit<T>::par.SM = false;
         }
     }
 }
@@ -149,7 +149,7 @@ void Spacepar<T>::calculate() {
     std::string filename = "./output/ring.dat";
     std::ofstream file;
     
-    int start_rad = Galfit<T>::in->pars().getStartRad()<Galfit<T>::inr->nr ? Galfit<T>::in->pars().getStartRad() : 0;
+    int start_rad = Galfit<T>::par.STARTRAD<Galfit<T>::inr->nr ? Galfit<T>::par.STARTRAD : 0;
     for (int ir=start_rad; ir<Galfit<T>::inr->nr; ir++) {
         
         file.open(filename.c_str());

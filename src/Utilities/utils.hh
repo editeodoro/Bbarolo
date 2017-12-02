@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #ifndef UTILS_HH_
@@ -49,7 +49,7 @@ template <class Type> void deallocate_3D (Type ***array3d, int xdim, int ydim);
 
 
 /// Functions to calculate statistical parameters.
-///	Defined in "statistics.cpp".
+/// Defined in "statistics.cpp".
 
 template <class T> T absval(T value);
 template <class T> void findMinMax(const T *array, const size_t size, T &min, T &max);
@@ -99,9 +99,9 @@ void checkHome(std::string &s);
 template <class T> double *spline(T *x, T *y, int n, double yp1=1.e91, double ypn=1.e91);
 template <class T> double splint(T *xa, T *ya, T *y2a, int n, T x);
 template <class T> int linear_reg(int num, T *x, T *y, float &m, float &merr, float &b, 
-								  float &berr, float &r, int ilow, int ihigh);
+                                  float &berr, float &r, int ilow, int ihigh);
 template <class T> int linear_reg(int num, std::vector<T> &x, std::vector<T> &y, float *p, 
-								  float *err, float &r, int ilow, int ihigh);
+                                  float *err, float &r, int ilow, int ihigh);
 
 template <class Type> Type func_gauss (Type *x, Type *p, int numpar);
 template <class Type> void derv_gauss (Type *x, Type *p, Type *dyda, int numpar);
@@ -148,12 +148,14 @@ template <class T> T angularSeparation(T &ra1, T &dec1, T &ra2, T &dec2);
 
 
 template <class T> T unifrand(T maxs, T mins) {
-	//srand(time(NULL)); 
-	return (rand()/(double)RAND_MAX)*(maxs-mins)+mins;
+    //srand(time(NULL)); 
+    return (rand()/(double)RAND_MAX)*(maxs-mins)+mins;
 }
 
 template <class T> bool getData (std::vector<std::vector<T> > &allData, std::string file, bool err_verbose=true);
 template <class T> bool getDataColumn (std::vector<T> &data, std::string filestring);
+
+double* getCenterCoordinates(std::string *pos, Header &h);
 
 template <class T> int selectBitpix();
 template <class T> int selectDatatype();

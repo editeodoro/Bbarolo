@@ -4506,10 +4506,10 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
   darwin*)
     { $as_echo "$as_me:${as_lineno-$LINENO}:  Using darwin build option" >&5
 $as_echo "$as_me:  Using darwin build option" >&6;}
-    SHRLIB="libbarolo.$PACKAGE_VERSION.dylib"
+    SHRLIB="libBBarolo.dylib.$PACKAGE_VERSION"
     SHRLD="$SHRLD -dynamiclib -single_module"
     SHRLD="$SHRLD -compatibility_version $PACKAGE_VERSION -current_version $PACKAGE_VERSION"
-    SHRLN=
+    SHRLN="libBBarolo.dylib"
 
     case "$build_cpu" in
     powerpc*)
@@ -4524,9 +4524,9 @@ $as_echo "$as_me:  Using darwin build option with powerpc subcase" >&6;}
     # Covers Linux and Solaris at least.
     { $as_echo "$as_me:${as_lineno-$LINENO}:  Using alternative (linux) build option" >&5
 $as_echo "$as_me:  Using alternative (linux) build option" >&6;}
-    SHRLIB="libbarolo.so.$PACKAGE_VERSION"
+    SHRLIB="libBBarolo.so.$PACKAGE_VERSION"
     SHRLD="$SHRLD -shared -Wl,-soname,$SHRLIB"
-    SHRLN="libbarolo.so"
+    SHRLN="libBBarolo.so"
     ;;
   esac
 

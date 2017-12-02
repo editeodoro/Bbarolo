@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
@@ -50,7 +50,7 @@ namespace PixelInfo
   
   template <class T>
   Voxel<T>& Voxel<T>::operator= (const Voxel<T>& v) {
-	  
+      
     if(this == &v) return *this;
     this->itsX=v.itsX; 
     this->itsY=v.itsY; 
@@ -62,7 +62,7 @@ namespace PixelInfo
  
   template <class T>
   std::ostream& operator<< (std::ostream& theStream, Voxel<T>& vox) {
-	  
+      
   /// A convenient way of printing the coordinate and flux values of
   /// a voxel. They are all printed to a single line (with no
   /// carriage-return), with the flux to precision of 4.
@@ -79,7 +79,7 @@ namespace PixelInfo
 
   template <class T>
   bool operator== (Voxel<T> lhs, Voxel<T> rhs) {
-	  
+      
   /// For two voxels to be equal, all four parameters must be equal.
 
     return (lhs.itsX == rhs.itsX) &&
@@ -91,20 +91,20 @@ namespace PixelInfo
   
   template <class T>
   bool Voxel<T>::match(Voxel<T> other) {
-	  
+      
   /// This function just tests for equality of position. The flux is ignored.
 
-	return (this->itsX == other.itsX) &&
-		   (this->itsY == other.itsY) &&
-		   (this->itsZ == other.itsZ);
+    return (this->itsX == other.itsX) &&
+           (this->itsY == other.itsY) &&
+           (this->itsZ == other.itsZ);
   }
 
   
   template <class T>
   long Voxel<T>::arrayIndex(long *dim) {
-	  
+      
     ///  Return the index value corresponding to the Voxel 
-    ///	 for an array with dimensions given by dim.
+    ///  for an array with dimensions given by dim.
 
     long ind = itsX + dim[0]*itsY + dim[0]*dim[1]*itsZ;
     return ind;
@@ -135,7 +135,7 @@ namespace PixelInfo
   
   template <class T>
   Pixel<T>& Pixel<T>::operator= (const Pixel<T>& p) {
-	  
+      
     if(this == &p) return *this;
     this->itsX=p.itsX; 
     this->itsY=p.itsY; 

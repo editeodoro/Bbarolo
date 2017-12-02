@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #ifndef HEADER_HH_
@@ -37,76 +37,77 @@
 class Header
 {
 public: 
-	Header();											/// Default constructor.
-    virtual ~Header();									/// Default destructor.
-    Header(const Header& h);							/// Copy constructor.
-    Header& operator= (const Header& h);				/// Assignement operator.
+    Header();                                           /// Default constructor.
+    virtual ~Header();                                  /// Default destructor.
+    Header(const Header& h);                            /// Copy constructor.
+    Header& operator= (const Header& h);                /// Assignement operator.
      
     /// Obvious inline functions
     
-    int 	NumAx	() {return numAxes;};
-    int 	Bitpix	() {return bitpix;};
-    long 	*DimAx 	() {return dimAxes;};	
-    long	DimAx (int i) {return dimAxes[i];};
-    double	*Crpix 	() {return crpix;};	
-	double	*Crval 	() {return crval;};
-	double	*Cdelt 	() {return cdelt;};	
-	double	Bmin 	() {return bmin;};
-	double	Bmaj 	() {return bmaj;};
-	double	Bpa	 	() {return bpa;};
-	float 	BeamArea() {return beamArea;};
-	float 	Bzero 	() {return bzero;};
-	float 	Bscale 	() {return bscale;};
-	float	Blank	() {return blank;};
-	float	Epoch	() {return epoch;};
-	double	Freq0	() {return freq0;};
-	double  Crota	() {return crota;};
-	double	DataMax () {return datamax;};
-	double	DataMin () {return datamin;};
-	double	Cdelt 	(int i) {return cdelt[i];};
-    double  Crval 	(int i) {return crval[i];};
-    double  Crpix 	(int i) {return crpix[i];};
-	double	Drval3	() {return drval3;};
-	double	PixScale () {return (fabs(cdelt[0])+fabs(cdelt[1]))/2.;};
+    int     NumAx   () {return numAxes;};
+    int     Bitpix  () {return bitpix;};
+    long    *DimAx  () {return dimAxes;};   
+    long    DimAx (int i) {return dimAxes[i];};
+    double  *Crpix  () {return crpix;}; 
+    double  *Crval  () {return crval;};
+    double  *Cdelt  () {return cdelt;}; 
+    double  Bmin    () {return bmin;};
+    double  Bmaj    () {return bmaj;};
+    double  Bpa     () {return bpa;};
+    float   BeamArea() {return beamArea;};
+    float   Bzero   () {return bzero;};
+    float   Bscale  () {return bscale;};
+    float   Blank   () {return blank;};
+    float   Epoch   () {return epoch;};
+    double  Freq0   () {return freq0;};
+    double  Crota   () {return crota;};
+    double  DataMax () {return datamax;};
+    double  DataMin () {return datamin;};
+    double  Cdelt   (int i) {return cdelt[i];};
+    double  Crval   (int i) {return crval[i];};
+    double  Crpix   (int i) {return crpix[i];};
+    double  Drval3  () {return drval3;};
+    double  PixScale () {return (fabs(cdelt[0])+fabs(cdelt[1]))/2.;};
     struct wcsprm *WCS () {return wcs;};
-        double Wave0 () {return wave0;}
-        double Redshift () {return redshift;}
+    double Wave0 () {return wave0;}
+    double Redshift () {return redshift;}
 
-	std::vector<std::string>& Keys () {std::vector<std::string> &k=keys; return k;};
-	std::string Name () {return object;};
-	std::string Bunit () {return bunit;};
-	std::string Btype () {return btype;};
-	std::string Ctype (int i) {return ctype[i];};
-	std::string Cunit (int i) {return cunit[i];};
-	std::string Dunit3 () {return dunit3;};
-	std::string Obname () {return object;};
-	std::string Telesc () {return telescope;};
-	
-	void	setBitpix (int i) {bitpix = i;};
-	void	setDimAx (int i, long val) {dimAxes[i] = val;};
-	void	setCrpix (int i, float val) {crpix[i] = val;};
-	void	setCrval (int i, float val) {crval[i] = val;};
-	void	setCdelt (int i, float val) {cdelt[i] = val;};
+    std::vector<std::string>& Keys () {std::vector<std::string> &k=keys; return k;};
+    std::string Name () {return object;};
+    std::string Bunit () {return bunit;};
+    std::string Btype () {return btype;};
+    std::string Ctype (int i) {return ctype[i];};
+    std::string* Ctype () {return ctype;};
+    std::string Cunit (int i) {return cunit[i];};
+    std::string Dunit3 () {return dunit3;};
+    std::string Obname () {return object;};
+    std::string Telesc () {return telescope;};
+    
+    void    setBitpix (int i) {bitpix = i;};
+    void    setDimAx (int i, long val) {dimAxes[i] = val;};
+    void    setCrpix (int i, float val) {crpix[i] = val;};
+    void    setCrval (int i, float val) {crval[i] = val;};
+    void    setCdelt (int i, float val) {cdelt[i] = val;};
     void    setDrval3 (double val) {drval3=val;};
     void    setDunit3 (std::string s) {dunit3=s;};
-	void	setBmaj  (float val) {bmaj = val;};
-	void	setBmin  (float val) {bmin = val;};
-	void	setBpa   (float val) {bpa = val;};
-	void	setBzero (float val) {bzero = val;};
-	void	setBscale(float val) {bscale = val;};
-	void	setBlank (float val) {blank = val;};
-	void	setEpoch (float val) {epoch = val;};
-	void	setBunit (std::string ch) {bunit = ch;};
-	void	setDataMax (double val) {datamax=val;};
-	void	setDataMin (double val) {datamin=val;};
-	void	setMinMax (double minn, double maxx) {datamin=minn;datamax=maxx;};
-	void	setFreq0 (double val) {freq0=val;};	
-	void 	setCtype (int i, std::string s) {ctype[i] = s;};
-	void	setCunit (int i, std::string s) {cunit[i] = s;};
-	void	setBtype (std::string s) {btype = s;};
-	void 	setName  (std::string s) {object = s;};
-	void	setTelesc(std::string s) {telescope = s;};
-    void	setPointAllocated (bool b) {pointAllocated=b;};
+    void    setBmaj  (float val) {bmaj = val;};
+    void    setBmin  (float val) {bmin = val;};
+    void    setBpa   (float val) {bpa = val;};
+    void    setBzero (float val) {bzero = val;};
+    void    setBscale(float val) {bscale = val;};
+    void    setBlank (float val) {blank = val;};
+    void    setEpoch (float val) {epoch = val;};
+    void    setBunit (std::string ch) {bunit = ch;};
+    void    setDataMax (double val) {datamax=val;};
+    void    setDataMin (double val) {datamin=val;};
+    void    setMinMax (double minn, double maxx) {datamin=minn;datamax=maxx;};
+    void    setFreq0 (double val) {freq0=val;}; 
+    void    setCtype (int i, std::string s) {ctype[i] = s;};
+    void    setCunit (int i, std::string s) {cunit[i] = s;};
+    void    setBtype (std::string s) {btype = s;};
+    void    setName  (std::string s) {object = s;};
+    void    setTelesc(std::string s) {telescope = s;};
+    void    setPointAllocated (bool b) {pointAllocated=b;};
     void    setWarning (bool b) {warning=b;};
     void    setWave0 (double w) {wave0=w;}
     void    setRedshift (double r) {redshift=r;}
@@ -114,49 +115,49 @@ public:
     void    Warning(std::string s) {if (warning) std::cout << s << std::endl;};
 
 
-	/// Functions defined in header.cpp.
-	
-	void	setNumAx (int n);
-	void	calcArea ();										/// Calculate beam area from bmaj & bmin.
-	bool 	header_read (std::string fname);					/// Read from header of a Fits file.
-	void 	headwrite_3d (fitsfile *fptr, bool fullHead);		/// Write header of a Fits cube.
-	void 	headwrite_2d (fitsfile *fptr, bool fullHead);		///	Write header of a Fits image.
+    /// Functions defined in header.cpp.
+    
+    void    setNumAx (int n);
+    void    calcArea ();                                        /// Calculate beam area from bmaj & bmin.
+    bool    header_read (std::string fname);                    /// Read from header of a Fits file.
+    void    headwrite_3d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits cube.
+    void    headwrite_2d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits image.
 
-	template <class T>											/// Read the request keyword and write on "key".
-	bool read_keyword(std::string keyword, T &key, bool err=false);	
-	
+    template <class T>                                          /// Read the request keyword and write on "key".
+    bool read_keyword(std::string keyword, T &key, bool err=false); 
+    
 private:
-        int	numAxes;				///< Number of axes.
-	int 	bitpix;					///< Image type.
-	long	*dimAxes;				///< Dimensions of axes.
-	double	*crpix;					///< Central pixels.
-	double	*crval;					///< Values of central pixels.
-	double	*cdelt;					///< Delta pixel.
-	double	drval3;					///< Secondary reference value of third axis.
-	bool	pointAllocated;			///< Have been the pointers allocated?
-	double	bmaj;					///< The major main-beam FWHM.
-	double	bmin;					///< The minor main-beam FWHM.
-	double	bpa;					///< The beam position angle.
-	float 	bzero;					///< Bias for real values.
-	float	bscale;					///< Scale for physical values.
-	float	blank;					///< Value for blank pixel.
-	float	beamArea;				///< The area of the beam.
-        float   epoch;					///< Epoch for coordinates.
-	double	freq0;					///< Frequency at rest.
+    int numAxes;                ///< Number of axes.
+    int     bitpix;                 ///< Image type.
+    long    *dimAxes;               ///< Dimensions of axes.
+    double  *crpix;                 ///< Central pixels.
+    double  *crval;                 ///< Values of central pixels.
+    double  *cdelt;                 ///< Delta pixel.
+    double  drval3;                 ///< Secondary reference value of third axis.
+    bool    pointAllocated;         ///< Have been the pointers allocated?
+    double  bmaj;                   ///< The major main-beam FWHM.
+    double  bmin;                   ///< The minor main-beam FWHM.
+    double  bpa;                    ///< The beam position angle.
+    float   bzero;                  ///< Bias for real values.
+    float   bscale;                 ///< Scale for physical values.
+    float   blank;                  ///< Value for blank pixel.
+    float   beamArea;               ///< The area of the beam.
+        float   epoch;                  ///< Epoch for coordinates.
+    double  freq0;                  ///< Frequency at rest.
         double  wave0;                                  ///< Wavelength at rest
-	double	crota;					///< Rotation angle.
-	double	datamin;				///< Minimum pixel value.
-	double  datamax;				///< Maximum data value.
+    double  crota;                  ///< Rotation angle.
+    double  datamin;                ///< Minimum pixel value.
+    double  datamax;                ///< Maximum data value.
         double  redshift;
-	std::string fitsname;			///< The name of the fitsfile.
-	std::string	btype;				///< Beam type.
-	std::string bunit;				///< Units of pixel value.
-	std::string object;				///< The name of the object.
-	std::string *ctype;				///< Type of axis.
-	std::string *cunit;				///< Unity of axis.
-	std::string dunit3;				///< Secondary units of third axis.
-	std::string telescope;			///< Instrument.
-	std::vector<std::string> keys;	///< Whole header as strings.
+    std::string fitsname;           ///< The name of the fitsfile.
+    std::string btype;              ///< Beam type.
+    std::string bunit;              ///< Units of pixel value.
+    std::string object;             ///< The name of the object.
+    std::string *ctype;             ///< Type of axis.
+    std::string *cunit;             ///< Unity of axis.
+    std::string dunit3;             ///< Secondary units of third axis.
+    std::string telescope;          ///< Instrument.
+    std::vector<std::string> keys;  ///< Whole header as strings.
 
         struct wcsprm *wcs;             ///< The WCS parameters in a struct from the wcslib library.
         int    nwcs;                    ///< The number of WCS parameters

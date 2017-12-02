@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
@@ -40,18 +40,18 @@ using namespace PixelInfo;
 
 template <class T>
 void getIntSpec(Detection<T> &object, float *fluxArray, long *dimArray, std::vector<bool> mask, 
-				float beamCorrection, float *spec);
+                float beamCorrection, float *spec);
 
 template <class T>
 void Detection<T>::defaultDetection() {
-	
-	xSubOffset = 0;
-	ySubOffset = 0;
+    
+    xSubOffset = 0;
+    ySubOffset = 0;
     zSubOffset = 0;
     haveParams = false;
     haveMass  = false;
     mass    = 0;
-    SFR		= 0;
+    SFR     = 0;
     totalFlux = 0.;
     peakFlux = 0.;
     intFlux = 0.;
@@ -97,21 +97,21 @@ void Detection<T>::defaultDetection() {
 
 template <class T>
 Detection<T>::Detection(): Object3D<T>() {
-	
+    
     defaultDetection();
 }
 
 
 template <class T>  
 Detection<T>::Detection(const Object3D<T>& o): Object3D<T>(o) {
-	
+    
     defaultDetection();
 }
 
 
 template <class T>  
 Detection<T>::Detection(const Detection<T>& d): Object3D<T>(d) {
-	
+    
     operator=(d);
 }
 
@@ -126,9 +126,9 @@ Detection<T>& Detection<T>::operator= (const Detection<T>& d) {
     this->haveParams   = d.haveParams;
     this->totalFlux    = d.totalFlux;
     this->intFlux      = d.intFlux;
-    this->mass		   = d.mass;
-    this->SFR		   = d.SFR;
-    this->haveMass	   = d.haveMass;
+    this->mass         = d.mass;
+    this->SFR          = d.SFR;
+    this->haveMass     = d.haveMass;
     this->peakFlux     = d.peakFlux;
     this->xpeak        = d.xpeak;
     this->ypeak        = d.ypeak;
@@ -145,7 +145,7 @@ Detection<T>& Detection<T>::operator= (const Detection<T>& d) {
     this->raS          = d.raS;
     this->decS         = d.decS;
     this->ra           = d.ra;
-    this->dec	       = d.dec;
+    this->dec          = d.dec;
     this->raWidth      = d.raWidth;
     this->decWidth     = d.decWidth;
     this->majorAxis    = d.majorAxis;
@@ -178,10 +178,10 @@ Detection<T>& Detection<T>::operator= (const Detection<T>& d) {
 
 template <class T>
 Detection<T> operator+ (Detection<T> &lhs, Detection<T> &rhs) {
-	
+    
     Detection<T> output = lhs;
     for(typename std::map<long, Object2D<T> >::iterator it = rhs.chanlist.begin(); it!=rhs.chanlist.end();it++)
-		output.addChannel(it->first, it->second);
+        output.addChannel(it->first, it->second);
     output.haveParams = false; 
     return output;
 }
@@ -192,7 +192,7 @@ Detection<T> operator+ (Detection<T> &lhs, Detection<T> &rhs) {
 
 template <class T>  
 float Detection<T>::getXcentre() {
-	
+    
     if(centreType=="peak") return xpeak;
     else if(centreType=="average") return this->getXaverage();
     else return xCentroid;
@@ -201,7 +201,7 @@ float Detection<T>::getXcentre() {
 
 template <class T>  
 float Detection<T>::getYcentre() {
-	
+    
     if(centreType=="peak") return ypeak;
     else if(centreType=="average") return this->getYaverage();
     else return yCentroid;
@@ -210,7 +210,7 @@ float Detection<T>::getYcentre() {
 
 template <class T>
 float Detection<T>::getZcentre() {
-	
+    
     if(centreType=="peak") return zpeak;
     else if(centreType=="average") return this->getZaverage();
     else return zCentroid;
@@ -242,13 +242,13 @@ void Detection<T>::addOffsets() {
 
 template <class T>
 void Detection<T>::addPixel(PixelInfo::Voxel<T> point) {
-		
-	Object3D<T>::addPixel(point.getX(),point.getY(),point.getZ());
-	totalFlux += point.getF();
-	if(point.getF()>peakFlux){
-		peakFlux = point.getF();
-		xpeak = point.getX(); ypeak = point.getY(); zpeak = point.getZ();
-	}
+        
+    Object3D<T>::addPixel(point.getX(),point.getY(),point.getZ());
+    totalFlux += point.getF();
+    if(point.getF()>peakFlux){
+        peakFlux = point.getF();
+        xpeak = point.getX(); ypeak = point.getY(); zpeak = point.getZ();
+    }
 }
 
 
@@ -259,20 +259,20 @@ template <class T>
 void Detection<T>::addDetection(Detection<T> &other) {
     
     for(typename std::map<long, Object2D<T> >::iterator it = other.chanlist.begin(); it!=other.chanlist.end();it++)
-		this->addChannel(it->first, it->second);
+        this->addChannel(it->first, it->second);
     haveParams = false;
 }
 
 
 template <class T>
 bool Detection<T>::hasEnoughChannels(int minNumber) {
-	
+    
   /// A function to determine if the Detection has enough contiguous channels 
   /// to meet the minimum requirement given as the argument.
   ///
-  /// \param minNumber 		How many channels is the minimum acceptable number?
-  /// \return 				True if there is at least one occurence of minNumber 
-  ///						consecutive channels present to return true.
+  /// \param minNumber      How many channels is the minimum acceptable number?
+  /// \return               True if there is at least one occurence of minNumber 
+  ///                       consecutive channels present to return true.
 
     // Preferred method -- need a set of minNumber consecutive channels present.
 
@@ -286,7 +286,7 @@ bool Detection<T>::hasEnoughChannels(int minNumber) {
 
 template <class T>
 bool Detection<T>::canMerge(Detection<T> &other, Param &par) {
-	
+    
     bool near = isNear(other, par);
     if(near) return isClose(other, par);
     else return near;
@@ -297,7 +297,7 @@ template <class T>
 bool Detection<T>::isNear(Detection<T> &other, Param &par) {
 
     bool flagAdj = par.getFlagAdjacent();
-	float threshS = par.getThreshS();
+    float threshS = par.getThreshS();
     float threshV = par.getThreshV();
     
     long gap;
@@ -311,14 +311,14 @@ bool Detection<T>::isNear(Detection<T> &other, Param &par) {
     else areNear=(other.xmax>=(this->xmin-gap));
     // Test Y ranges
     if(areNear){
-		if((this->ymin-gap)<other.ymin) areNear=areNear&&((this->ymax+gap)>=other.ymin);
-		else areNear=areNear&&(other.ymax>=(this->ymin-gap));
+        if((this->ymin-gap)<other.ymin) areNear=areNear&&((this->ymax+gap)>=other.ymin);
+        else areNear=areNear&&(other.ymax>=(this->ymin-gap));
     }
     // Test Z ranges
     if(areNear){
-		gap = long(ceil(threshV));
-		if((this->zmin-gap)<other.zmin) areNear=areNear&&((this->zmax+gap)>=other.zmin);
-		else areNear=areNear&&(other.zmax>=(this->zmin-gap));
+        gap = long(ceil(threshV));
+        if((this->zmin-gap)<other.zmin) areNear=areNear&&((this->zmax+gap)>=other.zmin);
+        else areNear=areNear&&(other.zmax>=(this->zmin-gap));
     }
     
     return areNear;
@@ -332,7 +332,7 @@ bool Detection<T>::isClose(Detection<T> &other, Param &par)  {
     bool close = false;   
     
     bool flagAdj = par.getFlagAdjacent();
-	float threshS = par.getThreshS();
+    float threshS = par.getThreshS();
     float threshV = par.getThreshV();
     // 
     // If we get to here, the pixel ranges overlap -- so we do a
@@ -346,16 +346,16 @@ bool Detection<T>::isClose(Detection<T> &other, Param &par)  {
     Scan<T> test1,test2;
 
     for(size_t ct1=0; (!close && (ct1<zlist1.size())); ct1++){
-		for(size_t ct2=0; (!close && (ct2<zlist2.size())); ct2++){
-			if(abs(zlist1[ct1]-zlist2[ct2])<=threshV){
-	      
-				Object2D<T> temp1 = this->getChanMap(zlist1[ct1]);
-				Object2D<T> temp2 = other.getChanMap(zlist2[ct2]);
-				close = temp1.canMerge(temp2,threshS,flagAdj);
+        for(size_t ct2=0; (!close && (ct2<zlist2.size())); ct2++){
+            if(abs(zlist1[ct1]-zlist2[ct2])<=threshV){
+          
+                Object2D<T> temp1 = this->getChanMap(zlist1[ct1]);
+                Object2D<T> temp2 = other.getChanMap(zlist2[ct2]);
+                close = temp1.canMerge(temp2,threshS,flagAdj);
 
-			}
-		}
-	}
+            }
+        }
+    }
        
     return close;
     
@@ -370,7 +370,7 @@ bool Detection<T>::voxelListsMatch(std::vector<Voxel<T> > voxelList) {
   ///  this Detection's pixel list. No testing of the fluxes of the
   ///  Voxels is done.
   /// 
-  ///  \param voxelList 	The std::vector list of Voxels to be tested.
+  ///  \param voxelList     The std::vector list of Voxels to be tested.
 
     bool listsMatch = true;
     listsMatch = listsMatch && (voxelList.size() == this->getSize());
@@ -378,7 +378,7 @@ bool Detection<T>::voxelListsMatch(std::vector<Voxel<T> > voxelList) {
     listsMatch = listsMatch && voxelListCovered(voxelList);
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxelList.begin();vox<voxelList.end();vox++)
-		listsMatch = listsMatch && isInObject(*vox);
+        listsMatch = listsMatch && isInObject(*vox);
     return listsMatch;
 
 }
@@ -392,20 +392,20 @@ bool Detection<T>::voxelListCovered(std::vector<Voxel<T> > voxelList) {
   ///  a 1-1 correspondence: the given list can be a super-set of the
   ///  Detection. No testing of the fluxes of the Voxels is done.
   /// 
-  ///  \param voxelList 	The std::vector list of Voxels to be tested.
+  ///  \param voxelList     The std::vector list of Voxels to be tested.
 
     bool listsMatch = true;
     size_t v1=0;
     std::vector<Voxel<T> > detpixlist = this->getPixelSet();
     while(listsMatch && v1<detpixlist.size()){
-		bool inList = false;
-		size_t v2=0;
-		while(!inList && v2<voxelList.size()){
-			inList = inList || detpixlist[v1].match(voxelList[v2]);
-			v2++;
-		}
-		listsMatch = listsMatch && inList;
-		v1++;
+        bool inList = false;
+        size_t v2=0;
+        while(!inList && v2<voxelList.size()){
+            inList = inList || detpixlist[v1].match(voxelList[v2]);
+            v2++;
+        }
+        listsMatch = listsMatch && inList;
+        v1++;
     }
 
     return listsMatch;
@@ -419,8 +419,8 @@ void Detection<T>::calcFluxes(std::vector<Voxel<T> > voxelList) {
   ///  A function that calculates total & peak fluxes (and 
   ///  the location  of the peak flux) for a Detection.
   /// 
-  ///  \param voxelList 	The list of Voxel to calculate
-  ///   					the flux parameters from.
+  ///  \param voxelList     The list of Voxel to calculate
+  ///                       the flux parameters from.
 
     totalFlux = peakFlux = 0;
     xCentroid = yCentroid = zCentroid = 0.;
@@ -430,36 +430,36 @@ void Detection<T>::calcFluxes(std::vector<Voxel<T> > voxelList) {
       return;
     }
 */
-	
+    
     typename std::vector<Voxel<T> >::iterator vox;
     
     for(vox=voxelList.begin();vox<voxelList.end();vox++) {
-		if(this->isInObject(*vox)){
-			long x = vox->getX();
-			long y = vox->getY();
-			long z = vox->getZ();
-			float f = vox->getF();
-			totalFlux += f;
-			xCentroid += x*f;
-			yCentroid += y*f;
-			zCentroid += z*f;
-			if( (vox==voxelList.begin()) ||
-				(negSource&&(f<peakFlux)) || 
-				(!negSource&&(f>peakFlux)) ) {
-				
-				peakFlux = f;
-				xpeak =    x;
-				ypeak =    y;
-				zpeak =    z;
-			}
-		}
+        if(this->isInObject(*vox)){
+            long x = vox->getX();
+            long y = vox->getY();
+            long z = vox->getZ();
+            float f = vox->getF();
+            totalFlux += f;
+            xCentroid += x*f;
+            yCentroid += y*f;
+            zCentroid += z*f;
+            if( (vox==voxelList.begin()) ||
+                (negSource&&(f<peakFlux)) || 
+                (!negSource&&(f>peakFlux)) ) {
+                
+                peakFlux = f;
+                xpeak =    x;
+                ypeak =    y;
+                zpeak =    z;
+            }
+        }
     }
-	
+    
     xCentroid /= totalFlux;
     yCentroid /= totalFlux;
     zCentroid /= totalFlux;
     
-	haveParams = true;
+    haveParams = true;
 
 }
 
@@ -470,9 +470,9 @@ void Detection<T>::calcFluxes(T *fluxArray, long *dim) {
   /// A function that calculates total & peak fluxes (and the
   /// location of the peak flux) for a Detection.
   /// 
-  /// \param fluxArray 	The array of flux values to 
-  /// 					calculate the flux parameters from.
-  /// \param dim 		The dimensions of the flux array.
+  /// \param fluxArray  The array of flux values to 
+  ///                   calculate the flux parameters from.
+  /// \param dim        The dimensions of the flux array.
 
     totalFlux = peakFlux = 0;
     xCentroid = yCentroid = zCentroid = 0.;
@@ -480,24 +480,24 @@ void Detection<T>::calcFluxes(T *fluxArray, long *dim) {
     std::vector<Voxel<T> > voxList = this->getPixelSet();
     typename std::vector<Voxel<T> >::iterator vox=voxList.begin();
     for(;vox<voxList.end();vox++) {
-		long x=vox->getX();
-		long y=vox->getY();
-		long z=vox->getZ();
-		long ind = vox->arrayIndex(dim);
-		float f = fluxArray[ind];
-		totalFlux += f;
-		xCentroid += x*f;
-		yCentroid += y*f;
-		zCentroid += z*f;
-		if( (vox==voxList.begin()) ||
-			(negSource&&(f<peakFlux)) || 
-			(!negSource&&(f>peakFlux)) ) {
-	  
-			peakFlux = f;
-			xpeak = x;
-			ypeak = y;
-			zpeak = z;
-		}
+        long x=vox->getX();
+        long y=vox->getY();
+        long z=vox->getZ();
+        long ind = vox->arrayIndex(dim);
+        float f = fluxArray[ind];
+        totalFlux += f;
+        xCentroid += x*f;
+        yCentroid += y*f;
+        zCentroid += z*f;
+        if( (vox==voxList.begin()) ||
+            (negSource&&(f<peakFlux)) || 
+            (!negSource&&(f>peakFlux)) ) {
+      
+            peakFlux = f;
+            xpeak = x;
+            ypeak = y;
+            zpeak = z;
+        }
  
     }
 
@@ -528,70 +528,70 @@ void Detection<T>::calcWCSparams(Header &head) {
     ///  \param head FitsHeader object that contains the WCS information.
 
  
-	haveParams = true;
+    haveParams = true;
 
-	std::string cunit = head.Cunit(0);	
-	double arcsconv, degconv;
-	if (cunit=="DEGREE" || cunit=="DEGREES" || cunit=="DEG" ||
-		cunit=="degree" || cunit=="degrees" || cunit=="deg") {
-		degconv  = 1;
-		arcsconv = 3600;
-	}
-	else if (cunit=="ARCSEC" || cunit=="ARCS" ||
-			 cunit=="arcsec" || cunit=="arcs") {
-		degconv  = 1/3600.;
-		arcsconv = 1;
-	}
-	else if (cunit=="ARCMIN" || cunit=="ARCM" ||
-			 cunit=="arcmin" || cunit=="arcm") {
-		degconv  = 1/60.;
-		arcsconv = 60;
-	}
-	else {
-		std::cout << "Error (unknown CUNIT for RA-DEC): ";
-		std::cout << "cannot convert to ARCSEC.\n";
-		std::cout << cunit;
+    std::string cunit = head.Cunit(0);  
+    double arcsconv, degconv;
+    if (cunit=="DEGREE" || cunit=="DEGREES" || cunit=="DEG" ||
+        cunit=="degree" || cunit=="degrees" || cunit=="deg") {
+        degconv  = 1;
+        arcsconv = 3600;
+    }
+    else if (cunit=="ARCSEC" || cunit=="ARCS" ||
+             cunit=="arcsec" || cunit=="arcs") {
+        degconv  = 1/3600.;
+        arcsconv = 1;
+    }
+    else if (cunit=="ARCMIN" || cunit=="ARCM" ||
+             cunit=="arcmin" || cunit=="arcm") {
+        degconv  = 1/60.;
+        arcsconv = 60;
+    }
+    else {
+        std::cout << "Error (unknown CUNIT for RA-DEC): ";
+        std::cout << "cannot convert to ARCSEC.\n";
+        std::cout << cunit;
         std::terminate();
-	}
-	
+    }
+    
     lngtype = head.Ctype(0);
-	lattype = head.Ctype(1);
-	specUnits = head.Ctype(2);
-	fluxUnits = head.Bunit();
-	intFluxUnits = "JY KM/S";
-	ra 	 = (getXcentre()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
-	ra 	*= degconv;
-	dec  = (getYcentre()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
-	dec *= degconv;
-	raS  = decToDMS(ra, lngtype);
-	decS = decToDMS(dec,lattype);
-	float raMin = (this->getXmin()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
-	float raMax = (this->getXmax()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
-	float deMin = (this->getYmin()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
-	float deMax = (this->getYmax()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
-	raMin *= degconv;
-	raMax *= degconv;
-	deMin *= degconv;
-	deMax *= degconv;
-	raWidth   = angularSeparation(raMin,dec,raMax,dec)*arcsconv;
-	decWidth  = angularSeparation(ra,deMin,ra,deMax)*arcsconv;
+    lattype = head.Ctype(1);
+    specUnits = head.Ctype(2);
+    fluxUnits = head.Bunit();
+    intFluxUnits = "JY KM/S";
+    ra   = (getXcentre()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
+    ra  *= degconv;
+    dec  = (getYcentre()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
+    dec *= degconv;
+    raS  = decToDMS(ra, lngtype);
+    decS = decToDMS(dec,lattype);
+    float raMin = (this->getXmin()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
+    float raMax = (this->getXmax()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
+    float deMin = (this->getYmin()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
+    float deMax = (this->getYmax()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
+    raMin *= degconv;
+    raMax *= degconv;
+    deMin *= degconv;
+    deMax *= degconv;
+    raWidth   = angularSeparation(raMin,dec,raMax,dec)*arcsconv;
+    decWidth  = angularSeparation(ra,deMin,ra,deMax)*arcsconv;
 
-	Object2D<T> spatMap = this->getSpatialMap();
-	std::pair<double,double> axes = spatMap.getPrincipleAxes();
-	float PixScale = ((fabs(head.Cdelt(0))+fabs(head.Cdelt(1)))/2.)*arcsconv;
-	majorAxis = std::max(axes.first,axes.second)*PixScale;
-	minorAxis = std::min(axes.first,axes.second)*PixScale;
-	posang = spatMap.getPositionAngle()*180./M_PI;
+    Object2D<T> spatMap = this->getSpatialMap();
+    std::pair<double,double> axes = spatMap.getPrincipleAxes();
+    float PixScale = ((fabs(head.Cdelt(0))+fabs(head.Cdelt(1)))/2.)*arcsconv;
+    majorAxis = std::max(axes.first,axes.second)*PixScale;
+    minorAxis = std::min(axes.first,axes.second)*PixScale;
+    posang = spatMap.getPositionAngle()*180./M_PI;
 
-	vel    = (this->getZcentre()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-    vel	   = AlltoVel(vel, head);
-	velMin = (this->getZmin()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+    vel    = (this->getZcentre()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+    vel    = AlltoVel(vel, head);
+    velMin = (this->getZmin()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
     velMin = AlltoVel(velMin, head);
-	velMax = (this->getZmax()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+    velMax = (this->getZmax()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
     velMax = AlltoVel(velMax, head);
-	velWidth = fabs(velMax-velMin);
+    velWidth = fabs(velMax-velMin);
 
-	flagWCS = true;
+    flagWCS = true;
     
 
 }
@@ -600,7 +600,7 @@ void Detection<T>::calcWCSparams(Header &head) {
 template <class T>
 void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, Header &head) {
    
- 	///  @details
+    ///  @details
     ///  Uses the input WCS to calculate the velocity-integrated flux, 
     ///   putting velocity in units of km/s.
     ///  The fluxes used are taken from the Voxels, rather than an
@@ -619,14 +619,14 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, He
     ///  \param head FitsHeader object that contains the WCS information.
 
     const int border = 1;
-	/*
+    /*
     if(!voxelListCovered(voxelList)){
-     	std::cout << "Voxel list provided does not match";
-      	return;
+        std::cout << "Voxel list provided does not match";
+        return;
     }
-	*/
+    */
    
-	haveParams = true;
+    haveParams = true;
 
     // include one pixel either side in each direction
     long xsize = (this->getXmax()-this->getXmin()+border*2+1);
@@ -639,40 +639,40 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, He
 
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxelList.begin();vox<voxelList.end();vox++){
-		//if(isInObject(*vox)){
-	  		long x = vox->getX();
-	  		long y = vox->getY();
-	  		long z = vox->getZ();
-	  		long pos = (x-this->getXmin()+border)+(y-this->getYmin()+border)*xsize+(z-this->getZmin()+border)*xsize*ysize;
-	  		//localFlux[pos] = vox->getF();
-			localFlux[pos] = Pbcor(*vox,head);
-	  		isObj[pos] = true;
-		//}
+        //if(isInObject(*vox)){
+            long x = vox->getX();
+            long y = vox->getY();
+            long z = vox->getZ();
+            long pos = (x-this->getXmin()+border)+(y-this->getYmin()+border)*xsize+(z-this->getZmin()+border)*xsize*ysize;
+            //localFlux[pos] = vox->getF();
+            localFlux[pos] = Pbcor(*vox,head);
+            isObj[pos] = true;
+        //}
      }
   
     // work out the WCS coords for each pixel
     double *world  = new double[zsize];
     for(int i=0;i<zsize;i++){
-		int zpt = lround(this->getZmin()-border+i);
-		world[i] = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+        int zpt = lround(this->getZmin()-border+i);
+        world[i] = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
         world[i] = AlltoVel(world[i], head);
     }
 
     double integrated = 0.;
     for(int pix=0; pix<xsize*ysize; pix++){ 
-		for(int z=0; z<zsize; z++){
-			int pos = z*xsize*ysize+pix;
-			if(isObj[pos]){ 				
-	   			double deltaVel;
-	   			if(z==0) deltaVel = (world[z+1]-world[z]);
-	   			else if(z==(zsize-1)) deltaVel = (world[z]-world[z-1]);
-	   			else deltaVel = (world[z+1]-world[z-1])/2.;
-	   			integrated += localFlux[pos]*fabs(deltaVel);
-			}
-		}
+        for(int z=0; z<zsize; z++){
+            int pos = z*xsize*ysize+pix;
+            if(isObj[pos]){                 
+                double deltaVel;
+                if(z==0) deltaVel = (world[z+1]-world[z]);
+                else if(z==(zsize-1)) deltaVel = (world[z]-world[z-1]);
+                else deltaVel = (world[z+1]-world[z-1])/2.;
+                integrated += localFlux[pos]*fabs(deltaVel);
+            }
+        }
     }
-      	
-	intFlux = integrated;
+        
+    intFlux = integrated;
 
     delete [] world;
     delete [] localFlux;
@@ -680,7 +680,7 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, He
     calcVelWidths(zdim,voxelList,head);
 
     // correct for the beam size and convert to Jy
-   	intFlux = FluxtoJy(intFlux, head);
+    intFlux = FluxtoJy(intFlux, head);
     
 
 }
@@ -689,7 +689,7 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, He
 template <class T>
 void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head) {
     
-	///  @details
+    ///  @details
     ///  Uses the input WCS to calculate the velocity-integrated flux, 
     ///   putting velocity in units of km/s.
     ///  Integrates over full spatial and velocity range as given 
@@ -705,7 +705,7 @@ void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head) {
     ///  \param dim The dimensions of the flux array.
     ///  \param head FitsHeader object that contains the WCS information.
 
-	haveParams = true;
+    haveParams = true;
 
     // include one pixel either side in each direction
     long xsize = (this->xmax-this->xmin+3);
@@ -715,48 +715,48 @@ void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head) {
     std::vector <bool> isObj(size,false);
     double *localFlux = new double[size];
     for(int i=0;i<size;i++) localFlux[i]=0.;
-      	
-	// work out which pixels are object pixels
+        
+    // work out which pixels are object pixels
     std::vector<Voxel<T> > voxlist = this->getPixelSet();
     for(typename std::vector<Voxel<T> >::iterator v=voxlist.begin();v<voxlist.end();v++){
-		long pos=(v->getX()-this->xmin+1)+(v->getY()-this->ymin+1)*xsize+(v->getZ()-this->zmin+1)*xsize*ysize;
-		Voxel<T> vox(v->getX(), v->getY(), v->getZ(), fluxArray[v->arrayIndex(dim)]);
-		localFlux[pos] = Pbcor(vox, head);
-		//localFlux[pos] = fluxArray[v->arrayIndex(dim)];
-		isObj[pos] = true;
+        long pos=(v->getX()-this->xmin+1)+(v->getY()-this->ymin+1)*xsize+(v->getZ()-this->zmin+1)*xsize*ysize;
+        Voxel<T> vox(v->getX(), v->getY(), v->getZ(), fluxArray[v->arrayIndex(dim)]);
+        localFlux[pos] = Pbcor(vox, head);
+        //localFlux[pos] = fluxArray[v->arrayIndex(dim)];
+        isObj[pos] = true;
     }
 
     // work out the WCS coords for each pixel
     double *world  = new double[zsize];
     for(int z=0;z<zsize;z++){
-	    int zpt = lround(this->zmin-1+z);
-		world[z] = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+        int zpt = lround(this->zmin-1+z);
+        world[z] = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
         world[z] = AlltoVel(world[z], head);
-	}
-	
-	double integrated = 0.;
+    }
+    
+    double integrated = 0.;
     for(int pix=0; pix<xsize*ysize; pix++){ // loop over each spatial pixel.
-		for(int z=0; z<zsize; z++){
-	  		int pos = z*xsize*ysize+pix;
-	  		if(isObj[pos]){ // if it's an object pixel...
-	    		double deltaVel;
-	    		if(z==0) deltaVel = (world[z+1]-world[z]);
-	   			else if(z==(zsize-1)) deltaVel = (world[z]-world[z-1]);
-	   			else deltaVel = (world[z+1]-world[z-1])/2.;
-	    		integrated += localFlux[pos]*fabs(deltaVel);
-	  		}
-		}
-	}
+        for(int z=0; z<zsize; z++){
+            int pos = z*xsize*ysize+pix;
+            if(isObj[pos]){ // if it's an object pixel...
+                double deltaVel;
+                if(z==0) deltaVel = (world[z+1]-world[z]);
+                else if(z==(zsize-1)) deltaVel = (world[z]-world[z-1]);
+                else deltaVel = (world[z+1]-world[z-1])/2.;
+                integrated += localFlux[pos]*fabs(deltaVel);
+            }
+        }
+    }
     intFlux = integrated;
 
     delete [] world;
     delete [] localFlux;
-	
+    
     calcVelWidths(fluxArray, dim, head);
 
     // correct for the beam size and convert to Jy
-   	intFlux = FluxtoJy(intFlux, head);
-	
+    intFlux = FluxtoJy(intFlux, head);
+    
 }
   //--------------------------------------------------------------------
 
@@ -780,13 +780,13 @@ void Detection<T>::calcVelWidths(long zdim, std::vector<Voxel<T> > voxelList, He
      
     //Object2D spatMap = getSpatialMap();
     //for(int s=0;s<spatMap.getNumScan();s++){
-    	typename std::vector<Voxel<T> >::iterator vox;
-      	for(vox=voxelList.begin();vox<voxelList.end();vox++){
-			//if(spatMap.isInObject(*vox)){
-				double flux = Pbcor(*vox,head);
-	  			intSpec[vox->getZ()] += flux;
-			//}
-      	}
+        typename std::vector<Voxel<T> >::iterator vox;
+        for(vox=voxelList.begin();vox<voxelList.end();vox++){
+            //if(spatMap.isInObject(*vox)){
+                double flux = Pbcor(*vox,head);
+                intSpec[vox->getZ()] += flux;
+            //}
+        }
     //}
     
     calcVelWidths(zdim, intSpec, head);
@@ -814,10 +814,10 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     float peak=0.;
     int peakLoc=0;
     for(int z=this->getZmin();z<=this->getZmax();z++) {
-      	if(z==0 || peak<intSpec[z]){
-			peak = intSpec[z];
-			peakLoc = z;
-      	}
+        if(z==0 || peak<intSpec[z]){
+            peak = intSpec[z];
+            peakLoc = z;
+        }
     }
     
     goLeft = intSpec[z]>peak*0.5;
@@ -825,9 +825,9 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else       while(z<peakLoc && intSpec[z]<peak*0.5) z++;
     if(z==0) v50min = velMin;
     else {
-      	if (goLeft) zpt = z+(peak*0.5-intSpec[z])/(intSpec[z+1]-intSpec[z]);
-      	else        zpt = z-(peak*0.5-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-      	v50min = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+        if (goLeft) zpt = z+(peak*0.5-intSpec[z])/(intSpec[z+1]-intSpec[z]);
+        else        zpt = z-(peak*0.5-intSpec[z])/(intSpec[z-1]-intSpec[z]);
+        v50min = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
         v50min = AlltoVel(v50min, head);
     }
 
@@ -837,9 +837,9 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else       while(z<zdim    && intSpec[z]>peak*0.5) z++;
     if(z==zdim) v50max = velMax;
     else{
-      	if(goLeft) zpt = z+(peak*0.5-intSpec[z])/(intSpec[z+1]-intSpec[z]);
-      	else       zpt = z-(peak*0.5-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-      	v50max = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+        if(goLeft) zpt = z+(peak*0.5-intSpec[z])/(intSpec[z+1]-intSpec[z]);
+        else       zpt = z-(peak*0.5-intSpec[z])/(intSpec[z-1]-intSpec[z]);
+        v50max = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
         v50max = AlltoVel(v50max, head);
     }
 
@@ -849,9 +849,9 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else       while(z<peakLoc && intSpec[z]<peak*0.2) z++;
     if(z==0) v20min = velMin;
     else{
-      	if(goLeft) zpt = z+(peak*0.2-intSpec[z])/(intSpec[z+1]-intSpec[z]);
-      	else       zpt = z-(peak*0.2-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-      	v20min = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+        if(goLeft) zpt = z+(peak*0.2-intSpec[z])/(intSpec[z+1]-intSpec[z]);
+        else       zpt = z-(peak*0.2-intSpec[z])/(intSpec[z-1]-intSpec[z]);
+        v20min = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
         v20min = AlltoVel(v20min, head);
     }
 
@@ -861,17 +861,17 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else       while(z<zdim    && intSpec[z]>peak*0.2) z++;
     if(z==zdim) v20max = velMax;
     else{
-      	if(goLeft) zpt = z+(peak*0.2-intSpec[z])/(intSpec[z+1]-intSpec[z]);
-      	else       zpt = z-(peak*0.2-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-      	v20max = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
+        if(goLeft) zpt = z+(peak*0.2-intSpec[z])/(intSpec[z+1]-intSpec[z]);
+        else       zpt = z-(peak*0.2-intSpec[z])/(intSpec[z-1]-intSpec[z]);
+        v20max = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
         v20max = AlltoVel(v20max, head);
     }
 
     w20 = fabs(v20min-v20max);
     w50 = fabs(v50min-v50max);
     float Vsys_20 = (v20max+v20min)/2.;
-	float Vsys_50 = (v50max+v50min)/2.;
-	vsys = (Vsys_20+Vsys_50)/2.;
+    float Vsys_50 = (v50max+v50min)/2.;
+    vsys = (Vsys_20+Vsys_50)/2.;
 
 
 }
@@ -894,24 +894,24 @@ void Detection<T>::calcVelWidths(T *fluxArray, long *dim, Header &head) {
 
     if(dim[2]>2){
 
-		float *intSpec = new float[dim[2]];
-		long size=dim[0]*dim[1]*dim[2];
-		std::vector<bool> mask(size,true); 
-		getIntSpec(*this,fluxArray,dim,mask,1.,intSpec);
-	
-		calcVelWidths(dim[2],intSpec,head);
+        float *intSpec = new float[dim[2]];
+        long size=dim[0]*dim[1]*dim[2];
+        std::vector<bool> mask(size,true); 
+        getIntSpec(*this,fluxArray,dim,mask,1.,intSpec);
+    
+        calcVelWidths(dim[2],intSpec,head);
 
-		delete [] intSpec;
+        delete [] intSpec;
 
     }
     else{
-		v50min = v20min = velMin;
-		v50max = v20max = velMax;
-		w20 = fabs(v20min-v20max);
-		w50 = fabs(v50min-v50max);
-		float Vsys_20 = (v20max+v20min)/2.;
-		float Vsys_50 = (v50max+v50min)/2.;
-		vsys = (Vsys_20+Vsys_50)/2.;
+        v50min = v20min = velMin;
+        v50max = v20max = velMax;
+        w20 = fabs(v20min-v20max);
+        w50 = fabs(v50min-v50max);
+        float Vsys_20 = (v20max+v20min)/2.;
+        float Vsys_50 = (v50max+v50min)/2.;
+        vsys = (Vsys_20+Vsys_50)/2.;
     }
 
 
@@ -945,35 +945,35 @@ std::vector<int> Detection<T>::getVertexSet() {
     std::vector<bool> isObj(xsize*ysize,false);
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxlist.begin();vox<voxlist.end();vox++){
-		int pos = (vox->getX()-xmin)+(vox->getY()-ymin)*xsize;
-		isObj[pos] = true;
+        int pos = (vox->getX()-xmin)+(vox->getY()-ymin)*xsize;
+        isObj[pos] = true;
     }
     voxlist.clear();
     
     for(int x=xmin; x<=xmax; x++){
-   		for(int y=ymin+1;y<=ymax;y++){
-			int current  = (y-ymin)*xsize + x-xmin;
-			int previous = (y-ymin-1)*xsize + x-xmin;
-			if((isObj[current]&&!isObj[previous])||(!isObj[current]&&isObj[previous])){
-				vertexSet.push_back(x);
-				vertexSet.push_back(y);
-				vertexSet.push_back(x+1);
-				vertexSet.push_back(y);
-			}
-		}
+        for(int y=ymin+1;y<=ymax;y++){
+            int current  = (y-ymin)*xsize + x-xmin;
+            int previous = (y-ymin-1)*xsize + x-xmin;
+            if((isObj[current]&&!isObj[previous])||(!isObj[current]&&isObj[previous])){
+                vertexSet.push_back(x);
+                vertexSet.push_back(y);
+                vertexSet.push_back(x+1);
+                vertexSet.push_back(y);
+            }
+        }
     }
     
     for(int y=ymin; y<=ymax; y++){
-		for(int x=xmin+1;x<=xmax;x++){
-			int current  = (y-ymin)*xsize + x-xmin;
-			int previous = (y-ymin)*xsize + x-xmin - 1;
-			if((isObj[current]&&!isObj[previous])||(!isObj[current]&&isObj[previous])){
-				vertexSet.push_back(x);
-				vertexSet.push_back(y);
-				vertexSet.push_back(x);
-				vertexSet.push_back(y+1);
-			}
-		}
+        for(int x=xmin+1;x<=xmax;x++){
+            int current  = (y-ymin)*xsize + x-xmin;
+            int previous = (y-ymin)*xsize + x-xmin - 1;
+            if((isObj[current]&&!isObj[previous])||(!isObj[current]&&isObj[previous])){
+                vertexSet.push_back(x);
+                vertexSet.push_back(y);
+                vertexSet.push_back(x);
+                vertexSet.push_back(y+1);
+            }
+        }
     }
 
     return vertexSet;
@@ -983,8 +983,8 @@ std::vector<int> Detection<T>::getVertexSet() {
 
 template <class T> 
 void getIntSpec(Detection<T> &object, float *fluxArray, long *dimArray, std::vector<bool> mask, 
-				float beamCorrection, float *spec) {
-					
+                float beamCorrection, float *spec) {
+                    
     /// @details
     ///  The base function that extracts an integrated spectrum for a
     ///  given object from a pixel array. The spectrum is returned as
@@ -1005,15 +1005,15 @@ void getIntSpec(Detection<T> &object, float *fluxArray, long *dimArray, std::vec
     std::vector<Voxel<T> > voxlist = object.getPixelSet();
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxlist.begin();vox<voxlist.end();vox++){
-		long pos = vox->getX()+dimArray[0]*vox->getY();
-		if(!done[pos]){
-			done[pos] = true;
-			for(int z=0;z<dimArray[2];z++){
-				if(mask[pos+z*xySize]){
-					spec[z] += fluxArray[pos + z*xySize] / beamCorrection;
-				}	    
-			}
-		}
+        long pos = vox->getX()+dimArray[0]*vox->getY();
+        if(!done[pos]){
+            done[pos] = true;
+            for(int z=0;z<dimArray[2];z++){
+                if(mask[pos+z*xySize]){
+                    spec[z] += fluxArray[pos + z*xySize] / beamCorrection;
+                }       
+            }
+        }
     }
     delete [] done;
 

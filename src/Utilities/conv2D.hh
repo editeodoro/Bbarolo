@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #ifndef CONV2D_HH
@@ -33,32 +33,32 @@ int find_closest_factor(int n, int *implem_fact);
 
 typedef enum
 {
-	LINEAR_FULL,
-	LINEAR_SAME_UNPADDED,
-	LINEAR_SAME,
-	LINEAR_VALID,
-	CIRCULAR_SAME,
-	CIRCULAR_SAME_SHIFTED,
-	CIRCULAR_CUSTOM
+    LINEAR_FULL,
+    LINEAR_SAME_UNPADDED,
+    LINEAR_SAME,
+    LINEAR_VALID,
+    CIRCULAR_SAME,
+    CIRCULAR_SAME_SHIFTED,
+    CIRCULAR_CUSTOM
 } CONV_MODE;
 
 
 struct Conv2D
 {
-	double	*in_src;			
-	double	*out_src;
-	double	*in_ker;
-	double	*out_ker;
-	int 	h_src, w_src;
-	int		h_ker, w_ker;
-	double	*dst_fft;
-	double	*dst; 						// The array containing the result.
-	int 	h_dst, w_dst; 				// Height and width of output array. 
-	int 	w_fftw, h_fftw;
-	CONV_MODE mode;
-	fftw_plan p_forw_src;
-	fftw_plan p_forw_ker;
-	fftw_plan p_back;
+    double  *in_src;            
+    double  *out_src;
+    double  *in_ker;
+    double  *out_ker;
+    int     h_src, w_src;
+    int     h_ker, w_ker;
+    double  *dst_fft;
+    double  *dst;                       // The array containing the result.
+    int     h_dst, w_dst;               // Height and width of output array. 
+    int     w_fftw, h_fftw;
+    CONV_MODE mode;
+    fftw_plan p_forw_src;
+    fftw_plan p_forw_ker;
+    fftw_plan p_back;
 };
 
 void init_Conv2D (Conv2D &ws, CONV_MODE mode, int w_src, int h_src, int w_kernel, int h_kernel);

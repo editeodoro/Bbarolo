@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
@@ -34,7 +34,7 @@
 #include <Arrays/header.hh>
 
 Header::Header () {
-	
+    
     bitpix = FLOAT_IMG;
     numAxes = bmaj = bmin = bpa = beamArea = freq0 = 0.;
     wave0 = redshift = -1;
@@ -51,16 +51,16 @@ Header::Header () {
 
 
 Header::~Header () {
-	
-	if (pointAllocated) {
-		delete [] dimAxes;				
-		delete [] crpix;					
-		delete [] crval;					
-		delete [] cdelt;
-		delete [] ctype;
-		delete [] cunit;
-	}
-	
+    
+    if (pointAllocated) {
+        delete [] dimAxes;              
+        delete [] crpix;                    
+        delete [] crval;                    
+        delete [] cdelt;
+        delete [] ctype;
+        delete [] cunit;
+    }
+    
     keys.clear();
     wcsvfree(&nwcs,&wcs);
 }
@@ -73,61 +73,61 @@ Header::Header(const Header& h) {
 
 
 Header& Header::operator=(const Header& h) {
-	
+    
     if(this == &h) return *this;
-	this->numAxes = h.numAxes;
-	this->bitpix  = h.bitpix;
+    this->numAxes = h.numAxes;
+    this->bitpix  = h.bitpix;
 
-	if (pointAllocated) {
-		delete [] this->dimAxes;
-		delete [] this->crpix;
-		delete [] this->crval;
-		delete [] this->cdelt;
-		delete [] this->ctype;
-		delete [] this->cunit;
-	}
-	
-	this->pointAllocated = h.pointAllocated;
-	if(this->pointAllocated) {
-		this->dimAxes = new long[numAxes];
-		this->crpix	= new double[numAxes];
-		this->crval	= new double[numAxes];
-		this->cdelt	= new double[numAxes];
-		this->cunit = new std::string[numAxes];
-		this->ctype = new std::string[numAxes];
-		for (int i=0; i<numAxes; i++) {
-			this->dimAxes[i] = h.dimAxes[i];
-			this->crpix[i] = h.crpix[i];
-			this->crval[i] = h.crval[i];
-			this->cdelt[i] = h.cdelt[i];
-			this->ctype[i] = h.ctype[i];
-			this->cunit[i] = h.cunit[i];
-		}
-	}	
+    if (pointAllocated) {
+        delete [] this->dimAxes;
+        delete [] this->crpix;
+        delete [] this->crval;
+        delete [] this->cdelt;
+        delete [] this->ctype;
+        delete [] this->cunit;
+    }
+    
+    this->pointAllocated = h.pointAllocated;
+    if(this->pointAllocated) {
+        this->dimAxes = new long[numAxes];
+        this->crpix = new double[numAxes];
+        this->crval = new double[numAxes];
+        this->cdelt = new double[numAxes];
+        this->cunit = new std::string[numAxes];
+        this->ctype = new std::string[numAxes];
+        for (int i=0; i<numAxes; i++) {
+            this->dimAxes[i] = h.dimAxes[i];
+            this->crpix[i] = h.crpix[i];
+            this->crval[i] = h.crval[i];
+            this->cdelt[i] = h.cdelt[i];
+            this->ctype[i] = h.ctype[i];
+            this->cunit[i] = h.cunit[i];
+        }
+    }   
 
-	this->bmaj		= h.bmaj;
-	this->bmin		= h.bmin;
-	this->bpa		= h.bpa;
-	this->bzero		= h.bzero;
-	this->bscale	= h.bscale;
-	this->blank		= h.blank;
-	this->beamArea	= h.beamArea;
-	this->epoch		= h.epoch;
-	this->freq0		= h.freq0;
-    this->wave0		= h.wave0;
-    this->redshift	= h.redshift;
-	this->fitsname 	= h.fitsname;
-	this->bunit		= h.bunit;	
-	this->btype		= h.btype;
-	this->object 	= h.object;
-	this->telescope = h.telescope;
-	this->dunit3	= h.dunit3;
-	this->drval3	= h.drval3;
-	this->datamin	= h.datamin;
-	this->datamax	= h.datamax;
+    this->bmaj      = h.bmaj;
+    this->bmin      = h.bmin;
+    this->bpa       = h.bpa;
+    this->bzero     = h.bzero;
+    this->bscale    = h.bscale;
+    this->blank     = h.blank;
+    this->beamArea  = h.beamArea;
+    this->epoch     = h.epoch;
+    this->freq0     = h.freq0;
+    this->wave0     = h.wave0;
+    this->redshift  = h.redshift;
+    this->fitsname  = h.fitsname;
+    this->bunit     = h.bunit;  
+    this->btype     = h.btype;
+    this->object    = h.object;
+    this->telescope = h.telescope;
+    this->dunit3    = h.dunit3;
+    this->drval3    = h.drval3;
+    this->datamin   = h.datamin;
+    this->datamax   = h.datamax;
     this->warning   = h.warning;
-	
-
+    
+//    this->wcs = h.wcs;
     this->wcs = new struct wcsprm;
     this->wcs->flag = -1;
     wcsini(true, h.wcs->naxis, this->wcs);
@@ -137,10 +137,10 @@ Header& Header::operator=(const Header& h) {
     this->wcsIsGood = h.wcsIsGood;
 
     for (unsigned int i=0; i<h.keys.size(); i++)
-		this->keys.push_back(h.keys[i]); 
-			
-	calcArea();
-	
+        this->keys.push_back(h.keys[i]); 
+            
+    calcArea();
+    
     return *this;
 
 }
@@ -156,34 +156,34 @@ void Header::setNumAx (int size){
         delete [] cunit;
         delete [] ctype;
     }
-	numAxes = size;
-	dimAxes = new long[numAxes];
-	crpix	= new double[numAxes];
-	crval	= new double[numAxes];
-	cdelt	= new double[numAxes];
-	cunit 	= new std::string[numAxes];
-	ctype 	= new std::string[numAxes];
-	pointAllocated = true;
+    numAxes = size;
+    dimAxes = new long[numAxes];
+    crpix   = new double[numAxes];
+    crval   = new double[numAxes];
+    cdelt   = new double[numAxes];
+    cunit   = new std::string[numAxes];
+    ctype   = new std::string[numAxes];
+    pointAllocated = true;
 
 }
 
 
 void Header::calcArea () {
-	
-	float AvPixScale = (fabs(cdelt[0])+fabs(cdelt[1]))/2.;
-	float scalbmaj = bmaj/AvPixScale;
-	float scalbmin = bmin/AvPixScale;
-	beamArea =  M_PI * (scalbmaj/2.) * (scalbmin/2.) / M_LN2;
+    
+    float AvPixScale = (fabs(cdelt[0])+fabs(cdelt[1]))/2.;
+    float scalbmaj = bmaj/AvPixScale;
+    float scalbmin = bmin/AvPixScale;
+    beamArea =  M_PI * (scalbmaj/2.) * (scalbmin/2.) / M_LN2;
 
 }
 
 
 bool Header::header_read (std::string fname) {
-		
-	fitsfile *fptr;									
-	int status=0, nfound;
-	char comment[72];
-	
+        
+    fitsfile *fptr;                                 
+    int status=0, nfound;
+    char comment[72];
+    
 
     fitsname = fname;
     char filename[100];
@@ -193,13 +193,13 @@ bool Header::header_read (std::string fname) {
         fits_report_error(stderr, status);
         return false;
     }
-	
+    
     status=0;
     if (fits_get_img_type(fptr, &bitpix, &status)) {
         fits_report_error(stderr, status);
         bitpix = FLOAT_IMG;
     }
-		
+        
     status=0;
     if (fits_get_img_dim(fptr, &numAxes, &status))
         fits_report_error(stderr, status);
@@ -213,7 +213,7 @@ bool Header::header_read (std::string fname) {
         cunit = new std::string[numAxes];
     }
     pointAllocated=true;
-	
+    
     status = 0;
     if(fits_get_img_size(fptr, numAxes, dimAxes, &status)){
       fits_report_error(stderr, status);
@@ -231,19 +231,19 @@ bool Header::header_read (std::string fname) {
         fits_read_record(fptr,i,Keys,&status);
         keys.push_back(Keys);
     }
-	
+    
     status=0;
     fits_read_keys_dbl (fptr, "CDELT", 1, numAxes, cdelt, &nfound, &status);
     if (nfound==0) fits_report_error(stderr, status);
-	
+    
     status=0;
     fits_read_keys_dbl (fptr, "CRPIX", 1, numAxes, crpix, &nfound, &status);
     if (nfound==0) fits_report_error(stderr, status);
-	
+    
     status=0;
     fits_read_keys_dbl (fptr, "CRVAL", 1, numAxes, crval, &nfound, &status);
     if (nfound==0) fits_report_error(stderr, status);
-		
+        
     status=0;
     if (fits_read_key_dbl (fptr, "DRVAL3", &drval3, comment, &status)) {
         if (status!=202) fits_report_error(stderr, status);
@@ -260,7 +260,7 @@ bool Header::header_read (std::string fname) {
     status=0;
     fits_read_keys_str (fptr, "CTYPE", 1, numAxes, Ctype, &nfound, &status);
     if (nfound==0) {
-        Warning("Error reading header (CTYPEs). Assuming [RA,DEC,VELO].");
+        Warning("HEADER WARNING: CTYPEs keywords not found. Assuming [RA,DEC,VELO].");
         if (numAxes>0) ctype[0] = "RA---NCP";
         if (numAxes>1) ctype[1] = "DEC--NCP";
         if (numAxes>2) ctype[2] = "VELO-HELO";
@@ -281,11 +281,11 @@ bool Header::header_read (std::string fname) {
         if (numAxes>2) {
             if (ctype[2]=="FREQ" || ctype[2]=="freq" || ctype[2]=="Freq") {
                 cunit[2] = "HZ";
-                Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,HZ]");
+                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [DEGREE,DEGREE,HZ]");
             }
             else {
                 cunit[2] = "M/S";
-                Warning("Error reading header (CUNITs). Assuming [DEGREE,DEGREE,M/S]");
+                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [DEGREE,DEGREE,M/S]");
             }
         }
     }
@@ -312,18 +312,18 @@ bool Header::header_read (std::string fname) {
     status=0;
     if (fits_read_key_str (fptr, "BUNIT", Bunit, comment, &status)) {
         if (status==202)
-            Warning("Error reading header (BUNIT): keyword not found.");
+            Warning("HEADER WARNING: BUNIT keyword not found.");
         else fits_report_error(stderr, status);
         bunit = "NONE";
     }
     else bunit = Bunit;
-	
+    
     status=0;
     if (fits_read_key_str (fptr, "BTYPE", Btype, comment, &status)) {
         btype = "NONE";
     }
     else btype = Btype;
-	
+    
     status=0;
     if (fits_read_key_flt (fptr, "BZERO", &bzero, comment, &status)) {
         bzero = 0;
@@ -333,18 +333,18 @@ bool Header::header_read (std::string fname) {
     if (fits_read_key_flt (fptr, "BSCALE", &bscale, comment, &status)) {
         bscale = 1;
     }
-	
+    
     status=0;
     if (fits_read_key_flt (fptr, "BLANK", &blank, comment, &status)) {
         blank = 0;
     }
-	
+    
     status=0;
     if (fits_read_key_flt (fptr, "EPOCH", &epoch, comment, &status)) {
         if (fits_read_key_flt (fptr, "EQUINOX", &epoch, comment, &status))
         epoch = 0;
     }
-	
+    
     status=0;
     if (fits_read_key_dbl (fptr, "DATAMIN", &datamin, comment, &status)) {
         datamin = 0;
@@ -354,7 +354,7 @@ bool Header::header_read (std::string fname) {
     if (fits_read_key_dbl (fptr, "DATAMAX", &datamax, comment, &status)) {
         datamax = 0;
     }
-	
+    
     status=0;
     if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
         status=0;
@@ -365,7 +365,7 @@ bool Header::header_read (std::string fname) {
                     cunit[2]!="MHZ" && cunit[2]!="Mhz" && cunit[2]!="mhz" &&
                     cunit[2]!="GHZ" && cunit[2]!="Ghz" && cunit[2]!="ghz" &&
                     dunit3!="KM/S" && dunit3!="km/s" && dunit3!="M/S"  && dunit3!="m/s")) {
-                    Warning("Error reading header (FREQ0-RESTFREQ) Assuming 1.4204057 GHz.");
+                    Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
                     freq0 = 0.1420405751786E10;
                 }
                 else {
@@ -390,7 +390,7 @@ bool Header::header_read (std::string fname) {
 
     status=0;
     if (fits_read_key_str (fptr, "OBJECT", name, comment, &status)) {
-        if (status==202) Warning("Error reading header (OBJECT): keyword not found.");
+        if (status==202) Warning("HEADER WARNING: OBJECT keyword not found.");
         else fits_report_error(stderr, status);
         object = "NONE";
     }
@@ -405,15 +405,15 @@ bool Header::header_read (std::string fname) {
     if (fits_read_key_str (fptr, "TELESCOP", Tel, comment, &status)) {
         status = 0;
         if (fits_read_key_str (fptr, "INSTRUME", Tel, comment, &status)) {
-            if (status==202) Warning("Error reading header (TELESCOP-INSTRUME): keyword not found.");
+            if (status==202) Warning("HEADER WARNING: TELESCOP-INSTRUME keywords not found.");
             else fits_report_error(stderr, status);
             telescope = "NONE";
         }
         else telescope = Tel;
     }
     else telescope = Tel;
-	
-	
+    
+    
     double clbmaj=0, clbmin=0;
     status=0;
     if (fits_read_key_dbl (fptr, "BMAJ", &bmaj, comment, &status)) {
@@ -421,36 +421,36 @@ bool Header::header_read (std::string fname) {
         if (fits_read_key_dbl (fptr, "BMMAJ", &bmaj, comment, &status)) {
             status = 0;
             if (fits_read_key_dbl (fptr, "CLBMMAJ", &clbmaj, comment, &status)) {
-                if (status==202) Warning("Error reading header (BMAJ-BMMAJ-CLBMMAJ): keyword not found.");
+                if (status==202) Warning("HEADER WARNING: BMAJ-BMMAJ-CLBMMAJ keywords not found.");
                 else fits_report_error(stderr, status);
                 bmaj = 0;
             }
         }
     }
-	
+    
     status=0;
     if (fits_read_key_dbl (fptr, "BMIN", &bmin, comment, &status)) {
         status = 0;
         if (fits_read_key_dbl (fptr, "BMMIN", &bmin, comment, &status)) {
             status = 0;
             if (fits_read_key_dbl (fptr, "CLBMMIN", &clbmin, comment, &status)) {
-                if (status==202) Warning("Error reading header (BMIN-BMMIN-CLBMMIN): keyword not found.");
+                if (status==202) Warning("HEADER WARNING: BMIN-BMMIN-CLBMMIN keywords not found.");
                 else fits_report_error(stderr, status);
                 bmin = 0;
             }
         }
     }
-	
+    
     status=0;
     if (fits_read_key_dbl (fptr, "BPA", &bpa, comment, &status)) {
         status = 0;
         if (fits_read_key_dbl (fptr, "BMPA", &bpa, comment, &status)) {
-            if (status==202) Warning("Error reading header (BPA-BMPA): keyword not found.");
+            if (status==202) Warning("HEADER WARNING: BPA-BMPA keywords not found.");
             else fits_report_error(stderr, status);
             bpa = 0;
         }
     }
-	
+    
     if (bmaj==0 && bmin==0 && bpa==0 && clbmaj==0 && clbmin==0) {
         for (unsigned int i=0; i<keys.size(); i++) {
             int found = keys[i].find("BMAJ=");
@@ -479,7 +479,7 @@ bool Header::header_read (std::string fname) {
             std::cout << " It is heartly recommended to check these values before going on!!\n\n";
         }
     }
-	
+    
     char bm[30];
     status=0;
     fits_read_key_str (fptr, "BMMAJ", bm, comment, &status);
@@ -488,7 +488,7 @@ bool Header::header_read (std::string fname) {
     int found = bmstr.find("D");
     if (found>=0) arcsecbeam = true;
     if (arcsecbeam) bmaj /= 3600.;
-	
+    
     status=0;
     fits_read_key_str (fptr, "BMMIN", bm, comment, &status);
     bmstr = bm;
@@ -496,7 +496,7 @@ bool Header::header_read (std::string fname) {
     found = bmstr.find("D");
     if (found>=0) arcsecbeam = true;
     if (arcsecbeam) bmin /= 3600.;
-	
+    
     if (clbmaj!=0) bmaj = clbmaj/3600.;
     if (clbmin!=0) bmin = clbmin/3600.;
 
@@ -536,16 +536,16 @@ bool Header::header_read (std::string fname) {
    status = spctyp(wcs->ctype[wcs->spec],stype,scode,sname,units,&ptype,&xtype,&restreq);
 
 
-	// Close the FITS File
+    // Close the FITS File
     status=0;
     if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
+        fits_report_error(stderr, status);
     
     calcArea();
 
     return true;
 
-}	
+}   
 
 
 void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
@@ -554,100 +554,100 @@ void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
     char com[]= "  ";
     
     fits_update_key_dbl(fptr, "CRPIX1", crpix[0], 10, com, &status);
-	fits_update_key_dbl(fptr, "CRVAL1", crval[0], 10, com, &status);
-	fits_update_key_dbl(fptr, "CDELT1", cdelt[0], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE1", ctype[0].c_str(), com, &status);
-	fits_update_key_str(fptr, "CUNIT1", cunit[0].c_str(), com, &status);
-	
-	fits_update_key_dbl(fptr, "CRPIX2", crpix[1], 10, com, &status);
-	fits_update_key_dbl(fptr, "CRVAL2", crval[1], 10, com, &status);
-	fits_update_key_dbl(fptr, "CDELT2", cdelt[1], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE2", ctype[1].c_str(), com, &status);
-	fits_update_key_str(fptr, "CUNIT2", cunit[1].c_str(), com, &status);	
-	
-	fits_update_key_dbl(fptr, "CRPIX3", crpix[2], 10, com, &status);
-	fits_update_key_dbl(fptr, "CRVAL3", crval[2], 10, com, &status);
-	fits_update_key_dbl(fptr, "CDELT3", cdelt[2], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE3", ctype[2].c_str(), com, &status);
-	fits_update_key_str(fptr, "CUNIT3", cunit[2].c_str(), com, &status);
-	if (drval3!=0) fits_update_key_dbl(fptr, "DRVAL3", drval3, 10, com, &status);
-	if (dunit3!="NONE") fits_update_key_str(fptr, "DUNIT3", dunit3.c_str(), com, &status);
-	fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
-	
-	if (bmaj!=0) fits_update_key_dbl(fptr, "BMAJ", bmaj, 10, com, &status);
-	if (bmin!=0) fits_update_key_dbl(fptr, "BMIN", bmin, 10, com, &status);
-	fits_update_key_dbl(fptr, "BPA", bpa, 10, com, &status);
-	if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
-	//fits_update_key_flt(fptr, "BLANK", blank, 10, com, &status);
-	
-	if (object!="NONE") fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
-	if (epoch!=0) fits_update_key_flt(fptr, "EPOCH", epoch, 10, com, &status);
-	if (telescope!="NONE") fits_update_key_str(fptr, "TELESCOP", telescope.c_str(), com, &status);
-	if (freq0!=0) fits_update_key_dbl(fptr, "FREQ0", freq0, 10, com, &status);
-	if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);
-	if (datamin!=0) fits_update_key_dbl(fptr, "DATAMIN", datamin, 10, com, &status);
+    fits_update_key_dbl(fptr, "CRVAL1", crval[0], 10, com, &status);
+    fits_update_key_dbl(fptr, "CDELT1", cdelt[0], 10, com, &status);
+    fits_update_key_str(fptr, "CTYPE1", ctype[0].c_str(), com, &status);
+    fits_update_key_str(fptr, "CUNIT1", cunit[0].c_str(), com, &status);
+    
+    fits_update_key_dbl(fptr, "CRPIX2", crpix[1], 10, com, &status);
+    fits_update_key_dbl(fptr, "CRVAL2", crval[1], 10, com, &status);
+    fits_update_key_dbl(fptr, "CDELT2", cdelt[1], 10, com, &status);
+    fits_update_key_str(fptr, "CTYPE2", ctype[1].c_str(), com, &status);
+    fits_update_key_str(fptr, "CUNIT2", cunit[1].c_str(), com, &status);    
+    
+    fits_update_key_dbl(fptr, "CRPIX3", crpix[2], 10, com, &status);
+    fits_update_key_dbl(fptr, "CRVAL3", crval[2], 10, com, &status);
+    fits_update_key_dbl(fptr, "CDELT3", cdelt[2], 10, com, &status);
+    fits_update_key_str(fptr, "CTYPE3", ctype[2].c_str(), com, &status);
+    fits_update_key_str(fptr, "CUNIT3", cunit[2].c_str(), com, &status);
+    if (drval3!=0) fits_update_key_dbl(fptr, "DRVAL3", drval3, 10, com, &status);
+    if (dunit3!="NONE") fits_update_key_str(fptr, "DUNIT3", dunit3.c_str(), com, &status);
+    fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
+    
+    if (bmaj!=0) fits_update_key_dbl(fptr, "BMAJ", bmaj, 10, com, &status);
+    if (bmin!=0) fits_update_key_dbl(fptr, "BMIN", bmin, 10, com, &status);
+    fits_update_key_dbl(fptr, "BPA", bpa, 10, com, &status);
+    if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
+    //fits_update_key_flt(fptr, "BLANK", blank, 10, com, &status);
+    
+    if (object!="NONE") fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
+    if (epoch!=0) fits_update_key_flt(fptr, "EPOCH", epoch, 10, com, &status);
+    if (telescope!="NONE") fits_update_key_str(fptr, "TELESCOP", telescope.c_str(), com, &status);
+    if (freq0!=0) fits_update_key_dbl(fptr, "FREQ0", freq0, 10, com, &status);
+    if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);
+    if (datamin!=0) fits_update_key_dbl(fptr, "DATAMIN", datamin, 10, com, &status);
 
-	if (fullHead) {
-		for (uint i=0; i<keys.size(); i++) {
-			status=0;
-			bool towrite = false;
-			int hist = keys[i].find("HISTORY");
-			
-			if(hist>=0) towrite=true;
-			else {
-				int found = keys[i].find("="); 
-				if (found>=0) {
-					char keyname [] = "                                                                                  ";
-					strncpy(keyname, keys[i].c_str(),found);
-					char card[100];
-					if (fits_read_card(fptr, keyname, card, &status)) towrite=true;
-				}
-			}
-			if (towrite) {
-				status=0;
-				fits_write_record(fptr, keys[i].c_str(), &status);
-			}
-		}
-		
-	}
-	
-	
-	fits_report_error(stderr, status); 
+    if (fullHead) {
+        for (uint i=0; i<keys.size(); i++) {
+            status=0;
+            bool towrite = false;
+            int hist = keys[i].find("HISTORY");
+            
+            if(hist>=0) towrite=true;
+            else {
+                int found = keys[i].find("="); 
+                if (found>=0) {
+                    char keyname [] = "                                                                                  ";
+                    strncpy(keyname, keys[i].c_str(),found);
+                    char card[100];
+                    if (fits_read_card(fptr, keyname, card, &status)) towrite=true;
+                }
+            }
+            if (towrite) {
+                status=0;
+                fits_write_record(fptr, keys[i].c_str(), &status);
+            }
+        }
+        
+    }
+    
+    
+    fits_report_error(stderr, status); 
 }
 
 
 void Header::headwrite_2d (fitsfile *fptr, bool fullHead) {
 
-	int status=0;
-	char com[]= "  ";
+    int status=0;
+    char com[]= "  ";
     
-	fits_update_key_dbl(fptr, "CRPIX1", crpix[0], 10, com, &status);
-	fits_update_key_dbl(fptr, "CRVAL1", crval[0], 10, com, &status);
-	fits_update_key_dbl(fptr, "CDELT1", cdelt[0], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE1", ctype[0].c_str(), com, &status);
-	fits_update_key_str(fptr, "CUNIT1", cunit[0].c_str(), com, &status);
-	
-	fits_update_key_dbl(fptr, "CRPIX2", crpix[1], 10, com, &status);
-	fits_update_key_dbl(fptr, "CRVAL2", crval[1], 10, com, &status);
-	fits_update_key_dbl(fptr, "CDELT2", cdelt[1], 10, com, &status);
-	fits_update_key_str(fptr, "CTYPE2", ctype[1].c_str(), com, &status);
-	fits_update_key_str(fptr, "CUNIT2", cunit[1].c_str(), com, &status);
-	
-	fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
-	
-	if (bmaj!=0) fits_update_key_dbl(fptr, "BMAJ", bmaj, 10, com, &status);
-	if (bmin!=0) fits_update_key_dbl(fptr, "BMIN", bmin, 10, com, &status);
-	if (bpa!=0)  fits_update_key_dbl(fptr, "BPA", bpa, 10, com, &status);
-	if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
-	if (epoch!=0) fits_update_key_flt(fptr, "EPOCH", epoch, 10, com, &status);
-	fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
-	//fits_update_key_flt(fptr, "BZERO", bzero, 12, com, &status);
-	//fits_update_key_flt(fptr, "BSCALE", bscale, 12, com, &status);
-	//fits_update_key_flt(fptr, "BLANK", blank, 12, com, &status);
-	
-	if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);
-	if (datamin!=0) fits_update_key_dbl(fptr, "DATAMIN", datamin, 10, com, &status);
-	
+    fits_update_key_dbl(fptr, "CRPIX1", crpix[0], 10, com, &status);
+    fits_update_key_dbl(fptr, "CRVAL1", crval[0], 10, com, &status);
+    fits_update_key_dbl(fptr, "CDELT1", cdelt[0], 10, com, &status);
+    fits_update_key_str(fptr, "CTYPE1", ctype[0].c_str(), com, &status);
+    fits_update_key_str(fptr, "CUNIT1", cunit[0].c_str(), com, &status);
+    
+    fits_update_key_dbl(fptr, "CRPIX2", crpix[1], 10, com, &status);
+    fits_update_key_dbl(fptr, "CRVAL2", crval[1], 10, com, &status);
+    fits_update_key_dbl(fptr, "CDELT2", cdelt[1], 10, com, &status);
+    fits_update_key_str(fptr, "CTYPE2", ctype[1].c_str(), com, &status);
+    fits_update_key_str(fptr, "CUNIT2", cunit[1].c_str(), com, &status);
+    
+    fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
+    
+    if (bmaj!=0) fits_update_key_dbl(fptr, "BMAJ", bmaj, 10, com, &status);
+    if (bmin!=0) fits_update_key_dbl(fptr, "BMIN", bmin, 10, com, &status);
+    if (bpa!=0)  fits_update_key_dbl(fptr, "BPA", bpa, 10, com, &status);
+    if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
+    if (epoch!=0) fits_update_key_flt(fptr, "EPOCH", epoch, 10, com, &status);
+    fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
+    //fits_update_key_flt(fptr, "BZERO", bzero, 12, com, &status);
+    //fits_update_key_flt(fptr, "BSCALE", bscale, 12, com, &status);
+    //fits_update_key_flt(fptr, "BLANK", blank, 12, com, &status);
+    
+    if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);
+    if (datamin!=0) fits_update_key_dbl(fptr, "DATAMIN", datamin, 10, com, &status);
+    
     if (fullHead) {
         for (uint i=0; i<keys.size(); i++) {
             status=0;
@@ -671,166 +671,166 @@ void Header::headwrite_2d (fitsfile *fptr, bool fullHead) {
         }
 
     }
-	
-	fits_report_error(stderr, status);  
+    
+    fits_report_error(stderr, status);  
 }
 
 template <class T>
 bool Header::read_keyword(std::string keyword, T &key, bool err) {
-	
-	std::cout << "Error: unknown type of keyword "<< keyword << std::endl;
-	return false;
+    
+    std::cout << "HEADER ERROR: unknown type of keyword "<< keyword << std::endl;
+    return false;
 }
 
 template <>
 bool Header::read_keyword<int>(std::string keyword, int &key, bool err) {
-	
-	fitsfile *fptr;									
-	int status=0;
-	char comment[72];	
+    
+    fitsfile *fptr;                                 
+    int status=0;
+    char comment[72];   
  
     if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-		fits_report_error(stderr, status);
-		return false;
-	}	
-	status = 0;
-	long dum = long(key);
-	if (fits_read_key_lng (fptr, keyword.c_str(), &dum, comment, &status)) {
-		if (err) fits_report_error(stderr, status);
-		return false;
-	}
-	key=dum;
-	
-	status=0;
+        fits_report_error(stderr, status);
+        return false;
+    }   
+    status = 0;
+    long dum = long(key);
+    if (fits_read_key_lng (fptr, keyword.c_str(), &dum, comment, &status)) {
+        if (err) fits_report_error(stderr, status);
+        return false;
+    }
+    key=dum;
+    
+    status=0;
     if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
+        fits_report_error(stderr, status);
     
     return true;
-	
+    
 }
 
 template <>
 bool Header::read_keyword<long>(std::string keyword, long &key, bool err) {
-	
-	fitsfile *fptr;									
-	int status=0;
-	char comment[72];	
+    
+    fitsfile *fptr;                                 
+    int status=0;
+    char comment[72];   
  
     if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-		fits_report_error(stderr, status);
-		return false;
-	}	
-	status = 0;
-	if (fits_read_key_lng (fptr, keyword.c_str(), &key, comment, &status)) {
-		if (err) fits_report_error(stderr, status);
-		return false;
-	}
-	status = 0;
+        fits_report_error(stderr, status);
+        return false;
+    }   
+    status = 0;
+    if (fits_read_key_lng (fptr, keyword.c_str(), &key, comment, &status)) {
+        if (err) fits_report_error(stderr, status);
+        return false;
+    }
+    status = 0;
     if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
+        fits_report_error(stderr, status);
     
     return true;
-	
+    
 }
 
 template <>
 bool Header::read_keyword<float>(std::string keyword, float &key, bool err) {
-	
-	fitsfile *fptr;									
-	int status=0;
-	char comment[72];	
+    
+    fitsfile *fptr;                                 
+    int status=0;
+    char comment[72];   
  
     if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-		fits_report_error(stderr, status);
-		return false;
-	}	
-	status = 0;
-	if (fits_read_key_flt (fptr, keyword.c_str(), &key, comment, &status)) {
-		if (err) fits_report_error(stderr, status);
-		return false;
-	}
-	status = 0;
+        fits_report_error(stderr, status);
+        return false;
+    }   
+    status = 0;
+    if (fits_read_key_flt (fptr, keyword.c_str(), &key, comment, &status)) {
+        if (err) fits_report_error(stderr, status);
+        return false;
+    }
+    status = 0;
     if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
+        fits_report_error(stderr, status);
     
     return true;
-	
+    
 }
 
 template <>
 bool Header::read_keyword<double>(std::string keyword, double &key, bool err) {
-	
-	fitsfile *fptr;									
-	int status=0;
-	char comment[72];	
+    
+    fitsfile *fptr;                                 
+    int status=0;
+    char comment[72];   
  
     if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-		fits_report_error(stderr, status);
-		return false;
-	}	
-	status = 0;
-	if (fits_read_key_dbl (fptr, keyword.c_str(), &key, comment, &status)) {
-		if (err) fits_report_error(stderr, status);
-		return false;
-	}
-	status = 0;
+        fits_report_error(stderr, status);
+        return false;
+    }   
+    status = 0;
+    if (fits_read_key_dbl (fptr, keyword.c_str(), &key, comment, &status)) {
+        if (err) fits_report_error(stderr, status);
+        return false;
+    }
+    status = 0;
     if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
+        fits_report_error(stderr, status);
     
     return true;
-	
+    
 }
 
 template <>
 bool Header::read_keyword<std::string>(std::string keyword, std::string &key, bool err) {
-	
-	fitsfile *fptr;									
-	int status=0;
-	char comment[72];
-		
+    
+    fitsfile *fptr;                                 
+    int status=0;
+    char comment[72];
+        
     if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-		fits_report_error(stderr, status);
-		return false;
-	}
-	
-	char *Key = new char[200];
-	status = 0;
-	if (fits_read_key_str (fptr, keyword.c_str(), Key, comment, &status)) {
-		if (err) fits_report_error(stderr, status);
-		return false;
-	}
-	
-	key = Key;
-	
-	status = 0;
+        fits_report_error(stderr, status);
+        return false;
+    }
+    
+    char *Key = new char[200];
+    status = 0;
+    if (fits_read_key_str (fptr, keyword.c_str(), Key, comment, &status)) {
+        if (err) fits_report_error(stderr, status);
+        return false;
+    }
+    
+    key = Key;
+    
+    status = 0;
     if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
-	
-	delete [] Key;
-	return true;
+        fits_report_error(stderr, status);
+    
+    delete [] Key;
+    return true;
 }
 
 template <>
 bool Header::read_keyword<char*>(std::string keyword, char* &key, bool err) {
-	
-	fitsfile *fptr;									
-	int status=0;
-	char comment[72];
-		
+    
+    fitsfile *fptr;                                 
+    int status=0;
+    char comment[72];
+        
     if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-		fits_report_error(stderr, status);
-		return false;
-	}
-	
-	status = 0;
-	if (fits_read_key_str (fptr, keyword.c_str(), key, comment, &status)) {
-		if (err) fits_report_error(stderr, status);
-		return false;
-	}
-	
-	status = 0;
+        fits_report_error(stderr, status);
+        return false;
+    }
+    
+    status = 0;
+    if (fits_read_key_str (fptr, keyword.c_str(), key, comment, &status)) {
+        if (err) fits_report_error(stderr, status);
+        return false;
+    }
+    
+    status = 0;
     if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
-	
-	return true;
+        fits_report_error(stderr, status);
+    
+    return true;
 }

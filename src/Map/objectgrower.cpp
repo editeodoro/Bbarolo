@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
@@ -41,7 +41,7 @@ template ObjectGrower<double>::ObjectGrower();
 
 template <class T>
 ObjectGrower<T>::ObjectGrower(ObjectGrower<T> &o) {
-	this->operator=(o);
+    this->operator=(o);
 }
 template ObjectGrower<short>::ObjectGrower(ObjectGrower<short>&);
 template ObjectGrower<int>::ObjectGrower(ObjectGrower<int>&);
@@ -52,7 +52,7 @@ template ObjectGrower<double>::ObjectGrower(ObjectGrower<double>&);
 
 template <class T>
 ObjectGrower<T>& ObjectGrower<T>::operator=(const ObjectGrower<T> &o) {
-	
+    
     if(this == &o) return *this;
     this->itsFlagArray = o.itsFlagArray;
     this->itsArrayDim = o.itsArrayDim; 
@@ -71,7 +71,7 @@ template ObjectGrower<double>& ObjectGrower<double>::operator=(const ObjectGrowe
 
 template <class T>
 void ObjectGrower<T>::define(Cube<T> *theCube) {
-	
+    
     /// @details This copies all necessary information from the Cube
     /// and its parameters & statistics. It also defines the array of
     /// pixel flags, which involves looking at each object to assign
@@ -80,11 +80,11 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     /// the latter that will be considered in the growing function.
     /// @param theCube A pointer to a duchamp::Cube 
 
-    itsGrowthStats = Statistics::Stats<T>(theCube->stat());	
+    itsGrowthStats = Statistics::Stats<T>(theCube->stat()); 
     if(theCube->pars().getFlagUserGrowthThreshold())
-		itsGrowthStats.setThreshold(theCube->pars().getGrowthThreshold());
+        itsGrowthStats.setThreshold(theCube->pars().getGrowthThreshold());
     else
-		itsGrowthStats.setThresholdSNR(theCube->pars().getGrowthCut());    
+        itsGrowthStats.setThresholdSNR(theCube->pars().getGrowthCut());    
     itsGrowthStats.setUseFDR(false);
 
     itsFluxArray = theCube->Array();
@@ -103,11 +103,11 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     itsFlagArray = std::vector<STATE>(fullsize,AVAILABLE);
 
     for(int o=0;o<theCube->getNumObj();o++){
-		std::vector<Voxel<T> > voxlist = theCube->getObject(o).getPixelSet();
-		for(size_t i=0; i<voxlist.size(); i++){
-			size_t pos=voxlist[i].getX()+voxlist[i].getY()*itsArrayDim[0]+voxlist[i].getZ()*spatsize;
-			itsFlagArray[pos] = DETECTED;
-		}
+        std::vector<Voxel<T> > voxlist = theCube->getObject(o).getPixelSet();
+        for(size_t i=0; i<voxlist.size(); i++){
+            size_t pos=voxlist[i].getX()+voxlist[i].getY()*itsArrayDim[0]+voxlist[i].getZ()*spatsize;
+            itsFlagArray[pos] = DETECTED;
+        }
     }
 
 }
@@ -125,19 +125,19 @@ void ObjectGrower<T>::updateDetectMap(short *map) {
     for(int i=0;i<3;i++) if(itsArrayDim[i]>1) numNondegDim++;
 
     if(numNondegDim>1) {
-		size_t spatsize=itsArrayDim[0]*itsArrayDim[1];
-		for(size_t xy=0;xy<spatsize;xy++){
-			short ct=0;
-			for(size_t z=0;z<itsArrayDim[2];z++){
-				if(itsFlagArray[xy+z*spatsize]==DETECTED) ct++;
-			}
-			map[xy]=ct;
-		}
+        size_t spatsize=itsArrayDim[0]*itsArrayDim[1];
+        for(size_t xy=0;xy<spatsize;xy++){
+            short ct=0;
+            for(size_t z=0;z<itsArrayDim[2];z++){
+                if(itsFlagArray[xy+z*spatsize]==DETECTED) ct++;
+            }
+            map[xy]=ct;
+        }
     }
     else{
-		for(size_t z=0;z<itsArrayDim[2];z++){
-			map[z] = (itsFlagArray[z] == DETECTED) ? 1 : 0;
-		}
+        for(size_t z=0;z<itsArrayDim[2];z++){
+            map[z] = (itsFlagArray[z] == DETECTED) ? 1 : 0;
+        }
     }
 
 }
@@ -150,7 +150,7 @@ template void ObjectGrower<double>::updateDetectMap(short*);
 
 template <class T>
 void ObjectGrower<T>::grow(Detection<T> *theObject) {
-	
+    
     /// @details This function grows the provided object out to the
     /// secondary threshold provided in itsGrowthStats. For each pixel
     /// in an object, all surrounding pixels are considered and, if
@@ -171,38 +171,38 @@ void ObjectGrower<T>::grow(Detection<T> *theObject) {
     size_t pos;
     for(size_t i=0; i<voxlist.size(); i++){
 
-		xpt=voxlist[i].getX();
-		ypt=voxlist[i].getY();
-		zpt=voxlist[i].getZ();
+        xpt=voxlist[i].getX();
+        ypt=voxlist[i].getY();
+        zpt=voxlist[i].getZ();
       
-		xmin = size_t(max(xpt-itsSpatialThresh, zero));
-		xmax = size_t(min(xpt+itsSpatialThresh, long(itsArrayDim[0])-1));
-		ymin = size_t(max(ypt-itsSpatialThresh, zero));
-		ymax = size_t(min(ypt+itsSpatialThresh, long(itsArrayDim[1])-1));
-		zmin = size_t(max(zpt-itsVelocityThresh, zero));
-		zmax = size_t(min(zpt+itsVelocityThresh, long(itsArrayDim[2])-1));
+        xmin = size_t(max(xpt-itsSpatialThresh, zero));
+        xmax = size_t(min(xpt+itsSpatialThresh, long(itsArrayDim[0])-1));
+        ymin = size_t(max(ypt-itsSpatialThresh, zero));
+        ymax = size_t(min(ypt+itsSpatialThresh, long(itsArrayDim[1])-1));
+        zmin = size_t(max(zpt-itsVelocityThresh, zero));
+        zmax = size_t(min(zpt+itsVelocityThresh, long(itsArrayDim[2])-1));
       
-		//loop over surrounding pixels.
-		for(x=xmin; x<=xmax; x++){
-			for(y=ymin; y<=ymax; y++){
-				for(z=zmin; z<=zmax; z++){
-					pos=x+y*itsArrayDim[0]+z*spatsize;
-					if(((x!=xpt)||(y!=ypt)||(z!=zpt))
-						&& itsFlagArray[pos]==AVAILABLE ) {
-							if(itsGrowthStats.isDetection(itsFluxArray[pos])){
-								itsFlagArray[pos]=DETECTED;
-								voxlist.push_back(Voxel<T>(x,y,z));
-							}
-					}
+        //loop over surrounding pixels.
+        for(x=xmin; x<=xmax; x++){
+            for(y=ymin; y<=ymax; y++){
+                for(z=zmin; z<=zmax; z++){
+                    pos=x+y*itsArrayDim[0]+z*spatsize;
+                    if(((x!=xpt)||(y!=ypt)||(z!=zpt))
+                        && itsFlagArray[pos]==AVAILABLE ) {
+                            if(itsGrowthStats.isDetection(itsFluxArray[pos])){
+                                itsFlagArray[pos]=DETECTED;
+                                voxlist.push_back(Voxel<T>(x,y,z));
+                            }
+                    }
 
-				} 
-			}
-		} 
+                } 
+            }
+        } 
     } 
 
     // Add in new pixels to the Detection
     for(size_t i=origSize; i<voxlist.size(); i++){
-		theObject->addPixel(voxlist[i]);
+        theObject->addPixel(voxlist[i]);
     }
    
 
@@ -236,26 +236,26 @@ std::vector<Voxel<T> > ObjectGrower<T>::growFromPixel(Voxel<T> &vox) {
     Voxel<T> nvox;
     std::vector<Voxel<T> > morevox;
     for(int x=xmin; x<=xmax; x++){
-		for(int y=ymin; y<=ymax; y++){
-			for(int z=zmin; z<=zmax; z++){
-				pos=x+y*itsArrayDim[0]+z*spatsize;
-				if(((x!=xpt)||(y!=ypt)||(z!=zpt))
-					&& itsFlagArray[pos]==AVAILABLE ) {
-					if(itsGrowthStats.isDetection(itsFluxArray[pos])){
-						itsFlagArray[pos]=DETECTED;
-						nvox.setXYZF(x,y,z,itsFluxArray[pos]);
-						newVoxels.push_back(nvox);	      
-					}
-				}
-			}
-		}
+        for(int y=ymin; y<=ymax; y++){
+            for(int z=zmin; z<=zmax; z++){
+                pos=x+y*itsArrayDim[0]+z*spatsize;
+                if(((x!=xpt)||(y!=ypt)||(z!=zpt))
+                    && itsFlagArray[pos]==AVAILABLE ) {
+                    if(itsGrowthStats.isDetection(itsFluxArray[pos])){
+                        itsFlagArray[pos]=DETECTED;
+                        nvox.setXYZF(x,y,z,itsFluxArray[pos]);
+                        newVoxels.push_back(nvox);        
+                    }
+                }
+            }
+        }
     } 
 
     typename std::vector<Voxel<T> >::iterator v,v2;
     for(v=newVoxels.begin();v<newVoxels.end();v++) {
-		std::vector<Voxel<T> > morevox = growFromPixel(*v);
-		for(v2=morevox.begin();v2<morevox.end();v2++) 
-			newVoxels.push_back(*v2);
+        std::vector<Voxel<T> > morevox = growFromPixel(*v);
+        for(v2=morevox.begin();v2<morevox.end();v2++) 
+            newVoxels.push_back(*v2);
     }
 
     return newVoxels;

@@ -118,10 +118,10 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
   case "$build_os" in
   darwin*)
     AC_MSG_NOTICE([ Using darwin build option])
-    SHRLIB="libbarolo.$PACKAGE_VERSION.dylib"
+    SHRLIB="libBBarolo.dylib.$PACKAGE_VERSION"
     SHRLD="$SHRLD -dynamiclib -single_module"
     SHRLD="$SHRLD -compatibility_version $PACKAGE_VERSION -current_version $PACKAGE_VERSION"
-    SHRLN=
+    SHRLN="libBBarolo.dylib"
 
     case "$build_cpu" in
     powerpc*)
@@ -134,9 +134,9 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
   *)
     # Covers Linux and Solaris at least.
     AC_MSG_NOTICE([ Using alternative (linux) build option])
-    SHRLIB="libbarolo.so.$PACKAGE_VERSION"
+    SHRLIB="libBBarolo.so.$PACKAGE_VERSION"
     SHRLD="$SHRLD -shared -Wl,-soname,$SHRLIB"
-    SHRLN="libbarolo.so"
+    SHRLN="libBBarolo.so"
     ;;
   esac
 

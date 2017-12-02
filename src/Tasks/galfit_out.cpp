@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
@@ -28,28 +28,17 @@
 #include <cfloat>
 #include <Arrays/cube.hh>
 #include <Arrays/image.hh>
-#include <Utilities/galfit.hh>
-#include <Utilities/galmod.hh>
+#include <Tasks/galfit.hh>
+#include <Tasks/galmod.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/gnuplot.hh>
-#include <Utilities/moment.hh>
-#include <Utilities/ellprof.hh>
+#include <Tasks/moment.hh>
+#include <Tasks/ellprof.hh>
 
 //#ifdef HAVE_PYTHON
 //    #include <Python.h>
 //#endif
 
-#define VROT  0
-#define VDISP 1
-#define DENS  2
-#define Z0    3
-#define INC   4
-#define PA    5
-#define XPOS  6
-#define YPOS  7
-#define VSYS  8
-#define VRAD  9
-#define MAXPAR 10
 
 namespace Model {
 
@@ -96,12 +85,12 @@ void Galfit<T>::writeModel (std::string normtype) {
     T meanPA = findMean(&outr->phi[0], outr->nr);
     int nseg = 1;
     float segments[4] = {0, 360., 0., 0};
-    if (in->pars().getSIDE()!="A") {
+    if (par.SIDE!="A") {
         nseg = 2;
         segments[2]=-90;
         segments[3]=90;
     }
-    else if(in->pars().getSIDE()=="R") {
+    else if(par.SIDE=="R") {
         nseg = 2;
         segments[2]=90;
         segments[3]=-90;
@@ -156,8 +145,8 @@ void Galfit<T>::writeModel (std::string normtype) {
         // Calculate total flux of model within last ring
         for (size_t i=0; i<in->DimX()*in->DimY(); i++) {
             if (!isNaN(ringreg[i])) {
-                for (size_t z=0; z<in->DimZ(); z++)
-                    totflux_model += outarray[i+z*in->DimY()*in->DimX()];
+                for (size_t z=0; z<in->DimZ(); z++) 
+                    totflux_model += outarray[i+z*in->DimY()*in->DimX()]*in->Mask()[i+z*in->DimY()*in->DimX()];
             }
             else {
                  // for (size_t z=0; z<in->DimZ(); z++)
@@ -395,7 +384,7 @@ void Galfit<T>::plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T>
 
     /// Writing in a text file the projected rotation curve.
     outpv.open((outfold+"rcpv.txt").c_str());
-    for (int i=in->pars().getStartRad(); i<outr->nr; i++) {
+    for (int i=par.STARTRAD; i<outr->nr; i++) {
             float vel1 = (outr->vrot[i]*sin(outr->inc[i]*M_PI/180.))+outr->vsys[i];
             float vel2 = outr->vsys[i]-(outr->vrot[i]*sin(outr->inc[i]*M_PI/180.));
             if (meanPA>180.) std::swap(vel1,vel2);
@@ -526,7 +515,7 @@ int *Galfit<T>::getErrorColumns() {
     const int err_col=13;
 
     for (int j=0; j<MAXPAR; j++) {
-        if (flagErrors && mpar[j]) {
+        if (par.flagERRORS && mpar[j]) {
             nc[j]=err_col;
             for (int i=0; i<nfree; i++) if (free[i]==j) nc[j]+=2*i;
         }
@@ -564,7 +553,7 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "unset key" << endl
         << "set size 0.60, 1" << endl;
 
-    if (in->pars().getTwoStage()) {
+    if (par.TWOSTAGE) {
         gnu << "set style line 1 lc rgb '#A9A9A9' lt 4 pt 7 lw 1" << endl
             << "set style line 2 lc rgb '#B22222' lt 9 pt 9 lw 1" << endl;
     }
@@ -604,9 +593,9 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:3 w lp ls 1";
 
-    if (in->pars().getTwoStage()) {
+    if (par.TWOSTAGE) {
         gnu << ", '" << outfold << "ringlog2.txt' ";
-        if (flagErrors && mpar[VROT]) {
+        if (par.flagERRORS && mpar[VROT]) {
         gnu << "u 2:3:($3+$13):($3+$14) w errorbars ls 2, '"
             << outfold <<"ringlog2.txt' u 2:3 w lp ls 2";
         }
@@ -631,7 +620,7 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:5 w lp ls 1";
 
-    if (in->pars().getTwoStage())
+    if (par.TWOSTAGE)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:5 w lp ls 2";
 
 
@@ -656,7 +645,7 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:6 w lp ls 1";
 
-    if (in->pars().getTwoStage())
+    if (par.TWOSTAGE)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:6 w lp ls 2";
 
     gnu << endl;
@@ -694,9 +683,9 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:4 w lp ls 1";
 
-    if (in->pars().getTwoStage()) {
+    if (par.TWOSTAGE) {
         gnu << ", '" << outfold << "ringlog2.txt' ";
-        if (flagErrors && mpar[VDISP]) {
+        if (par.flagERRORS && mpar[VDISP]) {
             gnu << "u 2:4:($3+$15):($3+$16) w errorbars ls 2, '"
                 << outfold <<"ringlog2.txt' u 2:4 w lp ls 2";
         }
@@ -721,7 +710,7 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:12 w lp ls 1";
 
-    if (in->pars().getTwoStage())
+    if (par.TWOSTAGE)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:12 w lp ls 2";
     gnu << endl;
 
@@ -743,7 +732,7 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:8 w lp ls 1";
 
-    if (in->pars().getTwoStage())
+    if (par.TWOSTAGE)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:8 w lp ls 2";
     gnu << endl;
 
@@ -772,7 +761,7 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:10 w lp ls 1";
 
-    if (in->pars().getTwoStage())
+    if (par.TWOSTAGE)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:10 w lp ls 2";
     gnu << endl;
 
@@ -793,7 +782,7 @@ void Galfit<T>::plotPar_Gnuplot () {
     }
     else gnu << "u 2:11 w lp ls 1";
 
-    if (in->pars().getTwoStage())
+    if (par.TWOSTAGE)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:11 w lp ls 2";
     gnu << endl;
 
@@ -809,7 +798,7 @@ void Galfit<T>::plotPar_Gnuplot () {
             << "set ylabel 'Surface density [10^20 atoms/cm^2]'\n"
             << "plot '"<<in->pars().getOutfolder()<<"ringlog1.txt' u 2:8 w lp ls 1";
 
-        if (in->pars().getTwoStage())
+        if (par.TWOSTAGE)
             gnu << ", '" << outfold << "ringlog2.txt' u 2:8 w lp ls 2";
         gnu << endl;
     }
@@ -861,7 +850,7 @@ int Galfit<T>::plotAll_Python() {
         if (mpar[nm]) free[k++]=nm;
     }
 
-    if (in->pars().getMASK()=="SEARCH") {
+    if (par.MASK=="SEARCH") {
         if (in->pars().getFlagUserGrowthThreshold()) cont = in->pars().getGrowthThreshold();
         else if (in->pars().getFlagUserThreshold()) cont = in->pars().getThreshold();
         else {
@@ -911,19 +900,22 @@ int Galfit<T>::plotAll_Python() {
             << "from astropy.io import fits \n"
             << "from astropy.visualization import LinearStretch, PowerStretch \n"
             << "from astropy.visualization.mpl_normalize import ImageNormalize \n"
-            << "from astropy.visualization import PercentileInterval \n\n";
+            << "from astropy.visualization import PercentileInterval \n"
+            << "matplotlib.rc('xtick',direction='in') \n"
+            << "matplotlib.rc('ytick',direction='in') \n\n";
 
 
     py_file << "# PARAMETERS: plotting the fit parameters \n"
+            << "gname = '" << in->Head().Name() <<"' \n"
             << "outfolder = '" << in->pars().getOutfolder() <<"' \n"
             << "file1 = outfolder+'ringlog1.txt' \n"
             << "file2 = outfolder+'ringlog2.txt' \n"
             << "filesb= outfolder+'densprof.txt' \n"
             << "twostage=False \n";
 
-    if (in->pars().getTwoStage()) py_file << "twostage=True \n";
+    if (par.TWOSTAGE) py_file << "twostage=True \n";
 
-    py_file << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys= np.genfromtxt(file1,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11),unpack=True) \n"
+    py_file << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.genfromtxt(file1,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True) \n"
             << "err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",len(rad))), np.zeros(shape=(" << MAXPAR << ",len(rad)))\n"
             << "color=color2='#B22222' \n"
             << "max_vrot,max_vdisp,max_inc,max_pa=np.max(vrot),np.max(disp),np.max(inc),np.max(pa) \n"
@@ -938,16 +930,17 @@ int Galfit<T>::plotAll_Python() {
     }
 
     py_file << "\nif twostage==True: \n"
-            << "\trad2, vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2=np.genfromtxt(file2,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11),unpack=True)\n"
+            << "\trad2, vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2, vrad2 = np.genfromtxt(file2,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True)\n"
             << "\terr2_l, err2_h = np.zeros(shape=(" << MAXPAR << ",len(rad2))), np.zeros(shape=(" << MAXPAR << ",len(rad2)))\n"
             << "\tcolor='#A0A0A0' \n"
             << "\tmax_vrot,max_vdisp,max_inc,max_pa=np.maximum(max_vrot,np.max(vrot2)),np.maximum(max_vdisp,np.max(disp2)),np.maximum(max_inc,np.max(inc2)),np.maximum(max_pa,np.max(pa2)) \n"
             << "\tmax_z0,max_xpos,max_ypos,max_vsys=np.maximum(max_z0,np.max(z02)),np.maximum(max_xpos,np.max(xpos2)),np.maximum(max_ypos,np.max(ypos2)),np.maximum(max_vsys,np.max(vsys2)) \n";
 
-    for (int i=0; i<2; i++) {
-        if (nc[i]>0) {
+    for (int i=0; i<MAXPAR; i++) {
+        if ((i==0 || i==1 || i==9) && (nc[i]>0)) {
+            int ff = i==9 ? 4 : 0;
             py_file << "\terr2_l[" << i << "], err2_h[" << i << "] = np.genfromtxt(file2,skip_header=1,usecols=("
-                    << nc[i] << "," << nc[i]+1 << "),unpack=True) \n";
+                    << nc[i]-ff << "," << nc[i]+1-ff << "),unpack=True) \n";
         }
     }
 
@@ -980,7 +973,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('v$_\\mathrm{rot}$ (km/s)', fontsize=14)  \n"
             << "axis.errorbar(rad,vrot, yerr=[err1_l[0],-err1_h[0]],fmt='o', color=color)  \n"
             << "if twostage==True: axis.errorbar(rad2,vrot2, yerr=[err2_l[0],-err2_h[0]],fmt='o', color=color2) \n";
-
+    
     py_file << std::endl
             << "axis=ax[1][0]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
@@ -1006,7 +999,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
             << "axis.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color)  \n"
             << "if twostage==True: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o', color=color2)  \n"   ;
-
+    
     py_file << std::endl
             << "axis=ax[1][1]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
@@ -1030,7 +1023,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('$\\Sigma}$ ("+in->Head().Bunit()+"/arcs$^2$)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')  \n"
             << "axis.errorbar(rad_sd,surfdens, yerr=sd_err,fmt='o', color=color2)  \n";
-
+    /*
     py_file << std::endl
             << "axis=ax[1][2]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
@@ -1038,6 +1031,15 @@ int Galfit<T>::plotAll_Python() {
             << "axis.tick_params(axis='both',which='both',bottom='off',top='on',labelbottom='off',labelleft='on')  \n"
             << "axis.errorbar(rad,z0, yerr=[err1_l[3],-err1_h[3]],fmt='o', color=color)  \n"
             << "if twostage==True: axis.errorbar(rad2,z02,yerr=[err2_l[3],-err2_h[3]],fmt='o-', color=color2)  \n";
+    */
+    py_file << std::endl
+            << "axis=ax[1][2]  \n"
+            << "axis.set_xlim(0,max_rad)  \n"
+            << "axis.set_ylabel('V$_\\mathrm{rad}$ (km/s)', fontsize=14)  \n"
+            << "axis.tick_params(axis='both',which='both',bottom='off',top='on',labelbottom='off',labelleft='on')  \n"
+            << "axis.errorbar(rad,vrad, yerr=[err1_l[9],-err1_h[9]],fmt='o', color=color)  \n"
+            << "if twostage==True: axis.errorbar(rad2,vrad2,yerr=[err2_l[9],-err2_h[9]],fmt='o-', color=color2)  \n";
+
 
     py_file << std::endl
             << "axis=ax[2][2]  \n"
@@ -1086,17 +1088,19 @@ int Galfit<T>::plotAll_Python() {
             << std::endl
             << "if len(files_mod)==2: typ.append('LOCAL') \n"
             << "elif (len(files_mod)==1 and len(typ)==0): typ.append('LOCAL') \n"
-            << "else: exit() \n\n";
+            << "elif (len(files_mod)==len(typ)==0): exit() \n\n";
 
     py_file << "# Beginning channel map plot \n"
+            << "xcen, ycen, phi = [np.nanmean(xpos)-xmin,np.nanmean(ypos)-ymin,np.nanmean(pa)] \n"
+            << "if twostage==True: xcen, ycen, phi = [np.nanmean(xpos2),np.nanmean(ypos2),np.nanmean(pa2)] \n"
             << "for k in range (len(files_mod)): \n"
             << "\timage_mod = fits.open(outfolder+files_mod[k]) \n"
             << "\timagedata_mod = image_mod[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
             << "\tplt.figure(figsize=(8.27, 11.69), dpi=100) \n"
             << "\tgrid = [gridspec.GridSpec(2,5),gridspec.GridSpec(2,5),gridspec.GridSpec(2,5)] \n"
-            << "\tgrid[0].update(top=0.95, bottom=0.695, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
-            << "\tgrid[1].update(top=0.65, bottom=0.395, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
-            << "\tgrid[2].update(top=0.35, bottom=0.095, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
+            << "\tgrid[0].update(top=0.90, bottom=0.645, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
+            << "\tgrid[1].update(top=0.60, bottom=0.345, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
+            << "\tgrid[2].update(top=0.30, bottom=0.045, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
             << "\tmatplotlib.rcParams['contour.negative_linestyle'] = 'solid' \n"
             << std::endl
             << "\tnum = 0 \n"
@@ -1107,16 +1111,19 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tz_mod = imagedata_mod[chan,:,:] \n"
             << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
             << "\t\t\tvelo = ' v = ' + str(int(velo_kms)) + ' km/s' \n"
-            << "\t\t\tplt.subplot(grid[j][0,i]) \n"
+            << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
             << "\t\t\tplt.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
             << "\t\t\tplt.title(velo, fontsize=8,loc='left') \n"
             << "\t\t\tplt.imshow(z,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto') \n"
             << "\t\t\tplt.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
             << "\t\t\tplt.contour(z,v_neg,origin='lower',linewidths=0.1,colors='gray') \n"
+            << "\t\t\tplt.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
             << "\t\t\tplt.subplot(grid[j][1,i]) \n"
             << "\t\t\tplt.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
             << "\t\t\tplt.imshow(z_mod,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto') \n"
             << "\t\t\tplt.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
+            << "\t\t\tplt.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
+            << "\t\t\tif (j==i==0): plt.text(0, 1.5, gname, transform=ax.transAxes,fontsize=15) \n"
             << "\t\t\tnum = num+1 \n"
             << std::endl
             << "\toutfile = 'plot_chanmaps.pdf' \n"
@@ -1200,12 +1207,14 @@ int Galfit<T>::plotAll_Python() {
             << "\t\taxis2.tick_params(which='major',length=8, labelsize=labsize) \n"
             << "\t\taxis2.set_ylabel('$\\mathrm{V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
             << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = matplotlib.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
-            << "\t\taxis.contour(toplot[0][i],v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[i],aspect='auto') \n"
-            << "\t\taxis.contour(toplot[0][i],v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[i],aspect='auto') \n"
-            << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=0.7,colors='#B22222',extent=ext[i],aspect='auto') \n"
+            << "\t\taxis.contour(toplot[0][i],v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[i]) \n"
+            << "\t\taxis.contour(toplot[0][i],v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[i]) \n"
+            << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=0.7,colors='#B22222',extent=ext[i]) \n"
             << "\t\taxis.axhline(y=0,color='black') \n"
             << "\t\taxis.axvline(x=0,color='black') \n"
-            << "\t\tif i==0 :axis2.plot(radius,vlos,'yo') \n"
+            << "\t\tif i==0 : \n"
+            << "\t\t\taxis2.plot(radius,vlos,'yo') \n"
+            << "\t\t\taxis.text(0, 1.1, gname, transform=axis.transAxes,fontsize=22) \n"
             << std::endl
             << "\toutfile = 'plot_pv.pdf' \n"
             << "\tif (typ[k]=='AZIM'): outfile = 'plot_pv_azim.pdf' \n"
@@ -1244,8 +1253,6 @@ int Galfit<T>::plotAll_Python() {
             << "titles = ['DATA', 'MODEL'] \n"
             << "mapname = ['INTENSITY', 'VELOCITY', 'DISPERSION'] \n"
             << std::endl
-            << "xcen, ycen, phi = [np.nanmean(xpos)-xmin,np.nanmean(ypos)-ymin,np.nanmean(pa)] \n"
-            << "if twostage==True: xcen, ycen, phi = [np.nanmean(xpos2),np.nanmean(ypos2),np.nanmean(pa2)] \n"
             << "x = np.arange(0,xmax-xmin,0.1) \n"
             << "y = np.tan(np.radians(phi-90))*(x-xcen)+ycen \n"
             << "ext = [0,xmax-xmin,0, ymax-ymin] \n"
@@ -1367,70 +1374,70 @@ void Galfit<T>::showInitial (Rings<T> *inr, std::ostream& Stream) {
 
     string s;
     s = "   Fitting #" + to_string<int>(inr->nr);
-    if (in->pars().getNRADII()==-1) s += "(e) ";
+    if (par.NRADII==-1) s += "(e) ";
     else s += "(i) ";
     s += "rings of width " + to_string<T>(inr->radsep);
-    if (in->pars().getRADSEP()==-1) s += "(e) ";
+    if (par.RADSEP==-1) s += "(e) ";
     else s += "(i) ";
     s += "arcsec";
     Stream << s << endl << endl;
 
 
     s = "    Xpos";
-    if (in->pars().getXPOS()=="-1") s += " (e)";
+    if (par.XPOS=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->xpos[0] << left << setw(m) << "  pix";
 
 
     s = "        Ypos";
-    if (in->pars().getYPOS()=="-1") s += " (e)";
+    if (par.YPOS=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
          << setw(m-1) << inr->ypos[0]
          << left << setw(m) << "  pix" << endl;
 
     s = "    Vsys";
-    if (in->pars().getVSYS()=="-1") s += " (e)";
+    if (par.VSYS=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->vsys[0] << left << setw(m) << "  km/s";
 
     s = "        Vrot";
-    if (in->pars().getVROT()=="-1") s += " (e)";
+    if (par.VROT=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
          << setw(m-1) << inr->vrot[0]
          << left << setw(m) << "  km/s" << endl;
 
     s = "    Inc";
-    if (in->pars().getINC()=="-1") s += " (e)";
+    if (par.INC=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->inc[0] << left << setw(m) << "  deg";
 
     s = "        PA";
-    if (in->pars().getPHI()=="-1") s += " (e)";
+    if (par.PHI=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
            << setw(m-1) << inr->phi[0] << left << setw(m) << "  deg" << endl;
 
     double toKpc = KpcPerArc(distance);
     s = "    Z0";
-    if (in->pars().getZ0()=="-1") s += " (d)";
+    if (par.Z0=="-1") s += " (d)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->z0[0]*toKpc*1000 << left << setw(m) << "  pc";
 
     s = "        Disp";
-    if (in->pars().getVDISP()=="-1") s += " (d)";
+    if (par.VDISP=="-1") s += " (d)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
          << setw(m-1) << inr->vdisp[0]
          << left << setw(m) << "  km/s" << endl;
     
     s = "    Vrad";
-    if (in->pars().getVRAD()=="-1") s += " (d)";
+    if (par.VRAD=="-1") s += " (d)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->vrad[0] << left << setw(m) << "  km/s";
@@ -1527,14 +1534,3 @@ template void Galfit<double>::DensityProfile (double*, int *);
 
 }
 
-#undef VROT
-#undef VDISP
-#undef DENS
-#undef Z0
-#undef INC
-#undef PA
-#undef XPOS
-#undef YPOS
-#undef VSYS
-#undef VRAD
-#undef MAXPAR

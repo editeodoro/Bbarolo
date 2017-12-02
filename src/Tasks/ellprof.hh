@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 
@@ -54,14 +54,14 @@
 //
 // 1) call constructor function:
 //
-//	  	-MomentMap *image:  the image from which the profile is built.
+//      -MomentMap *image:  the image from which the profile is built.
 //                          it should have NaN as blank pixels.
-//		-Rings *rings:      a Rings object containing the input rings.
+//      -Rings *rings:      a Rings object containing the input rings.
 //                          In input, distances have to be in ARCSEC,
 //                          angles in DEGREE. Required quantities are nr,
 //                          radsep, radii, inc and phi.
-//		-int nseg:          an array with upper coordinate limits.
-//		-float *segments:   array of size 2*nseg with segment ranges.
+//      -int nseg:          an array with upper coordinate limits.
+//      -float *segments:   array of size 2*nseg with segment ranges.
 //                          Profiles can be calculated in a part of a
 //                          ring, a so called segment. Default segment
 //                          is the entire ring (0,360). Required to de-
@@ -102,8 +102,8 @@
 
 #include <iostream>
 #include <vector>
-#include <Utilities/moment.hh>
-#include <Utilities/galmod.hh>
+#include <Tasks/moment.hh>
+#include <Tasks/galmod.hh>
 
 namespace Tasks {
 template <class T>

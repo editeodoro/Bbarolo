@@ -14,7 +14,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
@@ -110,7 +110,7 @@ int wcsToPixSingle(struct wcsprm *wcs, const double *world, double *pix) {
   double *theta   = new double[npts];
 
   status=wcss2p(wcs, npts, naxis, tempworld, 
-		phi, theta, imgcrd, temppix, stat);
+        phi, theta, imgcrd, temppix, stat);
 
   if( status > 0 ){
       std::cout << "\nCannot convert to wcs. WCS error code = " << status
@@ -134,7 +134,7 @@ int wcsToPixSingle(struct wcsprm *wcs, const double *world, double *pix) {
 
 /*
 int pixToWCSMulti(struct wcsprm *wcs, const double *pix, 
-		  double *world, const int npts)
+          double *world, const int npts)
 {
   ///  @details
   ///   Uses wcs to convert the three-dimensional pixel positions referenced 
@@ -170,7 +170,7 @@ int pixToWCSMulti(struct wcsprm *wcs, const double *pix,
   double *phi       = new double[npts];
   double *theta     = new double[npts];
   status=wcsp2s(wcs, npts, naxis, newpix, imgcrd, 
-		phi, theta, tempworld, stat);
+        phi, theta, tempworld, stat);
   if(status>0){
     std::stringstream statstr;
     statstr<<"|";
@@ -198,7 +198,7 @@ int pixToWCSMulti(struct wcsprm *wcs, const double *pix,
 }
 
 int wcsToPixMulti(struct wcsprm *wcs, const double *world, 
-		  double *pix, const int npts)
+          double *pix, const int npts)
 {
   ///  @details
   ///   Uses wcs to convert the three-dimensional world coordinate position 
@@ -238,7 +238,7 @@ int wcsToPixMulti(struct wcsprm *wcs, const double *world,
   double *phi    = new double[npts];
   double *theta  = new double[npts];
   status=wcss2p(wcs,npts,naxis,tempworld,phi,theta,
-		imgcrd,temppix,stat);
+        imgcrd,temppix,stat);
   if(status>0){
     std::stringstream statstr;
     statstr<<"|";
@@ -266,7 +266,7 @@ int wcsToPixMulti(struct wcsprm *wcs, const double *world,
 }
 
 double pixelToVelocity(struct wcsprm *wcs, double &x, double &y, double &z, 
-		       std::string velUnits)
+               std::string velUnits)
 {
   ///  @details
   ///   Uses wcs to convert the three-dimensional pixel position (x,y,z)
@@ -299,7 +299,7 @@ double pixelToVelocity(struct wcsprm *wcs, double &x, double &y, double &z,
   pixcrd[wcs->lat] += y;
   pixcrd[specAxis]+= z;
   status=wcsp2s(wcs, 1, naxis, pixcrd, imgcrd, 
-		phi, theta, world, stat);
+        phi, theta, world, stat);
   if(status>0){
     std::stringstream statstr;
     statstr<<"|";
@@ -320,7 +320,7 @@ double pixelToVelocity(struct wcsprm *wcs, double &x, double &y, double &z,
 }
  
 double coordToVel(struct wcsprm *wcs, const double coord, 
-		  std::string outputUnits)
+          std::string outputUnits)
 {
   ///  @details
   ///   Convert the wcs coordinate given by coord to a velocity in km/s.
@@ -338,16 +338,16 @@ double coordToVel(struct wcsprm *wcs, const double coord,
   if(specIndex<0) specIndex = 2;
   if(specIndex>=wcs->naxis) specIndex = wcs->naxis-1;
   int status = wcsunits( wcs->cunit[specIndex], outputUnits.c_str(), 
-			 &scale, &offset, &power);
+             &scale, &offset, &power);
 
   if(status > 0){
     if(errflag==0){
       std::stringstream errmsg;
       errmsg << "WCSUNITS Error Code = " << status << ":"
-	     << wcsunits_errmsg[status];
+         << wcsunits_errmsg[status];
       if(status == 10) errmsg << "\nTried to get conversion from " 
-			      << wcs->cunit[specIndex]
-			      << " to " << outputUnits.c_str();
+                  << wcs->cunit[specIndex]
+                  << " to " << outputUnits.c_str();
       //      errmsg << "\nUsing coordinate value instead.\n";
       DUCHAMPERROR("coordToVel", errmsg);
       errflag = 1;
@@ -359,7 +359,7 @@ double coordToVel(struct wcsprm *wcs, const double coord,
 }
 
 double velToCoord(struct wcsprm *wcs, const float velocity, 
-		  std::string outputUnits)
+          std::string outputUnits)
 {
   ///  @details
   ///   Convert the velocity given to the appropriate world coordinate for wcs.
@@ -376,7 +376,7 @@ double velToCoord(struct wcsprm *wcs, const float velocity,
   if(specIndex<0) specIndex = 2;
   if(specIndex>=wcs->naxis) specIndex = wcs->naxis-1;
   int status = wcsunits( outputUnits.c_str(), wcs->cunit[specIndex], 
-			 &scale, &offset, &power);
+             &scale, &offset, &power);
 
   if(status > 0){
     std::stringstream errmsg;

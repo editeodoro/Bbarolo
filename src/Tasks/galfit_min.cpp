@@ -18,33 +18,18 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
 #include <cfloat>
 #include <cmath>
 #include <Arrays/cube.hh>
-#include <Arrays/image.hh>
-#include <Map/voxel.hh>
-#include <Utilities/galfit.hh>
+#include <Tasks/galmod.hh>
+#include <Tasks/galfit.hh>
 #include <Utilities/utils.hh>
-#include <Utilities/galmod.hh>
 #include <Utilities/conv2D.hh>
 
-using namespace PixelInfo;
-
-#define VROT  0
-#define VDISP 1
-#define DENS  2
-#define Z0    3
-#define INC   4
-#define PA    5
-#define XPOS  6
-#define YPOS  7
-#define VSYS  8
-#define VRAD  9
-#define MAXPAR 10
 
 namespace Model {
 
@@ -55,8 +40,9 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 	/// in multidimensions due to Nelder and Mead.
 	
     const int NMAX=2000;
-	const double TINY=1.0e-10;
-	
+	const double TINY = 1.0e-10;
+	const double tol  = par.TOL;
+    
     int ndim=nfree;
     if (global) ndim=nfree*dring->nr;
 
@@ -509,19 +495,16 @@ T Galfit<T>::model(Rings<T> *dring) {
 	if (bhi[1]>in->DimY()) bhi[1] = in->DimY();
 	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
 	
-	int nv;
-	if (in->pars().getNV()==-1) nv=in->DimZ();
-	else nv = in->pars().getNV();
-	int ltype = in->pars().getLTYPE();
-	int cdens = in->pars().getCDENS();
+	int nv = par.NV;
+	if (nv==-1) nv=in->DimZ();
 
-	mod->input(in,bhi,blo,dring,nv,ltype,1,cdens);
+	mod->input(in,bhi,blo,dring,nv,par.LTYPE,1,par.CDENS);
 	mod->calculate();
 	
 	T *modp = mod->Out()->Array();
 	
 	//<<<<< Convolution....
-	if (in->pars().getSM()) {
+	if (par.SM) {
 		if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
 		else Convolve(modp, bsize);
 	}
@@ -631,8 +614,8 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 	
 	int numPix_ring=0, numBlanks=0, numPix_tot=0;
 	double minfunc = 0;
-    //int bweight = second ? 0 : in->pars().getBweight();
-    int bweight = in->pars().getBweight();
+    //int bweight = second ? 0 : par.BWEIGHT;
+    int bweight = par.BWEIGHT;
 		
 	for (uint y=bsize[1]; y--;) {
 		for (uint x=bsize[0]; x--;) {
@@ -695,8 +678,8 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 	
 	int numPix_ring=0, numBlanks=0, numPix_tot=0;
 	double minfunc = 0;
-    //int bweight = second ? 0 : in->pars().getBweight();
-    int bweight = in->pars().getBweight();
+    //int bweight = second ? 0 : par.BWEIGHT;
+    int bweight = par.BWEIGHT;
 
 	typename std::vector<Pixel<T> >::iterator pix;
 	for(pix=anulus->begin();pix<anulus->end();pix++) {
@@ -758,7 +741,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    int bweight = in->pars().getBweight();
+    int bweight = par.BWEIGHT;
 
     //< Factor for normalization.
     T obsSum=0, modSum=0, factor=1;
@@ -825,7 +808,7 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    int bweight = in->pars().getBweight();
+    int bweight = par.BWEIGHT;
 
     for (uint y=bsize[1]; y--;) {
         for (uint x=bsize[0]; x--;) {
@@ -894,8 +877,8 @@ template bool Galfit<double>::IsIn(int,int,int*,Rings<double>*,double&);
 template <class T>
 inline bool Galfit<T>::getSide (double theta) {
 
-    if (in->pars().getSIDE()=="R") return (fabs(theta)<=90.0);
-    else if (in->pars().getSIDE()=="A") return (fabs(theta)>=90.0);
+    if (par.SIDE=="R") return (fabs(theta)<=90.0);
+    else if (par.SIDE=="A") return (fabs(theta)>=90.0);
     else return true;
 
 }
@@ -907,7 +890,7 @@ template <class T>
 inline double Galfit<T>::getFuncValue(T obs, T mod, double weight, double noise_weight) {
 
     double value = 0;
-    switch(in->pars().getFTYPE()) {
+    switch(par.FTYPE) {
         case 1:
             value = weight*std::pow(mod-obs,2)/std::sqrt(obs)/noise_weight;
             break;
@@ -1047,14 +1030,3 @@ template double* Galfit<double>::getFinalRingsRegion ();
 }
 
 
-#undef VROT
-#undef VDISP
-#undef DENS
-#undef Z0
-#undef INC
-#undef PA
-#undef XPOS
-#undef YPOS
-#undef VSYS
-#undef VRAD
-#undef MAXPAR

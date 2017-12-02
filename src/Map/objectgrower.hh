@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #ifndef OBJECT_GROWER_H
@@ -44,7 +44,7 @@ template <class T>
 class ObjectGrower
 {
 public:
-	ObjectGrower();
+    ObjectGrower();
     virtual ~ObjectGrower(){};
     ObjectGrower(ObjectGrower &o);
     ObjectGrower& operator=(const ObjectGrower &o);
@@ -59,12 +59,12 @@ public:
     std::vector<Voxel<T> > growFromPixel(Voxel<T> &vox);
 
 protected:
-    std::vector<STATE> itsFlagArray;                   	///< The array of pixel flags
+    std::vector<STATE> itsFlagArray;                    ///< The array of pixel flags
     std::vector<size_t> itsArrayDim;                    ///< The dimensions of the array
-    Statistics::Stats<T> itsGrowthStats;  				///< The statistics used to determine membership of an object
-    int itsSpatialThresh;                              	///< The spatial threshold for merging
-    int itsVelocityThresh;                             	///< The spectral threshold for merging
-    T* itsFluxArray;                               		///< The location of the pixel values
+    Statistics::Stats<T> itsGrowthStats;                ///< The statistics used to determine membership of an object
+    int itsSpatialThresh;                               ///< The spatial threshold for merging
+    int itsVelocityThresh;                              ///< The spectral threshold for merging
+    T* itsFluxArray;                                    ///< The location of the pixel values
 };
 
 

@@ -14,10 +14,10 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
-#include <Utilities/galfit.hh>
+#include <Tasks/galfit.hh>
 #include <Arrays/cube.hh>
 #include <Arrays/image.hh>
 #include <Utilities/utils.hh>
@@ -38,7 +38,8 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     defaults();
     in = c;
     Param *p = &c->pars();
-
+    par = p->getParGF();
+    
     p->setMinChannels(1);
     p->setMinPix(in->DimX());
     in->Search();
@@ -226,16 +227,16 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     // Try to read ring information from an input file
     Rings<T> file_rings;
     bool radii_b,xpos_b,ypos_b,vsys_b,vrot_b,vdisp_b,z0_b,dens_b,inc_b,pa_b;
-    radii_b = getDataColumn(file_rings.radii,p->getRADII());
-    xpos_b  = getDataColumn(file_rings.xpos,p->getXPOS());
-    ypos_b  = getDataColumn(file_rings.ypos,p->getYPOS());
-    vsys_b  = getDataColumn(file_rings.vsys,p->getVSYS());
-    vrot_b  = getDataColumn(file_rings.vrot,p->getVROT());
-    vdisp_b = getDataColumn(file_rings.vdisp,p->getVDISP());
-    z0_b    = getDataColumn(file_rings.z0,p->getZ0());
-    dens_b  = getDataColumn(file_rings.dens,p->getDENS());
-    inc_b   = getDataColumn(file_rings.inc,p->getINC());
-    pa_b 	= getDataColumn(file_rings.phi,p->getPHI());
+    radii_b = getDataColumn(file_rings.radii,par.RADII);
+    xpos_b  = getDataColumn(file_rings.xpos,par.XPOS);
+    ypos_b  = getDataColumn(file_rings.ypos,par.YPOS);
+    vsys_b  = getDataColumn(file_rings.vsys,par.VSYS);
+    vrot_b  = getDataColumn(file_rings.vrot,par.VROT);
+    vdisp_b = getDataColumn(file_rings.vdisp,par.VDISP);
+    z0_b    = getDataColumn(file_rings.z0,par.Z0);
+    dens_b  = getDataColumn(file_rings.dens,par.DENS);
+    inc_b   = getDataColumn(file_rings.inc,par.INC);
+    pa_b    = getDataColumn(file_rings.phi,par.PHI);
 
     size_t size[10] = {file_rings.radii.size(),file_rings.xpos.size(),
                     file_rings.ypos.size(), file_rings.vsys.size(),
@@ -248,17 +249,17 @@ void Galfit<T>::slit_init(Cube<T> *c) {
 
     int nr=0;
     T radsep, xpos, ypos, vsys, vrot, vdisp, z0, dens, inc, pa;
-    nr 	  = p->getNRADII();
-    radsep= p->getRADSEP();
-    vrot  = atof(p->getVROT().c_str());
-    inc   = atof(p->getINC().c_str());
-    vdisp = p->getVDISP()!="-1" ? atof(p->getVDISP().c_str()): 8.;					// default is 8 km/s
-    z0    = p->getZ0()!="-1" ? atof(p->getZ0().c_str()) : 0.15/KpcPerArc(distance);	// default is 150 parsec
-    dens  = p->getDENS()!="-1" ? atof(p->getDENS().c_str()) : 1.;
-    xpos  = p->getXPOS()!="-1" ? atof(p->getXPOS().c_str()) : in->Head().Crpix(0)-1;
-    ypos  = p->getYPOS()!="-1" ? atof(p->getYPOS().c_str()) : in->Head().Crpix(1)-1;
-    vsys  = p->getVSYS()!="-1" ? atof(p->getVSYS().c_str()) : 0.;
-    pa    = p->getPHI()!="-1"  ? atof(p->getPHI().c_str()) : 0;
+    nr    = par.NRADII;
+    radsep= par.RADSEP;
+    vrot  = atof(par.VROT.c_str());
+    inc   = atof(par.INC.c_str());
+    vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;                  // default is 8 km/s
+    z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.15/KpcPerArc(distance); // default is 150 parsec
+    dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
+    xpos  = par.XPOS!="-1" ? atof(par.XPOS.c_str()) : in->Head().Crpix(0)-1;
+    ypos  = par.YPOS!="-1" ? atof(par.YPOS.c_str()) : in->Head().Crpix(1)-1;
+    vsys  = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : 0.;
+    pa    = par.PHI!="-1"  ? atof(par.PHI.c_str()) : 0;
 
     if (pa!=180 && pa!=0) {
         std::cout << "SLITFIT WARNING: PA must be 0 or 180. Setting to 0.\n";
@@ -275,7 +276,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
 
      inr = new Rings<T>;
      inDefined = true;
-     inr->nr 	= nr;
+     inr->nr    = nr;
      inr->radsep = radsep;
      for (int i=0; i<inr->nr; i++) {
         if (radii_b) inr->radii.push_back(file_rings.radii[i]);
@@ -298,6 +299,13 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         else inr->ypos.push_back(ypos);
         if (vsys_b) inr->vsys.push_back(file_rings.vsys[i]);
         else inr->vsys.push_back(vsys);
+        inr->vrad.push_back(0);
+        
+        // In the current version, vertical motions, and gradients are not fitted
+        inr->vvert.push_back(0);
+        inr->dvdz.push_back(0);
+        inr->zcyl.push_back(0);
+        
     }
 
     if (inr->radii[0]!=0) inr->radii[0]=0;
@@ -305,12 +313,11 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     setFree();
 
     wpow = 0;
-    string polyn = makelower(p->getPOLYN());
+    string polyn = makelower(par.POLYN);
     if (polyn=="bezier") anglepar=-1;
-    else anglepar = 1+atoi(polyn.c_str());    tol = p->getTOL();
-    flagErrors = p->getflagErrors();
+    else anglepar = 1+atoi(polyn.c_str());    
 
-    input(in, inr, mpar, tol);
+    setup(in, inr, &par);
 
     outr = new Rings<T>;
     *outr = *inr;
@@ -351,8 +358,8 @@ double Galfit<T>::slitfunc(Rings<T> *dring, T *array, int *bhi, int *blo) {
     }
 
     int numBlanks=0, numPix_tot=0;
-    int ftype = in->pars().getFTYPE();
-    int bweight = in->pars().getBweight();
+    int ftype = par.FTYPE;
+    int bweight = par.BWEIGHT;
 
     double pixScale = in->Head().PixScale()*arcconv;
     double r1 = dring->radii.front()/pixScale;
@@ -520,13 +527,13 @@ void Galfit<T>::writeModel_slit() {
         << "XTICS   = 'set xtics " << to_string(xtics) << "; set mxtics 2; set format x \"%g\" '" << endl
         << "NOXTICS = 'unset xlabel; set xtics  " << to_string(xtics) << "; set mxtics 2; set format x '' '" << endl
         << "LABELF  = 'set xlabel font \"Helvetica,13\"; "
-        <<			  "set ylabel font \"Helvetica,13\" '" << endl
-        << "TICSF	= 'set xtics font \"Helvetica,12\"; "
-        <<			  "set ytics font \"Helvetica,12\" '" << endl
+        <<            "set ylabel font \"Helvetica,13\" '" << endl
+        << "TICSF   = 'set xtics font \"Helvetica,12\"; "
+        <<            "set ytics font \"Helvetica,12\" '" << endl
         << "TMARGIN = 'set tmargin at screen 0.95; set bmargin at screen 0.47; "
-        << 			  "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
+        <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "MMARGIN = 'set tmargin at screen 0.47; set bmargin at screen 0.27; "
-        << 			  "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
+        <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "BMARGIN = 'set tmargin at screen 0.27; set bmargin at screen 0.10; "
         <<            "set lmargin at screen 0.10; set rmargin at screen 0.50'" << endl
         << "set multiplot layout 3,1 rowsfirst" << endl;
@@ -542,7 +549,7 @@ void Galfit<T>::writeModel_slit() {
         << "set ytics 50" << endl << "set mytics 5" << endl
         << "plot '" << outfold << "ringlog1.txt' ";
 
-    if (flagErrors && mpar[0]) {
+    if (par.flagERRORS && mpar[0]) {
         int nc=err_col;
         for (int i=0; i<nfree; i++) if (free[i]==0) nc+=2*i;
         gnu << "u 2:3:($3+$"+to_string(nc)+"):($3+$"+to_string(nc+1)+") w errorbars ls 1, '"
@@ -552,7 +559,7 @@ void Galfit<T>::writeModel_slit() {
 
     if (second) {
         gnu << ", '" << outfold << "ringlog2.txt' ";
-        if (flagErrors && mpar[0]) {
+        if (par.flagERRORS && mpar[0]) {
         gnu << "u 2:3:($3+$13):($3+$14) w errorbars ls 2, '"
             << outfold <<"ringlog2.txt' u 2:3 w lp ls 2";
         }
@@ -569,7 +576,7 @@ void Galfit<T>::writeModel_slit() {
         << "set ytics 5" << endl << "set mytics 5" << endl
         << "plot '"<<in->pars().getOutfolder()<<"ringlog1.txt' ";
 
-    if (flagErrors && mpar[1]) {
+    if (par.flagERRORS && mpar[1]) {
         int nc=err_col;
         for (int i=0; i<nfree; i++) if (free[i]==1) nc+=2*i;
         gnu << "u 2:4:($4+$"+to_string(nc)+"):($4+$"+to_string(nc+1)+") w errorbars ls 1, '"
@@ -579,13 +586,13 @@ void Galfit<T>::writeModel_slit() {
 
     if (second) {
         gnu << ", '" << outfold << "ringlog2.txt' ";
-        if (flagErrors && mpar[1]) {
+        if (par.flagERRORS && mpar[1]) {
             gnu << "u 2:4:($3+$15):($3+$16) w errorbars ls 2, '"
                 << outfold <<"ringlog2.txt' u 2:4 w lp ls 2";
         }
         else gnu << "u 2:4 w lp ls 2";
     }
-    gnu	<< endl;
+    gnu << endl;
 
 
     // Plotting systemic velocity
@@ -601,7 +608,7 @@ void Galfit<T>::writeModel_slit() {
 
     if (second)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:12 w lp ls 2";
-    gnu	<< endl;
+    gnu << endl;
     gnu << "unset multiplot; reset" << endl;
     gnu.close();
 

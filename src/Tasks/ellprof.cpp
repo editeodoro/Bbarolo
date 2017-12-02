@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
@@ -27,8 +27,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <cstdlib>
-#include <Utilities/ellprof.hh>
-#include <Utilities/galmod.hh>
+#include <Tasks/ellprof.hh>
+#include <Tasks/galmod.hh>
 #include <Utilities/utils.hh>
 
 namespace Tasks {

@@ -18,18 +18,18 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <Utilities/galmod.hh>
+#include <Tasks/galmod.hh>
 #include <Arrays/cube.hh>
-#include <Utilities/smooth3D.hh>
-#include <Utilities/moment.hh>
+#include <Tasks/smooth3D.hh>
+#include <Tasks/moment.hh>
 #include <Utilities/utils.hh>
-
+#include <random>
 
 #define C  2.99792458E08 			// Speed of light in M/S
 #define K  1.3806488E-23			// Boltzmann constant in Joule/Kelvin 
@@ -731,10 +731,10 @@ void Galmod<T>::galmod() {
 //				Get position in the plane of the sky with respect to the major
 //				and minor axes of the spiral galaxy.
 				double x	= R*caz;
-				double y	= R*saz*cinc-z*sinc;												 
+				double y	= R*saz*cinc-z*sinc;
 // 				Get grid of this position, check if it is inside area of box.
 				long grid[2] = {lround(r->xpos[ir]+(x*spa-y*cpa)/cdelt[0]),
-							   lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};				
+							   lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};
 				if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
 				if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
 
@@ -792,6 +792,8 @@ void Galmod<T>::galmod() {
 				}
 
 */
+                std::default_random_engine generator(isd);
+                std::normal_distribution<double> distribution(0,vdisptmp);
 
 //              PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
                 uint nlines = in->pars().getNlines();
@@ -799,7 +801,9 @@ void Galmod<T>::galmod() {
                 float relint_lines[2] = {1,1.70};
 
                 for (int iv=0; iv<nvtmp; iv++) {
-                    double vdev = gasdev(isd)*vdisptmp;
+                    //double vdev = gasdev(isd)*vdisptmp;
+                    double vdev = distribution(generator);
+                    //std::cout << vdev << " " << vdisptmp << " " << seed << std::endl;
                     for (int nl=0; nl<nlines; nl++) {
                         double v	 = vsys+vdev+relvel_lines[nl];
                         int isubs = lround(velgrid(v)+crpix3-1);
@@ -981,15 +985,16 @@ int Galmod<T>::iran(int &idum) {
 	///	since the they are only used 55 times in a linear congruential 
 	/// algorithm to initialize the array ma.
 	
-		
 	const int MBIG = 16777216;
     const int MSEED= 1618033;
-
+    
+    
     static int ma[56];
     static int inext, inextp, mk;
 	int Iran=0; 
 
  	if (idum<0) {
+        /*
 		Iran = MSEED-fabs(idum);
 	    Iran = Iran % MBIG;
 	    ma[55]=Iran;
@@ -1008,11 +1013,20 @@ int Galmod<T>::iran(int &idum) {
 				if (ma[i]<0) ma[i] = ma[i]+MBIG;
 			}
 		}
+		
+        */
+        std::knuth_b generator(idum);
+        std::uniform_int_distribution<int> distribution(0,MBIG);
+        for (int i=1; i<=55; i++) 
+            ma[i] = distribution(generator);
 
+        
+        //cout << "STOQUA!! " << idum << " " << iseed << std::endl;
 	    inext=0;
         inextp=31;
         idum=1;
 	}
+
 
 	inext=inext+1;
 	if (inext==56) inext=1;

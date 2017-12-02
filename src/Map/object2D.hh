@@ -19,7 +19,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #ifndef OBJECT2D_H
@@ -42,7 +42,7 @@ namespace PixelInfo
   /// std::vector), together with basic information on the maximum,
   /// minimum, and average values (actually stored as xSum, ySum) for
   /// the x and y pixel values.
-	
+    
   template <class T> 
   class Object2D
   {
@@ -50,10 +50,10 @@ namespace PixelInfo
     Object2D();
     Object2D(const Object2D& o);
     Object2D& operator= (const Object2D& o);  
-    virtual ~Object2D(){};
+    virtual ~Object2D(){}
   
     /// @brief Clear the Object and set the number of pixels to zero.
-    void  clear(){scanlist.clear(); numPix=0;};
+    void  clear(){scanlist.clear(); numPix=0;}
 
     /// @brief Make sure there are no overlapping or adjacent scans in the Scan list. 
     void  cleanup();
@@ -67,9 +67,9 @@ namespace PixelInfo
     /// @brief Test whether a pixel (x,y) is in the Object. 
     bool  isInObject(long x, long y);
     /// @brief Test whether the (x,y) part of a Voxel is in the Object.
-    bool  isInObject(Voxel<T> v){return this->isInObject(v.getX(),v.getY());};
+    bool  isInObject(Voxel<T> v){return this->isInObject(v.getX(),v.getY());}
     /// @brief Test whether a Pixel is in the Object.
-    bool  isInObject(Pixel<T> p){return this->isInObject(p.getX(),p.getY());};
+    bool  isInObject(Pixel<T> p){return this->isInObject(p.getX(),p.getY());}
 
     /// @brief Test whether a given Scan overlaps with any pixels in the Object. 
     bool  scanOverlaps(Scan<T> &scan);
@@ -79,13 +79,13 @@ namespace PixelInfo
     bool isClose(Object2D &other, float threshS, bool flagAdj);   
 
     /// @brief Return the number of pixels in the Object. 
-    unsigned long  getSize(){return numPix;};
+    unsigned long  getSize(){return numPix;}
 
     /// @brief Return the number of Scans in the Object. 
-    long  getNumScan(){return scanlist.size();};
+    long  getNumScan(){return scanlist.size();}
 
     /// @brief Order the Scans in the list, using the < operator for Scans. 
-     void  order(){std::stable_sort(scanlist.begin(),scanlist.end());};
+     void  order(){std::stable_sort(scanlist.begin(),scanlist.end());}
 
     /// @brief Add values to the x- and y-axes, making sure to add the offsets to the sums and min/max values. 
     void  addOffsets(long xoff, long yoff);
@@ -94,15 +94,15 @@ namespace PixelInfo
     void  calcParams();
 
     /// @brief Return the average x-value. 
-    float getXaverage(){return xSum/float(numPix);};
+    float getXaverage(){return xSum/float(numPix);}
 
     /// @brief Return the average y-value. 
-    float getYaverage(){return ySum/float(numPix);};
+    float getYaverage(){return ySum/float(numPix);}
 
-    long  getXmin(){return xmin;};
-    long  getYmin(){return ymin;};
-    long  getXmax(){return xmax;};
-    long  getYmax(){return ymax;};
+    long  getXmin(){return xmin;}
+    long  getYmin(){return ymin;}
+    long  getXmax(){return xmax;}
+    long  getYmax(){return ymax;}
 
     /// @brief Return the number of distinct y-values.
     long  getNumDistinctY();
@@ -121,7 +121,7 @@ namespace PixelInfo
     /// @brief Adding two Objects together.
     template <class Type> 
     friend Object2D<Type> operator+ (Object2D<Type> lhs, Object2D<Type> rhs);
-	
+    
     template <class Type> friend class Object3D; 
     template <class Type> friend class Detection;
 

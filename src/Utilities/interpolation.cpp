@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #include <vector>
@@ -39,41 +39,41 @@ double *spline(Type *x, Type *y, int n, double yp1, double ypn) {
   /// boundary condition for a natural spline, with zero second derivative on 
   /// that boundary.
 
-	double p, qn, sig, un;
-	
-	double *y2 = new double [n];
-	double *u  = new double[n-1];
-	
-	if (yp1 > 1.e90)
-		y2[0]=u[0]=0.0;
-	else {
-		y2[0] = -0.5;
-		u[0]=(3.0/(x[1]-x[0]))*((y[1]-y[0])/(x[1]-x[0])-yp1);
-	}
-	
-	for (int i=1; i<n-1; i++) {
-		sig   = (x[i]-x[i-1])/(x[i+1]-x[i-1]);
-		p 	  = sig*y2[i-1]+2.0;
-		y2[i] = (sig-1.0)/p;
-		u[i]  = (y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
-		u[i]  = (6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
-	}
-	
-	if (ypn > 1.e90)
-		qn = un = 0.0;
-	else {
-		qn = 0.5;
-		un = (3.0/(x[n-1]-x[n-2]))*(ypn-(y[n-1]-y[n-2])/(x[n-1]-x[n-2]));
-	}
-	
-	y2[n-1] = (un-qn*u[n-2])/(qn*y2[n-2]+1.0);
-	
-	for (int k=n-2; k>=0; k--)
-		y2[k] = y2[k]*y2[k+1]+u[k];
-	
-	delete [] u;
-	
-	return y2;
+    double p, qn, sig, un;
+    
+    double *y2 = new double [n];
+    double *u  = new double[n-1];
+    
+    if (yp1 > 1.e90)
+        y2[0]=u[0]=0.0;
+    else {
+        y2[0] = -0.5;
+        u[0]=(3.0/(x[1]-x[0]))*((y[1]-y[0])/(x[1]-x[0])-yp1);
+    }
+    
+    for (int i=1; i<n-1; i++) {
+        sig   = (x[i]-x[i-1])/(x[i+1]-x[i-1]);
+        p     = sig*y2[i-1]+2.0;
+        y2[i] = (sig-1.0)/p;
+        u[i]  = (y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
+        u[i]  = (6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
+    }
+    
+    if (ypn > 1.e90)
+        qn = un = 0.0;
+    else {
+        qn = 0.5;
+        un = (3.0/(x[n-1]-x[n-2]))*(ypn-(y[n-1]-y[n-2])/(x[n-1]-x[n-2]));
+    }
+    
+    y2[n-1] = (un-qn*u[n-2])/(qn*y2[n-2]+1.0);
+    
+    for (int k=n-2; k>=0; k--)
+        y2[k] = y2[k]*y2[k+1]+u[k];
+    
+    delete [] u;
+    
+    return y2;
 }
 template double* spline (int*, int*, int, double, double);
 template double* spline (long*, long*, int, double, double);
@@ -83,30 +83,30 @@ template double* spline (double*, double*, int, double, double);
 
 template <class Type>
 double splint(Type *xa, Type *ya, Type *y2a, int n, Type x) {
-	
+    
   /// Given the arrays xa and ya, which tabulate a function,
   /// and given the array y2a, containing the second derivatives, 
   /// and given a value of x, this routine returns a cubic-spline 
   /// interpolated value y.
-	
-	int klo,khi,k;
-	double h,b,a;
-	double y;
+    
+    int klo,khi,k;
+    double h,b,a;
+    double y;
 
-	klo=0;
-	khi=n-1;
-	while (khi-klo > 1) {
-		k=(khi+klo) >> 1;
-		if (xa[k] > x) khi=k;
-		else klo=k;
-	}
-	h=xa[khi]-xa[klo];
-	if (h == 0.0) throw("Bad xa input to routine splint");
-	a=(xa[khi]-x)/h;
-	b=(x-xa[klo])/h;
-	y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
+    klo=0;
+    khi=n-1;
+    while (khi-klo > 1) {
+        k=(khi+klo) >> 1;
+        if (xa[k] > x) khi=k;
+        else klo=k;
+    }
+    h=xa[khi]-xa[klo];
+    if (h == 0.0) throw("Bad xa input to routine splint");
+    a=(xa[khi]-x)/h;
+    b=(x-xa[klo])/h;
+    y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
 
-	return y;
+    return y;
 }
 template double splint (int*, int*, int*, int, int);
 template double splint (long*, long*, long*, int, long);
@@ -124,74 +124,74 @@ int linear_reg(int num, T *x, T *y, float &m, float &merr, float &b, float &berr
   /// Returns the values of slope & intercept (with errors) as well as
   /// r, the regression coefficient.
   /// 
-  /// \param num 		Size of the x & y arrays.
-  /// \param x   		Array of abscissae.
-  /// \param y   		Array of ordinates.
-  /// \param ilow 		Minimum index of the arrays to be used 
-  ///					(ilow=0 means	start at the beginning).
-  /// \param ihigh 		Maximum index of the arrays to be used 
-  ///					(ihigh=num-1 means finish at the end).
-  /// \param m 			Returns value of the slope of the best fit line.
-  /// \param merr 		Returns value of the estimated error in the
-  ///                  	slope value.
-  /// \param b 			Returns value of the y-intercept of the best
-  ///                  	fit line.
-  /// \param berr		Returns value of the estimated error in the
+  /// \param num        Size of the x & y arrays.
+  /// \param x          Array of abscissae.
+  /// \param y          Array of ordinates.
+  /// \param ilow       Minimum index of the arrays to be used 
+  ///                   (ilow=0 means   start at the beginning).
+  /// \param ihigh      Maximum index of the arrays to be used 
+  ///                   (ihigh=num-1 means finish at the end).
+  /// \param m          Returns value of the slope of the best fit line.
+  /// \param merr       Returns value of the estimated error in the
+  ///                   slope value.
+  /// \param b          Returns value of the y-intercept of the best
+  ///                   fit line.
+  /// \param berr       Returns value of the estimated error in the
   ///                   value of the y-intercept.
-  /// \param r 			Returns the value of the regression coefficient.
-  /// \return 			If everything works, returns 0. If slope 
-  ///					is infinite (eg, all points have same x value), 
-  ///					returns 1.
+  /// \param r          Returns the value of the regression coefficient.
+  /// \return           If everything works, returns 0. If slope 
+  ///                   is infinite (eg, all points have same x value), 
+  ///                   returns 1.
  
 
-	if (ilow>ihigh) {
-		std::cout << "Error! linear_regression.cc :: ilow (" << ilow 
-				  << ") > ihigh (" << ihigh << ")!!\n";
-		return 1;
-	}
-	if (ihigh>num-1) {
-		std::cout << "Error! linear_regression.cc :: ihigh (" <<ihigh
-				  << ") out of bounds of array (>" << num-1 << ")!!\n";
-		return 1;
-	}
-	if(ilow<0){
-		std::cout << "Error! linear_regression.cc :: ilow (" << ilow
-				  << ") < 0. !!\n";
-		return 1;
-	}
+    if (ilow>ihigh) {
+        std::cout << "Error! linear_regression.cc :: ilow (" << ilow 
+                  << ") > ihigh (" << ihigh << ")!!\n";
+        return 1;
+    }
+    if (ihigh>num-1) {
+        std::cout << "Error! linear_regression.cc :: ihigh (" <<ihigh
+                  << ") out of bounds of array (>" << num-1 << ")!!\n";
+        return 1;
+    }
+    if(ilow<0){
+        std::cout << "Error! linear_regression.cc :: ilow (" << ilow
+                  << ") < 0. !!\n";
+        return 1;
+    }
 
-	double sumx,sumy,sumxx,sumxy,sumyy;
-	sumx=0.;
-	sumy=0.;
-	sumxx=0.;
-	sumxy=0.;
-	sumyy=0.;
-	int count=0;
-	for (int i=ilow;i<=ihigh;i++){
-		count++;
-		sumx = sumx + x[i];
-		sumy = sumy + y[i];
-		sumxx = sumxx + x[i]*x[i];
-		sumxy = sumxy + x[i]*y[i];
-		sumyy = sumyy + y[i]*y[i];
-	}
+    double sumx,sumy,sumxx,sumxy,sumyy;
+    sumx=0.;
+    sumy=0.;
+    sumxx=0.;
+    sumxy=0.;
+    sumyy=0.;
+    int count=0;
+    for (int i=ilow;i<=ihigh;i++){
+        count++;
+        sumx = sumx + x[i];
+        sumy = sumy + y[i];
+        sumxx = sumxx + x[i]*x[i];
+        sumxy = sumxy + x[i]*y[i];
+        sumyy = sumyy + y[i]*y[i];
+    }
 
-	const float SMALLTHING=1.e-6;
-	if(fabs(count*sumxx-sumx*sumx)<SMALLTHING) return 1;
-	else{
+    const float SMALLTHING=1.e-6;
+    if(fabs(count*sumxx-sumx*sumx)<SMALLTHING) return 1;
+    else{
 
-		m = (count*sumxy - sumx*sumy)/(count*sumxx - sumx*sumx);
-		merr = count / (count*sumxx - sumx*sumx);
+        m = (count*sumxy - sumx*sumy)/(count*sumxx - sumx*sumx);
+        merr = count / (count*sumxx - sumx*sumx);
 
-		b = (sumy*sumxx - sumxy*sumx)/(count*sumxx - sumx*sumx);
-		berr = sumxx / (count*sumxx - sumx*sumx);
+        b = (sumy*sumxx - sumxy*sumx)/(count*sumxx - sumx*sumx);
+        berr = sumxx / (count*sumxx - sumx*sumx);
     
-		r = (count*sumxy - sumx*sumy) /
-		(sqrt(count*sumxx-sumx*sumx) * sqrt(count*sumyy-sumy*sumy) );
+        r = (count*sumxy - sumx*sumy) /
+        (sqrt(count*sumxx-sumx*sumx) * sqrt(count*sumyy-sumy*sumy) );
 
-		return 0;
+        return 0;
 
-	}
+    }
 }
 template int linear_reg (int, int*, int*, float&, float&, float&, float&, float&, int, int);
 template int linear_reg (int, long*, long*, float&, float&, float&, float&, float&, int, int);
@@ -202,54 +202,54 @@ template int linear_reg (int, double*, double*, float&, float&, float&, float&, 
 template <class T>
 int linear_reg(int num, std::vector<T> &x, std::vector<T> &y, float *p, float *err, float &r, int ilow, int ihigh) {
   
-  	if (ilow>ihigh) {
-		std::cout << "Error! linear_regression.cc :: ilow (" << ilow 
-				  << ") > ihigh (" << ihigh << ")!!\n";
-		return 1;
-	}
-	if (ihigh>num-1) {
-		std::cout << "Error! linear_regression.cc :: ihigh (" <<ihigh
-				  << ") out of bounds of array (>" << num-1 << ")!!\n";
-		return 1;
-	}
-	if(ilow<0){
-		std::cout << "Error! linear_regression.cc :: ilow (" << ilow
-				  << ") < 0. !!\n";
-		return 1;
-	}
+    if (ilow>ihigh) {
+        std::cout << "Error! linear_regression.cc :: ilow (" << ilow 
+                  << ") > ihigh (" << ihigh << ")!!\n";
+        return 1;
+    }
+    if (ihigh>num-1) {
+        std::cout << "Error! linear_regression.cc :: ihigh (" <<ihigh
+                  << ") out of bounds of array (>" << num-1 << ")!!\n";
+        return 1;
+    }
+    if(ilow<0){
+        std::cout << "Error! linear_regression.cc :: ilow (" << ilow
+                  << ") < 0. !!\n";
+        return 1;
+    }
 
-	double sumx,sumy,sumxx,sumxy,sumyy;
-	sumx=0.;
-	sumy=0.;
-	sumxx=0.;
-	sumxy=0.;
-	sumyy=0.;
-	int count=0;
-	for (int i=ilow;i<=ihigh;i++){
-		count++;
-		sumx = sumx + x[i];
-		sumy = sumy + y[i];
-		sumxx = sumxx + x[i]*x[i];
-		sumxy = sumxy + x[i]*y[i];
-		sumyy = sumyy + y[i]*y[i];
-	}
+    double sumx,sumy,sumxx,sumxy,sumyy;
+    sumx=0.;
+    sumy=0.;
+    sumxx=0.;
+    sumxy=0.;
+    sumyy=0.;
+    int count=0;
+    for (int i=ilow;i<=ihigh;i++){
+        count++;
+        sumx = sumx + x[i];
+        sumy = sumy + y[i];
+        sumxx = sumxx + x[i]*x[i];
+        sumxy = sumxy + x[i]*y[i];
+        sumyy = sumyy + y[i]*y[i];
+    }
 
-	const float SMALLTHING=1.e-6;
-	if(fabs(count*sumxx-sumx*sumx)<SMALLTHING) return 1;
-	else{
+    const float SMALLTHING=1.e-6;
+    if(fabs(count*sumxx-sumx*sumx)<SMALLTHING) return 1;
+    else{
 
-		p[0] = (count*sumxy - sumx*sumy)/(count*sumxx - sumx*sumx);
-		err[0] = count / (count*sumxx - sumx*sumx);
+        p[0] = (count*sumxy - sumx*sumy)/(count*sumxx - sumx*sumx);
+        err[0] = count / (count*sumxx - sumx*sumx);
 
-		p[1] = (sumy*sumxx - sumxy*sumx)/(count*sumxx - sumx*sumx);
-		err[1] = sumxx / (count*sumxx - sumx*sumx);
+        p[1] = (sumy*sumxx - sumxy*sumx)/(count*sumxx - sumx*sumx);
+        err[1] = sumxx / (count*sumxx - sumx*sumx);
     
-		r = (count*sumxy - sumx*sumy) /
-		(sqrt(count*sumxx-sumx*sumx) * sqrt(count*sumyy-sumy*sumy) );
-		
- 		return 0;
+        r = (count*sumxy - sumx*sumy) /
+        (sqrt(count*sumxx-sumx*sumx) * sqrt(count*sumyy-sumy*sumy) );
+        
+        return 0;
 
-	}
+    }
 }
 template int linear_reg (int, std::vector<int>&, std::vector<int>&, float*, float*, float&, int, int);
 template int linear_reg (int, std::vector<long>&, std::vector<long>&, float*, float*, float&, int, int);
@@ -259,18 +259,18 @@ template int linear_reg (int, std::vector<double>&, std::vector<double>&, float*
 
 template <class Type> 
 Type func_gauss (Type *x, Type *p, int numpar) {
-	
-	Type ex, arg;
-	
-	Type y = 0.0;
-	
-	for (int i=0; i < numpar; i+=3) {
-		arg = (*x-p[i+1])/p[i+2];
-		ex = exp (-arg*arg);
-		y += p[i]*ex;
-	}	
-	
-	return y;
+    
+    Type ex, arg;
+    
+    Type y = 0.0;
+    
+    for (int i=0; i < numpar; i+=3) {
+        arg = (*x-p[i+1])/p[i+2];
+        ex = exp (-arg*arg);
+        y += p[i]*ex;
+    }   
+    
+    return y;
 }
 template int func_gauss (int*, int*, int);
 template long func_gauss (long*, long*, int);
@@ -280,17 +280,17 @@ template double func_gauss (double*, double*, int);
 
 template <class Type> 
 void derv_gauss (Type *x, Type *p, Type *dyda, int numpar) {
-	
-	Type fac, ex, arg;
-	
-	for (int i=0; i < numpar; i+=3) {
-		arg = (*x-p[i+1])/p[i+2];
-		ex = exp (-arg*arg);
-		fac = p[i]*ex*2.*arg;
-		dyda[i] = ex;
-		dyda[i+1] = fac/p[i+2];
-		dyda[i+2] = fac*arg/p[i+2];		
-	}	
+    
+    Type fac, ex, arg;
+    
+    for (int i=0; i < numpar; i+=3) {
+        arg = (*x-p[i+1])/p[i+2];
+        ex = exp (-arg*arg);
+        fac = p[i]*ex*2.*arg;
+        dyda[i] = ex;
+        dyda[i+1] = fac/p[i+2];
+        dyda[i+2] = fac*arg/p[i+2];     
+    }   
 }
 template void derv_gauss (int*, int*, int*, int);
 template void derv_gauss (long*, long*, long*, int);
@@ -301,38 +301,38 @@ template void derv_gauss (double*, double*, double*, int);
 template <class T>
 double** RotMatrices (T alpha, T beta, T gamma) {
 
-	/// Return three rotation matrices along the axis.
-	/// input are the three angles along the three directions.
+    /// Return three rotation matrices along the axis.
+    /// input are the three angles along the three directions.
 
-	double **matr = allocate_2D<double>(3,9);
+    double **matr = allocate_2D<double>(3,9);
 
-	double angle[3] = {alpha*M_PI/180.,
- 						beta*M_PI/180.,
-						gamma*M_PI/180.};
+    double angle[3] = {alpha*M_PI/180.,
+                        beta*M_PI/180.,
+                        gamma*M_PI/180.};
 
-	int e[3] = {0,0,0};
+    int e[3] = {0,0,0};
 
-	for (int i=3; i--;) {
-		if (i==0) {e[0]=1;e[1]=0;e[2]=0;}
-		else if (i==1) {e[0]=0; e[1]=1;e[2]=0;}
-		else if (i==2) {e[0]=0;e[1]=0;e[2]=1;}
-		
-		double a=angle[i];
-		double cosa = cos(a);
-		double sina = sin(a);
-		
-		matr[i][0]=e[0]*e[0]+(1-e[0]*e[0])*cosa;
-		matr[i][1]=(1-cosa)*e[0]*e[1]-sina*e[2];
-		matr[i][2]=(1-cosa)*e[0]*e[2]+sina*e[1];
-		matr[i][3]=(1-cosa)*e[1]*e[0]+sina*e[2];
-		matr[i][4]=e[1]*e[1]+(1-e[1]*e[1])*cosa;
-		matr[i][5]=(1-cosa)*e[1]*e[2]-sina*e[0];
-		matr[i][6]=(1-cosa)*e[2]*e[0]-sina*e[1];
-		matr[i][7]=(1-cosa)*e[2]*e[1]+sina*e[0];
-		matr[i][8]=e[2]*e[2]+(1-e[2]*e[2])*cosa;
-	}
+    for (int i=3; i--;) {
+        if (i==0) {e[0]=1;e[1]=0;e[2]=0;}
+        else if (i==1) {e[0]=0; e[1]=1;e[2]=0;}
+        else if (i==2) {e[0]=0;e[1]=0;e[2]=1;}
+        
+        double a=angle[i];
+        double cosa = cos(a);
+        double sina = sin(a);
+        
+        matr[i][0]=e[0]*e[0]+(1-e[0]*e[0])*cosa;
+        matr[i][1]=(1-cosa)*e[0]*e[1]-sina*e[2];
+        matr[i][2]=(1-cosa)*e[0]*e[2]+sina*e[1];
+        matr[i][3]=(1-cosa)*e[1]*e[0]+sina*e[2];
+        matr[i][4]=e[1]*e[1]+(1-e[1]*e[1])*cosa;
+        matr[i][5]=(1-cosa)*e[1]*e[2]-sina*e[0];
+        matr[i][6]=(1-cosa)*e[2]*e[0]-sina*e[1];
+        matr[i][7]=(1-cosa)*e[2]*e[1]+sina*e[0];
+        matr[i][8]=e[2]*e[2]+(1-e[2]*e[2])*cosa;
+    }
 
-	return matr;
+    return matr;
 
 }
 template double** RotMatrices (float,float,float);
@@ -341,23 +341,23 @@ template double** RotMatrices (double,double,double);
 
 template <class T> 
 double* MatrixProduct (T *M1, int *size1, T *M2, int *size2) {
-	
-	assert (size1[1]==size2[0]);
-	
-	int size[2] = {size1[0],size2[1]};
-	double *matrprod = new double[size[0]*size[1]];
-	int n=size1[1];	
-	
-	for (int y=0; y<size[1]; y++) {
-		for (int x=0; x<size[0];x++) {
-			matrprod[x+y*size[0]]=0.;
-			for (int i=0; i<n; i++) {
-				matrprod[x+y*size[1]]+=M1[x+i*size1[0]]*M2[i+y*size2[0]];
-			}
-		}
-	}
-	
-	return matrprod;
+    
+    assert (size1[1]==size2[0]);
+    
+    int size[2] = {size1[0],size2[1]};
+    double *matrprod = new double[size[0]*size[1]];
+    int n=size1[1]; 
+    
+    for (int y=0; y<size[1]; y++) {
+        for (int x=0; x<size[0];x++) {
+            matrprod[x+y*size[0]]=0.;
+            for (int i=0; i<n; i++) {
+                matrprod[x+y*size[1]]+=M1[x+i*size1[0]]*M2[i+y*size2[0]];
+            }
+        }
+    }
+    
+    return matrprod;
 
 }
 template double* MatrixProduct (float*,int*, float*, int*);

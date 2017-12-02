@@ -18,7 +18,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
 
  Correspondence concerning BBarolo may be directed to:
-    Internet email: enrico.diteodoro@unibo.it
+    Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
 #ifndef DETECTION_H
@@ -46,19 +46,19 @@ template <class T>
 class Detection : public PixelInfo::Object3D<T>
 {
 public:
-	Detection();
+    Detection();
     Detection(const Object3D<T>& o);
     Detection(const Detection& d);
     Detection& operator= (const Detection& d);
     virtual ~Detection(){};
     void defaultDetection();
-	
-	template <class Type>
+    
+    template <class Type>
     friend Detection operator+ (Detection<T> &lhs, Detection<T> &rhs);
     
     /// Utility functions;
     
-	float       getXcentre();
+    float       getXcentre();
     float       getYcentre();
     float       getZcentre();
     
@@ -73,10 +73,10 @@ public:
     bool   hasEnoughChannels(int minNumber);
     
     /// Set the values of the axis offsets from the cube. 
-	void   setOffsets(long Xoffset=0, long Yoffset=0, long Zoffset=0); 
+    void   setOffsets(long Xoffset=0, long Yoffset=0, long Zoffset=0); 
 
     /// Add the offset values to the pixel locations 
-	void   addOffsets(long xoff, long yoff, long zoff){Object3D<T>::addOffsets(xoff,yoff,zoff);};
+    void   addOffsets(long xoff, long yoff, long zoff){Object3D<T>::addOffsets(xoff,yoff,zoff);};
     void   addOffsets();
     
     void   addDetection(Detection &other);
@@ -98,21 +98,21 @@ public:
     void   calcFluxes(std::vector<PixelInfo::Voxel<T> > voxelList); 
 
     /// Calculate parameters related to the World Coordinate System. 
-   	void   calcWCSparams(Header &head); 
+    void   calcWCSparams(Header &head); 
 
     /// Calculate the integrated flux over the entire Detection. 
-   	void   calcIntegFlux(T *fluxArray, long *dim, Header &head); 
+    void   calcIntegFlux(T *fluxArray, long *dim, Header &head); 
     /// Calculate the integrated flux over the entire Detection. 
-	void   calcIntegFlux(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head); 
+    void   calcIntegFlux(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head); 
 
     /// Calculate the 20%-/50%-peak-flux widths in a general fashion
     void calcVelWidths(long zdim, T *intSpec, Header &head);
     /// Calculate the 20%/50% peak flux widths 
-  	void calcVelWidths(T *fluxArray, long *dim, Header &head);
+    void calcVelWidths(T *fluxArray, long *dim, Header &head);
     /// Calculate the 20%/50% peak flux widths 
-   	void calcVelWidths(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head);
+    void calcVelWidths(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head);
 
-	/// Get the location of the spatial borders. 
+    /// Get the location of the spatial borders. 
     std::vector<int> getVertexSet();
     
    /* //
@@ -178,7 +178,7 @@ public:
     std::string getFlagText(){return flagText;};
     void        setFlagText(std::string s){flagText = s;};
     void        addToFlagText(std::string s){flagText += s;};
-    //	      
+    //        
     bool        isWCS(){return flagWCS;};
     std::string getRAs(){return raS;};
     std::string getDecs(){return decS;};
@@ -190,7 +190,7 @@ public:
     float       getMinorAxis(){return minorAxis;};
     float       getPositionAngle(){return posang;};
     float       getVel(){return vel;};
-    float		getVsys() {return vsys;};
+    float       getVsys() {return vsys;};
     float       getVelWidth(){return velWidth;};
     float       getVelMin(){return velMin;};
     float       getVelMax(){return velMax;};
@@ -215,12 +215,12 @@ public:
     void        setVelPrec(int i){velPrec=i;};
     int         getSNRPrec(){return snrPrec;};
     void        setSNRPrec(int i){snrPrec=i;};
-    float		getMass () {return mass;};
-	void		setMass (float val) {mass=val; haveMass=true;};
-    bool		getHavemass() {return haveMass;};
-    void		setHavemass(bool flag) {haveMass=flag;};
-    float		getSFR () {return SFR;};
-    void		setSFR (float v) {SFR=v;};
+    float       getMass () {return mass;};
+    void        setMass (float val) {mass=val; haveMass=true;};
+    bool        getHavemass() {return haveMass;};
+    void        setHavemass(bool flag) {haveMass=flag;};
+    float       getSFR () {return SFR;};
+    void        setSFR (float v) {SFR=v;};
    
   protected:
     // Subsection offsets
@@ -232,9 +232,9 @@ public:
     float          totalFlux;      ///< sum of the fluxes of all the pixels
     double         intFlux;        ///< integrated flux: involves integration over velocity and PB correction.
     float          peakFlux;       ///< maximum flux over all the pixels
-    double			mass;		   ///< Mass of detection.
-    bool		   	haveMass;	   ///< Whether the mass has been calculated. 
-    float		   	SFR;		
+    double          mass;          ///< Mass of detection.
+    bool            haveMass;      ///< Whether the mass has been calculated. 
+    float           SFR;        
     long           xpeak;          ///< x-pixel location of peak flux
     long           ypeak;          ///< y-pixel location of peak flux
     long           zpeak;          ///< z-pixel location of peak flux
@@ -248,10 +248,10 @@ public:
     // WCS related
     int            id;             ///< ID -- generally number in list
     bool           flagWCS;        ///< A flag indicating whether the WCS parameters have been set.
-    std::string    raS;	           ///< Right Ascension (or Longitude) of pixel centre in form 12:34:23
-    std::string    decS;	  	   ///< Declination (or Latitude) of pixel centre, in form -12:23:34
-    float          ra;	           ///< Central Right Ascension in degrees
-    float          dec;	           ///< Central Declination in degrees
+    std::string    raS;            ///< Right Ascension (or Longitude) of pixel centre in form 12:34:23
+    std::string    decS;           ///< Declination (or Latitude) of pixel centre, in form -12:23:34
+    float          ra;             ///< Central Right Ascension in degrees
+    float          dec;            ///< Central Declination in degrees
     float          raWidth;        ///< Width of detection in RA direction in arcsec
     float          decWidth;       ///< Width of detection in Dec direction in arcsec
     float          majorAxis;      ///< Major axis length in arcsec
@@ -262,8 +262,8 @@ public:
     std::string    intFluxUnits;   ///< Units of integrated flux
     std::string    lngtype;        ///< Type of longitude axis (RA/GLON)
     std::string    lattype;        ///< Type of latitude axis (DEC/GLAT)
-    float          vel;	           ///< Central velocity (from zCentre)
-    float		   vsys;		   ///< Systemic velocity from velocity widths
+    float          vel;            ///< Central velocity (from zCentre)
+    float          vsys;           ///< Systemic velocity from velocity widths
     float          velWidth;       ///< Full velocity width
     float          velMin;         ///< Minimum velocity
     float          velMax;         ///< Maximum velocity
@@ -274,7 +274,7 @@ public:
     float          v50max;         ///< Maximum velocity at 50% of peak flux
     float          w50;            ///< Velocity width at 50% of peak flux  
     ///  The next six are the precision of values printed in the headers of the spectral plots
-    ///	
+    /// 
     ///  
     int            posPrec;        ///< Precision of WCS positional values 
     int            xyzPrec;        ///< Precision of pixel positional values
