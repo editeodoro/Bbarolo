@@ -9,9 +9,14 @@
 			<dict/>
 			<key>Files</key>
 			<array>
+				<string>consolidated.css</string>
 				<string>files</string>
+				<string>function.js</string>
+				<string>ie.js</string>
+				<string>images</string>
+				<string>javascript.js</string>
 				<string>Preview.html</string>
-				<string>rw_common</string>
+				<string>resources</string>
 				<string>Thumbnail.png</string>
 			</array>
 			<key>Subsandwiches</key>

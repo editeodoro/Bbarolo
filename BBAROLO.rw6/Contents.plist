@@ -12,71 +12,12 @@
 				<key>File References</key>
 				<dict>
 					<key>App Scope</key>
-					<false/>
+					<true/>
 					<key>File References</key>
 					<array>
 						<dict>
 							<key>bookmarkData</key>
 							<data>
-							Ym9va3ADAAAAAAQQMAAA
-							AK7F34+YMj0iDoMedJyO
-							3djFVFHgW7e1+npYNcJL
-							bTwbSAIAAAQAAAADAwAA
-							AAgAKAUAAAABAQAAVXNl
-							cnMAAAAQAAAAAQEAAGVu
-							cmljby5kaXRlb2Rvcm8H
-							AAAAAQEAAERyb3Bib3gA
-							BQAAAAEBAABDb2RleAAA
-							AAYAAAABAQAAQmFyb2xv
-							AAADAAAAAQEAAGJpbgAJ
-							AAAAAQEAAHBhcmFtLnBh
-							cgAAABwAAAABBgAAEAAA
-							ACAAAAA4AAAASAAAAFgA
-							AABoAAAAdAAAAAgAAAAE
-							AwAAoJEAAAAAAAAIAAAA
-							BAMAAFyuCQAAAAAACAAA
-							AAQDAABDJTwBAAAAAAgA
-							AAAEAwAAcfQVAQAAAAAI
-							AAAABAMAAIIGOQEAAAAA
-							CAAAAAQDAABNY00BAAAA
-							AAgAAAAEAwAATNxPAQAA
-							AAAcAAAAAQYAAKwAAAC8
-							AAAAzAAAANwAAADsAAAA
-							/AAAAAwBAAAIAAAAAAQA
-							AEG7G29VAAAAGAAAAAEC
-							AAABAAAAAAAAAA8AAAAA
-							AAAAAAAAAAAAAAAAAAAA
-							AQUAAAQAAAADAwAAAwAA
-							AAQAAAADAwAABQAAAAgA
-							AAAEAwAABQAAAAAAAAAE
-							AAAAAwMAAPYBAAAIAAAA
-							AQkAAGZpbGU6Ly8vDAAA
-							AAEBAABNYWNpbnRvc2gg
-							SEQIAAAABAMAAAAAdAU6
-							AAAACAAAAAAEAABBtkkf
-							8AAAACQAAAABAQAANjgx
-							NzAyMTYtNTFDNi0zRTk3
-							LTg2NDAtOEMxQzM4ODYz
-							Q0U4GAAAAAECAACBAAAA
-							AQAIAO8XAAABAAgAAAAA
-							AAAAAAABAAAAAQEAAC8A
-							AADwAAAA/v///wEAAAAA
-							AAAAEwAAAAQQAACIAAAA
-							AAAAAAUQAAAcAQAAAAAA
-							ABAQAABQAQAAAAAAAEAQ
-							AABAAQAAAAAAAFQQAAB4
-							AQAAAAAAAFUQAACEAQAA
-							AAAAAFYQAABwAQAAAAAA
-							AAIgAAA8AgAAAAAAAAUg
-							AACsAQAAAAAAABAgAAC8
-							AQAAAAAAABEgAADwAQAA
-							AAAAABIgAADQAQAAAAAA
-							ABMgAADgAQAAAAAAACAg
-							AAAcAgAAAAAAADAgAABw
-							AQAAAAAAAAHAAACQAQAA
-							AAAAABHAAAAgAAAAAAAA
-							ABLAAACgAQAAAAAAABDQ
-							AAAEAAAAAAAAAA==
 							</data>
 							<key>clientIdentifier</key>
 							<string>document</string>
@@ -552,6 +493,8 @@
 					<string>3D-BAROLO</string>
 					<key>TitleTextUsed</key>
 					<true/>
+					<key>UserAgentResizingPreset</key>
+					<integer>0</integer>
 					<key>WantsXMLSiteMap</key>
 					<true/>
 					<key>WebClipIconUsed</key>
