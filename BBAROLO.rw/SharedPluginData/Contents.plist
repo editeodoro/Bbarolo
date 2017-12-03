@@ -8,23 +8,14 @@
 	<array>
 		<dict>
 			<key>Dictionary</key>
-			<dict>
-				<key>HomePage</key>
-				<string>1-Home</string>
-			</dict>
+			<dict/>
 			<key>Files</key>
 			<array/>
 			<key>Subsandwiches</key>
-			<array>
-				<string>1-Home</string>
-				<string>2-Downloads</string>
-				<string>3-Documentation</string>
-				<string>4-pyBBarolo</string>
-				<string>5-Bugs</string>
-			</array>
+			<array/>
 		</dict>
 	</array>
 	<key>Type</key>
-	<string>Pages</string>
+	<string>SharedPluginData</string>
 </dict>
 </plist>

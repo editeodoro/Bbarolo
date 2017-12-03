@@ -10,15 +10,15 @@
 			<key>Dictionary</key>
 			<dict>
 				<key>BrowserTitle</key>
-				<string>BBarolo - Download Source</string>
+				<string>BBarolo - Bugs reporting</string>
 				<key>CreatedDate</key>
-				<date>2015-05-27T07:19:18Z</date>
+				<date>2015-06-03T08:12:04Z</date>
 				<key>ID</key>
-				<string>page3</string>
+				<string>page6</string>
 				<key>MostRecentlySelectedStyleName</key>
 				<string>Theme Default</string>
 				<key>PageTitle</key>
-				<string>Source</string>
+				<string>Bugs</string>
 				<key>PluginClassName</key>
 				<string>RWStyledPlugin</string>
 				<key>PluginMetadata</key>
@@ -44,17 +44,17 @@
 							<dict>
 								<key>Digest</key>
 								<data>
-								vm1HJ4aFI6/V
-								KRTrYn6UeA==
+								acDU/EUGogpn
+								SHVWTp3Q1A==
 								</data>
 								<key>Size</key>
-								<integer>6349</integer>
+								<integer>4254</integer>
 							</dict>
 						</dict>
 						<key>PageID</key>
-						<string>page3</string>
+						<string>page6</string>
 						<key>SiteRoot</key>
-						<string>downloads/source</string>
+						<string>bugs</string>
 						<key>Version</key>
 						<integer>3</integer>
 					</dict>

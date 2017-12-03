@@ -37,7 +37,7 @@
 					<key>file:///Users/edt/GitHub/BB/Bbarolo/</key>
 					<dict>
 						<key>CreationDate</key>
-						<date>2017-12-01T06:19:37Z</date>
+						<date>2017-12-03T23:09:42Z</date>
 						<key>DigestAlgorithm</key>
 						<string>MD5</string>
 						<key>PageDigests</key>
@@ -46,41 +46,11 @@
 							<dict>
 								<key>Digest</key>
 								<data>
-								LqOZFoB0ob4U
-								KziDhW8Syg==
+								8F163UKCT0YH
+								lSbX0dgWxw==
 								</data>
 								<key>Size</key>
-								<integer>0</integer>
-							</dict>
-							<key>rw_common/images/Bbarolo_ico</key>
-							<dict>
-								<key>Digest</key>
-								<data>
-								vnu2sLPIh9I2
-								T8fcmojuTQ==
-								</data>
-								<key>Size</key>
-								<integer>0</integer>
-							</dict>
-							<key>rw_common/version.txt</key>
-							<dict>
-								<key>Digest</key>
-								<data>
-								ODUJQNmKDP3f
-								pyuJDqof4A==
-								</data>
-								<key>Size</key>
-								<integer>0</integer>
-							</dict>
-							<key>sitemap.xml</key>
-							<dict>
-								<key>Digest</key>
-								<data>
-								sqhodf8Haa/S
-								dD3JiDEsJg==
-								</data>
-								<key>Size</key>
-								<integer>0</integer>
+								<integer>5179</integer>
 							</dict>
 						</dict>
 						<key>PageID</key>
