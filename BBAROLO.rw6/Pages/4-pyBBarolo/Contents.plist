@@ -24,6 +24,8 @@
 					<key>Name</key>
 					<string>Styled Text</string>
 				</dict>
+				<key>PublishingManifest</key>
+				<dict/>
 			</dict>
 			<key>Files</key>
 			<array>
