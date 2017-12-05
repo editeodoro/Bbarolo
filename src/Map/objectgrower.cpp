@@ -81,10 +81,10 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     /// @param theCube A pointer to a duchamp::Cube 
 
     itsGrowthStats = Statistics::Stats<T>(theCube->stat()); 
-    if(theCube->pars().getFlagUserGrowthThreshold())
-        itsGrowthStats.setThreshold(theCube->pars().getGrowthThreshold());
+    if(theCube->pars().getParSE().flagUserGrowthT)
+        itsGrowthStats.setThreshold(theCube->pars().getParSE().growthThreshold);
     else
-        itsGrowthStats.setThresholdSNR(theCube->pars().getGrowthCut());    
+        itsGrowthStats.setThresholdSNR(theCube->pars().getParSE().growthCut);    
     itsGrowthStats.setUseFDR(false);
 
     itsFluxArray = theCube->Array();
@@ -96,9 +96,9 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     size_t spatsize=itsArrayDim[0]*itsArrayDim[1];
     size_t fullsize=spatsize*itsArrayDim[2];
 
-    if(theCube->pars().getFlagAdjacent()) itsSpatialThresh = 1;
-    else itsSpatialThresh = int(theCube->pars().getThreshS());
-    itsVelocityThresh = int(theCube->pars().getThreshV());
+    if(theCube->pars().getParSE().flagAdjacent) itsSpatialThresh = 1;
+    else itsSpatialThresh = int(theCube->pars().getParSE().threshSpatial);
+    itsVelocityThresh = int(theCube->pars().getParSE().threshVelocity);
 
     itsFlagArray = std::vector<STATE>(fullsize,AVAILABLE);
 

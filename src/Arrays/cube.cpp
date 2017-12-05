@@ -424,12 +424,12 @@ void Cube<T>::setCubeStats() {
     for (size_t i=0; i<numPix; i++) blanks[i] = isBlank(array[i]) ? false : true;
 
     stats.calculate(array,numPix,blanks);
-    stats.setThresholdSNR(par.getCut());
+    stats.setThresholdSNR(par.getParSE().snrCut);
 
     if(par.isVerbose()) {
         std::cout << "Using flux threshold of: ";
         T thresh;
-        if (par.getFlagUserThreshold()) thresh = par.getThreshold();
+        if (par.getParSE().UserThreshold) thresh = par.getParSE().threshold;
         else thresh = stats.getThreshold();
         if (thresh<1E-04) std::cout << std::scientific;
         else std::cout << std::fixed;
@@ -526,7 +526,7 @@ void Cube<T>::BlankMask (float *channel_noise){
         }
     }
     else if (par.getMASK()=="THRESHOLD") {
-        float thresh = par.getThreshold();
+        float thresh = par.getParSE().threshold;
         for (uint i=numPix; i--;) {
             if (array[i]>thresh) mask[i] = 1;
         }

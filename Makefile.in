@@ -175,9 +175,6 @@ $(OBJDIR)/%.o: $(UTILDIR)/%.cpp
 $(OBJDIR)/%.o: $(TASKDIR)/%.cpp
 	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 
-$(OBJDIR)/%.o: $(PYBBDIR)/%.cpp
-	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
-    
 .cc.o:
 	$(CXX) -c $< $(CINC) -o $@ $(OPT)
 
@@ -196,7 +193,7 @@ cleanest: clean
 	rm -rf Makefile $(EXEC) $(EXEC-STUB)
 
 cleanup:
-	rm -rf autom4te.cache config.log config.status
+	rm -rf autom4te.cache config.log config.status setup.log
 
 cleangui:
 	cd ./src/GUI && make clean
@@ -256,7 +253,16 @@ guistaticlinux :
     
 pybb : lib
 	mv $(LIB) $(PYBBDIR)
-	mv $(LIBSO) $(PYBBDIR)
 	mv $(LIB_LN) $(PYBBDIR)
+	mv $(LIBSO) $(PYBBDIR)
 	mv $(LIBSO_LN) $(PYBBDIR)
+
+pybbdist : 
+	python setup.py sdist upload
+    
+pybbinst:
+	python setup.py install
+	rm -rf build dist MANIFEST
+	rm -rf pyBBarolo/BBarolo pyBBarolo/libBB*
+
 

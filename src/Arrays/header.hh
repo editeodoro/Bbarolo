@@ -83,34 +83,35 @@ public:
     std::string Obname () {return object;};
     std::string Telesc () {return telescope;};
     
-    void    setBitpix (int i) {bitpix = i;};
-    void    setDimAx (int i, long val) {dimAxes[i] = val;};
-    void    setCrpix (int i, float val) {crpix[i] = val;};
-    void    setCrval (int i, float val) {crval[i] = val;};
-    void    setCdelt (int i, float val) {cdelt[i] = val;};
-    void    setDrval3 (double val) {drval3=val;};
-    void    setDunit3 (std::string s) {dunit3=s;};
-    void    setBmaj  (float val) {bmaj = val;};
-    void    setBmin  (float val) {bmin = val;};
-    void    setBpa   (float val) {bpa = val;};
-    void    setBzero (float val) {bzero = val;};
-    void    setBscale(float val) {bscale = val;};
-    void    setBlank (float val) {blank = val;};
-    void    setEpoch (float val) {epoch = val;};
-    void    setBunit (std::string ch) {bunit = ch;};
-    void    setDataMax (double val) {datamax=val;};
-    void    setDataMin (double val) {datamin=val;};
-    void    setMinMax (double minn, double maxx) {datamin=minn;datamax=maxx;};
-    void    setFreq0 (double val) {freq0=val;}; 
-    void    setCtype (int i, std::string s) {ctype[i] = s;};
-    void    setCunit (int i, std::string s) {cunit[i] = s;};
-    void    setBtype (std::string s) {btype = s;};
-    void    setName  (std::string s) {object = s;};
-    void    setTelesc(std::string s) {telescope = s;};
-    void    setPointAllocated (bool b) {pointAllocated=b;};
-    void    setWarning (bool b) {warning=b;};
-    void    setWave0 (double w) {wave0=w;}
-    void    setRedshift (double r) {redshift=r;}
+    void setBitpix (int i) {bitpix = i;};
+    void setDimAx (int i, long val) {dimAxes[i] = val;};
+    void setCrpix (int i, float val) {crpix[i] = val;};
+    void setCrval (int i, float val) {crval[i] = val;};
+    void setCdelt (int i, float val) {cdelt[i] = val;};
+    void setDrval3 (double val) {drval3=val;};
+    void setDunit3 (std::string s) {dunit3=s;};
+    void setBmaj  (float val) {bmaj = val;};
+    void setBmin  (float val) {bmin = val;};
+    void setBpa   (float val) {bpa = val;};
+    void setBeam  (float a, float b, float c) {bmaj=a; bmin=b; bpa=c; calcArea();}
+    void setBzero (float val) {bzero = val;};
+    void setBscale(float val) {bscale = val;};
+    void setBlank (float val) {blank = val;};
+    void setEpoch (float val) {epoch = val;};
+    void setBunit (std::string ch) {bunit = ch;};
+    void setDataMax (double val) {datamax=val;};
+    void setDataMin (double val) {datamin=val;};
+    void setMinMax (double minn, double maxx) {datamin=minn;datamax=maxx;};
+    void setFreq0 (double val) {freq0=val;}; 
+    void setCtype (int i, std::string s) {ctype[i] = s;};
+    void setCunit (int i, std::string s) {cunit[i] = s;};
+    void setBtype (std::string s) {btype = s;};
+    void setName  (std::string s) {object = s;};
+    void setTelesc(std::string s) {telescope = s;};
+    void setPointAllocated (bool b) {pointAllocated=b;};
+    void setWarning (bool b) {warning=b;};
+    void setWave0 (double w) {wave0=w;}
+    void setRedshift (double r) {redshift=r;}
 
     void    Warning(std::string s) {if (warning) std::cout << s << std::endl;};
 

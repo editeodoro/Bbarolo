@@ -1,16 +1,41 @@
+"""
+This module defines several classes to interface pyBBarolo with
+the underlying pwind c++ code, with some extra functionality.
+"""
+
+########################################################################
+# Copyright (C) 2017 Enrico Di Teodoro
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+########################################################################
+
+from __future__ import print_function, division
 import os,sys
 import numpy as np
-import multiprocessing as mpr
 from .BB_interface import libBB
-from ctypes import *
+from astropy.io import fits
+
 
 def reshapePointer (p, shape):
-    """ 
-    This function take a POINTER to c_float and 
-    reshape according to shape parameter
-    \param p:       a POINTER(c_float) object
-    \param shape:   tuple or list of axes sizes
-    \return:        Reshaped Numpy array 
+    """Take a POINTER to c_float and reshape it.
+    
+    Args:
+      p (POINTER(c_float)): The pointer to be reshaped
+      shape (tuple, list): The new shape of the array
+    
+    Returns:
+      ndarray: The reshaped array
+    
     """
     return np.ctypeslib.as_array(p, shape=tuple(shape))
 
@@ -18,23 +43,40 @@ def reshapePointer (p, shape):
 class FitsCube(object):
     def __init__(self,fitsname):
         # File name of the FITS file to read
-        self.fname = fitsname.encode('utf-8')
+        self.fname = fitsname
         # Pointer to the C++ Cube object
         self._cube = None
         if not os.path.isfile(fitsname):
             raise ValueError("FitsCube ERROR: file %s does not exist."%self.fname)
-        self._cube  = libBB.Cube_new(self.fname)
+        self._cube = libBB.Cube_new(self.fname.encode('utf-8'))
         # Axis dimensions
         self.dim   = libBB.Cube_axisdim(self._cube)
         # Getting array data and reshaping in (z,y,x)
         self.data  = reshapePointer(libBB.Cube_array(self._cube),self.dim[::-1])
+        # Beam information
+        self.beam  = libBB.Cube_getBeam(self._cube)
+        # Also having a pointer to an Astropy object
+        self.fapy  = fits.open(fitsname)[0]
+        
         
     def __del__(self):
         if self._cube: libBB.Cube_delete(self._cube)
         
-
+    
+    def setBeam(self, bmaj, bmin, bpa=0):
+        """ Change the Beam parameters
+        
+        Args:
+          bmaj (float): Beam major axis in degrees
+          bmin (float): Beam minor axis in degrees
+          bpa  (float): Beam position angle in degrees (default 0.0)
+        
+        """
+        libBB.Cube_setBeam(self._cube,np.float32(bmaj),np.float32(bmin),np.float32(bpa))
+        
+    
 class Rings(object):
-    """ Wrapper class for C++ Rings struct (galmod.hh) """
+    """Wrapper class for C++ Rings structure (galmod.hh)"""
     
     def __init__(self,nrings):
         # Number of rings
@@ -46,8 +88,8 @@ class Rings(object):
     def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi,nv):
         """ Define rings given the input parameters 
             
-            \param radii: List or array
-            \param other: float or array
+           \param radii: List or array
+           \param other: float or array
         """
         
         typs, fl = (list,tuple,np.ndarray), np.float32
@@ -82,106 +124,26 @@ class Rings(object):
         
         self.rinDef = True
         
-        
-class GalWind(object):
-    """ Wrapper class for C++ GalWind class (galwind.hh) """
+
+
+class Task(object):
+    """Superclass for all BBarolo tasks
+    
+    Args:
+      fitsname (str): Input FITS file
+    
+    """
     def __init__(self,fitsname):
+        # Task name
+        self.taskname = None
         # Input datacube 
         self.inp = FitsCube(fitsname)
-        # The C++ wind model
-        self._mod = None
-        # The output array model
-        self.data = None
-        
-        
-    def __del__(self):
-        if self._mod: libBB.Galwind_delete(self._mod)   
-            
-            
-    def input(self,x0,y0,pa,inc,disp,dens,vsys,vw,openang,htot,dtype=1,ntot=25,cdens=10,nv=10):
-        """ Set the parameters of the model """
-        if self._mod: self.__del__()
-        self._mod = libBB.Galwind_new(self.inp._cube,x0,y0,pa,\
-        inc,disp,dens,vsys,vw,openang,htot,dtype,ntot,cdens,nv)
-    
-
-    def compute(self):
-        """ Compute the model """
-        if self._mod:
-            libBB.Galwind_compute(self._mod)
-            self.data  = reshapePointer(libBB.Galwind_array(self._mod),self.inp.dim[::-1])
-        else:
-            raise ValueError("GALWIND ERROR: you need to set the model with input(...) before calling compute().")
-        return self.data
-        
-
-    def smooth(self):
-        """ Smooth the wind model and return the smoothed array """
-        if self.data is not None:
-            libBB.Galwind_smooth(self._mod)
-            self.data  = reshapePointer(libBB.Galwind_array(self._mod),self.inp.dim[::-1])
-        else:
-            raise ValueError("GALWIND ERROR: you need to compute the model before calling smooth().")
-        return self.data
-    
-
-
-class FitMod3D(object):
-    
-    def __init__(self,fitsname):
-        # Input datacube 
-        self.inp = FitsCube(fitsname)
-        # A Rings object with initial conditions
-        self._inri = None
-        # The C++ Galfit object
-        self._mod = None
-        self._modCalculated = False
-        # The output array model
-        self.data = None
-        # A dictionary with options and defaults values
-        self._opts = {'CDENS'   : [10, np.int],
-                      'NV'      : [-1, np.int],
-                      'LTYPE'   : [2, np.int],
-                      'SM'      : [True, np.bool],
-                      'DELTAINC': [5., np.float32],
-                      'DELTAPHI': [15., np.float32],
-                      'FTYPE'   : [2, np.int],
-                      'WFUNC'   : [2, np.int],
-                      'BWEIGHT' : [1, np.int],
-                      'TOL'     : [1E-03, np.float64],
-                      'MASK'    : ['SMOOTH', str],
-                      'NORM'    : ['LOCAL', str],
-                      'FREE'    : ['VROT VDISP INC PA', str],
-                      'SIDE'    : ['B', str],
-                      'TWOSTAGE': [True, np.bool],
-                      'POLYN'   : ['bezier', str],
-                      'STARTRAD': [0, np.int],
-                      'ERRORS'  : [False, np.bool],
-                      'DISTANCE': [-1., np.float32],
-                      'REDSHIFT': [-1., np.float64],
-                      'RESTWAVE': [-1., np.float64],
-                      'OUTFOLDER' : ['./', str]}
-    
-    
-    def __del__(self):
-        if self._mod: libBB.Galfit_delete(self._mod)
-    
-        
-    def init(self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,z0,inc,phi):
-        """ Initialize rings for the fit (initial guesses) """
-        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
-        self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0,0,0,1.E20,z0,inc,phi,0)
-      
-      
-    def show_options(self):
-        print ("\nCurrent options for 3DFIT task:")
-        for key, value in list(self._opts.items()):
-            print (" %-8s = %s "%(key,value[0]))
+        # Option for the task
+        self._opts = {}
     
     
     def set_options(self,**kwargs):
-        """ Set options for the task. Keywords **kwargs are given in self.options """
+        """Set options for the task. Keywords **kwargs are given in self._opts."""
         for key in kwargs:
             if key in self._opts:
                 self._opts[key][0] = self._opts[key][1](kwargs[key]) 
@@ -189,33 +151,389 @@ class FitMod3D(object):
                 raise ValueError('Option %s unknown. Try show_options() for a list of keywords'%key)
         
         self._check_options()
+    
         
+    def show_options(self):
+        """ Show current options for the task """
+        print ("\nCurrent options for %s task: %s "%(self.taskname,"-"*(43-len(self.taskname))))
+        for key, value in list(self._opts.items()):
+            print (" %-12s = %-10s # %s  "%(key,value[0],value[2]))
+        
+        print ("\n BEAM = %.4f x %.4f arcs (BPA = %.4f deg)"\
+               %(self.inp.beam[0]*3600,self.inp.beam[1]*3600,self.inp.beam[2]))
+        print ("%s\n"%("-"*70))
+        
+
+
+class Model3D(Task):
+    """Superclass for all 3D models, derived from Task
+    
+    Args:
+      fitsname (str): FITS file of the galaxy to model
+    
+    """
+    def __init__(self,fitsname):
+        super(Model3D,self).__init__(fitsname=fitsname)
+        # A pointer to the C++ model
+        self._mod = None
+        self._modCalculated = False
+        # A Rings object with rings
+        self._inri = None
+        # The output model cube (astropy PrimaryHDU)
+        self.outmodel = None
+        self._opts = {'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
+                      'nv'    : [-1, np.int, "Number of subclouds per profile"]}
+
+
+    def init(self,*args,**kwargs):
+        """Initialize the model. Refer to derived class for *args and **kwargs."""
+        self._input(*args,**kwargs)
+
+
+    def compute(self):
+        """ Compute the model 
+        
+        This function needs to be called after :func:`init`.
+        """
+        return self._compute()
+
+
+    def smooth(self,beam=None):
+        """Smooth the model and return the smoothed array 
+        
+        This function needs to be called after :func:`compute`. The smoothed array is written
+        in outmodel instance and returned.
+        
+        Args:
+          beam (tuple,list): The beam in the form (bmaj,bmin,bpa), bmaj and bmin in arcs.
+                                     If None, use the beam from the FITS header.
+        
+        Returns:
+           astropy PrimaryHDU: a datacube with the output smoothed model
+        
+        """
+        if self.outmodel is None:
+            raise ValueError("%s ERROR: you need to compute the model before calling smooth()."%self.taskname)
+        if beam is None:
+            # Check that Beam info is in the header
+            if self.inp.beam[0]==-1 or self.inp.beam[1]==-1:
+                raise RuntimeError("Beam info is not available in the header.\
+                                    Please pass beam=(bmaj,bmin,bpa) paramater to smooth()")
+        else:
+            if isinstance(beam, (list,tuple,np.ndarray)) and len(beam)==3:
+                set_beam(bmaj=beam[0],bmin=beam[1],bpa=beam[2])
+            else: 
+                raise ValueError("%s ERROR: beam is a list of [bmaj,bmin,bpa]."%self.taskname)            
+        return self._smooth()
+        
+
+    def set_beam(self, bmaj, bmin, bpa=0):
+        """ Change the Beam parameters
+        
+        Args:
+          bmaj (float): Beam major axis in arcsec
+          bmin (float): Beam minor axis in arcsec
+          bpa  (float): Beam position angle in degrees (default 0.0)
+        
+        """
+        self.inp.setBeam(bmaj/3600.,bmin/3600.,bpa)
+        
+
+
+class GalMod(Model3D):
+    """Produce a simulated 3D datacube of disk galaxy
+    
+    Args:
+      fitsname (str): FITS file of the galaxy to model
+    
+    """
+    def __init__(self,fitsname):
+        super(GalMod,self).__init__(fitsname=fitsname)
+        self.taskname = "GALMOD"
+        self._opts.update({'ltype' : [2, np.int, "Layer type along z"],
+                           'cmode' : [1, np.int, "Mode of clouds-surface density"],
+                           'iseed' : [-1, np.int, "Seed for random number generator"]})
+                     
+
+    def _input(self,radii,xpos,ypos,vsys,z0,inc,phi,vrot,vdisp,dens=1,vrad=0,vvert=0,dvdz=0,zcyl=0):
+        """ Initialize rings for the model
+        
+        Args:
+          radii (list):        Radii of the model in arcsec
+          xpos (float, list):  X center of the galaxy in pixels
+          ypos (float, list):  Y center of the galaxy in pixels
+          vsys (float, list):  Systemic velocity of the galaxy in km/s
+          vrot (float, list):  Rotation velocity in km/s
+          vdisp (float, list): Velocity dispersion in km/s
+          vrad (float, list):  Radial velocity in km/s
+          vvert (float, list): Vertical velocity in km/s
+          dvdz (float, list):  Vertical rotational gradient (km/s/arcsec).
+          zcyl (float, list):  Height where the rotational gradient starts (arcsec).
+          dens (float, list):  Surface density of gas in 1E20 atoms/cm2
+          z0 (float, list):    Disk scaleheight in arcsec
+          inc (float, list):   Inclination angle in degrees
+          phi (float, list):   Position angle of the receding part of the major axis (N->W)
+    
+        """
+        
+        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        self._inri = Rings(len(radii))
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi,0)
+    
+        
+    def _compute(self):
+        """ Compute the model 
+        
+        This function needs to be called after :func:`input`.
+        
+        Returns:
+          astropy PrimaryHDU: a datacube with the output model
+        """
+        if self._inri is None: 
+            raise ValueError("GALMOD ERROR: you need to set the model with init(...) before calling compute().")
+        self._check_options()
+        op = self._opts
+        self._mod = libBB.Galmod_new(self.inp._cube,self._inri._rings,op['nv'][0],op['ltype'][0],\
+                                     op['cmode'][0], op['cdens'][0], op['iseed'][0])
+        self._modCalculated = libBB.Galmod_compute(self._mod)
+        data_mod  = reshapePointer(libBB.Galmod_array(self._mod),self.inp.dim[::-1])
+        
+        self.outmodel = fits.PrimaryHDU(data_mod)
+        self.outmodel.header = self.inp.fapy.header
+        return self.outmodel
+    
+    
+    def _smooth(self):
+        """ Smooth the model """
+        libBB.Galmod_smooth(self._mod)
+        self.outmodel.data  = reshapePointer(libBB.Galmod_array(self._mod),self.inp.dim[::-1])
+        return self.outmodel
+        
+        
+    def _check_options(self):
+        """ Check if current options are ok for the C++ code """
+        op = self._opts
+        for key in op:
+            op[key][0] = op[key][1](op[key][0])
+            if key=='ltype' and op[key][0] not in range(1,6):
+                raise ValueError("%s ERROR: %s can only be 1, 2, 3, 4 or 5."%(self.taskname,key))
+            if key=='cmode' and op[key][0] not in range(1,3):
+                raise ValueError("%s ERROR: %s can only be 1, 2."%(self.taskname,key))
+            if key=='cdens' and op[key][0]<=0:
+                raise ValueError("%s ERROR: %s can only be > 0."%(self.taskname,key))
+            if key=='iseed' and op[key][0]>=0:
+                raise ValueError("%s ERROR: %s can only be < 0."%(self.taskname,key))
+
+
+
+class GalWind(Model3D):
+    """Produce a simulated 3D datacube of a biconical outflow  
+    
+    Args:
+      fitsname (str): FITS file of the galaxy to fit
+    
+    """
+    def __init__(self,fitsname):
+       super(GalWind,self).__init__(fitsname=fitsname)
+       # Task name
+       self.taskname = "GALWIND"
+       self._opts.update({'ntot'  : [25, np.int, "Total number of cylinders"],
+                          'dtype' : [1, np.int, "Vertical density type"]})
+       self._opts["nv"][0] = 10
+       
+        
+    def __del__(self):
+        if self._mod: libBB.Galwind_delete(self._mod)   
+            
+            
+    def _input(self,x0,y0,pa,inc,disp,dens,vsys,vw,openang,htot):
+        """ Set the parameters of the model.
+        
+        The model is built by using ntot cylinders at increasing heights from the galaxy plane. 
+        Velocity, velocity dispersion and density can vary with cylinder, other parameters are 
+        fixed.
+        
+        Args:
+          x0 (float):         X center of the galaxy in pixels.
+          y0 (float):         Y center of the galaxy in pixels.
+          pa (float):         Position angle of the galaxy in degrees (N->W)
+          inc (float):        Inclination angle of the galaxy in degrees
+          disp (float, list): Velocity dispersion of cylinders in km/s
+          dens (float, list): Surface density in units of 1E20 atoms/cm2
+          vw (float,list):    Radial wind velocity of cylinders
+          htot (float):       Wind truncation height in arcsec
+          dtype (int):        Density type. 1-constant density, 2-constant mass, 3-hollow cone
+          ntot (int):         Number of cylinders to use (default 25)
+          cdens (int):        Surface density of clouds per area of a pixel (default 10). 
+          nv (int):           Number of subclouds in the velocity profile of a cloud (default 10)
+        
+        """        
+        if self._mod: self.__del__()
+        self._check_options()
+        op = self._opts
+        self._mod = libBB.Galwind_new(self.inp._cube,x0,y0,pa,inc,disp,dens,vsys,vw,openang,\
+                                      htot,op["dtype"][0],op["ntot"][0],op["cdens"][0],op["nv"][0])
+    
+
+    def _compute(self):
+        """ Compute the model 
+        
+        This function needs to be called after :func:`input`.
+        
+        Returns:
+          astropy PrimaryHDU: a datacube with the output model
+        """
+        if self._mod:
+            self._modCalculated = libBB.Galwind_compute(self._mod)
+            data_mod  = reshapePointer(libBB.Galwind_array(self._mod),self.inp.dim[::-1])
+        else:
+            raise ValueError("GALWIND ERROR: you need to set the model with init(...) before calling compute().")
+        
+        self.outmodel = fits.PrimaryHDU(data_mod)
+        self.outmodel.header = self.inp.fapy.header
+        return self.outmodel
         
     
-    def fit(self):
+    def _smooth(self):
+        """ Smooth the model """
+        libBB.Galwind_smooth(self._mod)
+        self.outmodel.data  = reshapePointer(libBB.Galwind_array(self._mod),self.inp.dim[::-1])
+        return self.outmodel
+    
+    
+    def _check_options(self):
+        """ Check if current options are ok for the C++ code """
+        op = self._opts
+        for key in op:
+            op[key][0] = op[key][1](op[key][0])
+            if key=='cdens' and op[key][0]<=0:
+                raise ValueError("%s ERROR: %s can only be > 0."%(self.taskname,key))
+            if key=='ntot' and op[key][0]<=0:
+                raise ValueError("%s ERROR: %s can only be > 0."%(self.taskname,key))
+            if key=='dtype' and op[key][0] not in range(0,3):
+                raise ValueError("%s ERROR: %s can only be 0, 1, 2"%(self.taskname,key))
+    
+    
+
+class FitMod3D(Model3D):
+    """Fit a galaxy model to a 3D datacube 
+    
+    Args:
+      fitsname (str): FITS file of the galaxy to fit
+    
+    """
+    def __init__(self,fitsname):
+        super(FitMod3D,self).__init__(fitsname=fitsname)
+        # Task name
+        self.taskname = "3DFIT"
+        # The output final rings
+        self.bfit = None
+        # A dictionary with options and defaults values
+        self._opts.update({'ltype'   : [2, np.int, "Layer type along z"],
+                           'smooth'  : [True, np.bool, "If false, disable smoothing"],
+                           'deltainc': [5., np.float32,"Inclination angle variation (degrees)"],
+                           'deltaphi': [15., np.float32, "Position angle variation (degrees)"],
+                           'ftype'   : [2, np.int, "Residual function to minimize" ],
+                           'wfunc'   : [2, np.int, "Weighting function for major axis"],
+                           'bweight' : [1, np.int, "Weighting function for Blank pixels"],
+                           'tol'     : [1E-03, np.float64, "Tolerance for minimization."],
+                           'mask'    : ['SMOOTH', str, "Mask type"],
+                           'norm'    : ['LOCAL', str, "Normalization type"],
+                           'free'    : ['VROT VDISP', str, "Free parameters"],
+                           'side'    : ['B', str, "Which side of the galaxy to fit"],
+                           'twostage': [True, np.bool, "Regularize and fit a second model"],
+                           'polyn'   : ['bezier', str, "Type of regularization"],
+                           'startrad': [0, np.int, "Starting radius"],
+                           'errors'  : [False, np.bool, "Whether estimating errors"],
+                           'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
+                           'redshift': [-1., np.float64, "Redshift of the galaxy"],
+                           'restwave': [-1., np.float64, "Rest wavelenght of observed line"],
+                           'outfolder' : ['./', str, "Directory for outputs" ]})
+    
+    
+    def __del__(self):
+        if self._mod: libBB.Galfit_delete(self._mod)
+        
+    
+    def _input(self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,z0,inc,phi):
+        """ Initialize rings for the fit 
+        
+        Set initial guesses for the fit and fixed parameters.
+        
+        Args:
+          radii (list):        Radii of the model in arcsec
+          xpos (float, list):  X center of the galaxy in pixels
+          ypos (float, list):  Y center of the galaxy in pixels
+          vsys (float, list):  Systemic velocity of the galaxy in km/s
+          vrot (float, list):  Rotation velocity in km/s
+          vdisp (float, list): Velocity dispersion in km/s
+          vrad (float, list):  Radial velocity in km/s
+          z0 (float, list):    Disk scaleheight in arcsec
+          inc (float, list):   Inclination angle in degrees
+          phi (float, list):   Position angle of the receding part of the major axis (N->W)
+    
+        """
+        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        self._inri = Rings(len(radii))
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi,0)
+                  
+
+    def _compute(self):
+        """ Fit the model.
+
+        Run this function after having set initial parameters with :func:`init` and options with
+        :func:`set_options`. If initial guesses are not defined, the function will be run in 
+        automated mode, e.g., it will estimate initial parameters and then run the fit.
+
+        Returns:
+          ndarray: An array fo size 2. Index 0 is a n x m matrix where n = number of rings, 
+          m = number of parameters. Index 1 is an astropy PrimaryHDU object datacube 
+          with the model.
+
+        """
         if self._inri is None: 
             print ("BBarolo is running in automated mode. Check initial parameter estimate!")
             self._mod = libBB.Galfit_new(self.inp._cube)
         else:
             self._check_options()
             op = self._opts
-            self._mod = libBB.Galfit_new_all(self.inp._cube,self._inri._rings,op['DELTAINC'][0],op['DELTAPHI'][0],\
-                                             op['LTYPE'][0],op['FTYPE'][0],op['WFUNC'][0],op['BWEIGHT'][0],op['NV'][0],\
-                                             op['TOL'][0],op['CDENS'][0],op['STARTRAD'][0],op['MASK'][0].encode('utf-8'),\
-                                             op['NORM'][0].encode('utf-8'),op['FREE'][0].encode('utf-8'),\
-                                             op['SIDE'][0].encode('utf-8'),op['TWOSTAGE'][0],op['POLYN'][0].encode('utf-8'),\
-                                             op['ERRORS'][0],op['SM'][0],op['DISTANCE'][0],op['REDSHIFT'][0],op['RESTWAVE'][0],\
-                                             op['OUTFOLDER'][0].encode('utf-8'))
-                                 
-        self.modCalculated = libBB.Galfit_galfit(self._mod)        
-        if (op['TWOSTAGE'][0]): libBB.Galfit_secondStage(self._mod);
-        print (self.modCalculated)
+            self._mod = libBB.Galfit_new_all(self.inp._cube,self._inri._rings,op['deltainc'][0],op['deltaphi'][0],\
+                                             op['ltype'][0],op['ftype'][0],op['wfunc'][0],op['bweight'][0],op['nv'][0],\
+                                             op['tol'][0],op['cdens'][0],op['startrad'][0],op['mask'][0].encode('utf-8'),\
+                                             op['norm'][0].encode('utf-8'),op['free'][0].encode('utf-8'),\
+                                             op['side'][0].encode('utf-8'),op['twostage'][0],op['polyn'][0].encode('utf-8'),\
+                                             op['errors'][0],op['smooth'][0],op['distance'][0],op['redshift'][0],\
+                                             op['restwave'][0],op['outfolder'][0].encode('utf-8'))
         
-    def write_model(self):
+        # Calculating the model                         
+        self.modCalculated = libBB.Galfit_galfit(self._mod)        
+        if (op['twostage'][0]): libBB.Galfit_secondStage(self._mod);
+        
+        # Write models
+        libBB.Galfit_writeModel(self._mod,self._opts['norm'][0].encode('utf-8'),False)
+        
+        # Loading final rings
+        try: self.bfit = np.genfromtxt(op['outfolder'][0]+"/ringlog2.txt")
+        except: self.bfit = np.genfromtxt(op['outfolder'][0]+"/ringlog1.txt")
+        
+        # Loading final model
+        for fname in os.listdir(op['outfolder'][0]):
+            if "mod_%s.fits"%(op['norm'][0].lower()) in fname:
+                filefits = op['outfolder'][0]+"/"+fname
+        self.outmodel = fits.open(filefits)[0]
+        
+        return (self.bfit, self.outmodel)
+        
+        
+    def plot_model(self):
+        """ Plot the model using BBarolo built-in output functions. """
         if not self.modCalculated:
             raise ValueError("3DFIT ERROR: you need to run fit() before plotting the model.")
-        libBB.Galfit_writeModel(self._mod,self._opts['NORM'][0].encode('utf-8'))
-        
+        print (" Writing creative plots... ",end="")
+        sys.stdout.flush()
+        ret = libBB.Galfit_plotModel(self._mod) 
+        if ret==0: print ("Done.")
+        else: print(" Something went wrong! Check pyscript.py in the output folder.");
          
          
     def _check_options(self):
@@ -223,16 +541,19 @@ class FitMod3D(object):
         op = self._opts
         for key in op:
             op[key][0] = op[key][1](op[key][0])
-            if key=='LTYPE' and op[key][0] not in range(1,6):
-                raise ValueError("3DFIT ERROR: LTYPE can only be 1, 2, 3, 4 or 5.")
-            if key=='FTYPE' and op[key][0] not in range(1,4):
-                raise ValueError("3DFIT ERROR: FTYPE can only be 1, 2 or 3.")
-            if key=='STARTRAD' and op[key][0]<0:
-                raise ValueError("3DFIT ERROR: STARTRAD can only be positive.")
-            if key=='MASK' and op[key][0] not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','NONE']:
-                raise ValueError("3DFIT ERROR: MASK can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE' or 'NONE'.")
-            if key=='NORM' and op[key][0] not in ['LOCAL','AZIM','NONE']:
-                raise ValueError("3DFIT ERROR: NORM can only 'LOCAL','AZIM' or 'NONE'.")
+            if key=='ltype' and op[key][0] not in range(1,6):
+                raise ValueError("%s ERROR: %s can only be 1, 2, 3, 4 or 5."%(self.taskname,key))
+            if key=='cdens' and op[key][0]<=0:
+                raise ValueError("%s ERROR: %s can only be > 0."%(self.taskname,key))
+            if key=='ftype' and op[key][0] not in range(1,4):
+                raise ValueError("%s ERROR: %s can only be 1, 2 or 3."%(self.taskname,key))
+            if key=='startrad' and op[key][0]<0:
+                raise ValueError("%s ERROR: %s can only be positive."%(self.taskname,key))
+            if key=='mask' and op[key][0] not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','NONE']:
+                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE' or 'NONE'."%(self.taskname,key))
+            if key=='norm' and op[key][0] not in ['LOCAL','AZIM','NONE']:
+                raise ValueError("%s ERROR: %s can only 'LOCAL','AZIM' or 'NONE'."%(self.taskname,key))
+
 
     def __str__ (self):
         self.show_options()
@@ -240,4 +561,58 @@ class FitMod3D(object):
             
 
 
+class Search(Task):
+    """3D Source finder 
+    
+    Args:
+      fitsname (str): FITS file to search for sources
+    
+    """
+    def __init__(self,fitsname):
+        super(Search,self).__init__(fitsname=fitsname)
+        self.taskname = 'SEARCH'
+        self._opts = { "searchtype"  : ["spatial", str, "spectral or spatial search"],
+                       "snrcut"      : [5, np.float32, "S/N cut for detection when sigma-clipping"],
+                       "threshold"   : [0, np.float32, "Flux threshold for a detection"],
+                       "adjacent"    : [True, np.bool, "Use the adjacent criterion for objects merger?" ],
+                       "thrspatial"  : [-1, np.int, "Maximum spatial separation between objects"],
+                       "thrvelocity" : [-1, np.int, "Maximum channels separation between objects"],
+                       "minchannels" : [-1, np.int, "Minimum channels to make an object"],
+                       "minpixels"   : [-1, np.int, "Minimum pixels required in an object"],
+                       "minvoxels"   : [-1, np.int, "Minimum voxels required in an object"],
+                       "maxchannels" : [-1, np.int, "Maximum channels to accept an object"],
+                       "maxangsize"  : [-1, np.float32, "Maximum angular size in an object (arcmin)"],
+                       "growth"      : [True, np.bool, "Growing objects once they are found?"],
+                       "growthcut"   : [3, np.float32, "The SNR that we are growing objects down to"],
+                       "growththresh": [0, np.float32, "The threshold for growing objects down to"],
+                       "rejectbeforemerge" : [True, np.bool, "Whether to reject sources before merging"],
+                       "twostagemerge" : [True, np.bool, "Whether to do a partial merge during search"]}
 
+    def search(self):
+        """ Perform the source finding """
+        self._check_options()
+        op = self._opts
+        libBB.Search_search(self.inp._cube,op['searchtype'][0].encode('utf-8'),op['snrcut'][0],\
+                            op['threshold'][0],op['adjacent'][0],op['thrspatial'][0],\
+                            op['thrvelocity'][0],op['minpixels'][0],op['minchannels'][0],\
+                            op['minvoxels'][0],op['maxchannels'][0],op['maxangsize'][0],\
+                            op['growth'][0],op['growthcut'][0], op['growththresh'][0],\
+                            op['rejectbeforemerge'][0],op['twostagemerge'][0])
+                        
+                            
+    def _check_options(self):
+        """ Check if current options are ok for the C++ code """
+        op = self._opts
+        for key in op:
+            op[key][0] = op[key][1](op[key][0])
+            if key=='searchtype' and op[key][0] not in ['spatial','spectral']:
+                raise ValueError("%s ERROR: %s can only be 'spatial' or 'spectral'"%(self.taskname,key))
+            if key=='snrcut' and op[key][0]<=0:
+                raise ValueError("%s ERROR: %s can only be > 0."%(self.taskname,key))
+            if key=='threshold' and op[key][0]<0:
+                raise ValueError("%s ERROR: %s can only be >= 0."%(self.taskname,key))
+            if key=="growthcut" and op[key][0]>op['snrcut'][0]:
+                raise ValueError("%s ERROR: %s can only be < snrcut"%(self.taskname,key))
+            if key=="growththresh" and op[key][0]>op['threshold'][0]:
+                raise ValueError("%s ERROR: %s can only be < threshold"%(self.taskname,key))
+                

@@ -77,6 +77,8 @@ public:
     void    setHeadDef (bool b) {headDefined = b;};
     bool    HeadDef (){return headDefined;};
     void    saveHead (Header &h) {head = h; headDefined=true;};
+    void    setBeam  (float a, float b, float c) {head.setBeam(a,b,c);}
+    float*  getBeam() {float *f=new float; f[0]=head.Bmaj(); f[1]=head.Bmin(),f[2]=head.Bpa(); return f;}
     
     bool*   Mask    () {return mask;};
     bool    Mask    (long npix) {return mask[npix];};
@@ -118,6 +120,10 @@ public:
     /// Searching functions, defined in search.cpp.
     
     void    Search();                                    /// Front-end function to search in a 3-D cube.
+    void    Search(std::string searchtype, float snrCut, float threshold, bool adjacent, 
+                   int threshSpatial, int threshVelocity, int minPixels, int minChannels,
+                   int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
+                   float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage);
     void    CubicSearch();                               /// Front-end to next functions. 
     std::vector <Detection<T> > search3DArray();         /// Switch functions for spectral or spatial.
     std::vector <Detection<T> > search3DArraySpectral(); /// Research objects in the 1-D spectra.

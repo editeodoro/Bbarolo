@@ -42,28 +42,24 @@
 template <class T>
 void Cube<T>::Search() {
     
-    Header &h = Head(); 
-    Param  &p = pars();  
+    Header &h = Head();
+    SEARCH_PAR &p = par.getParSE();
+     
     if (!statsDefined) setCubeStats();
-    if (h.BeamArea()==0) {
-        cout << "\n Beam information is not available in the header: assuming a "
-             << p.getBeamFWHM()*3600 << " arcsec beam.\n";
-        h.setBmaj(p.getBeamFWHM());
-        h.setBmin(p.getBeamFWHM());
-        h.calcArea();
-    }
-    float PixScale = (fabs(h.Cdelt(0))+fabs(h.Cdelt(1)))/2.;
-    int thresS  = p.getThreshS()!=-1     ? p.getThreshS()     : ceil(h.Bmaj()/PixScale);
-    int thresV  = p.getThreshV()!=-1     ? p.getThreshV()     : 3;
-    int minchan = p.getMinChannels()!=-1 ? p.getMinChannels() : 2;
-    int minpix  = p.getMinPix()!=-1      ? p.getMinPix()      : ceil(h.BeamArea());
-    int minvox  = p.getMinVoxels()!=-1   ? p.getMinVoxels()   : minchan*minpix;
-    p.setThreshS(thresS);
-    p.setThreshV(thresV);
-    p.setMinChannels(minchan);
-    p.setMinPix(minpix);
-    p.setMinVoxels(minvox);         
+    checkBeam();
     
+    float PixScale = (fabs(h.Cdelt(0))+fabs(h.Cdelt(1)))/2.;
+    int thresS  = p.threshSpatial!=-1  ? p.threshSpatial     : ceil(h.Bmaj()/PixScale);
+    int thresV  = p.threshVelocity!=-1 ? p.threshVelocity   : 3;
+    int minchan = p.minChannels!=-1 ? p.minChannels : 2;
+    int minpix  = p.minPix!=-1      ? p.minPix      : ceil(h.BeamArea());
+    int minvox  = p.minVoxels!=-1   ? p.minVoxels   : minchan*minpix;
+    p.threshSpatial = thresS;
+    p.threshVelocity = thresV;
+    p.minChannels = minchan;
+    p.minPix = minpix;
+    p.minVoxels = minvox;         
+        
     CubicSearch();
     
     std::cout << "  Intermediate list has " << getNumObj();
@@ -88,6 +84,44 @@ template void Cube<double>::Search();
 
 
 template <class T>
+void Cube<T>::Search(std::string searchtype, float snrCut, float threshold, bool adjacent, 
+                     int threshSpatial, int threshVelocity, int minPixels, int minChannels,
+                     int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
+                     float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage) {
+    
+    SEARCH_PAR &p       = par.getParSE();
+    p.searchType        = searchtype;
+    p.snrCut            = snrCut;
+    p.threshold         = threshold;
+    p.flagAdjacent      = adjacent;
+    p.threshSpatial     = threshSpatial;
+    p.threshVelocity    = threshVelocity;
+    p.minPix            = minPixels;
+    p.minChannels       = minChannels;
+    p.minVoxels         = minVoxels;
+    p.maxChannels       = maxChannels;
+    p.maxAngSize        = maxAngSize;
+    p.flagGrowth        = flagGrowth;
+    p.growthCut         = growthCut;
+    p.growthThreshold   = growthThreshold;
+    p.RejectBeforeMerge = RejectBefore; 
+    p.TwoStageMerging   = TwoStage;
+    if (p.threshold!=0) p.UserThreshold = true;
+    if (p.growthThreshold!=0) p.flagUserGrowthT = true;
+    
+    setCubeStats();
+    Search();
+    
+}
+template void Cube<short>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
+template void Cube<int>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
+template void Cube<long>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
+template void Cube<float>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
+template void Cube<double>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
+
+
+
+template <class T>
 void Cube<T>::CubicSearch() {
 
   ///  A front end to the cubic searching routine that does not
@@ -101,7 +135,7 @@ void Cube<T>::CubicSearch() {
     std::cout<<"\n\nStarting research for possible sources in the cube..."<<std::endl;
     if(par.isVerbose()) std::cout << "  ";
     
-    if (par.getFlagUserThreshold()) stats.setThreshold(par.getThreshold());
+    if (par.getParSE().UserThreshold) stats.setThreshold(par.getParSE().threshold);
     else { 
         if (!statsDefined) setCubeStats(); 
     }
@@ -128,13 +162,14 @@ std::vector <Detection<T> > Cube<T>::search3DArray() {
   /// or spectral research. If [searchType] parameter
   /// is not "spatial" or "spectral", return an empty
   /// list of object detected.
-
-    if(par.getSearchType()=="spectral")
+    
+    std::string stype = par.getParSE().searchType;
+    if(stype=="spectral")
         return search3DArraySpectral();
-    else if(par.getSearchType()=="spatial")
+    else if(stype=="spatial")
         return search3DArraySpatial();
     else {
-        std::cout << "Unknown search type : " << par.getSearchType()<< std::endl;
+        std::cout << "Unknown search type : " << stype << std::endl;
     return std::vector<Detection<T> >(0);
     }
 }
@@ -189,7 +224,7 @@ std::vector <Detection<T> > Cube<T>::search3DArraySpectral() {
                         newObject.addPixel(x,y,z);
                     }
                     newObject.setOffsets();
-                    if(par.getTwoStageMerging()) mergeIntoList(newObject,outputList);
+                    if(par.getParSE().TwoStageMerging) mergeIntoList(newObject,outputList);
                     else outputList.push_back(newObject);
                 }
             }
@@ -250,7 +285,7 @@ std::vector <Detection<T> > Cube<T>::search3DArraySpatial() {
             newObject.setOffsets();
 #pragma omp critical
 {
-            if(par.getTwoStageMerging()) mergeIntoList(newObject,outputList);
+            if(par.getParSE().TwoStageMerging) mergeIntoList(newObject,outputList);
             else outputList.push_back(newObject);
 }
         }
@@ -333,12 +368,12 @@ void Cube<T>::ObjectMerger() {
         for(int i=0;i<startSize;i++) currentList[i] = objectList->at(i);
         objectList->clear();
 
-        if(par.getRejectBeforeMerge()) finaliseList(currentList);
+        if(par.getParSE().RejectBeforeMerge) finaliseList(currentList);
 
         mergeList(currentList);
 
         // Do growth stuff
-        if(par.getFlagGrowth()) {
+        if(par.getParSE().flagGrowth) {
             ObjectGrower<T> grower;
             grower.define(this);
             int nthreads=par.getThreads();
@@ -360,8 +395,8 @@ void Cube<T>::ObjectMerger() {
             mergeList(currentList);
         }   
 
-        if(!par.getRejectBeforeMerge()) finaliseList(currentList);
-        if(par.getMaxChannels()!=-1 || par.getMaxAngSize()!=-1) rejectObjects(currentList);
+        if(!par.getParSE().RejectBeforeMerge) finaliseList(currentList);
+        if(par.getParSE().maxChannels!=-1 || par.getParSE().maxAngSize!=-1) rejectObjects(currentList);
 
         objectList->resize(currentList.size());
         for(size_t i=0;i<currentList.size();i++)
@@ -497,9 +532,9 @@ void Cube<T>::finaliseList(std::vector<Detection<T> > &objList) {
     for(;obj<objList.end();obj++){
         obj->setOffsets();
       
-        if((obj->hasEnoughChannels(par.getMinChannels())
-            && (int(obj->getSpatialSize()) >= par.getMinPix())
-            && (int(obj->getSize()) >= par.getMinVoxels()))){
+        if((obj->hasEnoughChannels(par.getParSE().minChannels)
+            && (int(obj->getSpatialSize()) >= par.getParSE().minPix)
+            && (int(obj->getSize()) >= par.getParSE().minVoxels))){
 
                 newlist.push_back(*obj);
 
@@ -538,8 +573,8 @@ void Cube<T>::rejectObjects(std::vector<Detection<T> > &objList) {
         std::cout << std::flush;
     }
 
-    int maxchan = par.getMaxChannels();
-    float maxsize = par.getMaxAngSize()/(head.PixScale()*arcsconv(head.Cunit(0))/60.);
+    int maxchan = par.getParSE().maxChannels;
+    float maxsize = par.getParSE().maxAngSize/(head.PixScale()*arcsconv(head.Cunit(0))/60.);
 
     std::vector<Detection<T> > newlist;
 

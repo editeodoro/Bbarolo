@@ -173,15 +173,11 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
     }
     
     int nvtmp = NV;
-    if (nvtmp<1) {
-        std::cout << "GALMOD warning: NV must greater than 0. Assuming "<< nsubs;
-        std::cout << std::endl;
-        nvtmp=nsubs;
-    }
+    if (nvtmp<1) nvtmp=nsubs;
     for (int i=0; i<r->nr; i++) {
         if (r->vdisp[i]==0) r->nv.push_back(1);
         else r->nv.push_back(nvtmp);
-    }
+    }    
     
     iseed = ISEED;
     if (iseed>=0) {
@@ -196,40 +192,21 @@ template void Galmod<double>::input(Cube<double>*,int*,int*,Rings<double>*,int,i
 
 
 template <class T>
-void Galmod<T>::input(Cube<T> *c, Rings<T> *rings, int LTYPE) {
+void Galmod<T>::input(Cube<T> *c, Rings<T> *rings, int NV, int LTYPE, int CMODE, float CDENS, int ISEED) {
     
     /// Alternative semplified user interface function. 
-    /// It sets the box to all the Cube and uses the default 
-    /// values for cmode, cdens, nv and iseed.
     
     int Blo[2] = {0,0};
     int Bup[2] = {c->DimX(),c->DimY()};
     
-    initialize(c, Bup, Blo);
-    
-    ringIO(rings);
-    
-    ltype = LTYPE;
-    cmode = 1;
-    cdens = 1;
-    
-    int nvtmp = nsubs;
-    for (int i=0; i<r->nr; i++) {
-        if (r->vdisp[i]==0) r->nv.push_back(1);
-        else r->nv.push_back(nvtmp);
-    }
-    
-    iseed = -1;
-    
-    readytomod=true;
-    
+    input(c,Bup,Blo,rings,NV,LTYPE,CMODE,CDENS,ISEED);
 }
-template void Galmod<float>::input(Cube<float>*,Rings<float>*,int);
-template void Galmod<double>::input(Cube<double>*,Rings<double>*,int);
+template void Galmod<float>::input(Cube<float>*,Rings<float>*,int,int,int,float,int);
+template void Galmod<double>::input(Cube<double>*,Rings<double>*,int,int,int,float,int);
 
 
 template <class T>
-void Galmod<T>::calculate() {
+bool Galmod<T>::calculate() {
     
     /// Front end function to calculate the model.
     
@@ -238,19 +215,19 @@ void Galmod<T>::calculate() {
         galmod();
     }
     else {
-        std::cout<< "GALMOD error: wrong or unknown input parameter.\n";
-        std::terminate();
+        std::cout<< "GALMOD error: wrong or unknown input parameters.\n";
+        return false;
     }
-
+    return true;
 }
-template void Galmod<float>::calculate();
-template void Galmod<double>::calculate();
+template bool Galmod<float>::calculate();
+template bool Galmod<double>::calculate();
 
 
 
 template <class T>
 bool Galmod<T>::smooth(bool usescalefac) {
-        
+    
     if (!modCalculated) {
         std::cout << "GALMOD smoothing error: the model has not been ";
         std::cout << "calculated yet.\n";
@@ -258,11 +235,7 @@ bool Galmod<T>::smooth(bool usescalefac) {
     }
     
     //Beam oldbeam = {pixsize[0]*60, pixsize[1]*60, 0};
-    Beam oldbeam = {0., 0., 0};
-
-    if (oldbeam.bmaj<oldbeam.bmin) 
-        std::swap(oldbeam.bmaj,oldbeam.bmin);
-    
+    Beam oldbeam = {0., 0., 0};    
     Beam newbeam = {in->Head().Bmaj()*arcmconv*60,
                     in->Head().Bmin()*arcmconv*60,
                     in->Head().Bpa()};

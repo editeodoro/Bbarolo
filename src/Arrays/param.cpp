@@ -50,26 +50,6 @@ void Param::defaultValues() {
     checkChannels       = false;
     flagRobustStats     = true;
 
-    flagSearch          = false;
-    searchType          = "spatial";
-    snrCut              = 5.;
-    threshold           = 0.;
-    flagUserThreshold   = false;
-    flagAdjacent        = true;
-    threshSpatial       = -1;
-    threshVelocity      = -1;
-    minChannels         = -1;
-    minPix              = -1;
-    minVoxels           = -1;
-    maxChannels         = -1;
-    maxAngSize          = -1;
-    RejectBeforeMerge   = true;
-    TwoStageMerging     = true;        
-    flagGrowth          = true;
-    growthCut           = 3.;
-    flagUserGrowthT     = false;
-    growthThreshold     = 0.;
-
     globprof            = false;
     totalmap            = false;
     velocitymap         = false;
@@ -132,27 +112,7 @@ Param& Param::operator= (const Param& p) {
     this->verbose           = p.verbose; 
     this->showbar           = p.showbar;
     this->flagRobustStats   = p.flagRobustStats;
-    this->snrCut            = p.snrCut;
-    this->threshold         = p.threshold;
-    
-    this->flagSearch        = p.flagSearch;
-    this->searchType        = p.searchType;
-    this->flagAdjacent      = p.flagAdjacent;
-    this->threshSpatial     = p.threshSpatial;
-    this->threshVelocity    = p.threshVelocity;
-    this->minChannels       = p.minChannels;
-    this->minPix            = p.minPix;
-    this->minVoxels         = p.minVoxels;
-    this->maxChannels       = p.maxChannels;
-    this->maxAngSize        = p.maxAngSize;
-    this->RejectBeforeMerge = p.RejectBeforeMerge;
-    this->TwoStageMerging   = p.TwoStageMerging;
-    this->flagGrowth        = p.flagGrowth;
-    this->growthCut     = p.growthCut;
-    this->growthThreshold   = p.growthThreshold;
-    this->flagUserGrowthT   = p.flagUserGrowthT;
-    this->flagUserThreshold= p.flagUserThreshold;
-    
+
     this->globprof          = p.globprof;
     this->velocitymap       = p.velocitymap;
     this->totalmap          = p.totalmap;
@@ -165,7 +125,8 @@ Param& Param::operator= (const Param& p) {
     this->nrings            = p.nrings;
  
     for (int i=0; i<6; i++) this->BOX[i] = p.BOX[i];
-        
+    
+    this->parSE             = p.parSE;
     this->parGM             = p.parGM;
     this->parGF             = p.parGF;
     this->parGW             = p.parGW;
@@ -249,7 +210,7 @@ bool Param::getopts(int argc, char ** argv) {
                 file = optarg;
                 imageFile = file;
                 beamFWHM /= 3600.;
-                flagSearch=true;
+                parSE.flagSearch=true;
                 returnValue = true;
                 break;
                 
@@ -309,29 +270,30 @@ int Param::readParams(std::string paramfile) {
             if(arg=="checkchannels")    checkChannels = readFlag(ss);
                 
             if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss); 
-            if(arg=="snrcut")           snrCut = readFval(ss); 
+            
+            if(arg=="snrcut")           parSE.snrCut = readFval(ss); 
             if(arg=="threshold"){
-                threshold = readFval(ss);
-                flagUserThreshold = true;
+                parSE.threshold = readFval(ss);
+                parSE.UserThreshold = true;
             }
         
-            if(arg=="flagsearch")        flagSearch = readFlag(ss);
-            if(arg=="searchtype")        searchType = readSval(ss);
-            if(arg=="flagadjacent")      flagAdjacent = readFlag(ss);
-            if(arg=="threshspatial")     threshSpatial = readFval(ss);
-            if(arg=="threshvelocity")    threshVelocity = readFval(ss);
-            if(arg=="minchannels")       minChannels = readIval(ss);
-            if(arg=="minvoxels")         minVoxels = readIval(ss);
-            if(arg=="minpix")            minPix = readIval(ss);
-            if(arg=="maxchannels")       maxChannels = readIval(ss);
-            if(arg=="maxangsize")        maxAngSize = readFval(ss);
-            if(arg=="rejectbeforemerge") RejectBeforeMerge = readFlag(ss);
-            if(arg=="twostagemerging")   TwoStageMerging = readFlag(ss);
-            if(arg=="flaggrowth")        flagGrowth = readFlag(ss);
-            if(arg=="growthcut")         growthCut = readFval(ss);
+            if(arg=="flagsearch")        parSE.flagSearch = readFlag(ss);
+            if(arg=="searchtype")        parSE.searchType = readSval(ss);
+            if(arg=="flagadjacent")      parSE.flagAdjacent = readFlag(ss);
+            if(arg=="threshspatial")     parSE.threshSpatial = readIval(ss);
+            if(arg=="threshvelocity")    parSE.threshVelocity = readIval(ss);
+            if(arg=="minchannels")       parSE.minChannels = readIval(ss);
+            if(arg=="minvoxels")         parSE.minVoxels = readIval(ss);
+            if(arg=="minpix")            parSE.minPix = readIval(ss);
+            if(arg=="maxchannels")       parSE.maxChannels = readIval(ss);
+            if(arg=="maxangsize")        parSE.maxAngSize = readFval(ss);
+            if(arg=="rejectbeforemerge") parSE.RejectBeforeMerge = readFlag(ss);
+            if(arg=="twostagemerging")   parSE.TwoStageMerging = readFlag(ss);
+            if(arg=="flaggrowth")        parSE.flagGrowth = readFlag(ss);
+            if(arg=="growthcut")         parSE.growthCut = readFval(ss);
             if(arg=="growththreshold"){
-                growthThreshold = readFval(ss);
-                flagUserGrowthT  = true;
+                parSE.growthThreshold = readFval(ss);
+                parSE.flagUserGrowthT  = true;
             }
 
             if(arg=="globalprofile")    globprof = readFlag(ss);
@@ -468,28 +430,29 @@ bool Param::checkPars() {
     if (!verbose) showbar=false;
 
     // Can only have "spatial" or "spectral" as search types.
-    if(flagSearch && searchType != "spatial" && searchType != "spectral"){
-        std::cout<<"You have requested a search type of \""<<searchType<<"\".\n"
+    if(parSE.flagSearch && parSE.searchType != "spatial" && parSE.searchType != "spectral"){
+        std::cout<<"You have requested a search type of \""<<parSE.searchType<<"\".\n"
                 << "Only \"spectral\" and \"spatial\" are accepted. Setting to \"spectral\".\n";
-        searchType = "spectral";
+        parSE.searchType = "spectral";
     }
     
-    if(flagGrowth){
+    if(parSE.flagGrowth){
         bool good = true;
-        if(flagUserThreshold && ((threshold<growthThreshold)||(snrCut<growthCut))) {
-            std::cout << "Your \"growthThreshold\" parameter" << growthThreshold
-                      <<" is larger than your \"threshold\""  << threshold << std::endl;
+        if(parSE.UserThreshold && ((parSE.threshold<parSE.growthThreshold)||
+          (parSE.snrCut<parSE.growthCut))) {
+            std::cout << "Your \"growthThreshold\" parameter" << parSE.growthThreshold
+                      <<" is larger than your \"threshold\""  << parSE.threshold << std::endl;
             good = false;
         }
-        if(!flagUserThreshold && (snrCut<growthCut)) {
-            std::cout << "Your \"growthCut\" parameter " << growthCut
-                      << " is larger than your \"snrCut\"" << snrCut << std::endl;
+        if(!parSE.UserThreshold && (parSE.snrCut<parSE.growthCut)) {
+            std::cout << "Your \"growthCut\" parameter " << parSE.growthCut
+                      << " is larger than your \"snrCut\"" << parSE.snrCut << std::endl;
             good = false;
         }
         
         if(!good) {
             std::cout << "The growth function is being turned off\n.";
-            flagGrowth=false;
+            parSE.flagGrowth=false;
             good = true;
         }
     }
@@ -725,22 +688,24 @@ void Param::printDefaults (std::ostream& theStream) {
     recordParam(theStream, "[checkChannels]", "Checking for bad channels in the cube", stringize(par.getCheckCh()));
     recordParam(theStream, "[beamFWHM]", "Size of the beam (arcsec)", par.getBeamFWHM());
     recordParam(theStream, "[flagRobustStats]", "Using Robust statistics?", stringize(par.getFlagRobustStats()));
-    recordParam(theStream, "[flagSearch]", "Searching for sources in cube?", stringize(par.getSearch()));
-    recordParam(theStream, "[searchType]", "   Type of searching performed", par.getSearchType());
-    recordParam(theStream, "[minPix]", "   Minimum # Pixels in a detection", par.getMinPix());
-    recordParam(theStream, "[minChannels]", "   Minimum # Channels in a detection", par.getMinChannels());
-    recordParam(theStream, "[minVoxels]", "   Minimum # Voxels in a detection", par.getMinVoxels());
-    recordParam(theStream, "[maxChannels]", "   Maximum # Channels in a detection", par.getMaxChannels());
-    recordParam(theStream, "[maxAngsize]", "   Max angular size of a detection in arcmin", par.getMaxAngSize());
-    recordParam(theStream, "[flagAdjacent]", "   Using Adjacent-pixel criterion?", stringize(par.getFlagAdjacent()));
-    recordParam(theStream, "[threshSpatial]", "   Max. spatial separation for merging", par.getThreshS());
-    recordParam(theStream, "[threshVelocity]", "   Max. velocity separation for merging", par.getThreshV());
-    recordParam(theStream, "[RejectBeforeMerge]", "   Reject objects before merging?", stringize(par.getRejectBeforeMerge()));
-    recordParam(theStream, "[TwoStageMerging]", "   Merge objects in two stages?", stringize(par.getTwoStageMerging()));
-    recordParam(theStream, "[threshold]", "   Detection Threshold", par.getThreshold());
-    recordParam(theStream, "[snrCut]", "   SNR Threshold (in sigma)", par.getCut());
-    recordParam(theStream, "[flagGrowth]", "   Growing objects after detection?", stringize(par.getFlagGrowth()));
-    recordParam(theStream, "[growthCut]", "   SNR Threshold for growth", par.getGrowthCut());
+    
+    recordParam(theStream, "[flagSearch]", "Searching for sources in cube?", stringize(par.getParSE().flagSearch));
+    recordParam(theStream, "[searchType]", "   Type of searching performed", par.getParSE().searchType);
+    recordParam(theStream, "[minPix]", "   Minimum # Pixels in a detection", par.getParSE().minPix);
+    recordParam(theStream, "[minChannels]", "   Minimum # Channels in a detection", par.getParSE().minChannels);
+    recordParam(theStream, "[minVoxels]", "   Minimum # Voxels in a detection", par.getParSE().minVoxels);
+    recordParam(theStream, "[maxChannels]", "   Maximum # Channels in a detection", par.getParSE().maxChannels);
+    recordParam(theStream, "[maxAngsize]", "   Max angular size of a detection in arcmin", par.getParSE().maxAngSize);
+    recordParam(theStream, "[flagAdjacent]", "   Using Adjacent-pixel criterion?", stringize(par.getParSE().flagAdjacent));
+    recordParam(theStream, "[threshSpatial]", "   Max. spatial separation for merging", par.getParSE().threshSpatial);
+    recordParam(theStream, "[threshVelocity]", "   Max. velocity separation for merging", par.getParSE().threshVelocity);
+    recordParam(theStream, "[RejectBeforeMerge]", "   Reject objects before merging?", stringize(par.getParSE().RejectBeforeMerge));
+    recordParam(theStream, "[TwoStageMerging]", "   Merge objects in two stages?", stringize(par.getParSE().TwoStageMerging));
+    recordParam(theStream, "[threshold]", "   Detection Threshold", par.getParSE().threshold);
+    recordParam(theStream, "[snrCut]", "   SNR Threshold (in sigma)", par.getParSE().snrCut);
+    recordParam(theStream, "[flagGrowth]", "   Growing objects after detection?", stringize(par.getParSE().flagGrowth));
+    recordParam(theStream, "[growthCut]", "   SNR Threshold for growth", par.getParSE().growthCut);
+    recordParam(theStream, "[growthThreshold]", "   Threshold for growth", par.getParSE().growthThreshold);
     
     recordParam(theStream, "[flagRing]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
     recordParam(theStream, "[interactive]", "   Using interactive mode during the fit?", stringize(par.isInteractive()));
@@ -933,35 +898,34 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
   
     recordParam(theStream, "[checkChannels]", "Checking for bad channels in the cube", stringize(par.getCheckCh()));
     recordParam(theStream, "[flagRobustStats]", "Using Robust statistics?", stringize(par.getFlagRobustStats()));
-    
-    recordParam(theStream, "[flagSearch]", "Searching for sources in cube?", stringize(par.getSearch()));
-    if (par.getSearch()) {
-        recordParam(theStream, "[searchType]", "   Type of searching performed", par.getSearchType());
-        recordParam(theStream, "[minPix]", "   Minimum # Pixels in a detection", par.getMinPix());
-        recordParam(theStream, "[minChannels]", "   Minimum # Channels in a detection", par.getMinChannels());
-        recordParam(theStream, "[minVoxels]", "   Minimum # Voxels in a detection", par.getMinVoxels());
-        recordParam(theStream, "[maxChannels]", "   Maximum # Channels in a detection", par.getMaxChannels());
-        recordParam(theStream, "[maxAngsize]", "   Max angular size of a detection in arcmin", par.getMaxAngSize());
-        recordParam(theStream, "[flagAdjacent]", "   Using Adjacent-pixel criterion?", stringize(par.getFlagAdjacent()));
-        if(!par.getFlagAdjacent()){
-            recordParam(theStream, "[threshSpatial]", "   Max. spatial separation for merging", par.getThreshS());
-        }   
-        recordParam(theStream, "[threshVelocity]", "   Max. velocity separation for merging", par.getThreshV());
-        recordParam(theStream, "[RejectBeforeMerge]", "   Reject objects before merging?", stringize(par.getRejectBeforeMerge()));
-        recordParam(theStream, "[TwoStageMerging]", "   Merge objects in two stages?", stringize(par.getTwoStageMerging()));
-        if(par.getFlagUserThreshold()){
-            recordParam(theStream, "[threshold]", "   Detection Threshold", par.getThreshold());
+  
+    recordParam(theStream, "[flagSearch]", "Searching for sources in cube?", stringize(par.getParSE().flagSearch));
+    if (par.getParSE().flagSearch) {
+        recordParam(theStream, "[searchType]", "   Type of searching performed", par.getParSE().searchType);
+        recordParam(theStream, "[minPix]", "   Minimum # Pixels in a detection", par.getParSE().minPix);
+        recordParam(theStream, "[minChannels]", "   Minimum # Channels in a detection", par.getParSE().minChannels);
+        recordParam(theStream, "[minVoxels]", "   Minimum # Voxels in a detection", par.getParSE().minVoxels);
+        recordParam(theStream, "[maxChannels]", "   Maximum # Channels in a detection", par.getParSE().maxChannels);
+        recordParam(theStream, "[maxAngsize]", "   Max angular size of a detection in arcmin", par.getParSE().maxAngSize);
+        recordParam(theStream, "[flagAdjacent]", "   Using Adjacent-pixel criterion?", stringize(par.getParSE().flagAdjacent));
+        if(!par.getParSE().flagAdjacent)
+            recordParam(theStream, "[threshSpatial]", "   Max. spatial separation for merging", par.getParSE().threshSpatial);
+        recordParam(theStream, "[threshVelocity]", "   Max. velocity separation for merging", par.getParSE().threshVelocity);
+        recordParam(theStream, "[RejectBeforeMerge]", "   Reject objects before merging?", stringize(par.getParSE().RejectBeforeMerge));
+        recordParam(theStream, "[TwoStageMerging]", "   Merge objects in two stages?", stringize(par.getParSE().TwoStageMerging));
+        if(par.getParSE().UserThreshold){
+            recordParam(theStream, "[threshold]", "   Detection Threshold", par.getParSE().threshold);
         }
         else {
-            recordParam(theStream, "[snrCut]", "   SNR Threshold (in sigma)", par.getCut());
+            recordParam(theStream, "[snrCut]", "   SNR Threshold (in sigma)", par.getParSE().snrCut);
         }
-        recordParam(theStream, "[flagGrowth]", "   Growing objects after detection?", stringize(par.getFlagGrowth()));
-        if(par.getFlagGrowth()) {                  
-            if(par.getFlagUserGrowthThreshold()){
-                recordParam(theStream, "[growthThreshold]", "   Threshold for growth", par.getGrowthThreshold());
+        recordParam(theStream, "[flagGrowth]", "   Growing objects after detection?", stringize(par.getParSE().flagGrowth));
+        if(par.getParSE().flagGrowth) {                  
+            if(par.getParSE().flagUserGrowthT){
+                recordParam(theStream, "[growthThreshold]", "   Threshold for growth", par.getParSE().growthThreshold);
             }
             else{
-                recordParam(theStream, "[growthCut]", "   SNR Threshold for growth", par.getGrowthCut());
+                recordParam(theStream, "[growthCut]", "   SNR Threshold for growth", par.getParSE().growthCut);
             }
         }
     }

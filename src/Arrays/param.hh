@@ -102,8 +102,8 @@ struct SEARCH_PAR {
     float  threshold         = 0;         ///< What the threshold is (when sigma-clipping).
     bool   UserThreshold     = false;     ///< Whether the user has defined a threshold of their own.
     bool   flagAdjacent      = true;      ///< Use the adjacent criterion for objects merger?
-    float  threshSpatial     = -1;        ///< Maximum spatial separation between objects.
-    float  threshVelocity    = -1;        ///< Maximum channels separation between objects.
+    int    threshSpatial     = -1;        ///< Maximum spatial separation between objects.
+    int    threshVelocity    = -1;        ///< Maximum channels separation between objects.
     int    minChannels       = -1;        ///< Minimum channels to make an object.
     bool   RejectBeforeMerge = true;      ///< Whether to reject sources before merging.
     bool   TwoStageMerging   = true;      ///< Whether to do a partial merge during search.
@@ -137,10 +137,12 @@ public:
     void    setImageFile (std::string fname) {imageFile = fname;};      
     void    setImage (std::string fname) {images.push_back(fname);};
     string  getOutfolder () {return outFolder;};
-    void    setOutfolder (std::string fold) {outFolder=fold;};  
+    void    setOutfolder (std::string s) {if (s!="" && s[s.size()-1]!='/') s.append("/"); outFolder=s;}; 
     bool    isVerbose () {return verbose;};
     void    setVerbosity (bool f) {verbose=f;};
     bool    getShowbar () {return showbar;};
+    int     getThreads () {return threads;};
+    bool    getFlagDebug() {return debug;}
     
     float   getBeamFWHM() {return beamFWHM;};
     void    setBeamFWHM(float val) {beamFWHM=val;};
@@ -149,46 +151,6 @@ public:
     
     bool    getFlagRobustStats () {return flagRobustStats;};
     void    setFlagRobustStats (bool flag) {flagRobustStats=flag;};
-    
-    bool    getSearch () {return flagSearch;};
-    void    setSearchType (std::string s) {searchType=s;};              
-    string  getSearchType () {return searchType;};              
-    float   getCut () {return snrCut;};
-    void    setCut (float c) {snrCut=c;};
-    float   getThreshold () {return threshold;};
-    void    setThreshold (float f) {threshold=f;};
-    bool    getFlagUserThreshold () {return flagUserThreshold;};
-    void    setFlagUserThreshold (bool b) {flagUserThreshold=b;};
-    bool    getFlagAdjacent () {return flagAdjacent;};
-    void    setFlagAdjacent (bool flag) {flagAdjacent=flag;};
-    float   getThreshS () {return threshSpatial;};
-    void    setThreshS (float t) {threshSpatial=t;};
-    float   getThreshV () {return threshVelocity;};
-    void    setThreshV (float t) {threshVelocity=t;};
-    int     getMinChannels () {return minChannels;};
-    void    setMinChannels (int n) {minChannels=n;};
-    int     getMinVoxels () {return minVoxels;};
-    void    setMinVoxels (unsigned int n) {minVoxels=n;};
-    int     getMinPix () {return minPix;};
-    void    setMinPix (int m) {minPix=m;};   
-    int     getMaxChannels () {return maxChannels;};
-    void    setMaxChannels (int m) {maxChannels=m;};
-    float   getMaxAngSize () {return maxAngSize;};
-    void    setMaxAngSize (float f) {maxAngSize=f;};
-    bool    getRejectBeforeMerge () {return RejectBeforeMerge;};
-    void    setRejectBeforeMerge (bool flag) {RejectBeforeMerge=flag;};
-    bool    getTwoStageMerging () {return TwoStageMerging;};
-    void    setTwoStageMerging (bool flag) {TwoStageMerging=flag;};
-    bool    getFlagGrowth(){return flagGrowth;};
-    void    setFlagGrowth(bool flag){flagGrowth=flag;};
-    float   getGrowthCut(){return growthCut;};
-    void    setGrowthCut(float c){growthCut=c;};
-    float   getGrowthThreshold(){return growthThreshold;};
-    void    setGrowthThreshold(float f){growthThreshold=f;};
-    bool    getFlagUserGrowthThreshold(){return flagUserGrowthT;};
-    void    setFlagUserGrowthThreshold(bool b){flagUserGrowthT=b;};
-    int     getThreads () {return threads;};
-    bool    getFlagDebug() {return debug;}
     
     void    setGlobProf (bool flag) {globprof = flag;};
     bool    getGlobProf () {return globprof;};
@@ -212,6 +174,7 @@ public:
     void    setNrings (int n) {nrings = n;};
     int     getBOX  (int i) {return BOX[i];};
 
+    bool    getflagSearch () {return parSE.flagSearch;};
     bool    getflagGalFit () {return parGF.flagGALFIT;};
     bool    getflagGalMod () {return parGM.flagGALMOD;};
     
@@ -225,6 +188,7 @@ public:
     GALMOD_PAR&  getParGM() {return parGM;}
     GALFIT_PAR&  getParGF() {return parGF;}
     GALWIND_PAR& getParGW() {return parGW;}
+    SEARCH_PAR&  getParSE() {return parSE;}
     
     bool    getflagSpace () {return flagSpace;}
     string  getP1 () {return P1;}
@@ -282,26 +246,6 @@ private:
     float           beamFWHM;           ///< Beam to adopt if any information in header.
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     
-    bool            flagSearch;         ///< Should search for sources in cube?
-    string          searchType;         ///< "Spectral" or "Spatial" search?
-    float           snrCut;             ///< Signal to Noise for detection when sigma-clipping.
-    float           threshold;          ///< What the threshold is (when sigma-clipping).
-    bool            flagUserThreshold;  ///< Whether the user has defined a threshold of their own.
-    bool            flagAdjacent;       ///< Use the adjacent criterion for objects merger?
-    float           threshSpatial;      ///< Maximum spatial separation between objects.
-    float           threshVelocity;     ///< Maximum channels separation between objects.
-    int             minChannels;        ///< Minimum channels to make an object.
-    bool            RejectBeforeMerge;  ///< Whether to reject sources before merging.
-    bool            TwoStageMerging;    ///< Whether to do a partial merge during search.
-    int             minVoxels;          ///< Minimum voxels required in an object.
-    int             minPix;             ///< Minimum pixels required in an object.
-    int             maxChannels;        ///< Maximum channels to accept an object.
-    float           maxAngSize;         ///< Maximum angular size in the object in arcmin.
-    bool            flagGrowth;         ///< Are we growing objects once they are found?
-    float           growthCut;          ///< The SNR that we are growing objects down to.
-    bool            flagUserGrowthT;    ///< Whether the user has manually defined a threshold
-    float           growthThreshold;    ///< The threshold for growing objects down to
-    
     bool            globprof;           ///< Whether the user wants the global profile.
     bool            totalmap;           ///< Whether the user wants the total HI map.
     bool            velocitymap;        ///< Whether the user wants the velocity field.
@@ -312,9 +256,10 @@ private:
     bool            flagRing;           ///< Do you want to fit a tilted ring model?
     bool            interactive;        ///< Do you want interactive mode during fit?
     int             nrings;             ///< How many rings for fitting?
-    
+
     int             BOX[6];             ///< A box in RA-DEC-VELO. Not used anymore!
 
+    SEARCH_PAR      parSE;              ///< Input parameters for the SEARCH task
     GALMOD_PAR      parGM;              ///< Input parameters for the GALMOD task
     GALFIT_PAR      parGF;              ///< Input parameters for the GALFIT task
     GALWIND_PAR     parGW;              ///< Input parameters for the GALWIND task

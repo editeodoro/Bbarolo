@@ -296,9 +296,9 @@ bool Detection<T>::canMerge(Detection<T> &other, Param &par) {
 template <class T>
 bool Detection<T>::isNear(Detection<T> &other, Param &par) {
 
-    bool flagAdj = par.getFlagAdjacent();
-    float threshS = par.getThreshS();
-    float threshV = par.getThreshV();
+    bool flagAdj = par.getParSE().flagAdjacent;
+    float threshS = par.getParSE().threshSpatial;
+    float threshV = par.getParSE().threshVelocity;
     
     long gap;
     if(flagAdj) gap = 1;
@@ -331,9 +331,9 @@ bool Detection<T>::isClose(Detection<T> &other, Param &par)  {
    
     bool close = false;   
     
-    bool flagAdj = par.getFlagAdjacent();
-    float threshS = par.getThreshS();
-    float threshV = par.getThreshV();
+    bool flagAdj = par.getParSE().flagAdjacent;
+    float threshS = par.getParSE().threshSpatial;
+    float threshV = par.getParSE().threshVelocity;
     // 
     // If we get to here, the pixel ranges overlap -- so we do a
     // pixel-by-pixel comparison to make sure they are actually

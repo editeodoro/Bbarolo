@@ -44,7 +44,7 @@ namespace Model {
 
 
 template <class T>
-void Galfit<T>::writeModel (std::string normtype) {
+void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     bool verb = in->pars().isVerbose();
     in->pars().setVerbosity(false);
@@ -277,13 +277,14 @@ void Galfit<T>::writeModel (std::string normtype) {
     }
 
     // Now plotting everything
-    if (verb) std::cout << "    Writing creative plots..." << std::flush;
-    int ret = plotParam();
-    if (verb) {
-        if (ret==0) std::cout << " Done." << std::endl;
-        else std::cout << " Something went wrong! Check pyscript.py in the output folder." << std::endl;
+    if (makeplots) {
+        if (verb) std::cout << "    Writing creative plots..." << std::flush;
+        int ret = plotParam();
+        if (verb) {
+            if (ret==0) std::cout << " Done." << std::endl;
+            else std::cout << " Something went wrong! Check pyscript.py in the output folder." << std::endl;
+        }
     }
-
     in->pars().setVerbosity(verb);
 
     if (verb) std::cout << " All done!" << std::endl;
@@ -291,8 +292,8 @@ void Galfit<T>::writeModel (std::string normtype) {
     delete mod;
 
 }
-template void Galfit<float>::writeModel(std::string);
-template void Galfit<double>::writeModel(std::string);
+template void Galfit<float>::writeModel(std::string, bool);
+template void Galfit<double>::writeModel(std::string, bool);
 
 
 template <class T>
@@ -426,7 +427,7 @@ void Galfit<T>::plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T>
     std::string conlevels;
     float sig;
     if (!in->StatsDef()) in->setCubeStats();
-    if (in->pars().getFlagUserThreshold()) sig=in->pars().getThreshold();
+    if (in->pars().getParSE().flagUserGrowthT) sig=in->pars().getParSE().threshold;
     else sig = 2.0*in->stat().getSpread();
     int k=0;
     while (sig<in->stat().getMax()) {
@@ -851,11 +852,11 @@ int Galfit<T>::plotAll_Python() {
     }
 
     if (par.MASK=="SEARCH") {
-        if (in->pars().getFlagUserGrowthThreshold()) cont = in->pars().getGrowthThreshold();
-        else if (in->pars().getFlagUserThreshold()) cont = in->pars().getThreshold();
+        if (in->pars().getParSE().flagUserGrowthT) cont = in->pars().getParSE().growthThreshold;
+        else if (in->pars().getParSE().UserThreshold) cont = in->pars().getParSE().threshold;
         else {
-            if (in->pars().getFlagGrowth()) cont = in->pars().getGrowthCut()*in->stat().getSpread();
-            else cont = in->pars().getCut()*in->stat().getSpread();
+            if (in->pars().getParSE().flagGrowth) cont = in->pars().getParSE().growthCut*in->stat().getSpread();
+            else cont = in->pars().getParSE().snrCut*in->stat().getSpread();
         }
         Detection<T> *larg = in->LargestDetection();
         long ext[4] = {abs(xpos-lround(larg->getXmin()-2*in->Head().Bmaj()/in->Head().PixScale())),
@@ -871,7 +872,7 @@ int Galfit<T>::plotAll_Python() {
     else {
         if (!in->StatsDef()) in->setCubeStats();
         cont = 2.5*in->stat().getSpread();
-        if (in->pars().getFlagUserThreshold()) cont=in->pars().getThreshold();
+        if (in->pars().getParSE().UserThreshold) cont=in->pars().getParSE().threshold;
         std::vector<T> maxv(outr->nr);
         for (int i=0; i<outr->nr; i++) maxv[i]=outr->vrot[i]*sin(outr->inc[i]*M_PI/180.)+outr->vdisp[i];
        //float max_vrot = *max_element(&outr->vrot[0],&outr->vrot[0]+outr->nr);

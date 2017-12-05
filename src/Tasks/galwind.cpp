@@ -33,9 +33,8 @@
 
 
 template <class T>
-GalWind<T>::GalWind(Cube<T> *c, double x0, double y0, double pa, double inc, double disp, 
-                    double dens, double vsys, double vw, double openang, double htot, 
-                    int denstype, int ntot, int cdens, int nv) {
+GalWind<T>::GalWind(Cube<T> *c, T x0, T y0, T pa, T inc, T disp, T dens, T vsys, T vw, 
+                    T openang, T htot, int denstype, int ntot, int cdens, int nv) {
             
     in          = c;
     par.XPOS    = to_string(x0);
@@ -55,7 +54,7 @@ GalWind<T>::GalWind(Cube<T> *c, double x0, double y0, double pa, double inc, dou
         
     in->checkBeam();
 }
-template GalWind<float>::GalWind(Cube<float>*,double,double,double,double,double,double,double,double,double,double,int,int,int,int);
+template GalWind<float>::GalWind(Cube<float>*,float,float,float,float,float,float,float,float,float,float,int,int,int,int);
 template GalWind<double>::GalWind(Cube<double>*,double,double,double,double,double,double,double,double,double,double,int,int,int,int);
 
 
@@ -80,7 +79,6 @@ template <class T>
 bool GalWind<T>::compute() {
     
     // Collecting needed parameters
-    int Blo[2] = {0,0}, Bup[2] = {in->DimX(),in->DimY()};
     float arcconv = arcsconv(in->Head().Cunit(0));
     float PixSize = in->Head().PixScale()*arcconv;
     int nv = par.NV>1 ? par.NV : 20;
@@ -168,7 +166,7 @@ bool GalWind<T>::compute() {
         }
 
         // Build first cone
-        con1->input(in, Bup, Blo, r, nv, par.LTYPE, 1, par.CDENS, -k);
+        con1->input(in, r, nv, par.LTYPE, 1, par.CDENS, -k);
         con1->calculate();
     
         // Build second cone
@@ -181,7 +179,7 @@ bool GalWind<T>::compute() {
             r->vvert[i] = -r->vvert[i];
         }
         
-        con2->input(in, Bup, Blo, r, nv, par.LTYPE, 1, par.CDENS, -k);
+        con2->input(in, r, nv, par.LTYPE, 1, par.CDENS, -k);
         con2->calculate();
 
         for (int i=0; i<in->NumPix(); i++) 

@@ -94,6 +94,7 @@ struct Ring {
     int  nv;             //< Number of subclouds. 
 };
 
+
 template <class T>
 struct Rings {
     int     nr;                     //< Number of rings.
@@ -178,14 +179,15 @@ public:
     Cube<Type>  *In () {return in;}
     Cube<Type>  *Out() {return out;}
     Rings<Type> *Ring() {return r;}
-        
+    float *getArray() {if (outDefined) return out->Array();}
     
     void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings, 
-               int NV, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);
+               int NV=-1, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);
     
-    void input(Cube<Type> *c, Rings<Type> *rings, int LTYPE);
+    void input(Cube<Type> *c, Rings<Type> *rings, int NV=-1, int LTYPE=1, int CMODE=1, 
+               float CDENS=1.0, int ISEED=-1);
                
-    void calculate();
+    bool calculate();
     bool smooth(bool usescalefac=true);
     void normalize();
 

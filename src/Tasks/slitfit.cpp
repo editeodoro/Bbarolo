@@ -40,8 +40,8 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     Param *p = &c->pars();
     par = p->getParGF();
     
-    p->setMinChannels(1);
-    p->setMinPix(in->DimX());
+    p->getParSE().minChannels = 1;
+    p->getParSE().minPix = in->DimX();
     in->Search();
     int numObj = in->getObjectList().size();
     if (numObj==0)  {
@@ -615,7 +615,7 @@ void Galfit<T>::writeModel_slit() {
     /// Plotting pv contours
     std::string conlevels;
     float sig;
-    if (line_im->pars().getFlagUserThreshold()) sig=line_im->pars().getThreshold();
+    if (line_im->pars().getParSE().flagUserGrowthT) sig=line_im->pars().getParSE().threshold;
     else sig = 2.0*line_im->stat().getSpread();
     k=0;
     while (sig<line_im->stat().getMax()) {

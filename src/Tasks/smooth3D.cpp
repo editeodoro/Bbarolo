@@ -324,8 +324,10 @@ bool Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam, T *OldArray, T 
     /// Smooth3D::array variable!!!!
     
 
-    using namespace std;
     in = c;
+    float unittoarc = arcsconv(in->Head().Cunit(0));    
+    gridspace[0]=in->Head().Cdelt(0)*unittoarc; 
+    gridspace[1]=in->Head().Cdelt(1)*unittoarc;
     
     for (int i=0; i<3; i++) {
         dimAxes[i]  = c->AxesDim(i);
@@ -398,33 +400,11 @@ bool Smooth3D<T>::defineBeam(Beam Oldbeam, Beam Newbeam) {
         std::cout << "SMOOTHING error: cannot calculate convolution parameters!\n";
         return false;
     }
-    
-    
-    std::string cunit = in->Head().Cunit(0);
-    double unittoarc=0;
-    if (cunit=="DEGREE" || cunit=="DEGREES" || cunit=="DEG" ||
-        cunit=="degree" || cunit=="degrees" || cunit=="deg") 
-            unittoarc = 3600;
-    else if (cunit=="ARCSEC" || cunit=="ARCS" ||
-             cunit=="arcsec" || cunit=="arcs") 
-            unittoarc = 1;
-    else if (cunit=="ARCMIN" || cunit=="ARCM" ||
-             cunit=="arcmin" || cunit=="arcm") 
-            unittoarc = 60;
-    else {
-        std::cout << "SMOOTH error (unknown CUNIT for RA-DEC): ";
-        std::cout << "cannot convert to ARCSEC.\n";
-        std::cout << cunit;
-        return false; 
-    }
-    
+     
     double *datadummy = new double[NdatX*NdatY];
     T *dataI    = new T[NdatX*NdatY];
     T *dataO        = new T[NdatX*NdatY];
     
-    gridspace[0]=in->Head().Cdelt(0)*unittoarc; 
-    gridspace[1]=in->Head().Cdelt(1)*unittoarc;
-
     confie = new double[maxconv];
     confieAllocated=true;
         

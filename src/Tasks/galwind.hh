@@ -50,9 +50,8 @@ public:
     // 3) Give all paramaters separately
     GalWind(Cube<T> *c) : GalWind(c,c->pars().getParGW()) {}
     GalWind(Cube<T> *c, GALWIND_PAR &p) {in=c, par=p; in->checkBeam();}
-    GalWind(Cube<T> *c, double x0, double y0, double pa, double inc, double disp, 
-            double dens, double vsys, double vw, double openang, double htot, 
-            int denstype, int ntot=25, int cdens=10, int nv=10);
+    GalWind(Cube<T> *c, T x0, T y0, T pa, T inc, T disp, T dens, T vsys, T vw, T openang, 
+            T htot, int denstype, int ntot=25, int cdens=10, int nv=10);
     // Copy constructor and destructor
     GalWind (const GalWind<T>& gw) {operator=(gw);}
     GalWind& operator= (const GalWind<T>& gw);

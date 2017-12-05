@@ -331,7 +331,7 @@ void Image2D<Type>::setImageStats() {
     
     stats.setUseFDR(false);
 
-    stats.setThresholdSNR(par.getCut());
+    stats.setThresholdSNR(par.getParSE().snrCut);
       
     if(par.isVerbose()) {
         std::cout << "Using ";

@@ -1072,7 +1072,7 @@ T ParamGuess<T>::funcIncfromMap(T *mypar) {
     }
 
     Model::Galmod<T> *mod = new Model::Galmod<T>;
-    mod->input(in,rings,1);
+    mod->input(in,rings);
     mod->calculate();
     mod->smooth();
 

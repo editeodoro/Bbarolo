@@ -121,7 +121,7 @@ int main (int argc, char *argv[]) {
 
 
         /// Source finding utility --------------------------------------
-        if (par->getSearch()) {			
+        if (par->getflagSearch()) {			
             c->Search();
             c->plotDetections();
             std::ofstream detout((outfolder+"detections.txt").c_str());

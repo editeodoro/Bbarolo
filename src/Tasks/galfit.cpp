@@ -341,7 +341,7 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     c->pars().getParGF() = par;
     
     // Create directory tree if it does not exist
-    checkHome(OUTFOLD);
+    checkHome(OUTFOLD);    
     c->pars().setOutfolder(OUTFOLD);
     mkdirp(OUTFOLD.c_str());
     

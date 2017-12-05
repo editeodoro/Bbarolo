@@ -68,9 +68,10 @@ public:
     bool SecondStage();
 
     /// Functions defined in galfit_out.cpp
-    void writeModel(std::string normtype);
+    void writeModel(std::string normtype, bool makeplots=true);
     void writePVs(Cube<T> *mod, std::string suffix="");
-
+    int  plotAll_Python ();
+    
 
     /// Functions defined in slitfit.cpp
     void slit_init(Cube<T> *c);
@@ -144,7 +145,6 @@ protected:
     int  plotParam() {plotPar_Gnuplot();return plotAll_Python();}
     void plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T> *pva_m, Image2D<T> *pvb_m);
     void plotPar_Gnuplot();
-    int  plotAll_Python ();
 
     /// Functions defined in galfit_erros.cpp
     void getErrors(Rings<T> *dring, T** err, int ir, T minimum);

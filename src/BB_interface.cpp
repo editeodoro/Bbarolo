@@ -1,4 +1,5 @@
 #include<iostream>
+#include<csignal>
 #include<Arrays/param.hh>
 #include<Arrays/cube.hh>
 #include<Tasks/galmod.hh>
@@ -21,7 +22,11 @@ Cube<float>* Cube_new(const char* fname) {return new Cube<float>(string(fname));
 void Cube_delete (Cube<float> *c) {delete c;}
 int* Cube_axisdim(Cube<float> *c) {return c->AxisDim();};
 float* Cube_array(Cube<float> *c) {return c->Array();}
+void Cube_setBeam(Cube<float> *c, float bmaj, float bmin, float bpa) {c->setBeam(bmaj,bmin,bpa);}
+float* Cube_getBeam(Cube<float> *c) {return c->getBeam();}
+
 ////////////////////////////////////////////////////////////////////////////////////////
+
 
 // Interface for the Rings struct //////////////////////////////////////////////////////
 Rings<float>* Rings_new() {return new Rings<float>;};
@@ -30,6 +35,16 @@ void Rings_set(Rings<float>* r, int size, float* radii, float* xpos, float* ypos
                    {r->setRings(size,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi,nv);}
 ////////////////////////////////////////////////////////////////////////////////////////
 
+
+// Interface for Galmod class //////////////////////////////////////////////////////////
+Galmod<float>* Galmod_new(Cube<float> *c, Rings<float> *r, int NV, int LTYPE, int CMODE, float CDENS, int ISEED) 
+                          {Galmod<float> *g = new Galmod<float>; g->input(c,r,NV,LTYPE,CMODE,CDENS,ISEED); return g;}
+void Galmod_delete(Galmod<float> *g) {delete g;}
+float* Galmod_array(Galmod<float> *g) {return g->getArray();}
+bool Galmod_compute(Galmod<float> *g) {return g->calculate();}
+bool Galmod_smooth(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->smooth();}
+
+////////////////////////////////////////////////////////////////////////////////////////
 
 
 // Interface for Galfit class //////////////////////////////////////////////////////////
@@ -46,15 +61,15 @@ Galfit<float>* Galfit_new_all(Cube<float> *c, Rings<float> *inrings, float DELTA
 void Galfit_delete(Galfit<float> *g) {delete g;}
 bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit(); return true;}
 bool Galfit_secondStage(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->SecondStage();}
-void Galfit_writeModel(Galfit<float> *g, const char* norm) {signal(SIGINT, signalHandler); g->writeModel(string(norm));}
-
+void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(SIGINT, signalHandler); g->writeModel(string(norm),plots);}
+int Galfit_plotModel(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->plotAll_Python();}
 ////////////////////////////////////////////////////////////////////////////////////////
  
 
-// Interface for Galfit class //////////////////////////////////////////////////////////
-GalWind<float>* Galwind_new (Cube<float> *c, double x0, double y0, double pa, double inc, double disp, 
-            double dens, double vsys, double vw, double openang, double htot, 
-            int denstype, int ntot, int cdens, int nv) { 
+// Interface for Galwind class //////////////////////////////////////////////////////////
+GalWind<float>* Galwind_new (Cube<float> *c, float x0, float y0, float pa, float inc, float disp, 
+                             float dens, float vsys, float vw, float openang, float htot, 
+                             int denstype, int ntot, int cdens, int nv) { 
             return new GalWind<float>(c,x0,y0,pa,inc,disp,dens,vsys,vw,openang,htot,denstype,ntot,cdens,nv);}
     
 void Galwind_delete(GalWind<float> *gw) {delete gw;} 
@@ -63,5 +78,15 @@ bool Galwind_compute(GalWind<float> *gw) {signal(SIGINT, signalHandler); return 
 bool Galwind_smooth(GalWind<float> *gw) {signal(SIGINT, signalHandler); return gw->smooth();}
 bool Galwind_writeFITS(GalWind<float> *gw) {return gw->writeFITS();}
 bool Galwind_writeMomentMaps(GalWind<float> *gw) {return gw->writeMomentMaps();}
-////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// Interface for Search class //////////////////////////////////////////////////////////
+void Search_search(Cube<float> *c, const char* searchtype, float snrCut, float threshold, bool adjacent, 
+                   int threshSpatial, int threshVelocity, int minPixels, int minChannels,
+                   int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
+                   float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage) 
+                   {signal(SIGINT, signalHandler); c->Search(string(searchtype),snrCut,threshold,
+                    adjacent,threshSpatial,threshVelocity,minPixels,minChannels,minVoxels,maxChannels,
+                    maxAngSize,flagGrowth,growthCut,growthThreshold,RejectBefore,TwoStage);}
+//////////////////////////////////////////////////////////////////////////////////////////
 }
