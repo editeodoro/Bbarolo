@@ -319,7 +319,7 @@ int Param::readParams(std::string paramfile) {
             if(arg=="radsep")    parGM.RADSEP = parGF.RADSEP               = readDval(ss);
             if(arg=="vrot")      parGM.VROT   = parGF.VROT                 = readFilename(ss);
             if(arg=="vrad")      parGM.VRAD   = parGF.VRAD                 = readFilename(ss);
-            if(arg=="z0")        parGM.Z0                                  = readFilename(ss);
+            if(arg=="z0")        parGM.Z0     = parGF.Z0                   = readFilename(ss);
             if(arg=="vvert")     parGM.VVERT                               = readFilename(ss);
             if(arg=="dvdz")      parGM.DVDZ                                = readDval(ss);
             if(arg=="zcyl")      parGM.ZCYL                                = readDval(ss);
