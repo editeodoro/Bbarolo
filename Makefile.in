@@ -204,6 +204,7 @@ gui :
 	echo "LIBS += $(LIBS) -static-libgcc -static-libstdc++" >> BbaroloGUI.pro && \
 	echo "QMAKE_CXXFLAGS += $(OPT) $(CINC)" >> BbaroloGUI.pro && \
 	echo "QMAKE_CXXFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
+	echo "QMAKE_LFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
 	echo "QMAKE_CC = $(CC)" >> BbaroloGUI.pro &&\
 	echo "QMAKE_CXX = $(CXX)" >> BbaroloGUI.pro &&\
 	echo "QMAKE_LINK = $(CXX)" >> BbaroloGUI.pro &&\
@@ -241,6 +242,7 @@ guistaticlinux :
 	echo "LIBS += $(STATICLIBS) -static-libgcc -static-libstdc++ " >> BbaroloGUI.pro && \
 	echo "QMAKE_CXXFLAGS += $(OPT) $(CINC)" >> BbaroloGUI.pro && \
 	echo "QMAKE_CXXFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
+	echo "QMAKE_LFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
 	echo "QMAKE_CC = $(CC)" >> BbaroloGUI.pro &&\
 	echo "QMAKE_CXX = $(CXX)" >> BbaroloGUI.pro &&\
 	echo "QMAKE_LINK = $(CXX)" >> BbaroloGUI.pro &&\

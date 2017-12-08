@@ -264,11 +264,12 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
     if (par->getflagGalFit()) {
         set3DFitFlag(Qt::Checked);
         readModelParam(par);
+        GALFIT_PAR &p = par->getParGF();
+        
+        ui->IncDSpinBox->setValue(p.DELTAINC);
+        ui->PaDSpinBox->setValue(p.DELTAPHI);
 
-        ui->IncDSpinBox->setValue(par->getDELTAINC());
-        ui->PaDSpinBox->setValue(par->getDELTAPHI());
-
-        std::string free = par->getFREE();
+        std::string free = p.FREE;
         free = makelower(free);
         int found = free.find("vrot");
         if (found>=0) ui->vrotcheckBox->setChecked(true);
@@ -295,16 +296,16 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         if (found>=0) ui->z0checkBox->setChecked(true);
         else ui->z0checkBox->setChecked(false);
 
-        ui->FtypecomboBox->setCurrentIndex(par->getFTYPE()-1);
-        ui->WfunccomboBox->setCurrentIndex(par->getWFUNC());
+        ui->FtypecomboBox->setCurrentIndex(p.FTYPE-1);
+        ui->WfunccomboBox->setCurrentIndex(p.WFUNC);
 
-        ui->SecondstagecheckBox->setChecked(par->getTwoStage());
-        if (par->getTwoStage()) {
-            if (makelower(par->getPOLYN())=="bezier") ui->PolynspinBox->setValue(-1);
-            else ui->PolynspinBox->setValue(atoi(par->getPOLYN().c_str()));
+        ui->SecondstagecheckBox->setChecked(p.TWOSTAGE);
+        if (p.TWOSTAGE) {
+            if (makelower(p.POLYN)=="bezier") ui->PolynspinBox->setValue(-1);
+            else ui->PolynspinBox->setValue(atoi(p.POLYN.c_str()));
         }
 
-        if (par->getflagErrors()) ui->ErrorsradioButton->setChecked(true);
+        if (p.flagERRORS) ui->ErrorsradioButton->setChecked(true);
         else ui->ErrorsradioButton->setChecked(false);
     }
     else {
@@ -315,35 +316,36 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         }
     }
 
-    if (par->getSearch()) setSearchFlag(Qt::Checked);
+    if (par->getflagSearch()) setSearchFlag(Qt::Checked);
     else setSearchFlag(Qt::Unchecked);
     if (getSearchFlag()) {
-        if (par->getSearchType()=="spectral") ui->SearchtypecomboBox->setCurrentIndex(0);
+        SEARCH_PAR p = par->getParSE();
+        if (p.searchType=="spectral") ui->SearchtypecomboBox->setCurrentIndex(0);
         else ui->SearchtypecomboBox->setCurrentIndex(1);
-        if (par->getFlagUserThreshold()) {
+        if (p.UserThreshold) {
             ui->CuttypecomboBox->setCurrentIndex(0);
-            ui->primaryCutlineEdit->setText(QString::number(par->getThreshold(),'g',10));
+            ui->primaryCutlineEdit->setText(QString::number(p.threshold,'g',10));
         }
         else {
             ui->CuttypecomboBox->setCurrentIndex(1);
-            ui->primaryCutlineEdit->setText(QString::number(par->getCut(),'g',10));
+            ui->primaryCutlineEdit->setText(QString::number(p.snrCut,'g',10));
         }
-        if (par->getFlagGrowth()) {
+        if (p.flagGrowth) {
             ui->GrowthcheckBox->setChecked(true);
-            if (par->getFlagUserGrowthThreshold()) {
+            if (p.flagUserGrowthT) {
                 ui->Cuttype2comboBox->setCurrentIndex(0);
-                ui->SecondarycutlineEdit->setText(QString::number(par->getGrowthThreshold(),'g',10));
+                ui->SecondarycutlineEdit->setText(QString::number(p.growthThreshold,'g',10));
             }
             else {
                 ui->Cuttype2comboBox->setCurrentIndex(1);
-                ui->SecondarycutlineEdit->setText(QString::number(par->getGrowthCut(),'g',10));
+                ui->SecondarycutlineEdit->setText(QString::number(p.growthCut,'g',10));
             }
         }
         else ui->GrowthcheckBox->setChecked(false);
 
         ui->SearchAdvgroupBox->setEnabled(true);
         ui->SearchAdvgroupBox->setChecked(true);
-        if (par->getFlagAdjacent()) {
+        if (p.flagAdjacent) {
             ui->ThreshSpatialBox->setValue(-1);
             ui->ThreshSpatialBox->setDisabled(true);
             ui->AdjacentcheckBox->setChecked(true);
@@ -351,17 +353,17 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         else {
             ui->AdjacentcheckBox->setChecked(false);
             ui->ThreshSpatialBox->setEnabled(true);
-            ui->ThreshSpatialBox->setValue(par->getThreshS());
+            ui->ThreshSpatialBox->setValue(p.threshSpatial);
         }
 
-        ui->ThreshVelspinBox->setValue(par->getThreshV());
-        ui->MinChanspinBox->setValue(par->getMinChannels());
-        ui->MinPixspinBox->setValue(par->getMinPix());
-        ui->MinVoxspinBox->setValue(par->getMinVoxels());
-        ui->RejectcheckBox->setChecked(par->getRejectBeforeMerge());
-        ui->MaxChanspinBox->setValue(par->getMaxChannels());
-        ui->MaxAngSizeSpinBox->setValue(par->getMaxAngSize());
-        ui->TwostagemergingcheckBox->setChecked(par->getTwoStageMerging());
+        ui->ThreshVelspinBox->setValue(p.threshVelocity);
+        ui->MinChanspinBox->setValue(p.minChannels);
+        ui->MinPixspinBox->setValue(p.minPix);
+        ui->MinVoxspinBox->setValue(p.minVoxels);
+        ui->RejectcheckBox->setChecked(p.RejectBeforeMerge);
+        ui->MaxChanspinBox->setValue(p.maxChannels);
+        ui->MaxAngSizeSpinBox->setValue(p.maxAngSize);
+        ui->TwostagemergingcheckBox->setChecked(p.TwoStageMerging);
     }
 
     if (par->getflagSmooth()) setSmoothFlag(Qt::Checked);
@@ -562,13 +564,14 @@ void BBaroloWindow::writeParamFile(QString file) {
     out.close();
 }
 
-void BBaroloWindow::readModelParam(Param *par) {
+void BBaroloWindow::readModelParam(Param *p) {
 
     ui->FreeParametersframe->setEnabled(true);
+    GALFIT_PAR &par = p->getParGF();
     QString s;
     int col = -1;
-    if (par->getRADII()!="-1") {
-        s = QString::fromStdString(par->getRADII());
+    if (par.RADII!="-1") {
+        s = QString::fromStdString(par.RADII);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->RadsepFilelineEdit,ui->RadsepFilespinBox,ui->RadsepSpinBox,false);
@@ -577,22 +580,22 @@ void BBaroloWindow::readModelParam(Param *par) {
         }
     }
     else {
-        if (par->getNRADII()==-1) ui->NringscheckBox->setChecked(true);
+        if (par.NRADII==-1) ui->NringscheckBox->setChecked(true);
         else {
             ui->NringscheckBox->setChecked(false);
-            ui->NringsspinBox->setValue(par->getNRADII());
+            ui->NringsspinBox->setValue(par.NRADII);
         }
-        if (par->getRADSEP()==-1) ui->RadsepcheckBox->setChecked(true);
+        if (par.RADSEP==-1) ui->RadsepcheckBox->setChecked(true);
         else {
             ui->RadsepcheckBox->setChecked(false);
-            ui->RadsepSpinBox->setValue(par->getRADSEP());
+            ui->RadsepSpinBox->setValue(par.RADSEP);
         }
     }
-    if (par->getXPOS()=="-1") ui->XposcheckBox->setChecked(true);
+    if (par.XPOS=="-1") ui->XposcheckBox->setChecked(true);
     else {
         ui->XposcheckBox->setChecked(false);
         ui->wcscomboBox->setCurrentIndex(0);
-        s = QString::fromStdString(par->getXPOS());
+        s = QString::fromStdString(par.XPOS);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->XposFilelineEdit,ui->XposFilespinBox,ui->yposlineEdit,false);
@@ -600,7 +603,7 @@ void BBaroloWindow::readModelParam(Param *par) {
             ui->XposFilespinBox->setValue(col);
         }
         else {
-            std::string xpos = par->getXPOS();
+            std::string xpos = par.XPOS;
             int found = xpos.find("d");
             if (found!=-1) {
                 xpos.erase(found,xpos.size()-1);
@@ -614,11 +617,11 @@ void BBaroloWindow::readModelParam(Param *par) {
             ui->xposlineEdit->setText(QString::fromStdString(xpos));
         }
     }
-    if (par->getYPOS()=="-1") ui->YposcheckBox->setChecked(true);
+    if (par.YPOS=="-1") ui->YposcheckBox->setChecked(true);
     else {
         ui->YposcheckBox->setChecked(false);
         ui->wcscomboBox->setCurrentIndex(0);
-        s = QString::fromStdString(par->getYPOS());
+        s = QString::fromStdString(par.YPOS);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->YposFilelineEdit,ui->YposFilespinBox,ui->yposlineEdit,false);
@@ -626,7 +629,7 @@ void BBaroloWindow::readModelParam(Param *par) {
             ui->YposFilespinBox->setValue(col);
         }
         else {
-            std::string ypos = par->getYPOS();
+            std::string ypos = par.YPOS;
             int found = ypos.find('d');
             if (found!=-1) {
                 ypos.erase(found,ypos.size()-1);
@@ -641,110 +644,110 @@ void BBaroloWindow::readModelParam(Param *par) {
     }
 
 
-    if (par->getVSYS()=="-1") ui->VsyscheckBox->setChecked(true);
+    if (par.VSYS=="-1") ui->VsyscheckBox->setChecked(true);
     else {
         ui->VsyscheckBox->setChecked(false);
-        s = QString::fromStdString(par->getVSYS());
+        s = QString::fromStdString(par.VSYS);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox,false);
             ui->VsysFilelineEdit->setText(s);
             ui->VsysFilespinBox->setValue(col);
         }
-        else ui->VsysSpinBox->setValue(atof(par->getVSYS().c_str()));
+        else ui->VsysSpinBox->setValue(atof(par.VSYS.c_str()));
     }
-    if (par->getVROT()=="-1") ui->VrotcheckBox->setChecked(true);
+    if (par.VROT=="-1") ui->VrotcheckBox->setChecked(true);
     else {
         ui->VrotcheckBox->setChecked(false);
-        s = QString::fromStdString(par->getVROT());
+        s = QString::fromStdString(par.VROT);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox,false);
             ui->VrotFilelineEdit->setText(s);
             ui->VrotFilespinBox->setValue(col);
         }
-        else ui->VrotSpinBox->setValue(atof(par->getVROT().c_str()));
+        else ui->VrotSpinBox->setValue(atof(par.VROT.c_str()));
     }
-    if (par->getVDISP()=="-1") ui->VdispcheckBox->setChecked(true);
+    if (par.VDISP=="-1") ui->VdispcheckBox->setChecked(true);
     else {
         ui->VdispcheckBox->setChecked(false);
-        s = QString::fromStdString(par->getVDISP());
+        s = QString::fromStdString(par.VDISP);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox,false);
             ui->VdispFilelineEdit->setText(s);
             ui->VdispFilespinBox->setValue(col);
         }
-        else ui->VdispSpinBox->setValue(atof(par->getVDISP().c_str()));
+        else ui->VdispSpinBox->setValue(atof(par.VDISP.c_str()));
     }
-    if (par->getINC()=="-1") ui->InccheckBox->setChecked(true);
+    if (par.INC=="-1") ui->InccheckBox->setChecked(true);
     else {
         ui->InccheckBox->setChecked(false);
-        s = QString::fromStdString(par->getINC());
+        s = QString::fromStdString(par.INC);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox,false);
             ui->IncFilelineEdit->setText(s);
             ui->IncFilespinBox->setValue(col);
         }
-        else ui->IncSpinBox->setValue(atof(par->getINC().c_str()));
+        else ui->IncSpinBox->setValue(atof(par.INC.c_str()));
     }
-    if (par->getPHI()=="-1") ui->PacheckBox->setChecked(true);
+    if (par.PHI=="-1") ui->PacheckBox->setChecked(true);
     else {
         ui->PacheckBox->setChecked(false);
-        s = QString::fromStdString(par->getPHI());
+        s = QString::fromStdString(par.PHI);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox,false);
             ui->PaFilelineEdit->setText(s);
             ui->PaFilespinBox->setValue(col);
         }
-        else ui->PaSpinBox->setValue(atof(par->getPHI().c_str()));
+        else ui->PaSpinBox->setValue(atof(par.PHI.c_str()));
     }
-    if (par->getZ0()=="-1") ui->Z0checkBox->setChecked(true);
+    if (par.Z0=="-1") ui->Z0checkBox->setChecked(true);
     else {
         ui->Z0checkBox->setChecked(false);
-        s = QString::fromStdString(par->getZ0());
+        s = QString::fromStdString(par.Z0);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox,false);
             ui->Z0FilelineEdit->setText(s);
             ui->Z0FilespinBox->setValue(col);
         }
-        else ui->Z0SpinBox->setValue(atof(par->getZ0().c_str()));
+        else ui->Z0SpinBox->setValue(atof(par.Z0.c_str()));
     }
-    if (par->getDENS()=="-1") ui->DenscheckBox->setChecked(true);
+    if (par.DENS=="-1") ui->DenscheckBox->setChecked(true);
     else {
         ui->DenscheckBox->setChecked(false);
-        s = QString::fromStdString(par->getDENS());
+        s = QString::fromStdString(par.DENS);
         col = readFileString(s);
         if (col != -1) {
             Hide_3DFit_file(ui->DensFilelineEdit,ui->DensFilespinBox,ui->DensSpinBox,false);
             ui->DensFilelineEdit->setText(s);
             ui->DensFilespinBox->setValue(col);
         }
-        else ui->DensSpinBox->setValue(atof(par->getDENS().c_str()));
+        else ui->DensSpinBox->setValue(atof(par.DENS.c_str()));
     }
     ui->AdvancedgroupBox->setChecked(true);
     ui->AdvancedgroupBox->setEnabled(true);
-    ui->LtypecomboBox->setCurrentIndex(par->getLTYPE()-1);
-    ui->CdensSpinBox->setValue(par->getCDENS());
-    ui->NVspinBox->setValue(par->getNV());
-    if (par->getMASK()=="SMOOTH") {
+    ui->LtypecomboBox->setCurrentIndex(par.LTYPE-1);
+    ui->CdensSpinBox->setValue(par.CDENS);
+    ui->NVspinBox->setValue(par.NV);
+    if (par.MASK=="SMOOTH") {
         ui->MaskcomboBox->setCurrentIndex(0);
         ui->MaskgroupBox->setChecked(true);
-        ui->BlankfactordoubleSpinBox->setValue(par->getFactor());
-        ui->BlankcutSpinBox->setValue(par->getCut());
+        ui->BlankfactordoubleSpinBox->setValue(p->getFactor());
+        ui->BlankcutSpinBox->setValue(p->getParSE().snrCut);
     }
-    else if (par->getMASK()=="SEARCH") ui->MaskcomboBox->setCurrentIndex(1);
-    else if (par->getMASK()=="THRESHOLD") {
+    else if (par.MASK=="SEARCH") ui->MaskcomboBox->setCurrentIndex(1);
+    else if (par.MASK=="THRESHOLD") {
         ui->MaskcomboBox->setCurrentIndex(2);
-        ui->MaskThreshSpinBox->setValue(par->getThreshold());
+        ui->MaskThreshSpinBox->setValue(p->getParSE().threshold);
     }
     else ui->MaskcomboBox->setCurrentIndex(3);
 
-    if (par->getNORM()=="LOCAL") ui->NormcomboBox->setCurrentIndex(0);
-    else if (par->getNORM()=="AZIM") ui->NormcomboBox->setCurrentIndex(1);
+    if (par.NORM=="LOCAL") ui->NormcomboBox->setCurrentIndex(0);
+    else if (par.NORM=="AZIM") ui->NormcomboBox->setCurrentIndex(1);
     else ui->NormcomboBox->setCurrentIndex(2);
 }
 

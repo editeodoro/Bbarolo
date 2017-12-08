@@ -13,6 +13,7 @@ SOURCES += main.cpp\
     bbarolowindow_run.cpp \
     ../Arrays/param.cpp \
     ../Utilities/utils.cpp \
+    ../Utilities/wcsUtils.cpp \
     ../Utilities/string.cpp \
     ../Arrays/header.cpp \
 #    ../Arrays/stats.cpp \
@@ -67,28 +68,3 @@ HEADERS  += bbarolowindow.h \
 FORMS    += bbarolowindow.ui
 
 ICON = Bbarolo.icns
-
-LIBS += -L/usr/local/lib  -lfftw3  -L/usr/local/lib  -lcfitsio -L/usr/local/lib  -lwcs -lm  -static-libgcc -static-libstdc++
-QMAKE_CXXFLAGS += -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I../../src -I/usr/local/include -I/usr/local/include/fftw3lib  -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib 
-QMAKE_CXXFLAGS -= -stdlib=libc++
-QMAKE_CC = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_CXX = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_LINK = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-LIBS += -L/usr/local/lib  -lfftw3  -L/usr/local/lib  -lcfitsio -L/usr/local/lib  -lwcs -lm  -static-libgcc -static-libstdc++
-QMAKE_CXXFLAGS += -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I./src -I/usr/local/include -I/usr/local/include/fftw3lib  -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib 
-QMAKE_CXXFLAGS -= -stdlib=libc++
-QMAKE_CC = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_CXX = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_LINK = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-LIBS += -L/usr/local/lib  -lfftw3  -L/usr/local/lib  -lcfitsio -L/usr/local/lib  -lwcs -lm  -static-libgcc -static-libstdc++
-QMAKE_CXXFLAGS += -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I./src -I/usr/local/include -I/usr/local/include/fftw3lib  -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib 
-QMAKE_CXXFLAGS -= -stdlib=libc++
-QMAKE_CC = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_CXX = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_LINK = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-LIBS += -L/usr/local/lib  -lfftw3  -L/usr/local/lib  -lcfitsio -L/usr/local/lib  -lwcs -lm   -static-libgcc -static-libstdc++
-QMAKE_CXXFLAGS += -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I./src -I/usr/local/include -I/usr/local/include/fftw3lib  -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib  
-QMAKE_CXXFLAGS -= -stdlib=libc++
-QMAKE_CC = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_CXX = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-QMAKE_LINK = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp

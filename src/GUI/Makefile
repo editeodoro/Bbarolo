@@ -10,11 +10,11 @@ MAKEFILE      = Makefile
 
 ####### Compiler, tools and options
 
-CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
+CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
+CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
 DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I../../src -I/usr/local/include -I/usr/local/include/fftw3lib -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I./src -I/usr/local/include -I/usr/local/include/fftw3lib -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I./src -I/usr/local/include -I/usr/local/include/fftw3lib -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I./src -I/usr/local/include -I/usr/local/include/fftw3lib -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I./src -I/usr/local/include -I/usr/local/include/fftw3lib -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib -O2 -Wall -W -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I/Users/edt/Dropbox/Codex/BBarolo/src -I/usr/local/include -I/usr/local/include/fftw3lib -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib -O2 -Wall -W -fPIC $(DEFINES)
 INCPATH       = -I. -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
 QMAKE         = /Users/edt/Programs/QT/5.7/clang_64/bin/qmake
 DEL_FILE      = rm -f
@@ -34,9 +34,9 @@ TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = BBaroloGUI1.0.0
 DISTDIR = /Users/edt/Dropbox/Codex/BBarolo/src/Build/BBaroloGUI1.0.0
-LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -fopenmp
-LFLAGS        = -headerpad_max_install_names -stdlib=libc++ -Wl,-rpath,/Users/edt/Programs/QT/5.7/clang_64/lib
-LIBS          = $(SUBLIBS) -F/Users/edt/Programs/QT/5.7/clang_64/lib -L/usr/local/lib -static-libgcc -static-libstdc++ -static-libgcc -static-libstdc++ -static-libgcc -static-libstdc++ -static-libgcc -static-libstdc++ -lfftw3 -lcfitsio -lwcs -lm -static-libgcc -static-libstdc++ -framework QtPrintSupport -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL 
+LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
+LFLAGS        = -headerpad_max_install_names -Wl,-rpath,/Users/edt/Programs/QT/5.7/clang_64/lib
+LIBS          = $(SUBLIBS) -F/Users/edt/Programs/QT/5.7/clang_64/lib -L/usr/local/lib -lfftw3 -lcfitsio -lwcs -lm -static-libgcc -static-libstdc++ -framework QtPrintSupport -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL 
 AR            = ar cq
 RANLIB        = ranlib -s
 SED           = sed
@@ -53,6 +53,7 @@ SOURCES       = main.cpp \
 		bbarolowindow_run.cpp \
 		../Arrays/param.cpp \
 		../Utilities/utils.cpp \
+		../Utilities/wcsUtils.cpp \
 		../Utilities/string.cpp \
 		../Arrays/header.cpp \
 		qcustomplot.cpp ../Build/moc_bbarolowindow.cpp \
@@ -62,6 +63,7 @@ OBJECTS       = ../Build/main.o \
 		../Build/bbarolowindow_run.o \
 		../Build/param.o \
 		../Build/utils.o \
+		../Build/wcsUtils.o \
 		../Build/string.o \
 		../Build/header.o \
 		../Build/qcustomplot.o \
@@ -216,6 +218,7 @@ DIST          = /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/spec_pre.pr
 		bbarolowindow_run.cpp \
 		../Arrays/param.cpp \
 		../Utilities/utils.cpp \
+		../Utilities/wcsUtils.cpp \
 		../Utilities/string.cpp \
 		../Arrays/header.cpp \
 		qcustomplot.cpp
@@ -557,7 +560,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.h ../Arrays/header.hh ../Arrays/param.hh ../Utilities/utils.hh qcustomplot.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp bbarolowindow.cpp bbarolowindow_run.cpp ../Arrays/param.cpp ../Utilities/utils.cpp ../Utilities/string.cpp ../Arrays/header.cpp qcustomplot.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp bbarolowindow.cpp bbarolowindow_run.cpp ../Arrays/param.cpp ../Utilities/utils.cpp ../Utilities/wcsUtils.cpp ../Utilities/string.cpp ../Arrays/header.cpp qcustomplot.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.ui $(DISTDIR)/
 
 
@@ -629,6 +632,9 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ../Build/utils.o: ../Utilities/utils.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/utils.o ../Utilities/utils.cpp
+
+../Build/wcsUtils.o: ../Utilities/wcsUtils.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/wcsUtils.o ../Utilities/wcsUtils.cpp
 
 ../Build/string.o: ../Utilities/string.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/string.o ../Utilities/string.cpp
