@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Installing &#8212; BBarolo 1.4 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -21,18 +21,24 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Welcome to BBarolo’s documentation!" href="index.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="prev" title="Welcome to BBarolo’s documentation!" href="index.html" /> 
   </head>
   <body>
-  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to BBarolo’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BBarolo 1.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -71,7 +77,8 @@ BBarolo compiles and runs on Unix machines.</p>
 </div>
 </li>
 </ol>
-<p>If you are brave, you can also try the last (non stable) source code from <a class="reference external" href="https://github.com/editeodoro/Bbarolo">here</a>.</p>
+<blockquote>
+<div>If you are brave, you can also try the last (non stable) source code from <a class="reference external" href="https://github.com/editeodoro/Bbarolo">here</a>.</div></blockquote>
 <ol class="arabic" start="2">
 <li><p class="first"><strong>Uncompress</strong> it and enter the BBarolo directory:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">tar</span> <span class="o">-</span><span class="n">xvzf</span> <span class="n">Bbarolo</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">tar</span>
@@ -80,7 +87,8 @@ BBarolo compiles and runs on Unix machines.</p>
 </div>
 </li>
 </ol>
-<p>where <em>X.Y</em> is the release version.</p>
+<blockquote>
+<div>where <em>X.Y</em> is the release version.</div></blockquote>
 <ol class="arabic" start="3">
 <li><p class="first"><strong>Configure</strong> running autoconfigure script:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="o">./</span><span class="n">configure</span>
@@ -88,12 +96,14 @@ BBarolo compiles and runs on Unix machines.</p>
 </div>
 </li>
 </ol>
-<p>If the script is not executable: <code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">chmod</span> <span class="pre">+x</span> <span class="pre">configure</span></code>.
+<blockquote>
+<div><p>If the script is not executable: <code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">chmod</span> <span class="pre">+x</span> <span class="pre">configure</span></code>.
 The configure script takes a number of optional arguments. For instance, it is possible to specify installation and library directories, or the compiler to use:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="o">./</span><span class="n">configure</span> <span class="n">CXX</span><span class="o">=</span><span class="n">icpc</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="nb">dir</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">install</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">cfitsio</span><span class="o">=/</span><span class="nb">dir</span><span class="o">/</span><span class="n">of</span><span class="o">/</span><span class="n">cfitsio</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">wcslib</span><span class="o">=/</span><span class="nb">dir</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">wcslib</span>
 </pre></div>
 </div>
 <p>If the configuration fails, follow the suggestions given by the script for manually set the path of libraries.</p>
+</div></blockquote>
 <ol class="arabic" start="4">
 <li><p class="first"><strong>Compile</strong> the source:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span>
@@ -101,7 +111,8 @@ The configure script takes a number of optional arguments. For instance, it is p
 </div>
 </li>
 </ol>
-<p>To compile in parallel: <code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">make</span> <span class="pre">-j</span> <span class="pre">N</span></code>, where N is the number of processors. If the compilation succeeds, the executable <code class="docutils literal"><span class="pre">BBarolo</span></code> will appear in the current directory.</p>
+<blockquote>
+<div>To compile in parallel: <code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">make</span> <span class="pre">-j</span> <span class="pre">N</span></code>, where N is the number of processors. If the compilation   succeeds, the executable <strong>BBarolo</strong> will appear in the current directory.</div></blockquote>
 <div class="section" id="optional-steps">
 <h4>Optional steps<a class="headerlink" href="#optional-steps" title="Permalink to this headline">¶</a></h4>
 <ol class="arabic" start="5">
@@ -116,7 +127,8 @@ The configure script takes a number of optional arguments. For instance, it is p
 </div>
 </li>
 </ol>
-<p>This can fail for a number of reasons.</p>
+<blockquote>
+<div>This can fail for a number of reasons.</div></blockquote>
 <ol class="arabic" start="7">
 <li><p class="first">Compile BBarolo as a library:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">lib</span>
@@ -139,14 +151,17 @@ The configure script takes a number of optional arguments. For instance, it is p
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Welcome to BBarolo’s documentation!</a></li>
-  </ul></li>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pre-compiled-binaries">Pre-compiled binaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compiling-from-source">Compiling from source</a></li>
 </ul>
-</div>
+</li>
+</ul>
+
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -161,20 +176,21 @@ The configure script takes a number of optional arguments. For instance, it is p
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2017, Enrico Di Teodoro.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="_sources/installing.rst.txt"
-          rel="nofollow">Page source</a>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to BBarolo’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BBarolo 1.4 documentation</a> &#187;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Enrico Di Teodoro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
   </body>
 </html>
