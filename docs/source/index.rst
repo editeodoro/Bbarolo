@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to BBarolo's and pyBBarolo's documentation!
-===================================================
+Welcome to BBarolo's and pyBBarolo's documentation!!
+====================================================
 
 **3D-Barolo** (3D-Based Analysis of Rotating Objects via Line Observations) or **BBarolo** is a tool for fitting 3D tilted-ring models to emission-line datacubes. The Python wrapper is **pyBBarolo**.
 
