@@ -25,7 +25,7 @@ The python package can be alternatively installed from the main repository. You'
     > ./configure
     > make
 
-  where *X.Y* is the software release. 
+  where *X.Y* is the software release. PyBBarolo is only available for BBarolo's release 1.4 and over.
 
 
 2. Install the python package::

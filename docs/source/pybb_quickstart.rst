@@ -24,7 +24,9 @@ In pyBBarolo, BBarolo's task are wrapped as python classes. The generic procedur
 
     bb.init(args)
     
-  where *args* are required arguments that depend on the various tasks.
+  where *args* are required arguments that depend on the various tasks. Required arguments can be printed with::
+  
+    bb.show_arguments()
 
 4. Set options::
 
@@ -38,7 +40,21 @@ In pyBBarolo, BBarolo's task are wrapped as python classes. The generic procedur
     
     bb.compute()
 
-    
+
+.. _pybbtasks:
+
+Available tasks
+===============
+
+* **FitMod3D()**: wrapped class for BBarolo's :ref:`3DFIT <3dfit>` task.
+
+* **GalMod()**: wrapped class for BBarolo's :ref:`GALMOD <galmodtask>` task.
+
+* **Search()**: wrapped class for BBarolo's :ref:`SEARCH <searchtask>` task.
+
+More to come....
+
+ 
 Example 1: 3D fit of a galaxy
 =============================
 
@@ -60,6 +76,8 @@ Secondly, we initialize rings with initial guesses for the fit::
 
     # Initializing rings. Parameters can be values or arrays
     f3d.init(radii=np.arange(15,450,30),xpos=77,ypos=77,vsys=132.8,vrot=120,vdisp=8,vrad=0,z0=10,inc=60,phi=123.7)
+
+A list of needed arguments can be printed with ``f3d.show_arguments()``.
 
 Thirdly, we can change some default options for the fit. For a list of available options: ``f3d.show_options()``.
 
@@ -109,13 +127,10 @@ It is also possible to simply build a 3D model datacube from given parameters. T
     mymodel.writeto("awesome_model.fits",overwrite=True)
         
 
-Example 3: 3D model of an outflow
-=================================
+.. Example 3: 3D model of an outflow
+   =================================
 
 
 
 
-.. _pybbtasks:
 
-Available tasks
-#################
