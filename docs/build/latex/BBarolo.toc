@@ -1,0 +1,37 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}Installing BBarolo}{3}{chapter.1}
+\contentsline {section}{\numberline {1.1}Pre-compiled binaries}{3}{section.1.1}
+\contentsline {section}{\numberline {1.2}Compiling from source}{3}{section.1.2}
+\contentsline {subsection}{\numberline {1.2.1}Requirements}{3}{subsection.1.2.1}
+\contentsline {subsection}{\numberline {1.2.2}Compiling}{4}{subsection.1.2.2}
+\contentsline {subsubsection}{Optional steps}{4}{subsubsection*.3}
+\contentsline {chapter}{\numberline {2}Running BBarolo}{5}{chapter.2}
+\contentsline {section}{\numberline {2.1}Graphical User Interface}{5}{section.2.1}
+\contentsline {section}{\numberline {2.2}Command line}{5}{section.2.2}
+\contentsline {chapter}{\numberline {3}List of tasks and parameters}{7}{chapter.3}
+\contentsline {section}{\numberline {3.1}General parameters}{7}{section.3.1}
+\contentsline {subsection}{\numberline {3.1.1}Input/output parameters}{7}{subsection.3.1.1}
+\contentsline {subsection}{\numberline {3.1.2}Beam parameters}{7}{subsection.3.1.2}
+\contentsline {section}{\numberline {3.2}3DFIT task}{8}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}Rings IO}{8}{subsection.3.2.1}
+\contentsline {subsection}{\numberline {3.2.2}Additional options}{8}{subsection.3.2.2}
+\contentsline {subsection}{\numberline {3.2.3}Additional parameters for high-z galaxies (BBarolo \textgreater {} 1.2.1)}{10}{subsection.3.2.3}
+\contentsline {section}{\numberline {3.3}GALMOD task}{10}{section.3.3}
+\contentsline {section}{\numberline {3.4}SEARCH task}{10}{section.3.4}
+\contentsline {section}{\numberline {3.5}SMOOTH task}{11}{section.3.5}
+\contentsline {section}{\numberline {3.6}2DFIT task}{12}{section.3.6}
+\contentsline {section}{\numberline {3.7}Moment maps and position-velocity cuts}{12}{section.3.7}
+\contentsline {chapter}{\numberline {4}Installing pyBBarolo}{13}{chapter.4}
+\contentsline {section}{\numberline {4.1}From pip}{13}{section.4.1}
+\contentsline {section}{\numberline {4.2}Build and install}{13}{section.4.2}
+\contentsline {chapter}{\numberline {5}Quickstart}{15}{chapter.5}
+\contentsline {section}{\numberline {5.1}Running a task}{15}{section.5.1}
+\contentsline {section}{\numberline {5.2}Example 1: 3D fit of a galaxy}{15}{section.5.2}
+\contentsline {section}{\numberline {5.3}Example 2: 3D model of a galaxy}{16}{section.5.3}
+\contentsline {section}{\numberline {5.4}Example 3: 3D model of an outflow}{17}{section.5.4}
+\contentsline {chapter}{\numberline {6}Available tasks}{19}{chapter.6}
+\contentsline {chapter}{\numberline {7}API}{21}{chapter.7}
+\contentsline {chapter}{\numberline {8}License and citations}{25}{chapter.8}
+\contentsline {chapter}{\numberline {9}Troubleshooting}{27}{chapter.9}
+\contentsline {chapter}{Python Module Index}{29}{section*.45}
+\contentsline {chapter}{Index}{31}{section*.46}
