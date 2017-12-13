@@ -1,0 +1,492 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>API &#8212; BBarolo 1.4 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="License and citations" href="license.html" />
+    <link rel="prev" title="Quickstart" href="pybb_quickstart.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="license.html" title="License and citations"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pybb_quickstart.html" title="Quickstart"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BBarolo 1.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pyBBarolo.pyBBarolo">
+<span id="api"></span><h1>API<a class="headerlink" href="#module-pyBBarolo.pyBBarolo" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">FitMod3D</code><span class="sig-paren">(</span><em>fitsname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#FitMod3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyBBarolo.pyBBarolo.Model3D" title="pyBBarolo.pyBBarolo.Model3D"><code class="xref py py-class docutils literal"><span class="pre">pyBBarolo.pyBBarolo.Model3D</span></code></a></p>
+<p>Fit a galaxy model to a 3D datacube</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>fitsname (str): FITS file of the galaxy to fit</dd>
+</dl>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D.compute">
+<code class="descname">compute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the model</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.FitMod3D.init" title="pyBBarolo.pyBBarolo.FitMod3D.init"><code class="xref py py-func docutils literal"><span class="pre">init()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D.init">
+<code class="descname">init</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the model. Refer to derived class for <a href="#id1"><span class="problematic" id="id2">*</span></a>args and <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D.plot_model">
+<code class="descname">plot_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#FitMod3D.plot_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D.plot_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the model using BBarolo built-in output functions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D.set_beam">
+<code class="descname">set_beam</code><span class="sig-paren">(</span><em>bmaj</em>, <em>bmin</em>, <em>bpa=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D.set_beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the Beam parameters</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>bmaj (float): Beam major axis in arcsec
+bmin (float): Beam minor axis in arcsec
+bpa  (float): Beam position angle in degrees (default 0.0)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D.set_options">
+<code class="descname">set_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set options for the task. Keywords <a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs are given in self._opts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D.show_options">
+<code class="descname">show_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D.show_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current options for the task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitMod3D.smooth">
+<code class="descname">smooth</code><span class="sig-paren">(</span><em>beam=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitMod3D.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth the model and return the smoothed array</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.FitMod3D.compute" title="pyBBarolo.pyBBarolo.FitMod3D.compute"><code class="xref py py-func docutils literal"><span class="pre">compute()</span></code></a>. The smoothed array is written
+in outmodel instance and returned.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>beam (tuple,list): The beam in the form (bmaj,bmin,bpa), bmaj and bmin in arcs.</dt>
+<dd>If None, use the beam from the FITS header.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>astropy PrimaryHDU: a datacube with the output smoothed model</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.FitsCube">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">FitsCube</code><span class="sig-paren">(</span><em>fitsname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#FitsCube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitsCube" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.FitsCube.setBeam">
+<code class="descname">setBeam</code><span class="sig-paren">(</span><em>bmaj</em>, <em>bmin</em>, <em>bpa=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#FitsCube.setBeam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.FitsCube.setBeam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the Beam parameters</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>bmaj (float): Beam major axis in degrees
+bmin (float): Beam minor axis in degrees
+bpa  (float): Beam position angle in degrees (default 0.0)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.GalMod">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">GalMod</code><span class="sig-paren">(</span><em>fitsname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#GalMod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalMod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyBBarolo.pyBBarolo.Model3D" title="pyBBarolo.pyBBarolo.Model3D"><code class="xref py py-class docutils literal"><span class="pre">pyBBarolo.pyBBarolo.Model3D</span></code></a></p>
+<p>Produce a simulated 3D datacube of disk galaxy</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>fitsname (str): FITS file of the galaxy to model</dd>
+</dl>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalMod.compute">
+<code class="descname">compute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalMod.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the model</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.GalMod.init" title="pyBBarolo.pyBBarolo.GalMod.init"><code class="xref py py-func docutils literal"><span class="pre">init()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalMod.init">
+<code class="descname">init</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalMod.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the model. Refer to derived class for <a href="#id7"><span class="problematic" id="id8">*</span></a>args and <a href="#id9"><span class="problematic" id="id10">**</span></a>kwargs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalMod.set_beam">
+<code class="descname">set_beam</code><span class="sig-paren">(</span><em>bmaj</em>, <em>bmin</em>, <em>bpa=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalMod.set_beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the Beam parameters</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>bmaj (float): Beam major axis in arcsec
+bmin (float): Beam minor axis in arcsec
+bpa  (float): Beam position angle in degrees (default 0.0)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalMod.set_options">
+<code class="descname">set_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalMod.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set options for the task. Keywords <a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs are given in self._opts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalMod.show_options">
+<code class="descname">show_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalMod.show_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current options for the task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalMod.smooth">
+<code class="descname">smooth</code><span class="sig-paren">(</span><em>beam=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalMod.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth the model and return the smoothed array</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.GalMod.compute" title="pyBBarolo.pyBBarolo.GalMod.compute"><code class="xref py py-func docutils literal"><span class="pre">compute()</span></code></a>. The smoothed array is written
+in outmodel instance and returned.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>beam (tuple,list): The beam in the form (bmaj,bmin,bpa), bmaj and bmin in arcs.</dt>
+<dd>If None, use the beam from the FITS header.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>astropy PrimaryHDU: a datacube with the output smoothed model</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.GalWind">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">GalWind</code><span class="sig-paren">(</span><em>fitsname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#GalWind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalWind" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyBBarolo.pyBBarolo.Model3D" title="pyBBarolo.pyBBarolo.Model3D"><code class="xref py py-class docutils literal"><span class="pre">pyBBarolo.pyBBarolo.Model3D</span></code></a></p>
+<p>Produce a simulated 3D datacube of a biconical outflow</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>fitsname (str): FITS file of the galaxy to fit</dd>
+</dl>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalWind.compute">
+<code class="descname">compute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalWind.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the model</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.GalWind.init" title="pyBBarolo.pyBBarolo.GalWind.init"><code class="xref py py-func docutils literal"><span class="pre">init()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalWind.init">
+<code class="descname">init</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalWind.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the model. Refer to derived class for <a href="#id13"><span class="problematic" id="id14">*</span></a>args and <a href="#id15"><span class="problematic" id="id16">**</span></a>kwargs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalWind.set_beam">
+<code class="descname">set_beam</code><span class="sig-paren">(</span><em>bmaj</em>, <em>bmin</em>, <em>bpa=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalWind.set_beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the Beam parameters</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>bmaj (float): Beam major axis in arcsec
+bmin (float): Beam minor axis in arcsec
+bpa  (float): Beam position angle in degrees (default 0.0)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalWind.set_options">
+<code class="descname">set_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalWind.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set options for the task. Keywords <a href="#id17"><span class="problematic" id="id18">**</span></a>kwargs are given in self._opts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalWind.show_options">
+<code class="descname">show_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalWind.show_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current options for the task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.GalWind.smooth">
+<code class="descname">smooth</code><span class="sig-paren">(</span><em>beam=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.GalWind.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth the model and return the smoothed array</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.GalWind.compute" title="pyBBarolo.pyBBarolo.GalWind.compute"><code class="xref py py-func docutils literal"><span class="pre">compute()</span></code></a>. The smoothed array is written
+in outmodel instance and returned.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>beam (tuple,list): The beam in the form (bmaj,bmin,bpa), bmaj and bmin in arcs.</dt>
+<dd>If None, use the beam from the FITS header.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>astropy PrimaryHDU: a datacube with the output smoothed model</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.Model3D">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">Model3D</code><span class="sig-paren">(</span><em>fitsname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Model3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Model3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyBBarolo.pyBBarolo.Task" title="pyBBarolo.pyBBarolo.Task"><code class="xref py py-class docutils literal"><span class="pre">pyBBarolo.pyBBarolo.Task</span></code></a></p>
+<p>Superclass for all 3D models, derived from Task</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>fitsname (str): FITS file of the galaxy to model</dd>
+</dl>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Model3D.compute">
+<code class="descname">compute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Model3D.compute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Model3D.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the model</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.Model3D.init" title="pyBBarolo.pyBBarolo.Model3D.init"><code class="xref py py-func docutils literal"><span class="pre">init()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Model3D.init">
+<code class="descname">init</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Model3D.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Model3D.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the model. Refer to derived class for <a href="#id19"><span class="problematic" id="id20">*</span></a>args and <a href="#id21"><span class="problematic" id="id22">**</span></a>kwargs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Model3D.set_beam">
+<code class="descname">set_beam</code><span class="sig-paren">(</span><em>bmaj</em>, <em>bmin</em>, <em>bpa=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Model3D.set_beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Model3D.set_beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the Beam parameters</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>bmaj (float): Beam major axis in arcsec
+bmin (float): Beam minor axis in arcsec
+bpa  (float): Beam position angle in degrees (default 0.0)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Model3D.set_options">
+<code class="descname">set_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.Model3D.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set options for the task. Keywords <a href="#id23"><span class="problematic" id="id24">**</span></a>kwargs are given in self._opts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Model3D.show_options">
+<code class="descname">show_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.Model3D.show_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current options for the task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Model3D.smooth">
+<code class="descname">smooth</code><span class="sig-paren">(</span><em>beam=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Model3D.smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Model3D.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth the model and return the smoothed array</p>
+<p>This function needs to be called after <a class="reference internal" href="#pyBBarolo.pyBBarolo.Model3D.compute" title="pyBBarolo.pyBBarolo.Model3D.compute"><code class="xref py py-func docutils literal"><span class="pre">compute()</span></code></a>. The smoothed array is written
+in outmodel instance and returned.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>beam (tuple,list): The beam in the form (bmaj,bmin,bpa), bmaj and bmin in arcs.</dt>
+<dd>If None, use the beam from the FITS header.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>astropy PrimaryHDU: a datacube with the output smoothed model</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.Rings">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">Rings</code><span class="sig-paren">(</span><em>nrings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Rings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Rings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Wrapper class for C++ Rings structure (galmod.hh)</p>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Rings.set_rings">
+<code class="descname">set_rings</code><span class="sig-paren">(</span><em>radii</em>, <em>xpos</em>, <em>ypos</em>, <em>vsys</em>, <em>vrot</em>, <em>vdisp</em>, <em>vrad</em>, <em>vvert</em>, <em>dvdz</em>, <em>zcyl</em>, <em>dens</em>, <em>z0</em>, <em>inc</em>, <em>phi</em>, <em>nv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Rings.set_rings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Rings.set_rings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define rings given the input parameters</p>
+<p>param radii: List or array
+param other: float or array</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.Search">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">Search</code><span class="sig-paren">(</span><em>fitsname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyBBarolo.pyBBarolo.Task" title="pyBBarolo.pyBBarolo.Task"><code class="xref py py-class docutils literal"><span class="pre">pyBBarolo.pyBBarolo.Task</span></code></a></p>
+<p>3D Source finder</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>fitsname (str): FITS file to search for sources</dd>
+</dl>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Search.search">
+<code class="descname">search</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Search.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Search.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the source finding</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Search.set_options">
+<code class="descname">set_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.Search.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set options for the task. Keywords <a href="#id25"><span class="problematic" id="id26">**</span></a>kwargs are given in self._opts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Search.show_options">
+<code class="descname">show_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyBBarolo.pyBBarolo.Search.show_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current options for the task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyBBarolo.pyBBarolo.Task">
+<em class="property">class </em><code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>fitsname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Superclass for all BBarolo tasks</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>fitsname (str): Input FITS file</dd>
+</dl>
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Task.set_options">
+<code class="descname">set_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Task.set_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Task.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set options for the task. Keywords <a href="#id27"><span class="problematic" id="id28">**</span></a>kwargs are given in self._opts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyBBarolo.pyBBarolo.Task.show_options">
+<code class="descname">show_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#Task.show_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.Task.show_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current options for the task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyBBarolo.pyBBarolo.reshapePointer">
+<code class="descclassname">pyBBarolo.pyBBarolo.</code><code class="descname">reshapePointer</code><span class="sig-paren">(</span><em>p</em>, <em>shape</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyBBarolo/pyBBarolo.html#reshapePointer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyBBarolo.pyBBarolo.reshapePointer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a POINTER to c_float and reshape it.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>p (POINTER(c_float)): The pointer to be reshaped
+shape (tuple, list): The new shape of the array</dd>
+<dt>Returns:</dt>
+<dd>ndarray: The reshaped array</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BBarolo:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installing BBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running.html">Running BBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">List of tasks and parameters</a></li>
+</ul>
+<p class="caption"><span class="caption-text">pyBBarolo:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="pybb_install.html">Installing pyBBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pybb_quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pybb_quickstart.html#available-tasks">Available tasks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License and citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="license.html" title="License and citations"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pybb_quickstart.html" title="Quickstart"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BBarolo 1.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Enrico Di Teodoro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

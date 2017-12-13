@@ -1,0 +1,4 @@
+Introduction
+###############
+
+**3D-Barolo** (**3D-Based** **A**nalysis of **R**otating **O**bjects via **L**ine **O**bservations) or **BBarolo** is a tool for fitting 3D tilted-ring models to emission-line datacubes.

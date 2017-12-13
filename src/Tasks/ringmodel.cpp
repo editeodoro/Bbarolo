@@ -113,7 +113,7 @@ Ringmodel::Ringmodel (Cube<float> *c)  {
     float widths = p.RADSEP/(arcsconv(c->Head().Cunit(0))*c->Head().PixScale());
     float vsys = atof(p.VSYS.c_str());
     float vrot = atof(p.VROT.c_str());
-    float vexp = 0;
+    float vexp = atof(p.VRAD.c_str());;
     float posang = atof(p.PHI.c_str());
     float incl = atof(p.INC.c_str());
     float xcenter = atof(p.XPOS.c_str());

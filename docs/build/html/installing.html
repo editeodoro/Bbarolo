@@ -1,0 +1,225 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Installing BBarolo &#8212; BBarolo 1.4 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Running BBarolo" href="running.html" />
+    <link rel="prev" title="Welcome to BBarolo’s and pyBBarolo’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="running.html" title="Running BBarolo"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to BBarolo’s and pyBBarolo’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BBarolo 1.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installing-bbarolo">
+<h1>Installing BBarolo<a class="headerlink" href="#installing-bbarolo" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pre-compiled-binaries">
+<h2>Pre-compiled binaries<a class="headerlink" href="#pre-compiled-binaries" title="Permalink to this headline">¶</a></h2>
+<p>Pre-compiled executable files for the GUI are available <a class="reference external" href="http://editeodoro.github.io/Bbarolo/downloads/binaries/">at this page</a>. Binaries are for Linux x86_64 and Mac OS X (&gt; 10.6).</p>
+<p>The command line executable (<code class="docutils literal"><span class="pre">BBarolo</span></code>) is also included in these binary packages and can be found at:</p>
+<ul class="simple">
+<li><strong>Linux</strong>: same directory of BBaroloGUI</li>
+<li><strong>MacOS</strong>: BBaroloGUI.app/Contents/MacOS/BBarolo</li>
+</ul>
+<p>The pre-compiled executables should work on most systems. If they don’t, please compile BBarolo from source following the instructions below.</p>
+</div>
+<div class="section" id="compiling-from-source">
+<h2>Compiling from source<a class="headerlink" href="#compiling-from-source" title="Permalink to this headline">¶</a></h2>
+<p>The best way to exploit BBarolo functionalities is to compile the code directly on your computer.
+BBarolo compiles and runs on Unix machines only.</p>
+<div class="section" id="requirements">
+<span id="id1"></span><h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<p>To compile the code, all you need is:</p>
+<ul class="simple">
+<li>a C++ compiler supporting C++11 standard, like the <a class="reference external" href="https://gcc.gnu.org/">GNU</a> compiler.</li>
+<li><a class="reference external" href="http://heasarc.gsfc.nasa.gov/fitsio/">CFITSIO</a> library.</li>
+<li><a class="reference external" href="http://www.fftw.org/">FFTW</a> library.</li>
+<li><a class="reference external" href="http://www.atnf.csiro.au/people/mcalabre/WCS/">WCS</a> library.</li>
+<li><a class="reference external" href="http://www.qt.io/developers/">QT toolkit</a> (&gt; 4.0), only if you would like to use the GUI.</li>
+<li><a class="reference external" href="http://www.gnuplot.info/">Gnuplot</a> and <a class="reference external" href="https://www.python.org/">Python</a> (&gt; 2.6) with the <a class="reference external" href="http://www.astropy.org/">Astropy</a> package.</li>
+</ul>
+<p>Most of these libraries and packages should already be installed on scientific machines. Otherwise, you can easily install them through the terminal commands of the various package managers, i.e. <em>apt-get</em> on Ubuntu-based, <em>pacman</em> on Arch-based, <em>yum</em> on RPM-based distros, <em>brew</em> or <em>port</em> on Mac OS X. Note that the QT toolkit is only needed to compile the GUI, which is not mandatory. Gnuplot and Python are not needed to successfully compile the code, but without them BBarolo will not produce any outputs.</p>
+</div>
+<div class="section" id="compiling">
+<span id="id2"></span><h3>Compiling<a class="headerlink" href="#compiling" title="Permalink to this headline">¶</a></h3>
+<p>If your machine satisfies the above requirements, compiling BBarolo will hopefully be a piece of cake.</p>
+<ol class="arabic">
+<li><p class="first"><strong>Download</strong> the <a class="reference external" href="https://github.com/editeodoro/Bbarolo/archive/1.3.tar.gz">latest</a> stable release. From a terminal:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">editeodoro</span><span class="o">/</span><span class="n">Bbarolo</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span> <span class="o">.</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div>where <em>X.Y</em> is the release version. If you are brave, you can also try the last (non stable) source code from <a class="reference external" href="https://github.com/editeodoro/Bbarolo">here</a>.</div></blockquote>
+<ol class="arabic" start="2">
+<li><p class="first"><strong>Uncompress</strong> it and enter the BBarolo directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">tar</span> <span class="o">-</span><span class="n">xvzf</span> <span class="n">Bbarolo</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">tar</span>
+<span class="o">&gt;</span> <span class="n">cd</span> <span class="n">Bbarolo</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>Configure</strong> running autoconfigure script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="o">./</span><span class="n">configure</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div><p>If the script is not executable: <code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">chmod</span> <span class="pre">+x</span> <span class="pre">configure</span></code>.
+The configure script takes a number of optional arguments. For instance, it is possible to specify installation and library directories, or the compiler to use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="o">./</span><span class="n">configure</span> <span class="n">CXX</span><span class="o">=</span><span class="n">icpc</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="nb">dir</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">install</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">cfitsio</span><span class="o">=/</span><span class="nb">dir</span><span class="o">/</span><span class="n">of</span><span class="o">/</span><span class="n">cfitsio</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">wcslib</span><span class="o">=/</span><span class="nb">dir</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">wcslib</span>
+</pre></div>
+</div>
+<p>If the configuration fails, follow the suggestions given by the script to manually set the path of libraries.</p>
+</div></blockquote>
+<ol class="arabic" start="4">
+<li><p class="first"><strong>Compile</strong> the source:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div>To compile in parallel: <code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">make</span> <span class="pre">-j</span> <span class="pre">N</span></code>, where N is the number of processors. If the compilation   succeeds, the executable <strong>BBarolo</strong> will appear in the current directory.</div></blockquote>
+<div class="section" id="optional-steps">
+<h4>Optional steps<a class="headerlink" href="#optional-steps" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic" start="5">
+<li><p class="first">Install, e.g. copy the executable in the installation path (default is /usr/local/bin):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Compile the GUI (QT &gt; 4 needed):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">gui</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div>This can fail for a number of reasons.</div></blockquote>
+<ol class="arabic" start="7">
+<li><p class="first">Compile BBarolo as a library:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">lib</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Clean up unnecessary files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">clean</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<p class="caption"><span class="caption-text">BBarolo:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing BBarolo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pre-compiled-binaries">Pre-compiled binaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compiling-from-source">Compiling from source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="running.html">Running BBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">List of tasks and parameters</a></li>
+</ul>
+<p class="caption"><span class="caption-text">pyBBarolo:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pybb_install.html">Installing pyBBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pybb_quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pybb_quickstart.html#available-tasks">Available tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pybb_api.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License and citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="running.html" title="Running BBarolo"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to BBarolo’s and pyBBarolo’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BBarolo 1.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Enrico Di Teodoro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

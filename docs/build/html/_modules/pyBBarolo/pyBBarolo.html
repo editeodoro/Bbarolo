@@ -1,0 +1,704 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyBBarolo.pyBBarolo &#8212; BBarolo 1.4 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BBarolo 1.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyBBarolo.pyBBarolo</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.BB_interface</span> <span class="k">import</span> <span class="n">libBB</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="k">import</span> <span class="n">fits</span>
+
+
+<div class="viewcode-block" id="reshapePointer"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.reshapePointer">[docs]</a><span class="k">def</span> <span class="nf">reshapePointer</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Take a POINTER to c_float and reshape it.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">      p (POINTER(c_float)): The pointer to be reshaped</span>
+<span class="sd">      shape (tuple, list): The new shape of the array</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">      ndarray: The reshaped array</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">as_array</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="FitsCube"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.FitsCube">[docs]</a><span class="k">class</span> <span class="nc">FitsCube</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fitsname</span><span class="p">):</span>
+        <span class="c1"># File name of the FITS file to read</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">fitsname</span>
+        <span class="c1"># Pointer to the C++ Cube object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cube</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fitsname</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FitsCube ERROR: file </span><span class="si">%s</span><span class="s2"> does not exist.&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cube</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Cube_new</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="c1"># Axis dimensions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>   <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Cube_axisdim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cube</span><span class="p">)</span>
+        <span class="c1"># Getting array data and reshaping in (z,y,x)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span>  <span class="o">=</span> <span class="n">reshapePointer</span><span class="p">(</span><span class="n">libBB</span><span class="o">.</span><span class="n">Cube_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cube</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># Beam information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beam</span>  <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Cube_getBeam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cube</span><span class="p">)</span>
+        <span class="c1"># Also having a pointer to an Astropy object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fapy</span>  <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fitsname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        
+        
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cube</span><span class="p">:</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Cube_delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cube</span><span class="p">)</span>
+        
+    
+<div class="viewcode-block" id="FitsCube.setBeam"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.FitsCube.setBeam">[docs]</a>    <span class="k">def</span> <span class="nf">setBeam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bmaj</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bpa</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Change the Beam parameters</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">          bmaj (float): Beam major axis in degrees</span>
+<span class="sd">          bmin (float): Beam minor axis in degrees</span>
+<span class="sd">          bpa  (float): Beam position angle in degrees (default 0.0)</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">libBB</span><span class="o">.</span><span class="n">Cube_setBeam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cube</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">bmaj</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">bmin</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">bpa</span><span class="p">))</span></div></div>
+        
+    
+<div class="viewcode-block" id="Rings"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Rings">[docs]</a><span class="k">class</span> <span class="nc">Rings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper class for C++ Rings structure (galmod.hh)&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nrings</span><span class="p">):</span>
+        <span class="c1"># Number of rings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nr</span>     <span class="o">=</span> <span class="n">nrings</span>
+        <span class="c1"># Pointer to the C++ Rings object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rings</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Rings_new</span><span class="p">();</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rinDef</span> <span class="o">=</span> <span class="kc">False</span>
+    
+<div class="viewcode-block" id="Rings.set_rings"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Rings.set_rings">[docs]</a>    <span class="k">def</span> <span class="nf">set_rings</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">radii</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vrot</span><span class="p">,</span><span class="n">vdisp</span><span class="p">,</span><span class="n">vrad</span><span class="p">,</span><span class="n">vvert</span><span class="p">,</span><span class="n">dvdz</span><span class="p">,</span><span class="n">zcyl</span><span class="p">,</span><span class="n">dens</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">nv</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Define rings given the input parameters </span>
+<span class="sd">            </span>
+<span class="sd">           \param radii: List or array</span>
+<span class="sd">           \param other: float or array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">typs</span><span class="p">,</span> <span class="n">fl</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,(</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">)):</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nrings must be a number&quot;</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span><span class="n">typs</span><span class="p">):</span> <span class="n">radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radii must be an array&quot;</span><span class="p">)</span>
+        
+        <span class="n">xpos</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">xpos</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xpos</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">ypos</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ypos</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ypos</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">vsys</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vsys</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vsys</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">vrot</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vrot</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vrot</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">vrot</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">vdisp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vdisp</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vdisp</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">vdisp</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">vrad</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vrad</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vrad</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">vrad</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">vvert</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vvert</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vvert</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">vvert</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">dvdz</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dvdz</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dvdz</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">dvdz</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">zcyl</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zcyl</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zcyl</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">zcyl</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">dens</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>  <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">dens</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">z0</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">z0</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">z0</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>    <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">inc</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">inc</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>   <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inc</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>   <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">phi</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>   <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>   <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">fl</span><span class="p">)</span>
+        <span class="n">nv</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nv</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nv</span><span class="p">,</span><span class="n">typs</span><span class="p">)</span>   <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">nv</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        
+        <span class="n">allr</span> <span class="o">=</span> <span class="p">(</span><span class="n">radii</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vdisp</span><span class="p">,</span><span class="n">vrad</span><span class="p">,</span><span class="n">vvert</span><span class="p">,</span><span class="n">dvdz</span><span class="p">,</span><span class="n">zcyl</span><span class="p">,</span><span class="n">dens</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">nv</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">allr</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All quantities must have size = </span><span class="si">%i</span><span class="s2">&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">)</span>
+        
+        <span class="n">libBB</span><span class="o">.</span><span class="n">Rings_set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rings</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span><span class="n">radii</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vrot</span><span class="p">,</span>
+                        <span class="n">vdisp</span><span class="p">,</span><span class="n">vrad</span><span class="p">,</span><span class="n">vvert</span><span class="p">,</span> <span class="n">dvdz</span><span class="p">,</span><span class="n">zcyl</span><span class="p">,</span><span class="n">dens</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">nv</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">rinDef</span> <span class="o">=</span> <span class="kc">True</span></div></div>
+        
+
+
+<div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Superclass for all BBarolo tasks</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">      fitsname (str): Input FITS file</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fitsname</span><span class="p">):</span>
+        <span class="c1"># Task name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskname</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Input datacube </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inp</span> <span class="o">=</span> <span class="n">FitsCube</span><span class="p">(</span><span class="n">fitsname</span><span class="p">)</span>
+        <span class="c1"># Option for the task</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    
+<div class="viewcode-block" id="Task.set_options"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Task.set_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set options for the task. Keywords **kwargs are given in self._opts.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> 
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Option </span><span class="si">%s</span><span class="s1"> unknown. Try show_options() for a list of keywords&#39;</span><span class="o">%</span><span class="n">key</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_options</span><span class="p">()</span></div>
+    
+        
+<div class="viewcode-block" id="Task.show_options"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Task.show_options">[docs]</a>    <span class="k">def</span> <span class="nf">show_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Show current options for the task &quot;&quot;&quot;</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Current options for </span><span class="si">%s</span><span class="s2"> task: </span><span class="si">%s</span><span class="s2"> &quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="p">(</span><span class="mi">43</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">))))</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot; </span><span class="si">%-12s</span><span class="s2"> = </span><span class="si">%-10s</span><span class="s2"> # </span><span class="si">%s</span><span class="s2">  &quot;</span><span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        
+        <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> BEAM = </span><span class="si">%.4f</span><span class="s2"> x </span><span class="si">%.4f</span><span class="s2"> arcs (BPA = </span><span class="si">%.4f</span><span class="s2"> deg)&quot;</span>\
+               <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">beam</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">3600</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">beam</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">3600</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">beam</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="mi">70</span><span class="p">))</span></div></div>
+        
+
+
+<div class="viewcode-block" id="Model3D"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Model3D">[docs]</a><span class="k">class</span> <span class="nc">Model3D</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Superclass for all 3D models, derived from Task</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">      fitsname (str): FITS file of the galaxy to model</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fitsname</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Model3D</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fitsname</span><span class="o">=</span><span class="n">fitsname</span><span class="p">)</span>
+        <span class="c1"># A pointer to the C++ model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modCalculated</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># A Rings object with rings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inri</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># The output model cube (astropy PrimaryHDU)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;cdens&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Surface density of clouds in a ring (1E20)&quot;</span><span class="p">],</span>
+                      <span class="s1">&#39;nv&#39;</span>    <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Number of subclouds per profile&quot;</span><span class="p">]}</span>
+
+
+<div class="viewcode-block" id="Model3D.init"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Model3D.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the model. Refer to derived class for *args and **kwargs.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model3D.compute"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Model3D.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Compute the model </span>
+<span class="sd">        </span>
+<span class="sd">        This function needs to be called after :func:`init`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Model3D.smooth"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Model3D.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">beam</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Smooth the model and return the smoothed array </span>
+<span class="sd">        </span>
+<span class="sd">        This function needs to be called after :func:`compute`. The smoothed array is written</span>
+<span class="sd">        in outmodel instance and returned.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">          beam (tuple,list): The beam in the form (bmaj,bmin,bpa), bmaj and bmin in arcs.</span>
+<span class="sd">                                     If None, use the beam from the FITS header.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">           astropy PrimaryHDU: a datacube with the output smoothed model</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: you need to compute the model before calling smooth().&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">beam</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Check that Beam info is in the header</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">beam</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">beam</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Beam info is not available in the header.</span><span class="se">\</span>
+<span class="s2">                                    Please pass beam=(bmaj,bmin,bpa) paramater to smooth()&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">beam</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">beam</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+                <span class="n">set_beam</span><span class="p">(</span><span class="n">bmaj</span><span class="o">=</span><span class="n">beam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">bmin</span><span class="o">=</span><span class="n">beam</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">bpa</span><span class="o">=</span><span class="n">beam</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: beam is a list of [bmaj,bmin,bpa].&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">)</span>            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_smooth</span><span class="p">()</span></div>
+        
+
+<div class="viewcode-block" id="Model3D.set_beam"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Model3D.set_beam">[docs]</a>    <span class="k">def</span> <span class="nf">set_beam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bmaj</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bpa</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Change the Beam parameters</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">          bmaj (float): Beam major axis in arcsec</span>
+<span class="sd">          bmin (float): Beam minor axis in arcsec</span>
+<span class="sd">          bpa  (float): Beam position angle in degrees (default 0.0)</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">setBeam</span><span class="p">(</span><span class="n">bmaj</span><span class="o">/</span><span class="mf">3600.</span><span class="p">,</span><span class="n">bmin</span><span class="o">/</span><span class="mf">3600.</span><span class="p">,</span><span class="n">bpa</span><span class="p">)</span></div></div>
+        
+
+
+<div class="viewcode-block" id="GalMod"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.GalMod">[docs]</a><span class="k">class</span> <span class="nc">GalMod</span><span class="p">(</span><span class="n">Model3D</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Produce a simulated 3D datacube of disk galaxy</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">      fitsname (str): FITS file of the galaxy to model</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fitsname</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GalMod</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fitsname</span><span class="o">=</span><span class="n">fitsname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskname</span> <span class="o">=</span> <span class="s2">&quot;GALMOD&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;ltype&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Layer type along z&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;cmode&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Mode of clouds-surface density&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;iseed&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Seed for random number generator&quot;</span><span class="p">]})</span>
+                     
+
+    <span class="k">def</span> <span class="nf">_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">radii</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">vrot</span><span class="p">,</span><span class="n">vdisp</span><span class="p">,</span><span class="n">dens</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">vrad</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">vvert</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">dvdz</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">zcyl</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize rings for the model</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">          radii (list):        Radii of the model in arcsec</span>
+<span class="sd">          xpos (float, list):  X center of the galaxy in pixels</span>
+<span class="sd">          ypos (float, list):  Y center of the galaxy in pixels</span>
+<span class="sd">          vsys (float, list):  Systemic velocity of the galaxy in km/s</span>
+<span class="sd">          vrot (float, list):  Rotation velocity in km/s</span>
+<span class="sd">          vdisp (float, list): Velocity dispersion in km/s</span>
+<span class="sd">          vrad (float, list):  Radial velocity in km/s</span>
+<span class="sd">          vvert (float, list): Vertical velocity in km/s</span>
+<span class="sd">          dvdz (float, list):  Vertical rotational gradient (km/s/arcsec).</span>
+<span class="sd">          zcyl (float, list):  Height where the rotational gradient starts (arcsec).</span>
+<span class="sd">          dens (float, list):  Surface density of gas in 1E20 atoms/cm2</span>
+<span class="sd">          z0 (float, list):    Disk scaleheight in arcsec</span>
+<span class="sd">          inc (float, list):   Inclination angle in degrees</span>
+<span class="sd">          phi (float, list):   Position angle of the receding part of the major axis (N-&gt;W)</span>
+<span class="sd">    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">radii</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radii must be an array&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inri</span> <span class="o">=</span> <span class="n">Rings</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inri</span><span class="o">.</span><span class="n">set_rings</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vrot</span><span class="p">,</span><span class="n">vdisp</span><span class="p">,</span><span class="n">vrad</span><span class="p">,</span><span class="n">vvert</span><span class="p">,</span><span class="n">dvdz</span><span class="p">,</span><span class="n">zcyl</span><span class="p">,</span><span class="n">dens</span><span class="o">*</span><span class="mf">1E20</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    
+        
+    <span class="k">def</span> <span class="nf">_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Compute the model </span>
+<span class="sd">        </span>
+<span class="sd">        This function needs to be called after :func:`input`.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">          astropy PrimaryHDU: a datacube with the output model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inri</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;GALMOD ERROR: you need to set the model with init(...) before calling compute().&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_options</span><span class="p">()</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galmod_new</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">_cube</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_inri</span><span class="o">.</span><span class="n">_rings</span><span class="p">,</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;nv&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;ltype&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                                     <span class="n">op</span><span class="p">[</span><span class="s1">&#39;cmode&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;cdens&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;iseed&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modCalculated</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galmod_compute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span>
+        <span class="n">data_mod</span>  <span class="o">=</span> <span class="n">reshapePointer</span><span class="p">(</span><span class="n">libBB</span><span class="o">.</span><span class="n">Galmod_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">dim</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">data_mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">fapy</span><span class="o">.</span><span class="n">header</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span>
+    
+    
+    <span class="k">def</span> <span class="nf">_smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Smooth the model &quot;&quot;&quot;</span>
+        <span class="n">libBB</span><span class="o">.</span><span class="n">Galmod_smooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span><span class="o">.</span><span class="n">data</span>  <span class="o">=</span> <span class="n">reshapePointer</span><span class="p">(</span><span class="n">libBB</span><span class="o">.</span><span class="n">Galmod_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">dim</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span>
+        
+        
+    <span class="k">def</span> <span class="nf">_check_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check if current options are ok for the C++ code &quot;&quot;&quot;</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">op</span><span class="p">:</span>
+            <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;ltype&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be 1, 2, 3, 4 or 5.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;cmode&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be 1, 2.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;cdens&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &gt; 0.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;iseed&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &lt; 0.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="GalWind"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.GalWind">[docs]</a><span class="k">class</span> <span class="nc">GalWind</span><span class="p">(</span><span class="n">Model3D</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Produce a simulated 3D datacube of a biconical outflow  </span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">      fitsname (str): FITS file of the galaxy to fit</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fitsname</span><span class="p">):</span>
+       <span class="nb">super</span><span class="p">(</span><span class="n">GalWind</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fitsname</span><span class="o">=</span><span class="n">fitsname</span><span class="p">)</span>
+       <span class="c1"># Task name</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">taskname</span> <span class="o">=</span> <span class="s2">&quot;GALWIND&quot;</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;ntot&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Total number of cylinders&quot;</span><span class="p">],</span>
+                          <span class="s1">&#39;dtype&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Vertical density type&quot;</span><span class="p">]})</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="p">[</span><span class="s2">&quot;nv&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+       
+        
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">:</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galwind_delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span>   
+            
+            
+    <span class="k">def</span> <span class="nf">_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">pa</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">disp</span><span class="p">,</span><span class="n">dens</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vw</span><span class="p">,</span><span class="n">openang</span><span class="p">,</span><span class="n">htot</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set the parameters of the model.</span>
+<span class="sd">        </span>
+<span class="sd">        The model is built by using ntot cylinders at increasing heights from the galaxy plane. </span>
+<span class="sd">        Velocity, velocity dispersion and density can vary with cylinder, other parameters are </span>
+<span class="sd">        fixed.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">          x0 (float):         X center of the galaxy in pixels.</span>
+<span class="sd">          y0 (float):         Y center of the galaxy in pixels.</span>
+<span class="sd">          pa (float):         Position angle of the galaxy in degrees (N-&gt;W)</span>
+<span class="sd">          inc (float):        Inclination angle of the galaxy in degrees</span>
+<span class="sd">          disp (float, list): Velocity dispersion of cylinders in km/s</span>
+<span class="sd">          dens (float, list): Surface density in units of 1E20 atoms/cm2</span>
+<span class="sd">          vw (float,list):    Radial wind velocity of cylinders</span>
+<span class="sd">          htot (float):       Wind truncation height in arcsec</span>
+<span class="sd">          dtype (int):        Density type. 1-constant density, 2-constant mass, 3-hollow cone</span>
+<span class="sd">          ntot (int):         Number of cylinders to use (default 25)</span>
+<span class="sd">          cdens (int):        Surface density of clouds per area of a pixel (default 10). </span>
+<span class="sd">          nv (int):           Number of subclouds in the velocity profile of a cloud (default 10)</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__del__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_options</span><span class="p">()</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galwind_new</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">_cube</span><span class="p">,</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">pa</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">disp</span><span class="p">,</span><span class="n">dens</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vw</span><span class="p">,</span><span class="n">openang</span><span class="p">,</span>\
+                                      <span class="n">htot</span><span class="p">,</span><span class="n">op</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s2">&quot;ntot&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s2">&quot;cdens&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s2">&quot;nv&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    
+
+    <span class="k">def</span> <span class="nf">_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Compute the model </span>
+<span class="sd">        </span>
+<span class="sd">        This function needs to be called after :func:`input`.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">          astropy PrimaryHDU: a datacube with the output model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_modCalculated</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galwind_compute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span>
+            <span class="n">data_mod</span>  <span class="o">=</span> <span class="n">reshapePointer</span><span class="p">(</span><span class="n">libBB</span><span class="o">.</span><span class="n">Galwind_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">dim</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;GALWIND ERROR: you need to set the model with init(...) before calling compute().&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">data_mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">fapy</span><span class="o">.</span><span class="n">header</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span>
+        
+    
+    <span class="k">def</span> <span class="nf">_smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Smooth the model &quot;&quot;&quot;</span>
+        <span class="n">libBB</span><span class="o">.</span><span class="n">Galwind_smooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span><span class="o">.</span><span class="n">data</span>  <span class="o">=</span> <span class="n">reshapePointer</span><span class="p">(</span><span class="n">libBB</span><span class="o">.</span><span class="n">Galwind_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">dim</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span>
+    
+    
+    <span class="k">def</span> <span class="nf">_check_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check if current options are ok for the C++ code &quot;&quot;&quot;</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">op</span><span class="p">:</span>
+            <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;cdens&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &gt; 0.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;ntot&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &gt; 0.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;dtype&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be 0, 1, 2&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span></div>
+    
+    
+
+<div class="viewcode-block" id="FitMod3D"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.FitMod3D">[docs]</a><span class="k">class</span> <span class="nc">FitMod3D</span><span class="p">(</span><span class="n">Model3D</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fit a galaxy model to a 3D datacube </span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">      fitsname (str): FITS file of the galaxy to fit</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fitsname</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FitMod3D</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fitsname</span><span class="o">=</span><span class="n">fitsname</span><span class="p">)</span>
+        <span class="c1"># Task name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskname</span> <span class="o">=</span> <span class="s2">&quot;3DFIT&quot;</span>
+        <span class="c1"># The output final rings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bfit</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># A dictionary with options and defaults values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;ltype&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Layer type along z&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;smooth&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="s2">&quot;If false, disable smoothing&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;deltainc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span><span class="s2">&quot;Inclination angle variation (degrees)&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;deltaphi&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">15.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;Position angle variation (degrees)&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;ftype&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Residual function to minimize&quot;</span> <span class="p">],</span>
+                           <span class="s1">&#39;wfunc&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Weighting function for major axis&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;bweight&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Weighting function for Blank pixels&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;tol&#39;</span>     <span class="p">:</span> <span class="p">[</span><span class="mf">1E-03</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="s2">&quot;Tolerance for minimization.&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;mask&#39;</span>    <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;SMOOTH&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Mask type&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;norm&#39;</span>    <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;LOCAL&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Normalization type&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;free&#39;</span>    <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;VROT VDISP&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Free parameters&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;side&#39;</span>    <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Which side of the galaxy to fit&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;twostage&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="s2">&quot;Regularize and fit a second model&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;polyn&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;bezier&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Type of regularization&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;startrad&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Starting radius&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;errors&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="s2">&quot;Whether estimating errors&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;Distance of the galaxy in Mpc&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;redshift&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="s2">&quot;Redshift of the galaxy&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;restwave&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="s2">&quot;Rest wavelenght of observed line&quot;</span><span class="p">],</span>
+                           <span class="s1">&#39;outfolder&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Directory for outputs&quot;</span> <span class="p">]})</span>
+    
+    
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">:</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galfit_delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span>
+        
+    
+    <span class="k">def</span> <span class="nf">_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">radii</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vrot</span><span class="p">,</span><span class="n">vdisp</span><span class="p">,</span><span class="n">vrad</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">phi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize rings for the fit </span>
+<span class="sd">        </span>
+<span class="sd">        Set initial guesses for the fit and fixed parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">          radii (list):        Radii of the model in arcsec</span>
+<span class="sd">          xpos (float, list):  X center of the galaxy in pixels</span>
+<span class="sd">          ypos (float, list):  Y center of the galaxy in pixels</span>
+<span class="sd">          vsys (float, list):  Systemic velocity of the galaxy in km/s</span>
+<span class="sd">          vrot (float, list):  Rotation velocity in km/s</span>
+<span class="sd">          vdisp (float, list): Velocity dispersion in km/s</span>
+<span class="sd">          vrad (float, list):  Radial velocity in km/s</span>
+<span class="sd">          z0 (float, list):    Disk scaleheight in arcsec</span>
+<span class="sd">          inc (float, list):   Inclination angle in degrees</span>
+<span class="sd">          phi (float, list):   Position angle of the receding part of the major axis (N-&gt;W)</span>
+<span class="sd">    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">radii</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;radii must be an array&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inri</span> <span class="o">=</span> <span class="n">Rings</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inri</span><span class="o">.</span><span class="n">set_rings</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">vsys</span><span class="p">,</span><span class="n">vrot</span><span class="p">,</span><span class="n">vdisp</span><span class="p">,</span><span class="n">vrad</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.E20</span><span class="p">,</span><span class="n">z0</span><span class="p">,</span><span class="n">inc</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+                  
+
+    <span class="k">def</span> <span class="nf">_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Fit the model.</span>
+
+<span class="sd">        Run this function after having set initial parameters with :func:`init` and options with</span>
+<span class="sd">        :func:`set_options`. If initial guesses are not defined, the function will be run in </span>
+<span class="sd">        automated mode, e.g., it will estimate initial parameters and then run the fit.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">          ndarray: An array fo size 2. Index 0 is a n x m matrix where n = number of rings, </span>
+<span class="sd">          m = number of parameters. Index 1 is an astropy PrimaryHDU object datacube </span>
+<span class="sd">          with the model.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inri</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;BBarolo is running in automated mode. Check initial parameter estimate!&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galfit_new</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">_cube</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_options</span><span class="p">()</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mod</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galfit_new_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">_cube</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_inri</span><span class="o">.</span><span class="n">_rings</span><span class="p">,</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;deltainc&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;deltaphi&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                                             <span class="n">op</span><span class="p">[</span><span class="s1">&#39;ltype&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;ftype&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;wfunc&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;bweight&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;nv&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                                             <span class="n">op</span><span class="p">[</span><span class="s1">&#39;tol&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;cdens&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;startrad&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span>\
+                                             <span class="n">op</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;free&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span>\
+                                             <span class="n">op</span><span class="p">[</span><span class="s1">&#39;side&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;twostage&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;polyn&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span>\
+                                             <span class="n">op</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;smooth&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;redshift&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                                             <span class="n">op</span><span class="p">[</span><span class="s1">&#39;restwave&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;outfolder&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        
+        <span class="c1"># Calculating the model                         </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modCalculated</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galfit_galfit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span>        
+        <span class="k">if</span> <span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;twostage&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galfit_secondStage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">);</span>
+        
+        <span class="c1"># Write models</span>
+        <span class="n">libBB</span><span class="o">.</span><span class="n">Galfit_writeModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_opts</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="c1"># Loading final rings</span>
+        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;outfolder&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;/ringlog2.txt&quot;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;outfolder&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;/ringlog1.txt&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Loading final model</span>
+        <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;outfolder&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="s2">&quot;mod_</span><span class="si">%s</span><span class="s2">.fits&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
+                <span class="n">filefits</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;outfolder&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="n">fname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filefits</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bfit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outmodel</span><span class="p">)</span>
+        
+        
+<div class="viewcode-block" id="FitMod3D.plot_model"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.FitMod3D.plot_model">[docs]</a>    <span class="k">def</span> <span class="nf">plot_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot the model using BBarolo built-in output functions. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">modCalculated</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;3DFIT ERROR: you need to run fit() before plotting the model.&quot;</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot; Writing creative plots... &quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">libBB</span><span class="o">.</span><span class="n">Galfit_plotModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mod</span><span class="p">)</span> 
+        <span class="k">if</span> <span class="n">ret</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; Something went wrong! Check pyscript.py in the output folder.&quot;</span><span class="p">);</span></div>
+         
+         
+    <span class="k">def</span> <span class="nf">_check_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check if current options are ok for the C++ code &quot;&quot;&quot;</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">op</span><span class="p">:</span>
+            <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;ltype&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be 1, 2, 3, 4 or 5.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;cdens&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &gt; 0.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;ftype&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be 1, 2 or 3.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;startrad&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be positive.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;mask&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;SMOOTH&#39;</span><span class="p">,</span><span class="s1">&#39;SEARCH&#39;</span><span class="p">,</span><span class="s1">&#39;THRESHOLD&#39;</span><span class="p">,</span><span class="s1">&#39;NEGATIVE&#39;</span><span class="p">,</span><span class="s1">&#39;NONE&#39;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only &#39;SMOOTH&#39;,&#39;SEARCH&#39;,&#39;THRESHOLD&#39;,&#39;NEGATIVE&#39; or &#39;NONE&#39;.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;norm&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LOCAL&#39;</span><span class="p">,</span><span class="s1">&#39;AZIM&#39;</span><span class="p">,</span><span class="s1">&#39;NONE&#39;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only &#39;LOCAL&#39;,&#39;AZIM&#39; or &#39;NONE&#39;.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_options</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+            
+
+
+<div class="viewcode-block" id="Search"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Search">[docs]</a><span class="k">class</span> <span class="nc">Search</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;3D Source finder </span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">      fitsname (str): FITS file to search for sources</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fitsname</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Search</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fitsname</span><span class="o">=</span><span class="n">fitsname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskname</span> <span class="o">=</span> <span class="s1">&#39;SEARCH&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;searchtype&quot;</span>  <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;spatial&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;spectral or spatial search&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;snrcut&quot;</span>      <span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;S/N cut for detection when sigma-clipping&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;threshold&quot;</span>   <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;Flux threshold for a detection&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;adjacent&quot;</span>    <span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="s2">&quot;Use the adjacent criterion for objects merger?&quot;</span> <span class="p">],</span>
+                       <span class="s2">&quot;thrspatial&quot;</span>  <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Maximum spatial separation between objects&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;thrvelocity&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Maximum channels separation between objects&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;minchannels&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Minimum channels to make an object&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;minpixels&quot;</span>   <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Minimum pixels required in an object&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;minvoxels&quot;</span>   <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Minimum voxels required in an object&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;maxchannels&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s2">&quot;Maximum channels to accept an object&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;maxangsize&quot;</span>  <span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;Maximum angular size in an object (arcmin)&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;growth&quot;</span>      <span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="s2">&quot;Growing objects once they are found?&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;growthcut&quot;</span>   <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;The SNR that we are growing objects down to&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;growththresh&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;The threshold for growing objects down to&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;rejectbeforemerge&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="s2">&quot;Whether to reject sources before merging&quot;</span><span class="p">],</span>
+                       <span class="s2">&quot;twostagemerge&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="s2">&quot;Whether to do a partial merge during search&quot;</span><span class="p">]}</span>
+
+<div class="viewcode-block" id="Search.search"><a class="viewcode-back" href="../../pybb_api.html#pyBBarolo.pyBBarolo.Search.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Perform the source finding &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_options</span><span class="p">()</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+        <span class="n">libBB</span><span class="o">.</span><span class="n">Search_search</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inp</span><span class="o">.</span><span class="n">_cube</span><span class="p">,</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;searchtype&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;snrcut&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                            <span class="n">op</span><span class="p">[</span><span class="s1">&#39;threshold&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;adjacent&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;thrspatial&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                            <span class="n">op</span><span class="p">[</span><span class="s1">&#39;thrvelocity&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;minpixels&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;minchannels&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                            <span class="n">op</span><span class="p">[</span><span class="s1">&#39;minvoxels&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;maxchannels&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;maxangsize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                            <span class="n">op</span><span class="p">[</span><span class="s1">&#39;growth&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;growthcut&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;growththresh&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>\
+                            <span class="n">op</span><span class="p">[</span><span class="s1">&#39;rejectbeforemerge&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;twostagemerge&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+                        
+                            
+    <span class="k">def</span> <span class="nf">_check_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check if current options are ok for the C++ code &quot;&quot;&quot;</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opts</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">op</span><span class="p">:</span>
+            <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;searchtype&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;spatial&#39;</span><span class="p">,</span><span class="s1">&#39;spectral&#39;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &#39;spatial&#39; or &#39;spectral&#39;&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;snrcut&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &gt; 0.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s1">&#39;threshold&#39;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &gt;= 0.&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s2">&quot;growthcut&quot;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;snrcut&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &lt; snrcut&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">==</span><span class="s2">&quot;growththresh&quot;</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">op</span><span class="p">[</span><span class="s1">&#39;threshold&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> ERROR: </span><span class="si">%s</span><span class="s2"> can only be &lt; threshold&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskname</span><span class="p">,</span><span class="n">key</span><span class="p">))</span></div>
+                
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../../index.html">Table Of Contents</a></h3>
+<p class="caption"><span class="caption-text">BBarolo:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installing BBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../running.html">Running BBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tasks.html">List of tasks and parameters</a></li>
+</ul>
+<p class="caption"><span class="caption-text">pyBBarolo:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pybb_install.html">Installing pyBBarolo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pybb_quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pybb_quickstart.html#available-tasks">Available tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pybb_api.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License and citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BBarolo 1.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Enrico Di Teodoro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>
