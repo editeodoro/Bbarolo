@@ -401,7 +401,8 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         ui->PVPaSpinBox->setValue(par->getPA_PV());
     }
 
-    ui->MaskgroupBox->setChecked(par->getBlankCube());
+    bool masking = par->getMASK()=="NONE" ? false : true;
+    ui->MaskgroupBox->setChecked(masking);
     if (ui->MaskgroupBox) {
         ui->BlankcutSpinBox->setValue(par->getBlankCut());
         if (par->getFactor()!=-1) ui->BlankfactordoubleSpinBox->setValue(par->getFactor());

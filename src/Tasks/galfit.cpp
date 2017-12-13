@@ -222,7 +222,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
         if (distance==-1) distance = VeltoDist(fabs(vsys));
         vrot  = par.VROT!="-1" ? atof(par.VROT.c_str()) : init_par->vrot;
         vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;// default is 8 km/s
-        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.15/KpcPerArc(distance); // default is 150 parsec
+        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.; // default is infinitely thin disk
         dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
         inc   = par.INC!="-1" ? atof(par.INC.c_str()) : init_par->inclin;
         pa    = par.PHI!="-1" ? atof(par.PHI.c_str()) : init_par->posang;
@@ -240,7 +240,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
         if (par.DISTANCE==-1) par.DISTANCE = VeltoDist(fabs(vsys));
         vrot  = atof(par.VROT.c_str());
         vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;                  // default is 8 km/s
-        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.15/KpcPerArc(par.DISTANCE); // default is 150 parsec
+        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.; // default is infinitely thin disk
         vrad  = par.VRAD!="-1" ? atof(par.VRAD.c_str()) : 0.;
         dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
         inc   = atof(par.INC.c_str());

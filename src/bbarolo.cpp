@@ -188,16 +188,17 @@ int main (int argc, char *argv[]) {
             MomentMap<float> map;
             map.input(c);
             std::string s = outfolder+c->Head().Name();
+            bool masking = par->getMASK()=="NONE" ? false : true;
             if (par->getTotalMap()) {
-                map.ZeroMoment(par->getBlankCube());
+                map.ZeroMoment(masking);
                 map.fitswrite_2d((s+"map_0th.fits").c_str());
             }
             if (par->getVelMap()) {
-                map.FirstMoment(par->getBlankCube());
+                map.FirstMoment(masking);
                 map.fitswrite_2d((s+"map_1st.fits").c_str());
             }
             if (par->getDispMap()) {
-                map.SecondMoment(par->getBlankCube());
+                map.SecondMoment(masking);
                 map.fitswrite_2d((s+"map_2nd.fits").c_str());
             }
         }

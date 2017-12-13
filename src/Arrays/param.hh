@@ -160,18 +160,13 @@ public:
     bool    getVelMap () {return velocitymap;};
     void    setDispMap (bool flag) {dispersionmap = flag;};
     bool    getDispMap () {return dispersionmap;};
-    void    setBlankCube (bool flag) {useBlankCube = flag;};
-    bool    getBlankCube () {return useBlankCube;};
     bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap);};
     void    setBlankCut (float f) {blankCut=f;};
     float   getBlankCut() {return blankCut;};  
     
     bool    getFlagRing () {return flagRing;};
     void    setFlagRing (bool b) {flagRing = b;};
-    bool    isInteractive () {return interactive;};
-    void    setInteractive (bool b) {interactive = b;};
-    int     getNrings () {return nrings;};
-    void    setNrings (int n) {nrings = n;};
+
     int     getBOX  (int i) {return BOX[i];};
 
     bool    getflagSearch () {return parSE.flagSearch;};
@@ -250,12 +245,9 @@ private:
     bool            totalmap;           ///< Whether the user wants the total HI map.
     bool            velocitymap;        ///< Whether the user wants the velocity field.
     bool            dispersionmap;      ///< Whether the user wants the velocity dispersion field.
-    bool            useBlankCube;       ///< Using a blanked cube for extracting maps?
     float           blankCut;           ///< SNR clipping cut for blanked area.
 
     bool            flagRing;           ///< Do you want to fit a tilted ring model?
-    bool            interactive;        ///< Do you want interactive mode during fit?
-    int             nrings;             ///< How many rings for fitting?
 
     int             BOX[6];             ///< A box in RA-DEC-VELO. Not used anymore!
 

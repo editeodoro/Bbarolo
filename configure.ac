@@ -97,7 +97,7 @@ AC_C_INLINE
 AC_OPENMP
 CFLAGS=$OPENMP_CXXFLAGS
 
-BASEDIR=./src
+BASEDIR=`pwd`/src
 AC_SUBST([BASEDIR])
 
 # Library and installation utilities.

@@ -138,8 +138,11 @@ class Task(object):
         self.taskname = None
         # Input datacube 
         self.inp = FitsCube(fitsname)
+        # Mandatory arguments of the task
+        self._args = {}
         # Option for the task
         self._opts = {}
+        
     
     
     def set_options(self,**kwargs):
@@ -163,6 +166,24 @@ class Task(object):
                %(self.inp.beam[0]*3600,self.inp.beam[1]*3600,self.inp.beam[2]))
         print ("%s\n"%("-"*70))
         
+    
+    def set_arguments(self,**kwargs):
+        """Set options for the task. Keywords **kwargs are given in self._opts."""
+        for key in kwargs:
+            if key in self._args:
+                self._args[key][0] = kwargs[key] 
+            else:
+                raise ValueError('Argument %s unknown. Try show_arguments() for a list of keywords'%key)
+        
+    
+    
+    def show_arguments(self):
+        """ Show needed arguments for the task """
+        print ("\nArguments for %s task: %s "%(self.taskname,"-"*(49-len(self.taskname))))
+        for key, value in list(self._args.items()):
+            print (" %-8s # %s  "%(key,value[1]))
+            
+        print ("%s\n"%("-"*70))
 
 
 class Model3D(Task):
@@ -183,8 +204,8 @@ class Model3D(Task):
         self.outmodel = None
         self._opts = {'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
                       'nv'    : [-1, np.int, "Number of subclouds per profile"]}
-
-
+        
+        
     def init(self,*args,**kwargs):
         """Initialize the model. Refer to derived class for *args and **kwargs."""
         self._input(*args,**kwargs)
@@ -253,7 +274,20 @@ class GalMod(Model3D):
         self._opts.update({'ltype' : [2, np.int, "Layer type along z"],
                            'cmode' : [1, np.int, "Mode of clouds-surface density"],
                            'iseed' : [-1, np.int, "Seed for random number generator"]})
-                     
+        self._args = {'radii': [None,'Radii of the model in arcsec (must be an array)'],
+                      'xpos' : [None,'X-center of the galaxy in pixels'],
+                      'ypos' : [None,'Y center of the galaxy in pixels'],
+                      'vsys' : [None,'Systemic velocity of the galaxy in km/s'],
+                      'vrot' : [None,'Rotation velocity in km/s'],
+                      'vdisp': [None,'Velocity dispersion in km/s'],
+                      'vrad' : [None,'Radial velocity in km/s'],
+                      'vvert': [None,'Vertical velocity in km/s'],
+                      'dvdz' : [None,'Vertical rotational gradient (km/s/arcsec)'],
+                      'zcyl' : [None,'Height where the rotational gradient starts (arcsec)'],
+                      'dens' : [None,'Surface density of gas in 1E20 atoms/cm2'],
+                      'z0'   : [None,'Disk scaleheight in arcsec'],
+                      'inc'  : [None,'Inclination angle in degrees'],
+                      'phi'  : [None,'Position angle of the receding part of the major axis (N->W)']}
 
     def _input(self,radii,xpos,ypos,vsys,z0,inc,phi,vrot,vdisp,dens=1,vrad=0,vvert=0,dvdz=0,zcyl=0):
         """ Initialize rings for the model
@@ -340,13 +374,24 @@ class GalWind(Model3D):
        self._opts.update({'ntot'  : [25, np.int, "Total number of cylinders"],
                           'dtype' : [1, np.int, "Vertical density type"]})
        self._opts["nv"][0] = 10
-       
+       self._args = {'xpos'   : [None, 'X-center of the galaxy in pixels'],
+                     'ypos'   : [None, 'Y center of the galaxy in pixels'],
+                     'vsys'   : [None, 'Systemic velocity of the galaxy in km/s'],
+                     'inc'    : [None, 'Inclination angle in degrees'],
+                     'phi'    : [None, 'Position angle of the receding part of the major axis (N->W)'],
+                     'vdisp'  : [None, 'Velocity dispersion in km/s'],
+                     'dens'   : [None, 'Surface density of gas in 1E20 atoms/cm2'],
+                     'vwind'  : [None, 'Radial wind velocity of cylinders in km/s'],
+                     'openang': [None, 'Wind opening angle in degrees'],
+                     'htot'   : [None, 'Wind truncation height in arcsec']}
+       self.ready = False
+        
         
     def __del__(self):
         if self._mod: libBB.Galwind_delete(self._mod)   
             
             
-    def _input(self,x0,y0,pa,inc,disp,dens,vsys,vw,openang,htot):
+    def _input(self,xpos,ypos,vsys,inc,phi,vdisp,dens,vwind,openang,htot):
         """ Set the parameters of the model.
         
         The model is built by using ntot cylinders at increasing heights from the galaxy plane. 
@@ -354,25 +399,19 @@ class GalWind(Model3D):
         fixed.
         
         Args:
-          x0 (float):         X center of the galaxy in pixels.
-          y0 (float):         Y center of the galaxy in pixels.
-          pa (float):         Position angle of the galaxy in degrees (N->W)
+          xpos (float):       X center of the galaxy in pixels.
+          ypos (float):       Y center of the galaxy in pixels.
+          phi (float):        Position angle of the galaxy in degrees (N->W)
           inc (float):        Inclination angle of the galaxy in degrees
-          disp (float, list): Velocity dispersion of cylinders in km/s
+          vdisp (float, list):Velocity dispersion of cylinders in km/s
           dens (float, list): Surface density in units of 1E20 atoms/cm2
-          vw (float,list):    Radial wind velocity of cylinders
-          htot (float):       Wind truncation height in arcsec
-          dtype (int):        Density type. 1-constant density, 2-constant mass, 3-hollow cone
-          ntot (int):         Number of cylinders to use (default 25)
-          cdens (int):        Surface density of clouds per area of a pixel (default 10). 
-          nv (int):           Number of subclouds in the velocity profile of a cloud (default 10)
-        
+          vwind (float,list): Radial wind velocity of cylinders
+          openang(float,list): Wind opening angle
+          htot (float):       Wind truncation height in arcsec 
         """        
-        if self._mod: self.__del__()
-        self._check_options()
-        op = self._opts
-        self._mod = libBB.Galwind_new(self.inp._cube,x0,y0,pa,inc,disp,dens,vsys,vw,openang,\
-                                      htot,op["dtype"][0],op["ntot"][0],op["cdens"][0],op["nv"][0])
+        super(GalWind,self).set_arguments(xpos=xpos,ypos=ypos,vsys=vsys,inc=inc,phi=phi,vdisp=vdisp,\
+                                          dens=dens,vwind=vwind,openang=openang,htot=htot)
+        self.ready = True
     
 
     def _compute(self):
@@ -383,7 +422,17 @@ class GalWind(Model3D):
         Returns:
           astropy PrimaryHDU: a datacube with the output model
         """
-        if self._mod:
+                
+        if self.ready:
+            self._check_options()
+            op = self._opts
+            ar = self._args
+            if self._mod: self.__del__()
+            self._mod = libBB.Galwind_new(self.inp._cube,ar['xpos'][0],ar['ypos'][0],ar['phi'][0],\
+                                          ar['inc'][0],ar['vdisp'][0],ar['dens'][0],ar['vsys'][0],\
+                                          ar['vwind'][0],ar['openang'][0],ar['htot'][0],\
+                                          op["dtype"][0],op["ntot"][0],op["cdens"][0],op["nv"][0])
+            
             self._modCalculated = libBB.Galwind_compute(self._mod)
             data_mod  = reshapePointer(libBB.Galwind_array(self._mod),self.inp.dim[::-1])
         else:
@@ -449,7 +498,16 @@ class FitMod3D(Model3D):
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
                            'restwave': [-1., np.float64, "Rest wavelenght of observed line"],
                            'outfolder' : ['./', str, "Directory for outputs" ]})
-    
+        self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
+                      'xpos' : [None, 'X-center of the galaxy in pixels'],
+                      'ypos' : [None, 'Y center of the galaxy in pixels'],
+                      'vsys' : [None, 'Systemic velocity of the galaxy in km/s'],
+                      'vrot' : [None, 'Rotation velocity in km/s'],
+                      'vdisp': [None, 'Velocity dispersion in km/s'],
+                      'vrad' : [None, 'Radial velocity in km/s'],
+                      'z0'   : [None, 'Disk scaleheight in arcsec'],
+                      'inc'  : [None, 'Inclination angle in degrees'],
+                      'phi'  : [None, 'Position angle of the receding part of the major axis (N->W)']}
     
     def __del__(self):
         if self._mod: libBB.Galfit_delete(self._mod)

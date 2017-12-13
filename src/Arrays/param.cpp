@@ -54,13 +54,9 @@ void Param::defaultValues() {
     totalmap            = false;
     velocitymap         = false;
     dispersionmap       = false;
-    useBlankCube        = false;
     blankCut            = 3;
 
     flagRing            = false;
-    interactive         = false;
-    nrings              = 30;
-
 
     flagSmooth          = false;
     flagFFT             = true;
@@ -117,12 +113,9 @@ Param& Param::operator= (const Param& p) {
     this->velocitymap       = p.velocitymap;
     this->totalmap          = p.totalmap;
     this->dispersionmap     = p.dispersionmap;
-    this->useBlankCube      = p.useBlankCube;
     this->blankCut          = p.blankCut;
          
     this->flagRing          = p.flagRing;
-    this->interactive       = p.interactive;
-    this->nrings            = p.nrings;
  
     for (int i=0; i<6; i++) this->BOX[i] = p.BOX[i];
     
@@ -255,7 +248,7 @@ int Param::readParams(std::string paramfile) {
     if(!fin.is_open()) return 1;
     std::string line;
     while(!std::getline(fin,line,'\n').eof()){
-        if(line[0]!='#'){
+        if(line[0]!='#' || line[0]!='/'){
             std::stringstream ss;
             ss.str(line);
             std::string arg;
@@ -300,12 +293,9 @@ int Param::readParams(std::string paramfile) {
             if(arg=="totalmap")         totalmap = readFlag(ss);
             if(arg=="velocitymap")      velocitymap = readFlag(ss);
             if(arg=="dispersionmap")    dispersionmap = readFlag(ss);
-            if(arg=="blankcube")        useBlankCube = readFlag(ss);
             if(arg=="blankcut")         blankCut = readFval(ss);
         
-            if(arg=="flagring")         flagRing = readFlag(ss);
-            if(arg=="interactive")      interactive = readFlag(ss);
-            if(arg=="numrings")         nrings = readIval(ss);
+            if(arg=="2dfit")         flagRing = readFlag(ss);
         
             // SHARED PARAMETERS BETWEEN GALMOD, GALFIT AND GALWIND
             if(arg=="galfit")    parGF.flagGALFIT  = readFlag(ss);
@@ -707,15 +697,12 @@ void Param::printDefaults (std::ostream& theStream) {
     recordParam(theStream, "[growthCut]", "   SNR Threshold for growth", par.getParSE().growthCut);
     recordParam(theStream, "[growthThreshold]", "   Threshold for growth", par.getParSE().growthThreshold);
     
-    recordParam(theStream, "[flagRing]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
-    recordParam(theStream, "[interactive]", "   Using interactive mode during the fit?", stringize(par.isInteractive()));
-    recordParam(theStream, "[numRings]",  "   Number of rings for the model",  par.getNrings());
+    recordParam(theStream, "[2dfit]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
     recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
-    recordParam(theStream, "[blankCube]", "Using a blanked cube for maps and profile?", stringize(par.getBlankCube()));
     recordParam(theStream, "[blankCut]", "SNR clipping cut for blanked areas", par.getBlankCut());
     
     recordParam(theStream, "[SMOOTH]", "Smoothing the datacube?", stringize(par.getflagSmooth()));
@@ -764,8 +751,8 @@ void Param::createTemplate() {
     parf << setw(m) << left << "FITSFILE";
     parf << setw(m) << left << "/yourpath/yourfile.fits\n" << endl;
     
-    parf << "// Using the Galfit utility? Must be true!!\n";
-    parf << setw(m) << left << "GALFIT";
+    parf << "// Using the 3DFIT utility? Must be true!!\n";
+    parf << setw(m) << left << "3DFIT";
     parf << setw(m) << left << "true\n" << endl;
     
     parf << "// Number of radii to be modeled.\n";
@@ -798,21 +785,21 @@ void Param::createTemplate() {
     parf << "// Free parameters for the minimization.\n";
     parf << setw(m) << left << "FREE" << setw(m) << left << "VROT VDISP INC PA\n" << endl;
     
-    parf << "// OPTIONAL: Function to be minimezed (default is 2):\n";
+    parf << "// OPTIONAL: Function to be minimized (default is " << parGF.FTYPE << "):\n";
     parf << "// = 1: chi-squared.\n";
     parf << "// = 2: |mod-obs|.\n";
     parf << "// = 3: |mod-obs|/|mod+obs|.\n";
     parf << "// = 4: (mod-obs)^2.\n";
     parf << setw(m) << left << "FTYPE" << setw(m) << left << "1\n"<< endl;
 
-    parf << "// OPTIONAL: Weighting function (default is 1):\n";
+    parf << "// OPTIONAL: Weighting function (default is " << parGF.WFUNC << "):\n";
     parf << "// = 0: uniform weight.\n";
     parf << "// = 1: |cos(θ)|.\n";
     parf << "// = 2: cos(θ)^2.\n";
     parf << "// θ is the azimuthal angle.\n";
     parf << setw(m) << left << "WFUNC" << setw(m) << left << "1\n"<< endl;
 
-    parf << "// OPTIONAL: Layer type along z (default is gaussian):\n";
+    parf << "// OPTIONAL: Layer type along z (default is " << parGF.LTYPE << "):\n";
     parf << "// = 1: gaussian layer.\n";
     parf << "// = 2: sech2 layer.\n";
     parf << "// = 3: exponential layer.\n";
@@ -824,31 +811,34 @@ void Param::createTemplate() {
     parf << "// (default is = total number of channels).\n";
     parf << setw(m) << left << "NV" << setw(m) << left << "60\n"<< endl;
     
-    parf << "// OPTIONAL: Surface density of clouds in the plane of ring (1e20)..\n";
-    parf << "// (default is = 1).\n";
+    parf << "// OPTIONAL: Surface density of clouds in the plane of ring (1e20).\n";
+    parf << "// (default is = " << parGF.CDENS << "):\n";
     parf << setw(m) << left << "CDENS" << setw(m) << left << "10\n"<< endl;
 
-    parf << "// OPTIONAL: Tolerance for the minimization (default is 0.001).\n";
+    parf << "// OPTIONAL: Tolerance for the minimization (default is " << parGF.TOL << "):\n";
     parf << setw(m) << left << "TOL" << setw(m) << left << "1E-03\n"<< endl;
 
-    parf << "// OPTIONAL: Using a mask for the minimization (default=true).\n";
-    parf << setw(m) << left << "MASK" << setw(m) << left << "TRUE\n"<< endl;
+    parf << "// OPTIONAL: Using a mask for the minimization (default is " << parGF.MASK << "):\n";
+    parf << setw(m) << left << "MASK" << setw(m) << left << "SMOOTH\n"<< endl;
     
-    parf << "// OPTIONAL: Side of the galaxy to be fitted (default=both):.\n";
+    parf << "// OPTIONAL: Normalization type (default is " << parGF.NORM << "):\n";
+    parf << setw(m) << left << "NORM" << setw(m) << left << "AZIM\n"<< endl;
+    
+    parf << "// OPTIONAL: Side of the galaxy to be fitted (default is " << parGF.SIDE << "):\n";
     parf << "// = A: Approaching.\n";
     parf << "// = R: Receding.\n";
     parf << "// = B: Both.\n";
 //  parf << "// = S: Both but separated.\n";
     parf << setw(m) << left << "SIDE" << setw(m) << left << "B\n"<< endl;
     
-    parf << "// OPTIONAL: Using a two stages minimization (default=false).\n";
+    parf << "// OPTIONAL: Using a two stages minimization (default is " << stringize(parGF.TWOSTAGE) << "):\n";
     parf << setw(m) << left << "TWOSTAGE" << setw(m) << left << "false\n"<< endl;
     
-    parf << "// OPTIONAL: Degree of polynomial fitting angles (default=2).\n";
+    parf << "// OPTIONAL: Degree of polynomial fitting angles (default is " << parGF.POLYN << "):\n";
     parf << setw(m) << left << "POLYN" << setw(m) << left << "3\n"<< endl;
     
-    parf << "// OPTIONAL: Enabling error estimation (default=false).\n";
-    parf << setw(m) << left << "flagErrors" << setw(m) << left << "true\n"<< endl;
+    parf << "// OPTIONAL: Enabling error estimation (default is " << stringize(parGF.flagERRORS) << "):\n";
+    parf << setw(m) << left << "flagErrors" << setw(m) << left << "false\n"<< endl;
     
     parf.close();
     
@@ -930,25 +920,14 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         }
     }
             
-    recordParam(theStream, "[flagRing]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
-    if (par.getFlagRing()) {
-        recordParam(theStream, "[interactive]", "   Using interactive mode during the fit?", stringize(par.isInteractive()));
-        if (!par.isInteractive()) 
-            recordParam(theStream, "[numRings]",  "   Number of rings for the model",  par.getNrings());
-    }
+    recordParam(theStream, "[2dfit]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
     recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
     if (par.getTotalMap() || par.getDispMap() || par.getVelMap()) {
-        recordParam(theStream, "[blankCube]", "   Using a blanked cube for maps and profile?", stringize(par.getBlankCube()));
-        if (par.getBlankCube()) {
-            if (par.getBmaj()!=-1) recordParam(theStream, "[Bmaj]", "   Beam major axis of smoothed cube for mask", par.getBmaj());
-            if (par.getBmin()!=-1) recordParam(theStream, "[Bmin]", "   Beam minor axis of smoothed cube for mask", par.getBmin());
-            if (par.getBpa()!=-1) recordParam(theStream,  "[Bpa]", "   Beam position angle of smoothed cube for mask", par.getBpa());
-            recordParam(theStream, "[blankCut]", "   SNR clipping cut for blanked areas", par.getBlankCut());
-        }
+        recordParam(theStream, "[mask]", "   Mask used for maps and profile?", par.getMASK());
     }
     
     recordParam(theStream, "[SMOOTH]", "Smoothing the datacube?", stringize(par.getflagSmooth()));
