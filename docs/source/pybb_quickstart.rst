@@ -44,7 +44,7 @@ In pyBBarolo, BBarolo's task are wrapped as python classes. The generic procedur
 .. _pybbtasks:
 
 Available tasks
-===============
+================
 
 * **FitMod3D()**: wrapped class for BBarolo's :ref:`3DFIT <3dfit>` task.
 
