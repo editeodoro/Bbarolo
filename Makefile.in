@@ -67,6 +67,7 @@ HEADS = $(ARRAYDIR)/param.hh\
 	$(ARRAYDIR)/cube.hh\
 	$(ARRAYDIR)/image.hh\
 	$(ARRAYDIR)/stats.hh\
+	$(ARRAYDIR)/rings.hh\
 	$(MAPDIR)/voxel.hh\
 	$(MAPDIR)/scan.hh\
 	$(MAPDIR)/object2D.hh\

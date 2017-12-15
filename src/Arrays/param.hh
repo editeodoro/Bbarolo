@@ -217,6 +217,7 @@ public:
     float   getYPOS_PV() {return YPOS_PV;}
     float   getPA_PV() {return PA_PV;}
 
+    bool    getFlagEllProf() {return flagEllProf;}
     
     /// Utility functions:
     
@@ -280,13 +281,13 @@ private:
     string          wavefile;           ///< Fitsfile containing the wavelegths.
     string          ivarfile;           ///< Fitsfile containing the inverse-variance or a value.
     string          linetofit;          ///< Line to fit: Ha, Hb, OIII etc...
-
-
+    
     bool            flagPV;                 ///< Extracting a position-velocity diagram.
     float           XPOS_PV;
     float           YPOS_PV;
     float           PA_PV;
 
+    bool            flagEllProf;
     int             threads;
     bool            debug;
 };

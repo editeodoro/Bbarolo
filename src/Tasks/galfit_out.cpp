@@ -70,7 +70,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     if (verb) std::cout << " Done." << std::endl;
 
     // Calculate the total flux inside last ring in data
-    T *ringreg = getFinalRingsRegion();
+    T *ringreg = RingRegion(outr,in->Head());
     float totflux_data=0, totflux_model=0;
     for (size_t i=0; i<in->DimX()*in->DimY(); i++) {
         if (!isNaN(ringreg[i]) && !isNaN(totalmap->Array(i))) {

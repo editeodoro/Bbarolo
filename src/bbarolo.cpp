@@ -35,6 +35,7 @@
 #include <Tasks/smooth3D.hh>
 #include <Tasks/galfit.hh>
 #include <Tasks/galwind.hh>
+#include <Tasks/ellprof.hh>
 #include <Tasks/spacepar.hh>
 #include <Utilities/utils.hh>
 
@@ -249,6 +250,20 @@ int main (int argc, char *argv[]) {
                 sfit->writeModel_slit();
             }
             else sfit->writeModel_slit();
+        }
+        //-----------------------------------------------------------------
+
+        // Radial profile ------------------------------------------------
+        if (par->getFlagEllProf()) {
+            Tasks::Ellprof<float> *ell = new Tasks::Ellprof<float>(c);
+            ell->RadialProfile();
+            std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_densprof.txt";
+            std::ofstream fileo(fout.c_str());
+            ell->printProfile(fileo,ell->getNseg()-1);
+            ell->printProfile(std::cout);
+            ell->writeMap(c->pars().getOutfolder()+c->Head().Name()+"_densmap.fits");
+            fileo.close();
+            delete ell;
         }
         //-----------------------------------------------------------------
 

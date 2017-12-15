@@ -28,6 +28,7 @@
 #include <Arrays/param.hh>
 #include <Arrays/cube.hh>
 #include <Arrays/image.hh>
+#include <Arrays/rings.hh>
 #include <Tasks/galmod.hh>
 
 namespace Model {
@@ -134,7 +135,6 @@ protected:
     inline bool getSide (double theta);
     inline double getFuncValue(T obs, T mod, double weight, double noise_weight);
     std::vector<Pixel<T> >* getRingRegion (Rings<T> *dring, int *bhi, int *blo);
-    T* getFinalRingsRegion ();
 
     /// Functions defined in galfit_out.cpp
     void printDetails  (Rings<T> *dr, T fmin, long pix, std::ostream& str=std::cout);

@@ -239,6 +239,9 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
         
     using namespace std;
     in = c;
+    float unittoarc = arcsconv(in->Head().Cunit(0));    
+    gridspace[0]=in->Head().Cdelt(0)*unittoarc; 
+    gridspace[1]=in->Head().Cdelt(1)*unittoarc;
     
     for (int i=0; i<3; i++) {
         dimAxes[i]  = c->AxesDim(i);

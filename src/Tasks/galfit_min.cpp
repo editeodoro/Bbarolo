@@ -973,60 +973,6 @@ template std::vector<Pixel<float> >* Galfit<float>::getRingRegion (Rings<float>*
 template std::vector<Pixel<double> >* Galfit<double>::getRingRegion (Rings<double>*,int*,int*);
 
 
-template <class T>
-T* Galfit<T>::getFinalRingsRegion () {
-	
-
-	long bsize[2] = {in->DimX(),in->DimY()};
-	T *ringregion = new T[bsize[0]*bsize[1]];
-	for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
-	
-    T R1  = max(outr->radii.front()/(in->Head().PixScale()*arcconv)-outr->radsep/2.,0.);
-    T R2  = outr->radii.back()/(in->Head().PixScale()*arcconv)+outr->radsep/2.;//#+sqrt(in->Head().BeamArea()/M_PI);
-	T phi = outr->phi.back();
-	T inc = outr->inc.back();
-	T psi = 0.;
-    T z0  = 3*outr->z0.back()/(in->Head().PixScale()*arcconv); //prima prendevo 3*dring->....
-	T x0  = outr->xpos.back()-1;
-	T y0  = outr->ypos.back()-1;
-	
-	double **matrices = RotMatrices(inc,psi,-phi-90);
-	int size[2] = {3,3};
-	double *rotmatrix = MatrixProduct(&matrices[2][0], size, &matrices[0][0],size);
-	
-	int xyrange = lround(R2);
-	int zrange = lround(z0);
-	int sizecoord[2] = {3,1};	
-	for (int z=-zrange; z<=zrange; z++) {
-		 for (int y=-xyrange; y<=xyrange; y++) {
-			for(int x=-xyrange; x<=xyrange; x++) {
-				double r = sqrt(x*x+y*y);
-				if (r<=R2 && r>=R1) {
-					double coord[3]={double(x),double(y),double(z)};
-					double *coordrot = MatrixProduct(rotmatrix,size,coord,sizecoord);
-					int xrot = lround(coordrot[0]+x0);
-					int yrot = lround(coordrot[1]+y0);
-					if (xrot>=0 && xrot<bsize[0] &&
-						yrot>=0 && yrot<bsize[1]) {
-						double theta;						
-						if (r<0.1) theta = 0.0;
-						else theta = atan2(y, x)/M_PI*180.;	
-						if(isNaN(ringregion[xrot+yrot*bsize[0]])) {
-							ringregion[xrot+yrot*bsize[0]] = theta;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	deallocate_2D<double>(matrices,3);
-	delete [] rotmatrix;
-	return ringregion;
-	
-}
-template float* Galfit<float>::getFinalRingsRegion ();
-template double* Galfit<double>::getFinalRingsRegion ();
 }
 
 

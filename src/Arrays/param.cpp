@@ -84,6 +84,8 @@ void Param::defaultValues() {
     YPOS_PV             = 0;
     PA_PV               = 0;
     
+    flagEllProf         = false;
+    
     threads             = 1;
     debug               = false;
 }
@@ -156,6 +158,8 @@ Param& Param::operator= (const Param& p) {
     this->XPOS_PV           = p.XPOS_PV;
     this->YPOS_PV           = p.YPOS_PV;
     this->PA_PV             = p.PA_PV;
+    
+    this->flagEllProf       = p.flagEllProf;
     
     this->threads           = p.threads;
     this->debug             = p.debug;
@@ -382,6 +386,8 @@ int Param::readParams(std::string paramfile) {
             if (arg=="xpos_pv")             XPOS_PV = readFval(ss);
             if (arg=="ypos_pv")             YPOS_PV = readFval(ss);
             if (arg=="pa_pv")               PA_PV = readFval(ss);
+
+            if (arg=="ellprof")             flagEllProf = readFlag(ss);
 
             if (arg=="threads")             threads = readIval(ss);
             if (arg=="debug")               debug = readFlag(ss);

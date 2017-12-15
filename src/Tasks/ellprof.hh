@@ -102,6 +102,7 @@
 
 #include <iostream>
 #include <vector>
+#include <Arrays/cube.hh>
 #include <Tasks/moment.hh>
 #include <Tasks/galmod.hh>
 
@@ -109,7 +110,8 @@ namespace Tasks {
 template <class T>
 class Ellprof
 {
-public:   
+public:
+    Ellprof(Cube<T> *c);
     Ellprof(MomentMap<T> *image, size_t nrad, float width, float phi, float inc, float *pos, size_t nseg=1, float* segments=NULL);
     Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg=1, float* segments=NULL);
     Ellprof(const Ellprof& p);
@@ -120,6 +122,8 @@ public:
     void   setOptions (float mass, float distance);
     void   RadialProfile ();
     void   printProfile (ostream& theStream=std::cout, int seg=0);
+    void   writeMap (std::string fname) {im->fitswrite_2d(fname.c_str());}
+    
 
     // Inline functions to access class members.
     size_t getNrad () {return Nrad;}

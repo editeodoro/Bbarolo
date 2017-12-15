@@ -32,6 +32,7 @@
 #include <time.h>
 #include <fitsio.h>
 #include <Arrays/header.hh>
+#include <Arrays/rings.hh>
 #include <Map/voxel.hh>
 #include <sys/stat.h>
 
@@ -156,6 +157,8 @@ template <class T> bool getData (std::vector<std::vector<T> > &allData, std::str
 template <class T> bool getDataColumn (std::vector<T> &data, std::string filestring);
 
 double* getCenterCoordinates(std::string *pos, Header &h);
+
+template <class T> T* RingRegion (Rings<T> *r, Header &h);
 
 template <class T> int selectBitpix();
 template <class T> int selectDatatype();
