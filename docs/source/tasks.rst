@@ -284,6 +284,8 @@ BBarolo can be used to extract global profiles, moment maps and position velocit
 
 * **DISPERSIONMAP** [false]. It *true*, calculate the velocity dispersion field from a datacube and write it to a FITS file. 
 
+* **MASSDENSMAP** [false]. It *true*, calculate a mass surface-density map in units of Msun/pc^2 from a datacube and write it to a FITS file. This is just for HI data and the input datacube is required to have JY/BEAM flux density units.
+
 * **FLAGPV** [false]. If *true*, extract position-velocity image from a datacube and write it to a FITS file. The cut is defined by a point and an angle, as set with the following parameters.
 
 * **XPOS_PV** [none]. Reference X pixel of the cut.
