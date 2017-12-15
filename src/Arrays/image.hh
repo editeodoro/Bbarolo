@@ -57,8 +57,8 @@ public:
     int     DimY() {return axisDim[1];};
     long    nPix  (int x, int y) {return y*axisDim[0]+x;};
     Type*   Array () {return array;};
-    Type    Array (long npix) {return array[npix];};
-    Type    Array (int x, int y) {return array[y*axisDim[0]+x];};
+    Type&   Array (long npix) {return array[npix];};
+    Type&   Array (int x, int y) {return array[y*axisDim[0]+x];};
     Header& Head     () {Header &h = head; return h;};
     bool    HeadDef (){return headDefined;};
     void    setXsize (int i) {axisDim[0] = i;};

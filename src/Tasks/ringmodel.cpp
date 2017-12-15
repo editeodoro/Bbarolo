@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <Tasks/ringmodel.hh>
 #include <Arrays/cube.hh>
+#include <Arrays/rings.hh>
 #include <Arrays/param.hh>
 #include <Tasks/moment.hh>
 #include <Utilities/lsqfit.hh>
@@ -109,21 +110,20 @@ Ringmodel::Ringmodel (Cube<float> *c)  {
 
     in = c;
     GALFIT_PAR p = in->pars().getParGF();
-    int nrings = p.NRADII-1;
-    float widths = p.RADSEP/(arcsconv(c->Head().Cunit(0))*c->Head().PixScale());
-    float vsys = atof(p.VSYS.c_str());
-    float vrot = atof(p.VROT.c_str());
-    float vexp = p.VRAD=="-1" ? 0 : atof(p.VRAD.c_str());
-    float posang = atof(p.PHI.c_str());
-    float incl = atof(p.INC.c_str());
-    float xcenter = atof(p.XPOS.c_str());
-    float ycenter = atof(p.YPOS.c_str());
+    
+    // Reading ring inputs
+    Rings<float> *r = readRings<float>(p,c->Head());
+    int nrings = r->nr-1;
+    float *widths = new float[nrings];
     float *radii = new float[nrings];
+    for (int i=0; i<nrings; i++) {
+        radii[i]  = r->radii[i]/(arcsconv(c->Head().Cunit(0))*c->Head().PixScale());
+        widths[i] = (r->radii[i+1]-r->radii[i])/(arcsconv(c->Head().Cunit(0))*c->Head().PixScale());
+    }
 
-    for (int i=0; i<nrings; i++) radii[i]=(i+1)*widths-widths/2.;
-
-    set(nrings, radii, widths, vsys, vrot, vexp, posang, incl, xcenter, ycenter);
-
+    set(r->nr-1,radii,widths,&r->vsys[0],&r->vrot[0],&r->vrad[0],
+        &r->phi[0],&r->inc[0],r->xpos[0],r->ypos[0]);
+    
 
     bool mpar[MAXPAR];
     for (int i=0; i<MAXPAR; i++) mpar[i]=false;
@@ -167,9 +167,13 @@ Ringmodel::Ringmodel (Cube<float> *c)  {
 
     setoption (mpar,hside,wfunc,15.);
 
+    // Calculating 1st moment map
     MomentMap<float> map;
     map.input(c);
-    map.FirstMoment(true);
+    if (c->Head().NumAx()>2) map.FirstMoment(true);
+    else {
+        for (int i=0; i<c->NumPix(); i++) map.Array(i) = c->Array(i);
+    }
     map.fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_1st.fits").c_str());
 
     int boxlow[2] = {0,0};

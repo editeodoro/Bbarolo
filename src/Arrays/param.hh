@@ -47,8 +47,8 @@ struct GALMOD_PAR {
     string PHI        = "-1";   ///< Position angle from north anti-clockwise.
     string Z0         = "-1";   ///< Height scale of the disk (arcs).
     string DENS       = "-1";   ///< Column density of gas (atoms/cm2).
-    double DVDZ       = -1;     ///< Vertical rotational gradient (km/s/arcsec).
-    double ZCYL       = -1;     ///< Height where the rotational gradient starts.
+    string DVDZ       = "-1";   ///< Vertical rotational gradient (km/s/arcsec).
+    string ZCYL       = "-1";   ///< Height where the rotational gradient starts.
     int    CDENS      = 10;     ///< Surface density of clouds in the plane of ring (1e20).
     int    LTYPE      = 1;      ///< Layer type along z.
     int    NV         = -1;     ///< Number of subclouds per profile.

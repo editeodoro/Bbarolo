@@ -30,6 +30,7 @@
 #include <cmath>
 #include <Utilities/utils.hh>
 #include <Arrays/header.hh>
+#include <Arrays/param.hh>
 #include <Arrays/rings.hh>
 #include <Map/voxel.hh>
 #include <fitsio.h>
@@ -792,6 +793,109 @@ template bool getDataColumn (std::vector<int> &,std::string);
 template bool getDataColumn (std::vector<long> &,std::string);
 template bool getDataColumn (std::vector<float> &,std::string);
 template bool getDataColumn (std::vector<double> &,std::string);    
+
+
+template <class T> 
+Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
+    
+    short NPAR = 14;
+    
+    // Try to read ring information from an input file
+    Rings<T> fr;
+    bool radii_b = getDataColumn(fr.radii,par.RADII);
+    bool xpos_b  = getDataColumn(fr.xpos,par.XPOS);
+    bool ypos_b  = getDataColumn(fr.ypos,par.YPOS);
+    bool vsys_b  = getDataColumn(fr.vsys,par.VSYS);
+    bool vrot_b  = getDataColumn(fr.vrot,par.VROT);
+    bool vrad_b  = getDataColumn(fr.vrad,par.VRAD);
+    bool vvert_b = getDataColumn(fr.vvert,par.VVERT);
+    bool dvdz_b  = getDataColumn(fr.dvdz,par.DVDZ);
+    bool zcyl_b  = getDataColumn(fr.zcyl,par.ZCYL);
+    bool vdisp_b = getDataColumn(fr.vdisp,par.VDISP);
+    bool z0_b    = getDataColumn(fr.z0,par.Z0);
+    bool dens_b  = getDataColumn(fr.dens,par.DENS); 
+    bool inc_b   = getDataColumn(fr.inc,par.INC);
+    bool pa_b    = getDataColumn(fr.phi,par.PHI);
+
+    // Determine maximum number of rings (= minimum number of entries)
+    size_t s[NPAR] = {fr.radii.size(),fr.xpos.size(), fr.ypos.size(),fr.vsys.size(),
+                      fr.vrot.size(),fr.vrad.size(),fr.vvert.size(),fr.dvdz.size(),
+                      fr.zcyl.size(),fr.vdisp.size(),fr.z0.size(),fr.dens.size(),
+                      fr.inc.size(),fr.phi.size()};
+    int max_size=INT_MAX;
+    for (int i=0; i<NPAR; i++) if (s[i]!=0 && s[i]<max_size) max_size=s[i];
+
+    // Reading parameter rings without caring if they are file or not
+    T vsys        = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : 0;
+    T vrot        = par.VROT!="-1" ? atof(par.VROT.c_str()) : 0;
+    T vrad        = par.VRAD!="-1" ? atof(par.VRAD.c_str()) : 0;
+    T vvert       = par.VVERT!="-1"? atof(par.VVERT.c_str()): 0;
+    T dvdz        = par.DVDZ!="-1" ? atof(par.DVDZ.c_str()) : 0;
+    T zcyl        = par.ZCYL!="-1" ? atof(par.ZCYL.c_str()) : 0;
+    T vdisp       = par.VDISP!="-1"? atof(par.VDISP.c_str()): 0; 
+    T z0          = par.Z0!="-1"   ? atof(par.Z0.c_str())   : 0;
+    T dens        = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1;
+    T inc         = par.INC!="-1"  ? atof(par.INC.c_str())  : 0;
+    T pa          = par.PHI!="-1"  ? atof(par.PHI.c_str())  : 0;
+
+    T xpos = 0, ypos = 0;
+    std::string pos[2] = {par.XPOS, par.YPOS};
+    if (pos[0]!="-1" && pos[1]!="-1") {
+        double *pixs  = getCenterCoordinates(pos, h);
+        xpos = pixs[0];
+        ypos = pixs[1];
+    }
+    
+    // Setting number of rings and radsep
+    int nr        = par.NRADII;
+    double radsep = par.RADSEP;    
+    nr = nr>0 && nr<max_size ? nr : max_size;
+    if (radii_b) {
+        radsep = 0;
+        for (uint i=1; i<fr.radii.size()-1; i++)
+            radsep += fr.radii[i+1]-fr.radii[i];
+        radsep/=(fr.radii.size()-2);
+    }
+    
+    // Filling rings with values
+    Rings<T> *inR = new Rings<T>;
+    inR->nr     = nr;
+    inR->radsep = radsep;
+    for (int i=0; i<inR->nr; i++) {
+        if (radii_b) inR->radii.push_back(fr.radii[i]);
+        else inR->radii.push_back(i*radsep+radsep/2.);
+        if (vrot_b) inR->vrot.push_back(fr.vrot[i]);
+        else inR->vrot.push_back(vrot);
+        if (vrad_b) inR->vrad.push_back(fr.vrad[i]);
+        else inR->vrad.push_back(vrad);
+        if (vvert_b) inR->vvert.push_back(fr.vvert[i]);
+        else inR->vvert.push_back(vvert);
+        if (dvdz_b) inR->dvdz.push_back(fr.dvdz[i]);
+        else inR->dvdz.push_back(dvdz);
+        if (zcyl_b) inR->zcyl.push_back(fr.zcyl[i]);
+        else inR->zcyl.push_back(zcyl);
+        if (vdisp_b) inR->vdisp.push_back(fr.vdisp[i]);
+        else inR->vdisp.push_back(vdisp);
+        if (z0_b) inR->z0.push_back(fr.z0[i]);
+        else inR->z0.push_back(z0);
+        if (dens_b) inR->dens.push_back(fr.dens[i]*1.E20);
+        else inR->dens.push_back(dens*1.E20);
+        if (inc_b) inR->inc.push_back(fr.inc[i]);
+        else inR->inc.push_back(inc);
+        if (pa_b) inR->phi.push_back(fr.phi[i]);
+        else inR->phi.push_back(pa);
+        if (xpos_b) inR->xpos.push_back(fr.xpos[i]);
+        else inR->xpos.push_back(xpos);
+        if (ypos_b) inR->ypos.push_back(fr.ypos[i]);
+        else inR->ypos.push_back(ypos);
+        if (vsys_b) inR->vsys.push_back(fr.vsys[i]);
+        else inR->vsys.push_back(vsys);
+    }
+    
+    return inR;
+}
+template Rings<float>* readRings(GALFIT_PAR &, Header &);
+template Rings<double>* readRings(GALFIT_PAR &, Header &);
 
 
 double* getCenterCoordinates(std::string *pos, Header &h) {

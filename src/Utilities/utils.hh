@@ -31,6 +31,7 @@
 #include <fstream>
 #include <time.h>
 #include <fitsio.h>
+#include <Arrays/param.hh>
 #include <Arrays/header.hh>
 #include <Arrays/rings.hh>
 #include <Map/voxel.hh>
@@ -155,6 +156,7 @@ template <class T> T unifrand(T maxs, T mins) {
 
 template <class T> bool getData (std::vector<std::vector<T> > &allData, std::string file, bool err_verbose=true);
 template <class T> bool getDataColumn (std::vector<T> &data, std::string filestring);
+template <class T> Rings<T> *readRings(GALFIT_PAR &par, Header &h);
 
 double* getCenterCoordinates(std::string *pos, Header &h);
 

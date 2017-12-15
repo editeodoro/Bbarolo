@@ -315,8 +315,8 @@ int Param::readParams(std::string paramfile) {
             if(arg=="vrad")      parGM.VRAD   = parGF.VRAD                 = readFilename(ss);
             if(arg=="z0")        parGM.Z0     = parGF.Z0                   = readFilename(ss);
             if(arg=="vvert")     parGM.VVERT                               = readFilename(ss);
-            if(arg=="dvdz")      parGM.DVDZ                                = readDval(ss);
-            if(arg=="zcyl")      parGM.ZCYL                                = readDval(ss);
+            if(arg=="dvdz")      parGM.DVDZ                                = readFilename(ss);
+            if(arg=="zcyl")      parGM.ZCYL                                = readFilename(ss);
             if(arg=="vdisp")     parGM.VDISP  = parGF.VDISP  = parGW.VDISP = readFilename(ss);
             if(arg=="xpos")      parGM.XPOS   = parGF.XPOS   = parGW.XPOS  = makelower(readFilename(ss));
             if(arg=="ypos")      parGM.YPOS   = parGF.YPOS   = parGW.YPOS  = makelower(readFilename(ss));

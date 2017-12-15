@@ -179,81 +179,41 @@ template void Ellprof<double>::deallocateArrays ();
 template <class T>
 Ellprof<T>::Ellprof(Cube<T> *c) {
 
-    // Extracting moment map
-    im = new MomentMap<T>;
-    im->input(c);
-    im->ZeroMoment(true);
-    
     // Reading input rings from parameter file
-    GALFIT_PAR &par = c->pars().getParGF();
-    Rings<T> file_rings;
-    bool radii_b = getDataColumn(file_rings.radii,par.RADII);
-    bool xpos_b  = getDataColumn(file_rings.xpos,par.XPOS);
-    bool ypos_b  = getDataColumn(file_rings.ypos,par.YPOS);
-    bool inc_b   = getDataColumn(file_rings.inc,par.INC);
-    bool pa_b    = getDataColumn(file_rings.phi,par.PHI);
-    bool onefile = radii_b||xpos_b||ypos_b||inc_b||pa_b;
-
-    size_t size[5] = {file_rings.radii.size(),file_rings.xpos.size(), file_rings.ypos.size(), 
-                      file_rings.inc.size(),file_rings.phi.size()};
-
-    int max_size=1000000;
-    for (int i=0; i<5; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
-    
-    int nr = par.NRADII;
-    double radsep = par.RADSEP;
-    string pos[2] = {par.XPOS, par.YPOS};
-    double *pixs = getCenterCoordinates(pos, c->Head());
-    T xpos  = pixs[0];
-    T ypos  = pixs[1];
-    T inc   = atof(par.INC.c_str());
-    T pa    = atof(par.PHI.c_str());
-    
-    nr = nr>0 && nr<max_size ? nr : max_size;
-    if (radii_b) {
-        radsep = 0;
-        for (uint i=1; i<file_rings.radii.size()-1; i++)
-            radsep += file_rings.radii[i+1]-file_rings.radii[i];
-        radsep/=(file_rings.radii.size()-2);
-    }
-
-    Rings<T> *inR = new Rings<T>;
-    inR->nr     = nr;
-    inR->radsep = radsep;
-    for (int i=0; i<inR->nr; i++) {
-        if (radii_b) inR->radii.push_back(file_rings.radii[i]);
-        else inR->radii.push_back(i*radsep+radsep/2.);
-        if (inc_b) inR->inc.push_back(file_rings.inc[i]);
-        else inR->inc.push_back(inc);
-        if (pa_b) inR->phi.push_back(file_rings.phi[i]);
-        else inR->phi.push_back(pa);
-        if (xpos_b) inR->xpos.push_back(file_rings.xpos[i]);
-        else inR->xpos.push_back(xpos);
-        if (ypos_b) inR->ypos.push_back(file_rings.ypos[i]);
-        else inR->ypos.push_back(ypos);
-        inR->z0.push_back(0.);
-    }
+    Rings<T> *inR = readRings<T>(c->pars().getParGF(), c->Head());
     
     // Setting other options
     T meanPA = findMean(&inR->phi[0], inR->nr);
     int nseg = 1;
     float segments[4] = {0, 360., 0., 0};
-    if (par.SIDE!="A") {
+    if (c->pars().getParGF().SIDE!="A") {
         nseg = 2;
         segments[2]=-90;
         segments[3]=90;
     }
-    else if(par.SIDE=="R") {
+    else if(c->pars().getParGF().SIDE=="R") {
         nseg = 2;
         segments[2]=90;
         segments[3]=-90;
     }
     if (meanPA>180) std::swap(segments[2], segments[3]);
+
+    // Extracting moment map
+    im = new MomentMap<T>;
+    im->input(c);
+    
+    if (c->Head().NumAx()>2) im->ZeroMoment(true);
+    else {
+        bool v = c->pars().isVerbose();
+        c->pars().setVerbosity(false);
+        im->SumMap(false);
+        c->pars().setVerbosity(v);
+    }
     
     init(im, inR, nseg, segments);
 
     // If distance is given, calculate also Mass profile
-    float dist = par.DISTANCE;
+    float dist = c->pars().getParGF().DISTANCE;
     if (dist>0) {
         float totflux = 0;
         T *ringreg = RingRegion(inR, c->Head());

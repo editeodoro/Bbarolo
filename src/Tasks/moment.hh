@@ -49,13 +49,13 @@ public:
     void ZeroMoment (bool msk);
     void FirstMoment (bool msk);
     void SecondMoment (bool msk);
+
+    bool setHead(int type); 
     
 private:
     Cube<T> *in;
     int blo[3],bhi[3];
     int nsubs;
-
-    bool setHead(int type); 
     
 };
 
@@ -329,7 +329,7 @@ void MomentMap<T>::SecondMoment (bool msk) {
 template <class T> 
 bool MomentMap<T>::setHead(int type) {
     
-    if (!in->HeadDef()) return false; 
+    if (!in->HeadDef())     this->headDefined = false; 
     else { 
         this->copyHeader(in->Head());
         this->head.setCrpix(0, in->Head().Crpix(0)-blo[0]);
@@ -344,9 +344,11 @@ bool MomentMap<T>::setHead(int type) {
             this->head.setBtype("velocity");
             this->head.setBunit("KM/S");
         }
+        this->headDefined = true;
     }   
     
-    return true;
+    
+    return this->headDefined;
     
 }
 
