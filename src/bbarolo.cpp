@@ -190,6 +190,10 @@ int main (int argc, char *argv[]) {
             map.input(c);
             std::string s = outfolder+c->Head().Name();
             bool masking = par->getMASK()=="NONE" ? false : true;
+            if (par->getMassDensMap()) {
+                map.HIMassDensityMap(masking);
+                map.fitswrite_2d((s+"map_massdens.fits").c_str());
+            }
             if (par->getTotalMap()) {
                 map.ZeroMoment(masking);
                 map.fitswrite_2d((s+"map_0th.fits").c_str());

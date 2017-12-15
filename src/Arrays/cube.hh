@@ -25,7 +25,6 @@
 #define CUBE_HH_
 
 #include <string>
-#include <fitsio.h>
 #include <Arrays/header.hh>
 #include <Arrays/stats.hh>
 #include <Arrays/param.hh>
@@ -46,9 +45,9 @@ public:
     Cube& operator=(const Cube &c);                     /// Copy operator.
     void defaults();
 
-    // Overloadad () operator for easy access the main array. Any control on the index.
-    inline T& operator() (unsigned x, unsigned y, unsigned z) {return array[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];};
-    inline T& operator() (unsigned i) {return array[i];};
+    // Overloadad () operator for easy access the main array. No controls on the index.
+    inline T& operator() (size_t x, size_t y, size_t z) {return array[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];};
+    inline T& operator() (size_t i) {return array[i];};
     
     /// Obvious inline functions to access a private member of class:   
     
@@ -59,10 +58,10 @@ public:
     int     DimX(){return axisDim[0];}; 
     int     DimY(){return axisDim[1];};
     int     DimZ(){return axisDim[2];};
-    long    nPix  (int x,int y,int z) {return x+y*axisDim[0]+z*axisDim[0]*axisDim[1];};
-    T*  Array () {return array;};
-    T&   Array (long npix) {return array[npix];};
-    T&   Array (int x,int y,int z) {return array[nPix(x,y,z)];};
+    long    nPix  (size_t x,size_t y,size_t z) {return x+y*axisDim[0]+z*axisDim[0]*axisDim[1];};
+    T*      Array () {return array;};
+    T&      Array (size_t npix) {return this->operator()(npix);};
+    T&      Array (size_t x,size_t y,size_t z) {return this->operator()(x,y,z);};
     void    setArray (T *ar) {array = ar;};
     double  getZphys (double z) {return (z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);};
     double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);};
@@ -141,7 +140,7 @@ public:
     void    plotDetections();
     Detection<T>* LargestDetection ();
 
-    /// Blanking and Maps functions, defined in mmaps.cpp.
+    /// Blanking and Maps functions.
     
     void    BlankCube (T *Array, long size);            /// Blank a input array using Cube::mask.
     void    BlankMask(float *channel_noise=NULL);       /// Define Cube::mask;
@@ -206,9 +205,5 @@ public:
     int end;                ///< Pixel on the current row where the detection finishes.
     Object2D<T> info;           ///< Collection of detected pixels.
 };
-
-
-//#include "cube.cpp"
-//#include "search.cpp"
 
 #endif

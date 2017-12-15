@@ -156,11 +156,12 @@ public:
     bool    getGlobProf () {return globprof;};
     void    setTotalMap (bool flag) {totalmap = flag;};
     bool    getTotalMap () {return totalmap;};
+    bool    getMassDensMap () {return massdensmap;};
     void    setVelMap (bool flag) {velocitymap = flag;};
     bool    getVelMap () {return velocitymap;};
     void    setDispMap (bool flag) {dispersionmap = flag;};
     bool    getDispMap () {return dispersionmap;};
-    bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap);};
+    bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap || massdensmap);};
     void    setBlankCut (float f) {blankCut=f;};
     float   getBlankCut() {return blankCut;};  
     
@@ -243,6 +244,7 @@ private:
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     
     bool            globprof;           ///< Whether the user wants the global profile.
+    bool            massdensmap;        ///< Whether the user wants the mass density HI map.
     bool            totalmap;           ///< Whether the user wants the total HI map.
     bool            velocitymap;        ///< Whether the user wants the velocity field.
     bool            dispersionmap;      ///< Whether the user wants the velocity dispersion field.

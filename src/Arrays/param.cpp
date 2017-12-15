@@ -51,6 +51,7 @@ void Param::defaultValues() {
     flagRobustStats     = true;
 
     globprof            = false;
+    massdensmap         = false;
     totalmap            = false;
     velocitymap         = false;
     dispersionmap       = false;
@@ -114,6 +115,7 @@ Param& Param::operator= (const Param& p) {
     this->globprof          = p.globprof;
     this->velocitymap       = p.velocitymap;
     this->totalmap          = p.totalmap;
+    this->massdensmap       = p.massdensmap;
     this->dispersionmap     = p.dispersionmap;
     this->blankCut          = p.blankCut;
          
@@ -295,6 +297,7 @@ int Param::readParams(std::string paramfile) {
 
             if(arg=="globalprofile")    globprof = readFlag(ss);
             if(arg=="totalmap")         totalmap = readFlag(ss);
+            if(arg=="massdensmap")      massdensmap = readFlag(ss);
             if(arg=="velocitymap")      velocitymap = readFlag(ss);
             if(arg=="dispersionmap")    dispersionmap = readFlag(ss);
             if(arg=="blankcut")         blankCut = readFval(ss);
@@ -707,6 +710,7 @@ void Param::printDefaults (std::ostream& theStream) {
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
+    recordParam(theStream, "[massdensMap]", "Saving HI mass density map to FITS file?", stringize(par.getMassDensMap()));
     recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
     recordParam(theStream, "[blankCut]", "SNR clipping cut for blanked areas", par.getBlankCut());
@@ -930,6 +934,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
+    recordParam(theStream, "[massdensMap]", "Saving HI mass density map to FITS file?", stringize(par.getMassDensMap()));
     recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
     if (par.getTotalMap() || par.getDispMap() || par.getVelMap()) {

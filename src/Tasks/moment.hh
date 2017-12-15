@@ -329,7 +329,7 @@ void MomentMap<T>::SecondMoment (bool msk) {
 template <class T> 
 bool MomentMap<T>::setHead(int type) {
     
-    if (!in->HeadDef())     this->headDefined = false; 
+    if (!in->HeadDef()) this->headDefined = false; 
     else { 
         this->copyHeader(in->Head());
         this->head.setCrpix(0, in->Head().Crpix(0)-blo[0]);
@@ -346,7 +346,6 @@ bool MomentMap<T>::setHead(int type) {
         }
         this->headDefined = true;
     }   
-    
     
     return this->headDefined;
     
