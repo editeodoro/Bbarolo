@@ -255,7 +255,7 @@ The classical 2D tilted-ring modelling of a galaxy: a model velocity field is fi
 
 * **2DFIT** [false]. This flag enables the 2D fitting of the velocity field.
 
-Parameters and options that control the task are in common with :ref:`3DFIT <3dfitopt>`. In particular, 2DFIT supports the following parameters: **NRADII**, **RADSEP**, **XPOS**, **YPOS**, **VSYS**, **VROT**, **VRAD**, **PA**, **INC**, **FREE**, **SIDE**, **WFUNC**. The velocity field to fit is extracted using a mask for the input datacube defined by the **MASK** parameter. To check the velocity field out before the fit, make use of the **VELOCITYMAP** parameter (see :ref:`moment maps <momentstask>`).
+Parameters and options that control the task are in common with :ref:`3DFIT <3dfitopt>`. In particular, 2DFIT supports the following parameters: **NRADII**, **RADSEP**, **XPOS**, **YPOS**, **VSYS**, **VROT**, **VRAD**, **PA**, **INC**, **FREE**, **SIDE**, **WFUNC**. If **FITSFILE** is a datacube, the velocity field to fit is extracted as 1st moment using a mask for the input datacube defined by the **MASK** parameter (written in the output directory). If **FITSFILE** is a 2D velocity map, this is used to fit the tilted-ring model.
 
 
 .. _ellproftask:
@@ -266,7 +266,7 @@ This task can be used to calculate the radial density profile of a galaxy.
 
 * **ELLPROF** [false]. This flag enables the radial profile task.
 
-Parameters for the task are: **RADII**, **NRADII**, **RADSEP**, **XPOS**, **YPOS**, **PA**, **INC**, **SIDE** (see :ref:`3DFIT <3dfit>`). If **FITSFILE** is a datacube, the profile is calculated from the column density map calculated after masking the cube accordingly to the **MASK** parameter. If **FITSFILE** is a 2D map, this is used to extract the profile.
+Parameters for the task are: **RADII**, **NRADII**, **RADSEP**, **XPOS**, **YPOS**, **PA**, **INC**, **SIDE** (see :ref:`3DFIT <3dfit>`). If **FITSFILE** is a datacube, the profile is calculated from the column density map calculated after masking the cube accordingly to the **MASK** parameter. If **FITSFILE** is a 2D intensity map, this is used to extract the profile.
 
 
 .. _momentstask:
