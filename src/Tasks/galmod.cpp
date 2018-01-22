@@ -794,6 +794,7 @@ void Galmod<T>::galmod() {
             }
         }
     }
+    
 //  Write data to output Cube.      
     for (int isubs=0; isubs<nsubs; isubs++) {
         int pixstart=isubs*bsize[0]*bsize[1];

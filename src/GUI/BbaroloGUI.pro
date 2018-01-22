@@ -30,14 +30,14 @@ SOURCES += main.cpp\
 #    ../Utilities/smooth3D.cpp \
 #    ../Utilities/progressbar.cpp \
 #    ../Utilities/lsqfit.cpp \
-#    ../Utilities/interpolation.cpp \
+    ../Utilities/interpolation.cpp \
 #    ../Utilities/galmod.cpp \
 #    ../Utilities/galfit_min.cpp \
 #    ../Utilities/galfit_errors.cpp \
 #    ../Utilities/galfit_out.cpp \
 #    ../Utilities/galfit.cpp \
 #    ../Utilities/conv2D.cpp \
-#    ../Utilities/allocator.cpp \
+    ../Utilities/allocator.cpp \
     qcustomplot.cpp
 
 HEADERS  += bbarolowindow.h \

@@ -55,6 +55,7 @@ void Param::defaultValues() {
     totalmap            = false;
     velocitymap         = false;
     dispersionmap       = false;
+    rmsmap              = false;
     blankCut            = 3;
 
     flagRing            = false;
@@ -117,6 +118,7 @@ Param& Param::operator= (const Param& p) {
     this->totalmap          = p.totalmap;
     this->massdensmap       = p.massdensmap;
     this->dispersionmap     = p.dispersionmap;
+    this->rmsmap            = p.rmsmap;
     this->blankCut          = p.blankCut;
          
     this->flagRing          = p.flagRing;
@@ -264,6 +266,8 @@ int Param::readParams(std::string paramfile) {
             if(arg=="fitslist")         imageList = readFilename(ss);
             if(arg=="verbose")          verbose = readFlag(ss);
             if(arg=="outfolder")        outFolder = readFilename(ss);
+            if(arg=="threads")          threads = readIval(ss);
+            if(arg=="debug")            debug = readFlag(ss);
             if(arg=="showbar")          showbar = readFlag(ss);
             if(arg=="beamfwhm")         beamFWHM = readFval(ss);
             if(arg=="checkchannels")    checkChannels = readFlag(ss);
@@ -276,7 +280,7 @@ int Param::readParams(std::string paramfile) {
                 parSE.UserThreshold = true;
             }
         
-            if(arg=="flagsearch")        parSE.flagSearch = readFlag(ss);
+            if(arg=="search")            parSE.flagSearch = readFlag(ss);
             if(arg=="searchtype")        parSE.searchType = readSval(ss);
             if(arg=="flagadjacent")      parSE.flagAdjacent = readFlag(ss);
             if(arg=="threshspatial")     parSE.threshSpatial = readIval(ss);
@@ -300,9 +304,11 @@ int Param::readParams(std::string paramfile) {
             if(arg=="massdensmap")      massdensmap = readFlag(ss);
             if(arg=="velocitymap")      velocitymap = readFlag(ss);
             if(arg=="dispersionmap")    dispersionmap = readFlag(ss);
+            if(arg=="rmsmap")           rmsmap = readFlag(ss);
             if(arg=="blankcut")         blankCut = readFval(ss);
         
-            if(arg=="2dfit")         flagRing = readFlag(ss);
+            if(arg=="2dfit")     flagRing = readFlag(ss);
+            if (arg=="ellprof")  flagEllProf = readFlag(ss);
         
             // SHARED PARAMETERS BETWEEN GALMOD, GALFIT AND GALWIND
             if(arg=="galfit")    parGF.flagGALFIT  = readFlag(ss);
@@ -359,42 +365,35 @@ int Param::readParams(std::string paramfile) {
             if(arg=="vwind")     parGW.VWIND      = readFilename(ss);
             if(arg=="denstype")  parGW.DENSTYPE   = readIval(ss);
  
-            if(arg=="p1")              P1 = readFilename(ss);
-            if(arg=="p1par")           readVec<float>(ss,P1p,3);
-            if(arg=="p2")              P2 = readFilename(ss);
-            if(arg=="p2par")           readVec<float>(ss,P2p,3);
+            if(arg=="p1")        P1 = readFilename(ss);
+            if(arg=="p1par")     readVec<float>(ss,P1p,3);
+            if(arg=="p2")        P2 = readFilename(ss);
+            if(arg=="p2par")     readVec<float>(ss,P2p,3);
             
-            if(arg=="smooth")              flagSmooth = readFlag(ss);
-            if(arg=="box")                 readVec<int>(ss,BOX,6);
-            if(arg=="bmaj")                bmaj = readDval(ss); 
-            if(arg=="bmin")                bmin = readDval(ss);
-            if(arg=="bpa")                 bpa = readDval(ss);
-            if(arg=="obmaj")               obmaj = readDval(ss);
-            if(arg=="obmin")               obmin = readDval(ss);
-            if(arg=="obpa")                obpa = readDval(ss);
-            if(arg=="linear")              linear = readDval(ss);
-            if(arg=="factor")              factor = readDval(ss);
-            if(arg=="scalefactor")         scalefactor = readDval(ss);
-            if(arg=="fft")                 flagFFT = readFlag(ss);
-            if(arg=="reduce")              flagReduce = readFlag(ss);
-            if(arg=="smoothoutput")        smo_out = readFilename(ss);
+            if(arg=="smooth")    flagSmooth = readFlag(ss);
+            if(arg=="box")       readVec<int>(ss,BOX,6);
+            if(arg=="bmaj")      bmaj = readDval(ss); 
+            if(arg=="bmin")      bmin = readDval(ss);
+            if(arg=="bpa")       bpa = readDval(ss);
+            if(arg=="obmaj")     obmaj = readDval(ss);
+            if(arg=="obmin")     obmin = readDval(ss);
+            if(arg=="obpa")      obpa = readDval(ss);
+            if(arg=="linear")    linear = readDval(ss);
+            if(arg=="factor")    factor = readDval(ss);
+            if(arg=="scalefactor") scalefactor = readDval(ss);
+            if(arg=="fft")       flagFFT = readFlag(ss);
+            if(arg=="reduce")    flagReduce = readFlag(ss);
+            if(arg=="smoothoutput") smo_out = readFilename(ss);
 
-            if(arg=="slitfit")             flagSlitfit = readFlag(ss);
-            if(arg=="wavefile")            wavefile = readFilename(ss);
-            if(arg=="ivarfile")            ivarfile = readFilename(ss);
-            if(arg=="linetofit")           linetofit = readFilename(ss);
+            if(arg=="slitfit")    flagSlitfit = readFlag(ss);
+            if(arg=="wavefile")   wavefile = readFilename(ss);
+            if(arg=="ivarfile")   ivarfile = readFilename(ss);
+            if(arg=="linetofit")  linetofit = readFilename(ss);
 
-
-            if (arg=="flagpv")              flagPV = readFlag(ss);
-            if (arg=="xpos_pv")             XPOS_PV = readFval(ss);
-            if (arg=="ypos_pv")             YPOS_PV = readFval(ss);
-            if (arg=="pa_pv")               PA_PV = readFval(ss);
-
-            if (arg=="ellprof")             flagEllProf = readFlag(ss);
-
-            if (arg=="threads")             threads = readIval(ss);
-            if (arg=="debug")               debug = readFlag(ss);
-
+            if (arg=="flagpv")    flagPV = readFlag(ss);
+            if (arg=="xpos_pv")   XPOS_PV = readFval(ss);
+            if (arg=="ypos_pv")   YPOS_PV = readFval(ss);
+            if (arg=="pa_pv")     PA_PV = readFval(ss);
         }
     }
 
@@ -422,54 +421,72 @@ int Param::readParams(std::string paramfile) {
   
 bool Param::checkPars() {
     
+    bool good = true;
+    
     checkHome(imageFile);
     checkHome(outFolder);
     if (outFolder!="" && outFolder[outFolder.size()-1]!='/') outFolder.append("/");
 
-    if (!verbose) showbar=false;
+    if (!verbose || threads>1) showbar=false;
 
-    // Can only have "spatial" or "spectral" as search types.
-    if(parSE.flagSearch && parSE.searchType != "spatial" && parSE.searchType != "spectral"){
-        std::cout<<"You have requested a search type of \""<<parSE.searchType<<"\".\n"
-                << "Only \"spectral\" and \"spatial\" are accepted. Setting to \"spectral\".\n";
-        parSE.searchType = "spectral";
+    // Checking MASK parameter
+    std::string maskstr = makeupper(parGF.MASK);
+    if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" ||
+        maskstr=="THRESHOLD" || maskstr=="NEGATIVE") {
+        parGF.MASK = maskstr;
+    }
+    else if (maskstr.find("FILE(")!=-1) {
+        size_t first = maskstr.find_first_of("(");
+        std::string sub1 = maskstr.substr(0,first);
+        std::string sub2 = parGF.MASK.substr(first);
+        parGF.MASK = sub1+sub2;
+    }
+    else {
+        std::cout << "\n ERROR: Unknown type of mask: " << parGF.MASK << std::endl;
+        std::cout << " Setting to SMOOTH" << std::endl;
+        parGF.MASK = "SMOOTH";
+    }
+
+
+    // Checking parameters for source finder
+    if (parSE.flagSearch) {
+        if(parSE.searchType != "spatial" && parSE.searchType != "spectral"){
+            std::cout << "You have requested a search type of \""<<parSE.searchType<<"\".\n"
+                      << "Only \"spectral\" and \"spatial\" are accepted. Setting to \"spectral\".\n";
+            parSE.searchType = "spectral";
+        }
+    
+        if(parSE.flagGrowth){
+            if(parSE.UserThreshold && ((parSE.threshold<parSE.growthThreshold)||
+              (parSE.snrCut<parSE.growthCut))) {
+                  std::cout << "Your \"growthThreshold\" parameter" << parSE.growthThreshold
+                            <<" is larger than your \"threshold\""  << parSE.threshold << std::endl;
+                  good = false;
+            }
+            if(!parSE.UserThreshold && (parSE.snrCut<parSE.growthCut)) {
+                std::cout << "Your \"growthCut\" parameter " << parSE.growthCut
+                          << " is larger than your \"snrCut\"" << parSE.snrCut << std::endl;
+                good = false;
+            }
+        
+            if(!good) {
+                std::cout << "The growth function is being turned off\n.";
+                parSE.flagGrowth=false;
+                good = true;
+            }
+        }
     }
     
-    if(parSE.flagGrowth){
-        bool good = true;
-        if(parSE.UserThreshold && ((parSE.threshold<parSE.growthThreshold)||
-          (parSE.snrCut<parSE.growthCut))) {
-            std::cout << "Your \"growthThreshold\" parameter" << parSE.growthThreshold
-                      <<" is larger than your \"threshold\""  << parSE.threshold << std::endl;
-            good = false;
-        }
-        if(!parSE.UserThreshold && (parSE.snrCut<parSE.growthCut)) {
-            std::cout << "Your \"growthCut\" parameter " << parSE.growthCut
-                      << " is larger than your \"snrCut\"" << parSE.snrCut << std::endl;
-            good = false;
-        }
-        
-        if(!good) {
-            std::cout << "The growth function is being turned off\n.";
-            parSE.flagGrowth=false;
-            good = true;
-        }
-    }
-
-    if (parGF.flagGALFIT || flagSpace || parGM.flagGALMOD) {
-        bool good = true;
+    // Checking parameters for 3DFIT and GALMOD
+    if (parGF.flagGALFIT || flagSpace || parGM.flagGALMOD || flagSlitfit) {
         std::string str =" is not an optional parameter. Please specify it in the input file or set flagSearch=true";
 
-        if (parGF.NRADII==0) {
-            std::cout << "3DFIT error: NRADII cannot be 0!" << std::endl;
+        if (parGF.NRADII==-1 && parGF.RADII=="-1")  {
+            std::cout << "3DFIT error: NRADII or RADII" << str << std::endl;
             good = false;
         }
 
         if (parGM.flagGALMOD) {
-            if (parGM.NRADII==-1 && parGM.RADII=="-1")  {
-                std::cout << "3DFIT error: NRADII or RADII" << str << std::endl;
-                good = false;
-            }
             if (parGM.XPOS=="-1") {
                 std::cout << "3DFIT error: XPOS" << str << std::endl;
                 good = false;
@@ -516,24 +533,6 @@ bool Param::checkPars() {
             }
         }
 
-        std::string maskstr = makeupper(parGF.MASK);
-
-        if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" ||
-            maskstr=="THRESHOLD" || maskstr=="NEGATIVE") {
-            parGF.MASK = maskstr;
-        }
-        else if (maskstr.find("FILE(")!=-1) {
-            size_t first = maskstr.find_first_of("(");
-            std::string sub1 = maskstr.substr(0,first);
-            std::string sub2 = parGF.MASK.substr(first);
-            parGF.MASK = sub1+sub2;
-        }
-        else {
-            std::cout << "\n ERROR: Unknown type of mask: " << parGF.MASK << std::endl;
-            std::cout << " Setting to SMOOTH" << std::endl;
-            parGF.MASK = "SMOOTH";
-        }
-
         if (parGF.flagGALFIT) {
             if (parGF.FREE=="") {
                 std::cout << "3DFIT error: FREE" << str << std::endl;
@@ -577,24 +576,22 @@ bool Param::checkPars() {
 
          if ((parGF.RESTWAVE!=-1 && parGF.REDSHIFT==-1) || (parGF.RESTWAVE==-1 && parGF.REDSHIFT!=-1)) {
             std::cout<< "3DFIT warning: Restwave and Redshift must be set both. Exiting...\n";
-            abort();
+            std::terminate();
          }
         
-
-        if (flagSlitfit==true) {
-            std::cout<< "3DFIT warning: Galfit and Splitfit cannot be run at the same time. "
+        if (flagSlitfit) {
+            checkHome(wavefile);
+            checkHome(ivarfile);
+            std::cout<< "3DFIT warning: Galfit and Slitfit cannot be run at the same time. "
                      << "Switching off Slitfit. \n";
-            flagSlitfit=false;
+            flagSlitfit = false;
         }
             
-        return good;
     }
     
-    
+    // Check parameters for GALWIND task
     if (parGW.flagGALWIND) {
-        bool good = true;
         std::string str =" is not an optional parameter. Please specify it in the input file.";
-        
         if (parGW.XPOS=="-1") {
             std::cout << "GALWIND error: XPOS" << str << std::endl;
             good = false;
@@ -634,39 +631,28 @@ bool Param::checkPars() {
         if (parGW.VWIND=="-1")   {
             std::cout << "GALWIND error: VWIND" << str << std::endl;
             good = false;
-        }
-
-        return good;
-        
+        }        
     }
     
-    
+    // Checking parameters for SMOOTH
     if (flagSmooth) {
         if (bmaj==-1 && bmin==-1 && linear==-1 && factor==-1) {
             std::cout << "SMOOTH error: "
                       << "you need to specify either the new beam (BMAJ, BMIN, BPA) "
                       << "or the parameters LINEAR and DISTANCE.\n";
-            return false;
+            good = false;
         }
         if (linear!=-1 && parGF.DISTANCE==-1) {
             std::cout << "SMOOTH error: "
                       << "with LINEAR parameter you must specify also the DISTANCE. ";
-            return false;
+            good = false;
         }
         if (bmaj!=-1 && bmin==-1) {
             bmin = bmaj;
         }
     }
-
-    if (flagSlitfit) {
-        checkHome(wavefile);
-        checkHome(ivarfile);
-    }
     
-    if (threads>1) showbar=false;
-
-
-    return true;
+    return good;
 }
 
 
@@ -675,12 +661,12 @@ void Param::printDefaults (std::ostream& theStream) {
     Param par;
     
     theStream.setf(std::ios::left);
-    theStream  <<"\n--------------------- Defaults parameters --------------------\n"<<std::endl;
+    theStream  <<"\n--------------------- Default parameters ---------------------\n"<<std::endl;
     theStream  << std::setfill('.');
    
-    recordParam(theStream, "[fitsFile]", "Image to be analysed", par.getImageFile());
-    recordParam(theStream, "[fitsList]", "List of images to be analysed", par.getImageList());
-    recordParam(theStream, "[threads]", "Number of threads", par.getThreads());
+    recordParam(theStream, "[FITSFILE]", "FITS file to be analysed", par.getImageFile());
+    recordParam(theStream, "[FITSLIST]", "List of FITS files to be analysed", par.getImageList());
+    recordParam(theStream, "[THREADS]", "Number of threads", par.getThreads());
     
     theStream  <<"--------------"<<std::endl;
 
@@ -688,7 +674,7 @@ void Param::printDefaults (std::ostream& theStream) {
     recordParam(theStream, "[beamFWHM]", "Size of the beam (arcsec)", par.getBeamFWHM());
     recordParam(theStream, "[flagRobustStats]", "Using Robust statistics?", stringize(par.getFlagRobustStats()));
     
-    recordParam(theStream, "[flagSearch]", "Searching for sources in cube?", stringize(par.getParSE().flagSearch));
+    recordParam(theStream, "[SEARCH]", "Searching for sources in cube?", stringize(par.getParSE().flagSearch));
     recordParam(theStream, "[searchType]", "   Type of searching performed", par.getParSE().searchType);
     recordParam(theStream, "[minPix]", "   Minimum # Pixels in a detection", par.getParSE().minPix);
     recordParam(theStream, "[minChannels]", "   Minimum # Channels in a detection", par.getParSE().minChannels);
@@ -706,13 +692,14 @@ void Param::printDefaults (std::ostream& theStream) {
     recordParam(theStream, "[growthCut]", "   SNR Threshold for growth", par.getParSE().growthCut);
     recordParam(theStream, "[growthThreshold]", "   Threshold for growth", par.getParSE().growthThreshold);
     
-    recordParam(theStream, "[2dfit]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
+    recordParam(theStream, "[2DFIT]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
     
     recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
     recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
     recordParam(theStream, "[massdensMap]", "Saving HI mass density map to FITS file?", stringize(par.getMassDensMap()));
     recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
     recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
+    recordParam(theStream, "[rmsMap]", "Saving RMS map to FITS file?", stringize(par.getRMSMap()));
     recordParam(theStream, "[blankCut]", "SNR clipping cut for blanked areas", par.getBlankCut());
     
     recordParam(theStream, "[SMOOTH]", "Smoothing the datacube?", stringize(par.getflagSmooth()));
@@ -721,12 +708,14 @@ void Param::printDefaults (std::ostream& theStream) {
     recordParam(theStream, "[BOX]", "Sub-region to be used?", "entire dataset");
     
     recordParam(theStream, "[3DFIT]", "Fitting a 3D model to the datacube?", stringize(par.getParGF().flagGALFIT));
+    recordParam(theStream, "[GALMOD]", "Writing a 3D model?", stringize(par.getflagGalMod()));
     recordParam(theStream, "[DENS]", "   Global column density of gas (atoms/cm2)", par.getParGF().DENS);
     recordParam(theStream, "[LTYPE]", "   Layer type along z direction", "gaussian");
     recordParam(theStream, "[FTYPE]", "   Function to be minimized", "|m-o|");
     recordParam(theStream, "[WFUNC]", "   Weighting function", "|cos(θ)|");
     recordParam(theStream, "[TOL]", "   Minimization tolerance", par.getParGF().TOL); 
     recordParam(theStream, "[MASK]", "   Type of mask", (par.getParGF().MASK));
+    recordParam(theStream, "[FREE]", "   Parameters to be minimized", par.getParGF().FREE);
     recordParam(theStream, "[SIDE]", "   What side of the galaxy to be used", (par.getParGF().SIDE)); 
     recordParam(theStream, "[TWOSTAGE]", "   Two stages minimization?", stringize(par.getParGF().TWOSTAGE));
     recordParam(theStream, "[POLYN]", "     Degree of polynomial fitting angles?", par.getParGF().POLYN);
@@ -890,16 +879,19 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
     theStream  << std::setfill('.');
    
     if (par.getImageList()=="NONE") 
-        recordParam(theStream, "[FitsFile]", "Image to be analysed", par.getImageFile());
-    else recordParam(theStream, "[FitsList]", "List of images to be analysed", par.getImageList());
-    recordParam(theStream, "[threads]", "Number of threads", par.getThreads());
+        recordParam(theStream, "[FITSFILE]", "FITS file to be analysed", par.getImageFile());
+    else recordParam(theStream, "[FITSLIST]", "List of FITS files to be analysed", par.getImageList());
+    recordParam(theStream, "[THREADS]", "Number of threads", par.getThreads());
     
     theStream  <<"--------------"<<std::endl;
   
     recordParam(theStream, "[checkChannels]", "Checking for bad channels in the cube", stringize(par.getCheckCh()));
     recordParam(theStream, "[flagRobustStats]", "Using Robust statistics?", stringize(par.getFlagRobustStats()));
+    if (par.getParGF().DISTANCE!=-1)
+        recordParam(theStream, "[DISTANCE]", "Distance of the galaxy (Mpc)?", par.getParGF().DISTANCE);
   
-    recordParam(theStream, "[flagSearch]", "Searching for sources in cube?", stringize(par.getParSE().flagSearch));
+    // PARAMETERS FOR SEARCH TASK
+    recordParam(theStream, "[SEARCH]", "Searching for sources in cube?", stringize(par.getParSE().flagSearch));
     if (par.getParSE().flagSearch) {
         recordParam(theStream, "[searchType]", "   Type of searching performed", par.getParSE().searchType);
         recordParam(theStream, "[minPix]", "   Minimum # Pixels in a detection", par.getParSE().minPix);
@@ -929,18 +921,9 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
             }
         }
     }
-            
-    recordParam(theStream, "[2dfit]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
     
-    recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
-    recordParam(theStream, "[totalMap]", "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
-    recordParam(theStream, "[massdensMap]", "Saving HI mass density map to FITS file?", stringize(par.getMassDensMap()));
-    recordParam(theStream, "[velocityMap]", "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
-    recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
-    if (par.getTotalMap() || par.getDispMap() || par.getVelMap()) {
-        recordParam(theStream, "[mask]", "   Mask used for maps and profile?", par.getMASK());
-    }
-    
+
+    // PARAMETERS FOR SMOOTH
     recordParam(theStream, "[SMOOTH]", "Smoothing the datacube?", stringize(par.getflagSmooth()));
     if (par.getflagSmooth()) {
         std::string box;
@@ -958,19 +941,24 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         else recordParam(theStream, "[FACTOR]", "   New beam factor (times old beam)", par.getFactor());
 
         recordParam(theStream, "[FFT]", "   Using FFT for convolution?", stringize(par.getflagFFT()));
-        recordParam(theStream, "[REDUCE]", "Reducing datacube?", stringize(par.getflagReduce()));
+        recordParam(theStream, "[REDUCE]", "   Reducing datacube?", stringize(par.getflagReduce()));
     }
     
     
-    if (par.getParGF().DISTANCE!=-1)
-        recordParam(theStream, "[Distance]", "Distance of the galaxy (Mpc)?", par.getParGF().DISTANCE);
+
 
     recordParam(theStream, "[3DFIT]", "Fitting a 3D model to the datacube?", stringize(par.getflagGalFit()));
-    recordParam(theStream, "[GALMOD]", "Writing a 3D model to the datacube?", stringize(par.getflagGalMod()));
+    recordParam(theStream, "[GALMOD]", "Writing a 3D model?", stringize(par.getflagGalMod()));
 
     if (par.getflagGalFit() || par.getflagGalMod()) {
-        recordParam(theStream, "[NRADII]", "   Number of radii", par.getParGF().NRADII);
-        recordParam(theStream, "[RADSEP]", "   Separation between radii (arcsec)", par.getParGF().RADSEP);
+        if (par.getParGF().RADII!="-1") {
+            recordParam(theStream, "[RADII]", "   Radii for rings", par.getParGF().NRADII);
+        }
+        else {
+            recordParam(theStream, "[NRADII]", "   Number of radii", par.getParGF().NRADII);
+            recordParam(theStream, "[RADSEP]", "   Separation between radii (arcsec)", par.getParGF().RADSEP);
+        }
+        
         recordParam(theStream, "[XPOS]", "   X center of the galaxy (pixel)", par.getParGF().XPOS);
         recordParam(theStream, "[YPOS]", "   Y center of the galaxy (pixel)", par.getParGF().YPOS);
         recordParam(theStream, "[VSYS]", "   Systemic velocity of the galaxy (km/s)", par.getParGF().VSYS);
@@ -982,9 +970,9 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         recordParam(theStream, "[Z0]", "   Scale height of the disk (arcsec)", par.getParGF().Z0);
         recordParam(theStream, "[DENS]", "   Global column density of gas (atoms/cm2)", par.getParGF().DENS);
         recordParam(theStream, "[FREE]", "   Parameters to be minimized", par.getParGF().FREE);
-        recordParam(theStream, "[MASK]", "   Type of mask?", par.getParGF().MASK);
-        recordParam(theStream, "[SIDE]", "   What side of the galaxy to be used", (par.getParGF().SIDE)); 
-        recordParam(theStream, "[NORM]", "   Type of normalization?", (par.getParGF().NORM));
+        recordParam(theStream, "[MASK]", "   Type of mask", par.getParGF().MASK);
+        recordParam(theStream, "[SIDE]", "   Side of the galaxy to be used", (par.getParGF().SIDE)); 
+        recordParam(theStream, "[NORM]", "   Type of normalization", (par.getParGF().NORM));
 
         
         std::string ltype;
@@ -1048,7 +1036,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         recordParam(theStream, "[WFUNC]", "   Weighting function", wfunc);
         
         recordParam(theStream, "[TOL]", "   Minimization tolerance", par.getParGF().TOL); 
-        
+        recordParam(theStream, "[SIDE]", "   What side of the galaxy to be used", (par.getParGF().SIDE)); 
         recordParam(theStream, "[TWOSTAGE]", "   Two stages minimization?", stringize(par.getParGF().TWOSTAGE));
         if (par.getParGF().TWOSTAGE)
             recordParam(theStream, "[POLYN]", "     Degree of polynomial fitting angles?", par.getParGF().POLYN);
@@ -1056,21 +1044,79 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
 
     }
     
+    // PARAMETERS FOR GALWIND 
     recordParam(theStream, "[GALWIND]", "Generating a 3D datacube with a wind model?", stringize(par.getParGW().flagGALWIND));
     if (par.getParGW().flagGALWIND) {
-        recordParam(theStream, "[VWIND]", "   Radial velocity of the wind (km/s)", par.getParGW().VWIND);
+        recordParam(theStream, "[VWIND]",   "   Radial velocity of the wind (km/s)", par.getParGW().VWIND);
         recordParam(theStream, "[OPENANG]", "   Wind opening angle (degrees)", par.getParGW().OPENANG);
-        recordParam(theStream, "[HTOT]", "   Wind maximum distance (arcsec)", par.getParGW().HTOT);
-        recordParam(theStream, "[XPOS]", "   X center of the galaxy (pixel)", par.getParGW().XPOS);
-        recordParam(theStream, "[YPOS]", "   Y center of the galaxy (pixel)", par.getParGW().YPOS);
-        recordParam(theStream, "[VSYS]", "   Systemic velocity of the galaxy (km/s)", par.getParGW().VSYS);
-        recordParam(theStream, "[VDISP]", "   Global velocity dispersion (km/s)", par.getParGW().VDISP);
-        recordParam(theStream, "[INC]", "   Global inclination (degrees)", par.getParGW().INC);
-        recordParam(theStream, "[PA]", "   Global position angle (degrees)", par.getParGW().PHI);
-        recordParam(theStream, "[DENS]", "   Global column density of gas (atoms/cm2)", par.getParGW().DENS);
-        recordParam(theStream, "[NTOT]", "   Number of layers/cylinder for each cone", par.getParGW().NTOT);
-        recordParam(theStream, "[DENSTYPE]", "   How to distribute density in layers", par.getParGW().DENSTYPE);
+        recordParam(theStream, "[HTOT]",    "   Wind maximum distance (arcsec)", par.getParGW().HTOT);
+        recordParam(theStream, "[XPOS]",    "   X center of the galaxy (pixel)", par.getParGW().XPOS);
+        recordParam(theStream, "[YPOS]",    "   Y center of the galaxy (pixel)", par.getParGW().YPOS);
+        recordParam(theStream, "[VSYS]",    "   Systemic velocity of the galaxy (km/s)", par.getParGW().VSYS);
+        recordParam(theStream, "[VDISP]",   "   Global velocity dispersion (km/s)", par.getParGW().VDISP);
+        recordParam(theStream, "[INC]",     "   Global inclination (degrees)", par.getParGW().INC);
+        recordParam(theStream, "[PA]",      "   Global position angle (degrees)", par.getParGW().PHI);
+        recordParam(theStream, "[DENS]",    "   Global column density of gas (atoms/cm2)", par.getParGW().DENS);
+        recordParam(theStream, "[NTOT]",    "   Number of layers/cylinder for each cone", par.getParGW().NTOT);
+        recordParam(theStream, "[DENSTYPE]","   How to distribute density in layers", par.getParGW().DENSTYPE);
     }
+    
+    // PARAMETERS FOR 2DFIT
+    recordParam(theStream, "[2DFIT]", "Fitting velocity field with a ring model?", stringize(par.getFlagRing()));
+    if (par.getFlagRing()) {
+        if (par.getParGF().RADII!="-1") {
+            recordParam(theStream, "[RADII]", "   Radii for rings", par.getParGF().NRADII);
+        }
+        else {
+            recordParam(theStream, "[NRADII]", "   Number of radii", par.getParGF().NRADII);
+            recordParam(theStream, "[RADSEP]", "   Separation between radii (arcsec)", par.getParGF().RADSEP);
+        }
+        recordParam(theStream, "[XPOS]", "   X center of the galaxy (pixel)", par.getParGF().XPOS);
+        recordParam(theStream, "[YPOS]", "   Y center of the galaxy (pixel)", par.getParGF().YPOS);
+        recordParam(theStream, "[VSYS]", "   Systemic velocity of the galaxy (km/s)", par.getParGF().VSYS);
+        recordParam(theStream, "[VROT]", "   Rotation velocity (km/s)", par.getParGF().VROT);
+        recordParam(theStream, "[VRAD]", "   Radial velocity (km/s)", par.getParGF().VRAD);
+        recordParam(theStream, "[INC]",  "   Inclination angle (degrees)", par.getParGF().INC);
+        recordParam(theStream, "[PA]",   "   Position angle (degrees)", par.getParGF().PHI);
+        recordParam(theStream, "[FREE]", "   Parameters to be fit", par.getParGF().FREE);
+        recordParam(theStream, "[MASK]", "   Type of mask for velocity map", par.getParGF().MASK);
+        recordParam(theStream, "[SIDE]", "   Side of the galaxy to be used", (par.getParGF().SIDE)); 
+    }
+    
+    // PARAMETERS FOR ELLPROF
+    recordParam(theStream, "[ELLPROF]", "Deriving radial intensity profile?", stringize(par.getFlagEllProf()));
+    if (par.getFlagEllProf()) {
+        if (par.getParGF().RADII!="-1") {
+            recordParam(theStream, "[RADII]", "   Radii for rings", par.getParGF().NRADII);
+        }
+        else {
+            recordParam(theStream, "[NRADII]", "   Number of radii", par.getParGF().NRADII);
+            recordParam(theStream, "[RADSEP]", "   Separation between radii (arcsec)", par.getParGF().RADSEP);
+        }
+        recordParam(theStream, "[XPOS]", "   X center of the galaxy (pixel)", par.getParGF().XPOS);
+        recordParam(theStream, "[YPOS]", "   Y center of the galaxy (pixel)", par.getParGF().YPOS);
+        recordParam(theStream, "[INC]",  "   Inclination angle (degrees)", par.getParGF().INC);
+        recordParam(theStream, "[PA]",   "   Position angle (degrees)", par.getParGF().PHI);
+        recordParam(theStream, "[MASK]", "   Type of maskfor intensity map", par.getParGF().MASK);
+        recordParam(theStream, "[SIDE]", "   Side of the galaxy to be used", (par.getParGF().SIDE)); 
+    }
+    
+    // PARAMETERS FOR MOMENT MAPS
+    if (par.getGlobProf())
+        recordParam(theStream, "[globalProfile]", "Saving the global profile?", stringize(par.getGlobProf()));
+    if (par.getTotalMap())
+        recordParam(theStream, "[totalMap]",      "Saving 0th moment map to FITS file?", stringize(par.getTotalMap()));
+    if (par.getMassDensMap())
+        recordParam(theStream, "[massdensMap]",   "Saving HI mass density map to FITS file?", stringize(par.getMassDensMap()));
+    if (par.getVelMap())
+        recordParam(theStream, "[velocityMap]",   "Saving 1st moment map to FITS file?", stringize(par.getVelMap()));
+    if (par.getDispMap())
+        recordParam(theStream, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(par.getDispMap()));
+    if (par.getRMSMap())
+        recordParam(theStream, "[rmsMap]", "Saving RMS map to FITS file?", stringize(par.getRMSMap()));
+    if (par.getMaps()) 
+        recordParam(theStream, "[MASK]",          "   Mask used for maps and profile?", par.getMASK());
+    
     
     
     theStream  << std::endl <<"-----------------------------";

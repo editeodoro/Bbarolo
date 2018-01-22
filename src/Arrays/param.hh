@@ -161,7 +161,8 @@ public:
     bool    getVelMap () {return velocitymap;};
     void    setDispMap (bool flag) {dispersionmap = flag;};
     bool    getDispMap () {return dispersionmap;};
-    bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap || massdensmap);};
+    bool    getRMSMap () {return rmsmap;}
+    bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap || massdensmap || rmsmap);};
     void    setBlankCut (float f) {blankCut=f;};
     float   getBlankCut() {return blankCut;};  
     
@@ -248,6 +249,7 @@ private:
     bool            totalmap;           ///< Whether the user wants the total HI map.
     bool            velocitymap;        ///< Whether the user wants the velocity field.
     bool            dispersionmap;      ///< Whether the user wants the velocity dispersion field.
+    bool            rmsmap;             ///< Whether the user wants the RMS map.
     float           blankCut;           ///< SNR clipping cut for blanked area.
 
     bool            flagRing;           ///< Do you want to fit a tilted ring model?

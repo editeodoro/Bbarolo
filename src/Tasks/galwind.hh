@@ -31,8 +31,8 @@
 template <class T>   
 class GalWind
 {
-// GalWind is derived from Federico Lelli algorithm.
-// This class build a bi-conical outflow model with constant outflow velocity 
+// GalWind is derived from Federico Lelli's algorithm.
+// This class builds a bi-conical outflow model with given outflow velocity 
 // and velocity dispersion. The cone is build adding N cylinders with the same 
 // thickness and symmetry axis but increasing diameter. After adding the cylinders, 
 // the projected bi-cone is convoluted with the observed PSF (assumed to be Gaussian).

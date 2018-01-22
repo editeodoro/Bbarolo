@@ -173,6 +173,7 @@ Ringmodel::Ringmodel (Cube<float> *c)  {
     if (c->Head().NumAx()>2) map.FirstMoment(true);
     else {
         for (int i=0; i<c->NumPix(); i++) map.Array(i) = c->Array(i);
+        map.setHead(1);
     }
     map.fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_1st.fits").c_str());
 
@@ -387,8 +388,8 @@ void Ringmodel::ringfit() {
     
     if (fieldAllocated && allAllocated) {
         
-        ProgressBar bar;
         
+        ProgressBar bar(" Fitting 2D tilted-ring model... ", true);
         bar.init(nrad);
         
         for (nfit = 0, iring = 0; iring < nrad; iring++) {
@@ -456,11 +457,11 @@ void Ringmodel::ringfit() {
             }   
         }
         
-        bar.fillSpace(" Done.");
+        bar.fillSpace("Done.\n");
     
     }
     else {
-        std::cout << "Tilted Ring Error: Arrays are not allocated!\n";
+        std::cout << "2DFIT ERROR: Arrays are not allocated!\n";
     }
     
     
@@ -889,8 +890,8 @@ void Ringmodel::print (std::ostream& Stream) {
 void Ringmodel::printfinal (std::ostream& Stream) {
 
     int m=10;
-    Stream  << std::endl;
-    Stream  << setw(m) << right << "#Radius"
+    Stream  << fixed << setprecision(2);
+    Stream  << "#" << setw(m) << right << "Radius"
             << setw(m) << right << "Radius"
             << setw(m) << right << "Vsys "
             << setw(m) << right << "Vrot "
@@ -900,7 +901,7 @@ void Ringmodel::printfinal (std::ostream& Stream) {
             << setw(m) << right << "Xcenter"
             << setw(m) << right << "Ycenter" << endl;
 
-    Stream  << setw(m) << right  << "#[pix] "
+    Stream  << "#" << setw(m) << right  << "[pix] "
             << setw(m) << right << "[arcs]"
             << setw(m) << right << "[KM/S]"
             << setw(m) << right << "[KM/S]"

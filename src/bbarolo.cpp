@@ -178,6 +178,10 @@ int main (int argc, char *argv[]) {
         if (par->getFlagRing()) {
             Ringmodel *trmod = new Ringmodel(c);
             trmod->ringfit();
+            std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_2dtrm.txt";
+            std::ofstream fileo(fout.c_str());
+            trmod->printfinal(fileo);
+            fileo.close();
             trmod->printfinal(std::cout);
             delete trmod;
         }
@@ -206,21 +210,21 @@ int main (int argc, char *argv[]) {
                 map.SecondMoment(masking);
                 map.fitswrite_2d((s+"map_2nd.fits").c_str());
             }
+            if (par->getRMSMap()) {
+                map.RMSMap();
+                map.fitswrite_2d((s+"map_RMS.fits").c_str());
+            }
+            if (par->getGlobProf()) {
+                Image2D<float> spectrum;
+                spectrum.extractGlobalSpectrum(c);
+                std::string specfname = c->pars().getOutfolder()+"spectrum.txt";
+                std::ofstream specfile; specfile.open(specfname.c_str());
+                for (int i=0; i<c->DimZ(); i++) 
+                    specfile << c->getZphys(i) << " " << spectrum.Array(i) << std::endl;
+            }
         }
         //-----------------------------------------------------------------
         
-        
-        // Global profile task --------------------------------------------
-        if (par->getGlobProf()) {
-            Image2D<float> spectrum;
-            spectrum.extractGlobalSpectrum(c);
-            std::string specfname = c->pars().getOutfolder()+"spectrum.txt";
-            std::ofstream specfile; specfile.open(specfname.c_str());
-            for (int i=0; i<c->DimZ(); i++) 
-                specfile << c->getZphys(i) << " " << spectrum.Array(i) << std::endl;
-        }
-        //-----------------------------------------------------------------
-
 
         // PVs extraction task --------------------------------------------
         if (par->getFlagPV()) {
@@ -244,6 +248,7 @@ int main (int argc, char *argv[]) {
         }
         //-----------------------------------------------------------------
 
+
         // Kinematics fitting to slit data --------------------------------
         if (par->getFlagSlitfit()) {
             Model::Galfit<float> *sfit = new Model::Galfit<float>;
@@ -256,6 +261,7 @@ int main (int argc, char *argv[]) {
             else sfit->writeModel_slit();
         }
         //-----------------------------------------------------------------
+
 
         // Radial profile ------------------------------------------------
         if (par->getFlagEllProf()) {

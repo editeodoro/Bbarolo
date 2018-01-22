@@ -26,6 +26,7 @@
 
 #include <iostream>
 #include <fitsio.h>
+#include <vector>
 
 #include <Arrays/cube.hh>
 #include <Arrays/image.hh>
@@ -49,6 +50,7 @@ public:
     void ZeroMoment (bool msk);
     void FirstMoment (bool msk);
     void SecondMoment (bool msk);
+    void RMSMap (float level=0.1, float sncut = 1.5);
 
     bool setHead(int type); 
     
@@ -345,6 +347,78 @@ void MomentMap<T>::SecondMoment (bool msk) {
 }
 
 
+
+template <class T> 
+void MomentMap<T>::RMSMap (float level, float sncut) {
+    
+    // Compute the RMS map, i.e. the RMS in each spectrum.
+    // Use an iterative way: calculate rms, cut at 1.5*rms, 
+    // start again until convergence at level "level".
+
+    if (!this->arrayAllocated) {
+        std::cout << "MOMENT MAPS error: ";
+        std::cout << "Array not allocated. Call 'input' first!!\n";
+        std::terminate();
+    }
+        
+    if (!(this->headDefined=setHead(3))) {
+        std::cout<< "MOMENT MAPS warning: cannot create new header.\n";
+    }
+    
+    bool isVerbose = in->pars().isVerbose();
+    int nthreads = in->pars().getThreads();
+    bool rob = in->pars().getFlagRobustStats();
+    
+    // Cube sizes
+    size_t xs = in->DimX(), ys = in->DimY(), zs = in->DimZ();
+    
+    // Progress bar
+    ProgressBar bar(" Computing RMS map... ", true);
+    bar.setShowbar(in->pars().getShowbar());
+    if (nthreads>1) bar.setShowbar(false);
+    if (isVerbose) bar.init(xs*ys);
+    
+#pragma omp parallel for num_threads(nthreads)   
+    for (int xy=0; xy<xs*ys; xy++) {
+        if (isVerbose) bar.update(xy+1);
+            
+        // Getting the spectrum at x,y pixel
+        std::vector<float> sp(zs);
+        for (int z=0; z<zs; z++) 
+            if (in->Array(xy+z*xs*ys)==in->Array(xy+z*xs*ys)) 
+                sp[z] = in->Array(xy+z*xs*ys);
+            
+        // Start main loop
+        float orms = 1E10;
+        size_t count = 0;
+        while (true) {
+            // Calculate median and MADFM
+            float rms = 0;
+            if (rob) {
+                float median = findMedian(&sp[0],sp.size(),false);
+                rms = findMADFM(&sp[0],sp.size(),median,false)/0.6745;
+            }
+            else {
+                rms = findStddev(&sp[0],sp.size());
+            }
+            // Calculate improvement wrt previous step
+            float rat = (orms - rms)/orms;
+            // If meet criteria, exit 
+            if (rat<level || count++>100 || sp.size()<5) break;
+            // Else S/N cut the spectrum 
+            orms = rms;
+            for (int z=sp.size(); z--;) 
+                if (sp[z]>sncut*rms) sp.erase(sp.begin()+z);
+        }
+        this->array[xy] = orms;
+    }
+    
+    if (isVerbose) bar.fillSpace("Done.\n");
+
+
+}
+
+
 template <class T> 
 bool MomentMap<T>::setHead(int type) {
     
@@ -360,8 +434,12 @@ bool MomentMap<T>::setHead(int type) {
             else this->head.setBunit("JY/BEAM * KM/S");
         }
         else if (type==1 || type==2) {
-            this->head.setBtype("velocity");
+            if (type==1) this->head.setBtype("velocity");
+            else this->head.setBtype("dispersion");
             this->head.setBunit("KM/S");
+        }
+        else if (type==3) {
+            this->head.setBtype("rms");
         }
         this->headDefined = true;
     }   
@@ -478,7 +556,6 @@ Image2D<T>* PositionVelocity (Cube<T> *c, T x0, T y0, T Phi) {
     std::string name = c->Head().Name()+"_pv"+to_string(Phi);
     pv->Head().setName(name);
 
-    
     return pv;
     
 }
