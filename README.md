@@ -18,7 +18,7 @@ For the GUI (optional):
 
 
 
-2) Running example: 
+2) Running examples (to be separetely downloaded): 
 
  > ./BBarolo -p examples/n2403.par
 
