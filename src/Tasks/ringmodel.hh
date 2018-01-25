@@ -24,6 +24,8 @@
 #ifndef RINGMODEL_HH_
 #define RINGMODEL_HH_
 
+#include <vector>
+#include <fstream>
 #include <Arrays/cube.hh>
 
 enum ALLPARS {VSYS, VROT, VEXP, PA, INC, X0, Y0};
@@ -54,66 +56,27 @@ public:                                 /// model.
               float vexp, float posang, float incl, float xcenter, float ycenter);
     
     /// Inline functions to access private members:
+    float&   getRadius(int i) {return rads [i];};
+    float&   getWidth (int i) {return wids [i];};
+    float&   getVsysf (int i) {return vsysf[i];};
+    float&   getVrotf (int i) {return vrotf[i];};
+    float&   getVexpf (int i) {return vexpf[i];};
+    float&   getPosaf (int i) {return posaf[i];};
+    float&   getInclf (int i) {return inclf[i];};
+    float&   getXposf (int i) {return xposf[i];};
+    float&   getYposf (int i) {return yposf[i];};
     
-    void    setRadius(int i, float v) {rads [i] = v;};
-    void    setWidth (int i, float v) {wids [i] = v;};
-    void    setVsysi (int i, float v) {vsysi[i] = v;};
-    void    setVroti (int i, float v) {vroti[i] = v;};
-    void    setVexpi (int i, float v) {vexpi[i] = v;};
-    void    setPosai (int i, float v) {posai[i] = v;};
-    void    setIncli (int i, float v) {incli[i] = v;};
-    void    setXposi (float v) {xposi = v;};
-    void    setYposi (float v) {yposi = v;};
-    void    setNradii(int i)   {nrad = i;};
+    float&   getVsyse (int i) {return vsyse[i];};
+    float&   getVrote (int i) {return vrote[i];};
+    float&   getVexpe (int i) {return vexpe[i];};
+    float&   getPosae (int i) {return posae[i];};
+    float&   getIncle (int i) {return incle[i];};
+    float&   getXpose (int i) {return xpose[i];};
+    float&   getYpose (int i) {return ypose[i];};
     
-    void    setRadii (float *v) {rads  = v;};
-    void    setWidths(float *v) {wids  = v;};
-    void    setVsysi (float *v) {vsysi = v;};
-    void    setVroti (float *v) {vroti = v;};
-    void    setVexpi (float *v) {vexpi = v;};
-    void    setPosai (float *v) {posai = v;};
-    void    setIncli (float *v) {incli = v;};
-
-    float   getRadius(int i) {return rads [i];};
-    float   getWidth (int i) {return wids [i];};
-    float   getVsysf (int i) {return vsysf[i];};
-    float   getVrotf (int i) {return vrotf[i];};
-    float   getVexpf (int i) {return vexpf[i];};
-    float   getPosaf (int i) {return posaf[i];};
-    float   getInclf (int i) {return inclf[i];};
-    float   getXposf (int i) {return xposf[i];};
-    float   getYposf (int i) {return yposf[i];};
     
-    float   getVsyse (int i) {return vsyse[i];};
-    float   getVrote (int i) {return vrote[i];};
-    float   getVexpe (int i) {return vexpe[i];};
-    float   getPosae (int i) {return posae[i];};
-    float   getIncle (int i) {return incle[i];};
-    float   getXpose (int i) {return xpose[i];};
-    float   getYpose (int i) {return ypose[i];};
-    
-    float   *getRadii () {return rads ;};
-    float   *getWidth () {return wids ;};
-    float   *getVsysf () {return vsysf;};
-    float   *getVrotf () {return vrotf;};
-    float   *getVexpf () {return vexpf;};
-    float   *getPosaf () {return posaf;};
-    float   *getInclf () {return inclf;};
-    float   *getXposf () {return xposf;};
-    float   *getYposf () {return yposf;};
-    
-    float   *getVsyse () {return vsyse;};
-    float   *getVrote () {return vrote;};
-    float   *getVexpe () {return vexpe;};
-    float   *getPosae () {return posae;};
-    float   *getIncle () {return incle;};
-    float   *getXpose () {return xpose;};
-    float   *getYpose () {return ypose;};
-    
-    float   getChisq (int i) {return chis [i];};
-    int     getNpts  (int i) {return npts [i];};
-    float   *getChisq () {return chis;};
-    int     *getNpts  () {return npts;};
+    float&   getChisq (int i) {return chis [i];};
+    int&     getNpts  (int i) {return npts [i];};
     int     getNradii () {return nrad;};
     
     float   getMatrix (int nring, int a) {return elp[nring][a];};
@@ -129,12 +92,12 @@ public:                                 /// model.
     
     void    ringfit();
     int     rotfit (float ri, float ro, float *p, float *e, int &n, float &q);
-    int     getdat (float *x, float *y, float *w, float *p, float ri, float ro, float &q, int nfr);
+    int     getdat (std::vector<float> &x, std::vector<float> &y, std::vector<float> &w, float *p, float ri, float ro, float &q, int nfr);
     
     void    print (std::ostream& Stream);
     void    printfinal (std::ostream& Stream);
+    void    writeModel (std::string fname);
 
-    
     friend std::ostream& operator<< (std::ostream& Stream, Ringmodel& r);
     
 protected:

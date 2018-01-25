@@ -25,7 +25,10 @@
 #include <string>
 #include <cmath>
 #include <cfloat>
+#include <algorithm>
 #include <iomanip>
+#include <vector>
+#include <fstream>
 #include <Tasks/ringmodel.hh>
 #include <Arrays/cube.hh>
 #include <Arrays/rings.hh>
@@ -36,12 +39,7 @@
 #include <Utilities/progressbar.hh>
 
 
-
-#define MAXPIX  8192
 #define MAXPAR  7
-
-#define max(x,y)    (x>y ? x:y)
-#define min(x,y)    (x<y ? x:y)
 #define nint(x)     (x>0.0?(int)(x+0.5):(int)(x-0.5))
 
 
@@ -51,8 +49,8 @@ void Ringmodel::defaults() {
     cor[0] = -1;
     cor[1] = -1;    
     
-    mask = new bool[7];
-    for (int i=0; i<7; i++) mask[i] = true;
+    mask = new bool[MAXPAR];
+    for (int i=0; i<MAXPAR; i++) mask[i] = true;
     
     side = 3;
     wpow = 2;
@@ -336,7 +334,7 @@ void Ringmodel::setoption (bool *maskpar, int hside, int wfunc, float freeangle)
     // We allow only fitting of systemic velocity and centre position
     // when both halves of the galaxy are used.
     
-    for (int i=0; i<7; i++) mask[i] = maskpar[i];
+    for (int i=0; i<MAXPAR; i++) mask[i] = maskpar[i];
     
     if (side!=3) {
         mask[VSYS] = mask[X0] = mask[Y0] = 0;
@@ -399,18 +397,17 @@ void Ringmodel::ringfit() {
             int n;
             float   e[MAXPAR];
             float   p[MAXPAR];
-            float   ri, ro;
             float   q = 0.0;
 
-            p[0] = vsysi[iring];
-            p[1] = vroti[iring];
-            p[2] = vexpi[iring];
-            p[3] = posai[iring];
-            p[4] = incli[iring];
-            p[5] = xposi;
-            p[6] = yposi;
-            ri = rads[iring] - 0.5 * wids[iring];
-            ro = rads[iring] + 0.5 * wids[iring];
+            p[VSYS] = vsysi[iring];
+            p[VROT] = vroti[iring];
+            p[VEXP] = vexpi[iring];
+            p[PA]   = posai[iring];
+            p[INC]  = incli[iring];
+            p[X0]   = xposi;
+            p[Y0]   = yposi;
+            float ri = rads[iring] - 0.5 * wids[iring];
+            float ro = rads[iring] + 0.5 * wids[iring];
             if ( ri < 0.0 ) ri = 0.0;
         
             if (rotfit(ri, ro, p, e, n, q)>0) {
@@ -494,9 +491,7 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
     float   flip;               // Direction.
     float   lab = 0.001;        // Mixing parameter.        
     
-    float *x = new float [2*MAXPIX];    // (x,y) position.
-    float *y = new float [MAXPIX];      // f(x,y).
-    float *w = new float [MAXPIX];      // w(x,y).
+    std::vector<float> x,y,w;           // (x,y) position, f(x,y) and w(x,y).
     float *pf  = new float [MAXPAR];    // Intermediate results.
 
     for (nfr=0, i=0; i<MAXPAR; i++) {
@@ -517,7 +512,7 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
             pf[i] = p[i];
         }
         
-        Lsqfit<float> lsqfit(x, xdim, y, w, n, pf, e, mask, npar, &func, &derv, tol, t, lab);
+        Lsqfit<float> lsqfit(&x[0], xdim, &y[0], &w[0], n, pf, e, mask, npar, &func, &derv, tol, t, lab);
         nrt = lsqfit.fit();
 
         if (nrt<0) break;                               // Stop because of error.
@@ -629,17 +624,14 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
         elp4[3] = sigma2;
     }
     
-    delete [] x;
-    delete [] y;
-    delete [] w;
     delete [] pf;
     
     return ier;
 }
 
 
-int Ringmodel::getdat (float *x, float *y, float *w, float *p, 
-                              float ri, float ro, float &q, int nfr) {
+int Ringmodel::getdat (std::vector<float> &x, std::vector<float> &y, std::vector<float> &w, 
+                       float *p, float ri, float ro, float &q, int nfr) {
     
   /// The function selects the data from velocity field
   /// and calculates differences.
@@ -655,113 +647,77 @@ int Ringmodel::getdat (float *x, float *y, float *w, float *p,
   ///
   /// \return           Number of points in ring.
   
-    int     n=0;                        // Return value.
-    int     llo, lup, mlo, mup;         // Positions of corners.
-    int     nlt;                    // Box sizes. 
-   
-    float   phi, inc, x0, y0;           // Elliptical parameters.
-    float   free;                       // Free angle.
-    float   cosp, cosi, sinp, sini;
-    float   a, b;
-    float   wi;
-
+    int     n=0;                        // Return value = number of points.
     const double F = M_PI/180.;
     
-    q    = 0.0;                         // Definition of parameters.
-    phi  = p[PA];       
-    inc  = p[INC];              
-    x0   = p[X0];           
-    y0   = p[Y0];           
-    free = fabs(sin(F*thetaf));
-    sinp = sin(F*phi);      
-    cosp = cos(F*phi);  
-    sini = sin(F*inc);      
-    cosi = cos(F*inc );     
-    a    = sqrt(1.0-cosp*cosp*sini*sini);
-    b    = sqrt(1.0-sinp*sinp*sini*sini); 
-    llo  = max(blo[0], nint(x0-a*ro));
-    lup  = min(bup[0], nint(x0+a*ro));
-    mlo  = max(blo[1], nint(y0-b*ro));
-    mup  = min(bup[1], nint(y0+b*ro));
+    // Reset variables
+    x.clear();
+    y.clear();
+    w.clear();
+    q    = 0.0;
+    // Definition of parameters.
+    float phi  = p[PA];       
+    float inc  = p[INC];              
+    float x0   = p[X0];           
+    float y0   = p[Y0];           
+    float free = fabs(sin(F*thetaf)); // Free angle.
+    float sinp = sin(F*phi);      
+    float cosp = cos(F*phi);  
+    float sini = sin(F*inc);      
+    float cosi = cos(F*inc);     
+    float a    = sqrt(1.0-cosp*cosp*sini*sini);
+    float b    = sqrt(1.0-sinp*sinp*sini*sini); 
+    int llo    = std::max(blo[0], nint(x0-a*ro)-1);
+    int lup    = std::min(bup[0], nint(x0+a*ro)+1);
+    int mlo    = std::max(blo[1], nint(y0-b*ro)-1);
+    int mup    = std::min(bup[1], nint(y0+b*ro)+1);
 
-    
     if ((llo > lup) || (mlo > mup)) {
         std::cout << "Ring is outside the map!"<<std::endl;
         q = FLT_MAX;
         return 0;
     }
    
-    nlt = bup[0] - blo[0] + 1;                  // Number of pixels in X.
+    int nlt = bup[0]-blo[0]+1;                     // Number of pixels in X.
    
-    for (int m=mlo; m<mup; m++) {
-        float ry = m;                           // Y position in plane of galaxy.
-        for (int l = llo; l < lup; l++) {
-            float rx = l;                       // X position in plane of galaxy.
-            float v;
-            int   ip = (m-blo[1])*nlt+ (l-blo[0]);
-            v = vfield[ip];                     // Radial velocity at this position.
+    for (int rx=llo; rx<lup; rx++) {
+        for (int ry=mlo; ry<mup; ry++) {
+            int   ip = (ry-blo[1])*nlt+ (rx-blo[0]);
+            float v  = vfield[ip];                 // Radial velocity at this position.
             
-            if (!(v!=v)) {
-                float costh, r, theta, xr, yr;
-                xr = (-(rx-x0)*sinp + (ry-y0)*cosp);
-                yr = (-(rx-x0)*cosp - (ry-y0)*sinp)/cosi;
-                r = sqrt(xr*xr+yr*yr);
-                if (r<0.1)  theta = 0.0;            
-                else theta = atan2(yr, xr)/F;   
-                costh = fabs(cos(F*theta));
+            if ((v==v)) {
+                float xr = (-(rx-x0)*sinp + (ry-y0)*cosp);
+                float yr = (-(rx-x0)*cosp - (ry-y0)*sinp)/cosi;
+                float r = sqrt(xr*xr+yr*yr);
+                float theta = 0.;
+                if (r>=0.1) theta = atan2(yr, xr)/F;   
+                float costh = fabs(cos(F*theta));
                     
-                if (r>ri && r<ro && costh>free ) {      // If we are inside the ring.
-                    float xx[2];
-                    int use = 0;
-                    wi = std::pow(double(costh), (double) wpow);        // Calculate weight of this point.
-                    xx[0] = rx;             
-                    xx[1] = ry;             
-                    
-                    switch (side) {                     // Which side of galaxy.
-                        
-                        case 1:                         //< Receding half.                              
-                        use = (fabs(theta)<=90.0);      
-                        break;
-                        
-                        case 2:                         //< Approaching half. 
-                        use = (fabs(theta)>=90.0);
-                        break;
-                 
-                        case 3:                         //< Both halves.
-                        use = 1;
-                        break;
-                 
-                        default: 
-                        break;  
-                    }
-               
+                if (r>ri && r<ro && costh>free) {      // If we are inside the ring.
+
+                    bool use = true;
+                    if (side==1) use = (fabs(theta)<=90.0);      //< Receding half.
+                    if (side==2) use = (fabs(theta)>=90.0);      //< Approaching half. 
+
                     if (use) {                          // Load data point ? 
                         n += 1;
-                        if (n<MAXPIX) {             
-                            float s, vz;
-                            int maxpar = MAXPAR;
-                            vz = func (xx, p, maxpar);
-                            s = v - vz;                 // Corrected difference.
-                            x[2*n-2] = rx;              // Load X-coordinate.
-                            x[2*n-1] = ry;              // Load Y-coordinate.
-                            y[n-1] = v;                 // Load radial velocity.
-                            w[n-1] = wi;                // Load weight.
-                            q += s*s*wi;                // Calculate chi-squared.
-                        }
+                        float xx[2] = {float(rx),float(ry)};
+                        float vz = func (xx, p, MAXPAR);
+                        float s = v - vz;          // Corrected difference
+                        float wi = std::pow(costh, wpow); // Weight of this point.
+                        x.push_back(rx);           // Load X-coordinate.
+                        x.push_back(ry);           // Load Y-coordinate.
+                        y.push_back(v);            // Load LOS velocity.
+                        w.push_back(wi);           // Load weight.
+                        q += s*s*wi;               // Calculate chi-squared.
+                        
                     }
                 }
             }
         }   
     }
-
     
-    if (n>MAXPIX) {
-        std::cout << "Too many points in ring "<< n << ". Maximum is "<< MAXPIX; 
-        n = MAXPIX;
-    }
-    
-    if (n > nfr)                                        // Enough data points ? 
-        q = sqrt(q/(float)(n-nfr));     
+    if (n > nfr) q = sqrt(q/(float)(n-nfr));     // Enough data points ? 
     else q = FLT_MAX;       
     
     return n;
@@ -868,16 +824,16 @@ void Ringmodel::print (std::ostream& Stream) {
             
             Stream  << "\n  Parameters hold fixed: ";
         
-            for (int j=0; j<7; j++) 
+            for (int j=0; j<MAXPAR; j++) 
                 if (!mask[j]) {
                     
-                    if (j==0) Stream << "  Vsys = " << vsysi[i];
-                    if (j==1) Stream << "  Vrot = " << vroti[i];
-                    if (j==2) Stream << "  Vexp = " << vexpi[i];
-                    if (j==3) Stream << "  P.A. = " << posai[i];
-                    if (j==4) Stream << "  Inclination = " << incli[i];
-                    if (j==5) Stream << "  Xcenter = " << xposi;
-                    if (j==6) Stream << "  Ycenter = " << yposi;
+                    if (j==VSYS) Stream << "  Vsys = " << vsysi[i];
+                    if (j==VROT) Stream << "  Vrot = " << vroti[i];
+                    if (j==VEXP) Stream << "  Vexp = " << vexpi[i];
+                    if (j==PA) Stream << "  P.A. = " << posai[i];
+                    if (j==INC) Stream << "  Inclination = " << incli[i];
+                    if (j==X0) Stream << "  Xcenter = " << xposi;
+                    if (j==Y0) Stream << "  Ycenter = " << yposi;
             }
             
             Stream <<"\n  Reduced chi-squared: " << chis[i];
@@ -926,6 +882,93 @@ void Ringmodel::printfinal (std::ostream& Stream) {
     }
 }
 
+
+void Ringmodel::writeModel (std::string fname) {
+    
+    int dim[2] = {in->DimX(),in->DimY()};
+    Image2D<float> model(dim);
+    model.saveHead(in->Head());
+    for (int i=model.NumPix(); i--;) model[i] = log(-1);
+
+    const double F = M_PI/180.;
+    float p[MAXPAR], e[MAXPAR];
+    float ot = thetaf;
+    thetaf = 0;
+    ///*
+    for (int ir=0; ir<nrad; ir++) {
+        p[X0]   = xposf[ir];
+        p[Y0]   = yposf[ir];
+        p[PA]   = posaf[ir];
+        p[INC]  = inclf[ir];
+        p[VEXP] = vexpf[ir];
+        p[VROT] = vrotf[ir];
+        p[VSYS] = vsysf[ir];
+                
+        float ri = rads[ir] - 0.5 * wids[ir];
+        float ro = rads[ir] + 0.5 * wids[ir];
+        if (ri<0.0) ri = 0.0;
+        float q = 0.0;
+        std::vector<float> x,y,w;
+        int n = getdat(x,y,w,p,ri,ro,q,0);
+        
+        for (int j=1; j<=n; j++) {
+            float xx[2] = {x[2*j-2],x[2*j-1]};
+            if (xx[0]<model.DimX() && xx[1]<model.DimY()) {
+                float vv = func(xx,p,MAXPAR);
+                size_t pp = xx[0]+xx[1]*model.DimX();
+                if (model[pp]!=model[pp]) model[pp] = vv;
+                else model[pp] = (model[pp]+vv)/2.;
+            }
+        }
+    }
+    //*/
+    // Making a last loop for filling holes in the model field;
+    p[X0]   = xposf[nrad-1];
+    p[Y0]   = yposf[nrad-1];
+    p[PA]   = posaf[nrad-1];
+    p[INC]  = inclf[nrad-1];
+    p[VEXP] = vexpf[nrad-1];
+    p[VROT] = vrotf[nrad-1];
+    p[VSYS] = vsysf[nrad-1];
+    float rl = rads[nrad-1]+0.5*wids[nrad-1];
+    float q = 0;
+    
+    std::vector<float> x,y,w;
+    int n = getdat(x,y,w,p,0,rl,q,0);
+    
+    for (int j=1; j<=n; j++) {
+        float xx[2] = {x[2*j-2],x[2*j-1]};
+        if (xx[0]<model.DimX() && xx[1]<model.DimY()) {
+            size_t pp = xx[0]+xx[1]*model.DimX();
+            if (model[pp]!=model[pp]) {
+                float xr = (-(xx[0]-p[X0])*sin(F*p[PA]) + (xx[1]-p[Y0])*cos(F*p[PA]));
+                float yr = (-(xx[0]-p[X0])*cos(F*p[PA]) - (xx[1]-p[Y0])*sin(F*p[PA]))/cos(F*p[INC]);
+                float R  = sqrt(xr*xr+yr*yr);
+                // Finding closest radius 
+                float bdif = 1E18;
+                int ind = 0;
+                for (int j=0; j<nrad; j++) {
+                    float diff = fabs(R-rads[j]);
+                    if (diff<bdif) {
+                        bdif = diff;
+                        ind  = j;
+                    }
+                }
+                p[X0]   = xposf[ind];
+                p[Y0]   = yposf[ind];
+                p[PA]   = posaf[ind];
+                p[INC]  = inclf[ind];
+                p[VEXP] = vexpf[ind];
+                p[VROT] = vrotf[ind];
+                p[VSYS] = vsysf[ind];
+                model[pp] = func(xx, p, MAXPAR);
+            }
+        }
+    }
+    
+    model.fitswrite_2d(fname.c_str());
+    thetaf = ot;
+}
 
 
 std::ostream& operator<< (std::ostream& Stream, Ringmodel& r) {
@@ -985,7 +1028,7 @@ float func (float *c, float *p, int npar) {
     sint1 = y1 / r;                         
 
     float vrad = vs + (vc*cost1 + vr*sint1) * sini1;
-    
+        
     return vrad;    
 }
 

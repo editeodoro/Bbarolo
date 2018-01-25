@@ -183,6 +183,7 @@ int main (int argc, char *argv[]) {
             trmod->printfinal(fileo);
             fileo.close();
             trmod->printfinal(std::cout);
+            trmod->writeModel(c->pars().getOutfolder()+c->Head().Name()+"_2d_mod.fits");
             delete trmod;
         }
         //-----------------------------------------------------------------

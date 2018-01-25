@@ -44,9 +44,8 @@ public:
     
     // Overloadad () operator for easy access the main array. Any control on the index.
     inline Type& operator() (unsigned x, unsigned y) {return array[x+y*axisDim[0]];};
-    inline Type  operator() (unsigned x, unsigned y) const {return array[x+y*axisDim[0]];};
     inline Type& operator() (unsigned i) {return array[i];};
-    inline Type  operator() (unsigned i) const {return array[i];};
+    inline Type& operator[] (unsigned i) {return array[i];};
 
     void defaults();
 
