@@ -542,6 +542,7 @@ Image2D<T>* PositionVelocity (Cube<T> *c, T x0, T y0, T Phi) {
     
     pv->copyHeader(h);
     float crpix0 = xdim>ydim ? x0-xmin : y0-ymin;
+    if (phi==90) crpix0 = x0;
     pv->Head().setCrpix(0, crpix0+1);
     pv->Head().setCrval(0, 0);
     pv->Head().setCdelt(0, cdelt0);

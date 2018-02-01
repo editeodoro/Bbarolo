@@ -234,15 +234,32 @@ bool Header::header_read (std::string fname) {
     
     status=0;
     fits_read_keys_dbl (fptr, "CDELT", 1, numAxes, cdelt, &nfound, &status);
-    if (nfound==0) fits_report_error(stderr, status);
+    if (nfound==0) {
+        Warning("HEADER WARNING: CDELTs keywords not found.");
+        for (int i=0; i<numAxes; i++) {
+            std::string keyw = "CD"+std::to_string(i+1)+"_"+std::to_string(i+1);
+            if (fits_read_key_dbl (fptr, keyw.c_str(), &cdelt[i], comment, &status)) {
+                fits_report_error(stderr, status);
+                Warning("HEADER ERROR: No pixel spacing keywords found.");
+                return false;
+            }
+        }
+        Warning("HEADER WARNING: Found CDn_n keywords instead!");
+    }
     
     status=0;
     fits_read_keys_dbl (fptr, "CRPIX", 1, numAxes, crpix, &nfound, &status);
-    if (nfound==0) fits_report_error(stderr, status);
+    if (nfound==0) {
+        Warning("HEADER ERROR: CRPIXs keywords not found.");
+        return false;
+    }
     
     status=0;
     fits_read_keys_dbl (fptr, "CRVAL", 1, numAxes, crval, &nfound, &status);
-    if (nfound==0) fits_report_error(stderr, status);
+    if (nfound==0) {
+        Warning("HEADER ERROR: CRVALSs keywords not found.");
+        return false;
+    }
         
     status=0;
     if (fits_read_key_dbl (fptr, "DRVAL3", &drval3, comment, &status)) {
