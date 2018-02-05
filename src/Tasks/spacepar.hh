@@ -128,6 +128,7 @@ Spacepar<T>::Spacepar(Cube<T> *c) : Galfit<T>::Galfit(c) {
             Galfit<T>::par.SM = false;
         }
     }
+    
 }
 
 
@@ -230,6 +231,9 @@ void Spacepar<T>::calculate() {
                     else dring->vrad.push_back(inri->vrad[ir]);
                     
                     dring->dens.push_back(inri->dens[ir]);
+                    dring->vvert.push_back(inri->vvert[ir]);
+                    dring->dvdz.push_back(inri->dvdz[ir]);
+                    dring->zcyl.push_back(inri->zcyl[ir]);
                 }
 
                 T par[MAXPAR];
