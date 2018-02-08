@@ -271,7 +271,7 @@ int main (int argc, char *argv[]) {
             std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_densprof.txt";
             std::ofstream fileo(fout.c_str());
             ell->printProfile(fileo,ell->getNseg()-1);
-            ell->printProfile(std::cout);
+            ell->printProfile(std::cout,ell->getNseg()-1);
             ell->writeMap(c->pars().getOutfolder()+c->Head().Name()+"_densmap.fits");
             fileo.close();
             delete ell;

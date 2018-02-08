@@ -186,7 +186,7 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
     T meanPA = findMean(&inR->phi[0], inR->nr);
     int nseg = 1;
     float segments[4] = {0, 360., 0., 0};
-    if (c->pars().getParGF().SIDE!="A") {
+    if (c->pars().getParGF().SIDE=="A") {
         nseg = 2;
         segments[2]=-90;
         segments[3]=90;
@@ -201,8 +201,8 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
     // Extracting moment map
     im = new MomentMap<T>;
     im->input(c);
-    
-    if (c->Head().NumAx()>2) im->ZeroMoment(true);
+
+    if (c->Head().NumAx()>2 && c->DimZ()>1) im->ZeroMoment(true);
     else {
         bool v = c->pars().isVerbose();
         c->pars().setVerbosity(false);
@@ -214,16 +214,16 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
 
     // If distance is given, calculate also Mass profile
     float dist = c->pars().getParGF().DISTANCE;
-    if (dist>0) {
-        float totflux = 0;
-        T *ringreg = RingRegion(inR, c->Head());
-        for (size_t i=0; i<im->NumPix(); i++) {
-            if (!isNaN(ringreg[i]) && !isNaN(im->Array(i))) totflux += im->Array(i);
-        }
-        // totflux should be already in Jy * km/s
-        float mass = 2.365E5*dist*dist*totflux;
-        setOptions(mass,dist); 
+    if (dist<0) dist = 1;
+    float totflux = 0;
+    T *ringreg = RingRegion(inR, c->Head());
+    for (size_t i=0; i<im->NumPix(); i++) {
+        if (!isNaN(ringreg[i]) && !isNaN(im->Array(i))) totflux += im->Array(i);
     }
+    // totflux should be already in Jy * km/s
+    float mass = 2.365E5*dist*dist*totflux;
+    setOptions(mass,dist); 
+    //im->fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_0th.fits").c_str());
 
     delete inR;
 
@@ -394,9 +394,9 @@ void Ellprof<T>::RadialProfile () {
 
     float Bgridlo[2], Bgridhi[2];
     Bgridlo[0] = std::max(0, int(Position[0]-Rmax/fabs(Dx) - 1));
-    Bgridhi[0] = std::min(im->DimX(), int(Position[0]+Rmax/fabs(Dx)+1));
+    Bgridhi[0] = std::min(im->DimX()-1, int(Position[0]+Rmax/fabs(Dx)+1));
     Bgridlo[1] = std::max(0, int(Position[1]-Rmax/fabs(Dy)-1));
-    Bgridhi[1] = std::min(im->DimY(), int(Position[1]+Rmax/fabs(Dy)+1));
+    Bgridhi[1] = std::min(im->DimY()-1, int(Position[1]+Rmax/fabs(Dy)+1));
 
     /* Start looping over all pixels */
     for (size_t x = Bgridlo[0]; x <= Bgridhi[0]; x++) {
@@ -413,13 +413,15 @@ void Ellprof<T>::RadialProfile () {
     for (size_t n=0; n<Nrad; n++) {
         /* We need the sum of of the contributions for each ring. Each contribution is */
         /* multiplied by the area between two radii. The contributions are the corrected means.      */
-        float mean   = Sum[n][0] / Num[n][0];
-        float meanbl = Sum[n][0] / (Num[n][0]+Numblanks[n][0]);
-        float face_on_av_surfdens = mean * Cosinc[n]/(fabs(Dx*Dy));
-        float face_on_av_surfdens_bl = meanbl * Cosinc[n]/(fabs(Dx*Dy));
-        float geometricalarea = M_PI * (Annuli[n][1]*Annuli[n][1] - Annuli[n][0]*Annuli[n][0]);
-        Sumtotgeo    += face_on_av_surfdens * geometricalarea;
-        Sumtotgeo_bl += face_on_av_surfdens_bl * geometricalarea;
+        if (Num[n][0]>0) { 
+            float mean   = Sum[n][0] / Num[n][0];
+            float meanbl = Sum[n][0] / (Num[n][0]+Numblanks[n][0]);
+            float face_on_av_surfdens = mean * Cosinc[n]/(fabs(Dx*Dy));
+            float face_on_av_surfdens_bl = meanbl * Cosinc[n]/(fabs(Dx*Dy));
+            float geometricalarea = M_PI * (Annuli[n][1]*Annuli[n][1] - Annuli[n][0]*Annuli[n][0]);
+            Sumtotgeo    += face_on_av_surfdens * geometricalarea;
+            Sumtotgeo_bl += face_on_av_surfdens_bl * geometricalarea;
+        }
     }
 
 
@@ -453,7 +455,6 @@ void Ellprof<T>::RadialProfile () {
                 Area[i][m] = Num[i][m] / subpixtot;
                 Mean[i][m] = Sum[i][m] / Area[i][m];
                 if (Num[i][m]>1) Var[i][m] = (Sumsqr[i][m] - Num[i][m]*Mean[i][m]*Mean[i][m])/float(Num[i][m]-1);
-
             }
 
             Blankarea[i][m] = Numblanks[i][m] / subpixtot;
@@ -490,8 +491,6 @@ void Ellprof<T>::RadialProfile () {
 
         float      PCsqr = ((4.848 * Distance)*(4.848 * Distance));
         float      ringmassdens, ringmassdens_bl;
-        float      geometricalarea;
-        float      Realmass, Realmass_bl;
 
         if (Sumtotgeo == 0.0) ringmassdens = 0.0;
         else ringmassdens = Mass * face_on_surfdens_tot  / (Sumtotgeo * PCsqr);
@@ -499,15 +498,16 @@ void Ellprof<T>::RadialProfile () {
         if (Sumtotgeo_bl == 0.0) ringmassdens_bl = 0.0;
         else ringmassdens_bl = Mass * face_on_surfdens_bl_tot  / (Sumtotgeo_bl * PCsqr);
 
-        geometricalarea = M_PI * (Annuli[i][1]*Annuli[i][1] - Annuli[i][0]*Annuli[i][0]);
-        Realmass    = Mass * (face_on_surfdens_tot*geometricalarea)/Sumtotgeo;
-        Realmass_bl = Mass * (face_on_surfdens_bl_tot*geometricalarea)/Sumtotgeo_bl;
+        float geometricalarea = M_PI * (Annuli[i][1]*Annuli[i][1] - Annuli[i][0]*Annuli[i][0]);
+        float Realmass    = Mass * (face_on_surfdens_tot*geometricalarea)/Sumtotgeo;
+        float Realmass_bl = Mass * (face_on_surfdens_bl_tot*geometricalarea)/Sumtotgeo_bl;
         Masstot    += Realmass;
         Masstot_bl += Realmass_bl;
         Radius_kpc[i] = (4.848 * Distance * Radius[i])/1000.;
         Mass_Surfdens[i] = ringmassdens;
         Mass_Surfdens_Bl[i] = ringmassdens_bl;
     }
+    
 }
 template void Ellprof<float>::RadialProfile ();
 template void Ellprof<double>::RadialProfile ();
@@ -725,7 +725,7 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
         theStream << "# Galaxy distance: " << fixed << Distance << " Mpc" << std::endl;
         theStream << "#" << std::endl;
     }
-    
+        
     int m=16;
     std::string unit = im->Head().Bunit();
     theStream << fixed << setprecision(6);
@@ -738,6 +738,7 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
               << setw(m) << "SURFDENS" << " "
               << setw(m) << "SURFDENS_FO" << " "
               << setw(m) << "MSURFDENS" << " "
+              << setw(m) << "MSURFDENS2" << " "    
               << std::endl;
 
     theStream << "#" << setw(m-1) << "arcsec" << " "
@@ -749,18 +750,30 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
               << setw(m) << unit+"/arcs2" << " "
               << setw(m) << unit+"/arcs2" << " "
               << setw(m) << "Msun/pc2" << " "
+              << setw(m) << "Msun/pc2" << " "    
               << std::endl << "#" << std::endl;
 
+    // Calculating Mass surface density with Roberts75 formula.
+    // This works only if units of map are JY/B * KM/S or JY * KM/S
+    std::string unit_l = makelower(unit);
+    double barea = im->Head().Bmaj()*im->Head().Bmin();
+    barea *= abs(arcsconv(im->Head().Cunit(0))*arcsconv(im->Head().Cunit(1))); 
+    if (!(unit_l.find("/b")!=std::string::npos || 
+          unit_l.find("/ b")!=std::string::npos)) barea /= im->Head().BeamArea();
+        
     for (size_t i=0; i<Nrad; i++) {
+        double massd = 8794*Mean[i][seg]/barea*Cosinc[i];
+        // Writing 
         theStream << setw(m) << Radius[i] << " "
                   << setw(m) << Sum[i][seg] << " "
                   << setw(m) << Mean[i][seg] << " "
       //            << setw(m) << Median[i][seg] << " "
                   << setw(m) << sqrt(fabs(Var[i][seg])) << " "
-                  << setw(m-5) << Num[i][seg] << " "
+                  << setw(m-5) << Num[i][seg] / (subpix[0]*subpix[1]) << " "
                   << setw(m) << Surfdens[i][seg] << " "
                   << setw(m) << getSurfDensFaceOn(i,seg) << " "
                   << setw(m) << Mass_Surfdens[i] << " "
+                  << setw(m) << massd << " "
                   << std::endl;
     }
 }

@@ -435,7 +435,7 @@ bool Param::checkPars() {
         maskstr=="THRESHOLD" || maskstr=="NEGATIVE") {
         parGF.MASK = maskstr;
     }
-    else if (maskstr.find("FILE(")!=-1) {
+    else if (maskstr.find("FILE(")!=std::string::npos) {
         size_t first = maskstr.find_first_of("(");
         std::string sub1 = maskstr.substr(0,first);
         std::string sub2 = parGF.MASK.substr(first);

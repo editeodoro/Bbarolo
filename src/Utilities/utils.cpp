@@ -948,8 +948,8 @@ T* RingRegion (Rings<T> *r, Header &h) {
     T *ringregion = new T[bsize[0]*bsize[1]];
 	for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
 	
-    T R1  = std::max(r->radii.front()/(pscale)-r->radsep/2.,0.); //#+sqrt(in->Head().BeamArea()/M_PI);
-    T R2  = r->radii.back()/(pscale)+r->radsep/2.;
+    T R1  = std::max((r->radii.front()-r->radsep/2.)/pscale,0.); //#+sqrt(in->Head().BeamArea()/M_PI);
+    T R2  = (r->radii.back()+r->radsep/2.)/pscale;    
 	T phi = r->phi.back();
 	T inc = r->inc.back();
 	T psi = 0.;

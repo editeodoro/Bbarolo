@@ -135,7 +135,7 @@ void MomentMap<T>::HIMassDensityMap (bool msk) {
     
     // Check that input units are jy / beam
     std::string bunit = makelower(in->Head().Bunit());
-    bool isOK = bunit.find("jy/b")>=0 || bunit.find("j/b")>=0;
+    bool isOK = bunit.find("/b")!=std::string::npos;
     if (isOK) {      
         if(msk && !in->MaskAll()) in->BlankMask();
         bool v = in->pars().isVerbose();
@@ -441,6 +441,7 @@ bool MomentMap<T>::setHead(int type) {
         else if (type==3) {
             this->head.setBtype("rms");
         }
+        this->head.calcArea();
         this->headDefined = true;
     }   
     
