@@ -23,6 +23,8 @@ Input/output parameters
 
 * **THREADS** [1]. Number of CPUs to use for parallelized tasks.
 
+* **PLOTS** [true]. If true, output plots will be produced (Python/Gnuplot needed).
+
 * **SHOWBAR** [true]. Whether to show progress bars.
 
 Beam parameters
@@ -284,7 +286,7 @@ BBarolo can be used to extract global profiles, moment maps and position velocit
 
 * **DISPERSIONMAP** [false]. It *true*, calculate the velocity dispersion field from a datacube and write it to a FITS file. 
 
-* **RMSMAP** [false]. It *true*, calculate the RMS map, i.e. the RMS in each spectrum, from a datacube and write it to a FITS file. The RMS is calculated in an iterative way. RMS is the standard deviation for normal statistics and MADFM/0.6745 for robust statistics (FLAGROBUSTSTATS parameter).
+* **RMSMAP** [false]. It *true*, calculate the RMS map, i.e. the RMS in each spectrum, from a datacube and write it to a FITS file. The RMS is calculated in an iterative way. RMS is the standard deviation for normal statistics and MADFM/0.6745 for robust statistics (**FLAGROBUSTSTATS** parameter).
 
 * **MASSDENSMAP** [false]. It *true*, calculate a mass surface-density map in units of Msun/pc^2 from a datacube and write it to a FITS file. This is just for HI data and the input datacube is required to have JY/BEAM flux density units.
 
