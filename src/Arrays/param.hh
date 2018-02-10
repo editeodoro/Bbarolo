@@ -143,6 +143,7 @@ public:
     bool    getShowbar () {return showbar;};
     int     getThreads () {return threads;};
     bool    getFlagDebug() {return debug;}
+    bool    getFlagPlots() {return plots;}
     
     float   getBeamFWHM() {return beamFWHM;};
     void    setBeamFWHM(float val) {beamFWHM=val;};
@@ -243,6 +244,7 @@ private:
     bool            checkChannels;      ///< Checking for bad channels in the cube?
     float           beamFWHM;           ///< Beam to adopt if any information in header.
     bool            flagRobustStats;    ///< Whether to use robust statistics.
+    bool            plots;              ///< Whether producing output plots.
     
     bool            globprof;           ///< Whether the user wants the global profile.
     bool            massdensmap;        ///< Whether the user wants the mass density HI map.

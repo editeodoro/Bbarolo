@@ -56,10 +56,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     // Get the total intensity, velocity and dispersion maps of data
     mkdirp((outfold+"maps/").c_str());
-    if (verb) std::cout << "    Extracting modest intensity map..." << std::flush;
+    if (verb) std::cout << "    Extracting modest 2D maps..." << std::flush;
     MomentMap<T> *totalmap = new MomentMap<T>;
     totalmap->input(in);
-    totalmap->SumMap(true);
+    totalmap->ZeroMoment(true);
     totalmap->fitswrite_2d((outfold+"maps/"+object+"_0mom.fits").c_str());
     MomentMap<T> *field = new MomentMap<T>;
     field->input(in);
@@ -73,8 +73,11 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     T *ringreg = RingRegion(outr,in->Head());
     float totflux_data=0, totflux_model=0;
     for (size_t i=0; i<in->DimX()*in->DimY(); i++) {
-        if (!isNaN(ringreg[i]) && !isNaN(totalmap->Array(i))) {
-            totflux_data += totalmap->Array(i);
+        if (!isNaN(ringreg[i])) {
+            for (size_t z=0; z<in->DimZ(); z++) {
+                size_t npix = i+z*in->DimY()*in->DimX();
+                totflux_data += in->Array(npix)*in->Mask()[npix];
+            }
         }
     }
 
@@ -85,7 +88,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     T meanPA = findMean(&outr->phi[0], outr->nr);
     int nseg = 1;
     float segments[4] = {0, 360., 0., 0};
-    if (par.SIDE!="A") {
+    if (par.SIDE=="A") {
         nseg = 2;
         segments[2]=-90;
         segments[3]=90;
@@ -101,13 +104,13 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     ell.setOptions(mass,distance);  //To set the mass and the distance
     ell.RadialProfile();
     std::string dens_out = outfold+"densprof.txt";
-    std::ofstream fileo;
-    fileo.open(dens_out.c_str());
+    std::ofstream fileo(dens_out.c_str());
     ell.printProfile(fileo,nseg-1);
     fileo.close();
     //ell.printProfile(std::cout);
     delete totalmap;
-
+    delete field;
+    
     if (normtype=="AZIM" || normtype=="BOTH") {
         double profmin=FLT_MAX;
         for (size_t i=0; i<outr->nr; i++) {
@@ -167,7 +170,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         if (verb) std::cout << "    Writing shameful kinematic maps..." << std::flush;
         MomentMap<T> *map = new MomentMap<T>;
         map->input(mod->Out());
-        map->SumMap(false);
+        map->ZeroMoment(false);
         map->fitswrite_2d((outfold+"maps/"+object+"_azim_0mom.fits").c_str());
         map->FirstMoment(false);
         map->fitswrite_2d((outfold+"maps/"+object+"_azim_1mom.fits").c_str());
@@ -216,7 +219,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         }
         MomentMap<T> *map = new MomentMap<T>;
         map->input(mod->Out());
-        map->SumMap(false);
+        map->ZeroMoment(false);
         map->fitswrite_2d((outfold+"maps/"+object+"_local_0mom.fits").c_str());
         map->FirstMoment(false);
         map->fitswrite_2d((outfold+"maps/"+object+"_local_1mom.fits").c_str());
@@ -250,7 +253,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         if (verb) std::cout << "    Writing shameful kinematic maps..." << std::flush;
         MomentMap<T> *map = new MomentMap<T>;
         map->input(mod->Out());
-        map->SumMap(false);
+        map->ZeroMoment(false);
         map->fitswrite_2d((outfold+"maps/"+object+"_nonorm_0mom.fits").c_str());
         map->FirstMoment(false);
         map->fitswrite_2d((outfold+"maps/"+object+"_nonorm_1mom.fits").c_str());
@@ -262,7 +265,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 /*////////        TO BE REMOVED ////////////////////////////////////////////////////////
         map = new MomentMap<T>;
         map->input(mod->Out());
-        map->SumMap(false);
+        map->ZeroMoment(false);
         Tasks::Ellprof<T> ell(map,outr,nseg,segments);
         ell.setOptions(mass,distance);  //To set the mass and the distance
         ell.RadialProfile();
@@ -948,6 +951,12 @@ int Galfit<T>::plotAll_Python() {
     py_file << std::endl
             << "rad_sd, surfdens, sd_err = np.genfromtxt(filesb, usecols=(0,2,3),unpack=True) \n";
 
+    py_file << "# Opening maps and retrieving intensity map units\n"
+            << "f0 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_0mom.fits') \n"
+            << "f1 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_1mom.fits') \n"
+            << "f2 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_2mom.fits') \n"
+            << "bunit = f0[0].header['BUNIT'] \n\n";
+
     py_file << "\nfig1=plt.figure(figsize=(11.69,8.27), dpi=150)  \n"
             << "plt.rc('font',family='sans-serif',serif='Helvetica',size=10)  \n"
             << "params = {'text.usetex': False, 'mathtext.fontset': 'cm', 'mathtext.default': 'regular', 'errorbar.capsize': 0} \n"
@@ -1021,7 +1030,7 @@ int Galfit<T>::plotAll_Python() {
     py_file << std::endl
             << "axis=ax[0][2]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('$\\Sigma}$ ("+in->Head().Bunit()+"/arcs$^2$)', fontsize=14)  \n"
+            << "axis.set_ylabel('$\\Sigma}$ ('+bunit+')', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')  \n"
             << "axis.errorbar(rad_sd,surfdens, yerr=sd_err,fmt='o', color=color2)  \n";
     /*
@@ -1232,9 +1241,9 @@ int Galfit<T>::plotAll_Python() {
 
 
     py_file << std::endl << "# Now plotting moment maps \n"
-            << "mom0 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_0mom.fits')[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "mom1 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_1mom.fits')[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "mom2 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_2mom.fits')[0].data[ymin:ymax+1,xmin:xmax+1] \n"
+            << "mom0 = f0[0].data[ymin:ymax+1,xmin:xmax+1] \n"
+            << "mom1 = f1[0].data[ymin:ymax+1,xmin:xmax+1] \n"
+            << "mom2 = f2[0].data[ymin:ymax+1,xmin:xmax+1] \n"
             << std::endl
             << "files_mod0, files_mod1, files_mod2 = [], [], [] \n"
             << "for thisFile in os.listdir(outfolder+'/maps/'): \n"
@@ -1252,7 +1261,7 @@ int Galfit<T>::plotAll_Python() {
             << "norm2 = ImageNormalize(vmin=np.nanmin(mom2), vmax=np.nanmax(mom2), stretch=LinearStretch()) \n"
             << "norm = [norm0, norm1, norm2] \n"
             << "cmaps = [matplotlib.cm.jet,matplotlib.cm.jet,matplotlib.cm.jet] \n"
-            << "barlab = ['Intensity (" << in->Head().Bunit() <<")', 'V$_\\mathrm{LOS}$ (km/s)', '$\\sigma$ (km/s)'] \n"
+            << "barlab = ['Intensity ('+bunit+')', 'V$_\\mathrm{LOS}$ (km/s)', '$\\sigma$ (km/s)'] \n"
             << "titles = ['DATA', 'MODEL'] \n"
             << "mapname = ['INTENSITY', 'VELOCITY', 'DISPERSION'] \n"
             << std::endl

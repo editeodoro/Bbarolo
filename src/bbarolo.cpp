@@ -136,8 +136,8 @@ int main (int argc, char *argv[]) {
             Model::Galfit<float> *fit = new Model::Galfit<float>(c);
             fit->galfit();
             if (par->getParGF().TWOSTAGE) fit->SecondStage();
-            if (par->getFlagDebug()) fit->writeModel("BOTH");
-            else fit->writeModel(par->getParGF().NORM);
+            if (par->getFlagDebug()) fit->writeModel("BOTH",par->getFlagPlots());
+            else fit->writeModel(par->getParGF().NORM,par->getFlagPlots());
             delete fit;
         }
         // --------------------------------------------------------------
@@ -146,8 +146,8 @@ int main (int argc, char *argv[]) {
         // Cube Model task -----------------------------------------------
         if (par->getflagGalMod()) {
             Model::Galfit<float> *fit = new Model::Galfit<float>(c);
-            if (par->getFlagDebug()) fit->writeModel("BOTH");
-            else fit->writeModel(par->getParGF().NORM);
+            if (par->getFlagDebug()) fit->writeModel("BOTH",false);
+            else fit->writeModel(par->getParGF().NORM,false);
             delete fit;
         }
         //----------------------------------------------------------------

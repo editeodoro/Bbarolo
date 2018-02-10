@@ -429,9 +429,12 @@ bool MomentMap<T>::setHead(int type) {
         this->head.setCrpix(1, in->Head().Crpix(1)-blo[1]);
         if (type==0) {              
             this->head.setBtype("intensity");
-            if (in->Head().BeamArea()!=0) 
-                this->head.setBunit("JY * KM/S");
-            else this->head.setBunit("JY/BEAM * KM/S");
+            std::string bunit;
+            if (FluxtoJy(1,in->Head())==1) {
+                bunit = in->Head().Bunit() + " * KM/S";
+            }
+            else bunit = "JY * KM/S";
+            this->head.setBunit(bunit);
         }
         else if (type==1 || type==2) {
             if (type==1) this->head.setBtype("velocity");

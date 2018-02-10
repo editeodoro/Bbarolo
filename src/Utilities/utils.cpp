@@ -318,23 +318,20 @@ T FluxtoJy (T in, Header &h) {
  /// This function convert the input flux value  
  /// in a output flux value in units of Jy. 
  
-    T fluxvalue, fluxJY;
+    T fluxJY = in;
+    std::string b = deblankAll(makelower(h.Bunit()));
+    size_t f = std::string::npos;
     
-    fluxvalue = in;
-    std::string bunit = makelower(h.Bunit());
-
-    if (bunit=="w.u." || bunit=="wu") {
-        fluxJY = 5E-3*fluxvalue;
+    if (b.find("w.u.")!=f || b.find("wu")!=f) {
+        fluxJY *= 5E-3;
         if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
     }
-    else if (bunit=="jy/beam") {
-        fluxJY = fluxvalue;
+    else if (b.find("jy/b")!=f || b.find("j/b")!=f) {
         if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
     }
-    else if (bunit=="jy") {
-        return fluxvalue; 
+    else if (b.find("jy")!=f) {
+        return fluxJY; 
     }
-    else return fluxvalue;
     
     return fluxJY;
     

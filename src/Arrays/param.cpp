@@ -46,6 +46,7 @@ void Param::defaultValues() {
     outFolder           = "";
     verbose             = true;
     showbar             = true;
+    plots               = true;
     beamFWHM            = 30.;
     checkChannels       = false;
     flagRobustStats     = true;
@@ -111,6 +112,7 @@ Param& Param::operator= (const Param& p) {
     this->checkChannels     = p.checkChannels;
     this->verbose           = p.verbose; 
     this->showbar           = p.showbar;
+    this->plots             = p.plots;
     this->flagRobustStats   = p.flagRobustStats;
 
     this->globprof          = p.globprof;
@@ -269,6 +271,7 @@ int Param::readParams(std::string paramfile) {
             if(arg=="threads")          threads = readIval(ss);
             if(arg=="debug")            debug = readFlag(ss);
             if(arg=="showbar")          showbar = readFlag(ss);
+            if(arg=="plots")            plots = readFlag(ss);
             if(arg=="beamfwhm")         beamFWHM = readFval(ss);
             if(arg=="checkchannels")    checkChannels = readFlag(ss);
                 
@@ -667,6 +670,7 @@ void Param::printDefaults (std::ostream& theStream) {
     recordParam(theStream, "[FITSFILE]", "FITS file to be analysed", par.getImageFile());
     recordParam(theStream, "[FITSLIST]", "List of FITS files to be analysed", par.getImageList());
     recordParam(theStream, "[THREADS]", "Number of threads", par.getThreads());
+    recordParam(theStream, "[PLOTS]", "Producing output plots?", stringize(par.getFlagPlots()));
     
     theStream  <<"--------------"<<std::endl;
 
@@ -882,6 +886,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         recordParam(theStream, "[FITSFILE]", "FITS file to be analysed", par.getImageFile());
     else recordParam(theStream, "[FITSLIST]", "List of FITS files to be analysed", par.getImageList());
     recordParam(theStream, "[THREADS]", "Number of threads", par.getThreads());
+    recordParam(theStream, "[PLOTS]", "Producing output plots?", stringize(par.getFlagPlots()));
     
     theStream  <<"--------------"<<std::endl;
   

@@ -214,11 +214,11 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
 
     // If distance is given, calculate also Mass profile
     float dist = c->pars().getParGF().DISTANCE;
-    if (dist<0) dist = 1;
+    if (dist<0) dist = 0.01;
     float totflux = 0;
     T *ringreg = RingRegion(inR, c->Head());
     for (size_t i=0; i<im->NumPix(); i++) {
-        if (!isNaN(ringreg[i]) && !isNaN(im->Array(i))) totflux += im->Array(i);
+        if (!isNaN(ringreg[i]) && !isNaN(im->Array(i))) totflux += FluxtoJy(im->Array(i),im->Head());
     }
     // totflux should be already in Jy * km/s
     float mass = 2.365E5*dist*dist*totflux;
@@ -720,12 +720,16 @@ template bool Ellprof<double>::IsInSegment(float,float,float);
 template <class T>
 void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     
-    if (Mass!=0 && Distance!=0) {
+
+    if (Distance!=0.01) {
         theStream << "# Galaxy mass: " << scientific << Mass << "Msun" << std::endl;
         theStream << "# Galaxy distance: " << fixed << Distance << " Mpc" << std::endl;
         theStream << "#" << std::endl;
     }
-        
+    
+    theStream << "# NB: Columns 8-9 make sense only if units in Column 3 are JY/BEAM*KM/S or JY*KM/S.\n";
+    theStream << "# \n"; 
+    
     int m=16;
     std::string unit = im->Head().Bunit();
     theStream << fixed << setprecision(6);
@@ -755,12 +759,11 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
 
     // Calculating Mass surface density with Roberts75 formula.
     // This works only if units of map are JY/B * KM/S or JY * KM/S
-    std::string unit_l = makelower(unit);
+    std::string unit_l = deblankAll(makelower(unit));
     double barea = im->Head().Bmaj()*im->Head().Bmin();
     barea *= abs(arcsconv(im->Head().Cunit(0))*arcsconv(im->Head().Cunit(1))); 
-    if (!(unit_l.find("/b")!=std::string::npos || 
-          unit_l.find("/ b")!=std::string::npos)) barea /= im->Head().BeamArea();
-        
+    if (!(unit_l.find("/b")!=std::string::npos)) barea /= im->Head().BeamArea();
+    
     for (size_t i=0; i<Nrad; i++) {
         double massd = 8794*Mean[i][seg]/barea*Cosinc[i];
         // Writing 
