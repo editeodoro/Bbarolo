@@ -415,6 +415,7 @@ bool Header::header_read (std::string fname) {
 
     for (uint i=0; i<object.size();i++) {
         if (object[i]=='/' || object[i]=='\\') object.replace(i,1, "-");
+        if (object[i]=='(' || object[i]==')')  object.replace(i,1, "-");
         if (isspace(object[i])) object.replace(i,1, "_");
     }
 

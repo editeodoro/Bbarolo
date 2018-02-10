@@ -1097,7 +1097,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         recordParam(theStream, "[YPOS]", "   Y center of the galaxy (pixel)", par.getParGF().YPOS);
         recordParam(theStream, "[INC]",  "   Inclination angle (degrees)", par.getParGF().INC);
         recordParam(theStream, "[PA]",   "   Position angle (degrees)", par.getParGF().PHI);
-        recordParam(theStream, "[MASK]", "   Type of maskfor intensity map", par.getParGF().MASK);
+        recordParam(theStream, "[MASK]", "   Type of mask for intensity map", par.getParGF().MASK);
         recordParam(theStream, "[SIDE]", "   Side of the galaxy to be used", (par.getParGF().SIDE)); 
     }
     
