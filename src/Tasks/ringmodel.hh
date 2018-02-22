@@ -150,7 +150,6 @@ private:
     Cube<float> *in;
     int     blo[2];         ///< Lower edge of box.
     int     bup[2];         ///< Upper edge of box.
-    int     nfit;           ///< Number of fits.
     int     side;           ///< Which half of velocity field:
     int     wpow;           ///< Weighting power (uniform, cos, cos^2);
     float   thetaf;         ///< Free angle.

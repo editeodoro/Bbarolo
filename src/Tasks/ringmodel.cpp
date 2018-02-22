@@ -381,77 +381,77 @@ void Ringmodel::ringfit() {
   /// and do the fit.
   /// It is the calling function for Ringmodel class.
    
-    int iring;
-    
-    
+
     if (fieldAllocated && allAllocated) {
-        
         
         ProgressBar bar(" Fitting 2D tilted-ring model... ", true);
         bar.init(nrad);
         
-        for (nfit = 0, iring = 0; iring < nrad; iring++) {
+        int nthreads = in->pars().getThreads();
+
+#pragma omp parallel for num_threads(nthreads) 
+        for (int ir = 0; ir<nrad; ir++) {
             
-            bar.update(iring+1);
+            if (nthreads==1) bar.update(ir+1);
             
             int n;
             float   e[MAXPAR];
             float   p[MAXPAR];
             float   q = 0.0;
 
-            p[VSYS] = vsysi[iring];
-            p[VROT] = vroti[iring];
-            p[VEXP] = vexpi[iring];
-            p[PA]   = posai[iring];
-            p[INC]  = incli[iring];
+            p[VSYS] = vsysi[ir];
+            p[VROT] = vroti[ir];
+            p[VEXP] = vexpi[ir];
+            p[PA]   = posai[ir];
+            p[INC]  = incli[ir];
             p[X0]   = xposi;
             p[Y0]   = yposi;
-            float ri = rads[iring] - 0.5 * wids[iring];
-            float ro = rads[iring] + 0.5 * wids[iring];
+            float ri = rads[ir] - 0.5 * wids[ir];
+            float ro = rads[ir] + 0.5 * wids[ir];
             if ( ri < 0.0 ) ri = 0.0;
         
             if (rotfit(ri, ro, p, e, n, q)>0) {
-                if (nfit < iring) {
-                    rads[nfit] = rads[iring];
-                    wids[nfit] = wids[iring];
-                }
             
-                vsysf[nfit] = p[0];
-                if (e[0] < 999.99) vsyse[nfit] = e[0];
-                else vsyse[nfit] = 999.99;
+                vsysf[ir] = p[0];
+                if (e[0] < 999.99) vsyse[ir] = e[0];
+                else vsyse[ir] = 999.99;
             
-                vrotf[nfit] = p[1];
-                if (e[1] < 999.99) vrote[nfit] = e[1];
-                else vrote[nfit] = 999.99;
+                vrotf[ir] = p[1];
+                if (e[1] < 999.99) vrote[ir] = e[1];
+                else vrote[ir] = 999.99;
             
-                vexpf[nfit] = p[2];
-                if (e[2] < 999.99) vexpe[nfit] = e[2];
-                else vexpe[nfit] = 999.99;
+                vexpf[ir] = p[2];
+                if (e[2] < 999.99) vexpe[ir] = e[2];
+                else vexpe[ir] = 999.99;
             
-                posaf[nfit] = p[3];
-                if (e[3] < 999.99) posae[nfit] = e[3];
-                else posae[nfit] = 999.99;
+                posaf[ir] = p[3];
+                if (e[3] < 999.99) posae[ir] = e[3];
+                else posae[ir] = 999.99;
             
-                inclf[nfit] = p[4];
-                if (e[4] < 999.99) incle[nfit] = e[4];
-                else incle[nfit] = 999.99;
+                inclf[ir] = p[4];
+                if (e[4] < 999.99) incle[ir] = e[4];
+                else incle[ir] = 999.99;
             
-                xposf[nfit] = p[5];
-                if (e[5] < 999.99) xpose[nfit] = e[5];
-                else xpose[nfit] = 999.99;
+                xposf[ir] = p[5];
+                if (e[5] < 999.99) xpose[ir] = e[5];
+                else xpose[ir] = 999.99;
             
-                yposf[nfit] = p[6];
-                if (e[6] < 999.99) ypose[nfit] = e[6];
-                else ypose[nfit] = 999.99;
+                yposf[ir] = p[6];
+                if (e[6] < 999.99) ypose[ir] = e[6];
+                else ypose[ir] = 999.99;
             
-                elp[nfit][0] = elp4[0];
-                elp[nfit][1] = elp4[1];
-                elp[nfit][2] = elp4[2];
-                elp[nfit][3] = elp4[3];
-                npts[nfit] = n;
-                chis[nfit] = q;
-                nfit += 1;
-            }   
+                elp[ir][0] = elp4[0];
+                elp[ir][1] = elp4[1];
+                elp[ir][2] = elp4[2];
+                elp[ir][3] = elp4[3];
+                npts[ir] = n;
+                chis[ir] = q;
+            } 
+            else {
+                // Fit did not succeed
+                vsysf[ir]=vrotf[ir]=vexpf[ir]=posaf[ir]=inclf[ir]=xposf[ir]=yposf[ir]=log(-1);
+                vsyse[ir]=vrote[ir]=vexpe[ir]=posae[ir]=incle[ir]=xpose[ir]=ypose[ir]=log(-1);
+            }
         }
         
         bar.fillSpace("Done.\n");

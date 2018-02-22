@@ -320,7 +320,6 @@ bool Cube<T>::fitsread_3d() {
 
     fitsfile *fptr3;
     int status, anynul, fpixel;
-    float nulval;
 
     if (par.isVerbose()) { 
         std::cout << "\nOpening file "<< par.getImageFile() << std::endl;
@@ -341,10 +340,11 @@ bool Cube<T>::fitsread_3d() {
     fpixel=1;
 
     status=0;
-    if (fits_read_img(fptr3, selectDatatype<T>(), fpixel, numPix, &nulval, array, &anynul, &status)){
+    if (fits_read_img(fptr3, selectDatatype<T>(), fpixel, numPix, NULL, array, &anynul, &status)){
         fits_report_error(stderr, status);
         return false;
-    }  
+    } 
+    
 
     // Close the FITS File
     if (fits_close_file(fptr3, &status)){
