@@ -831,6 +831,7 @@ int Galfit<T>::plotAll_Python() {
      *   1) Channel maps
      *   2) Position-Velocity diagrams along major/minor axis
      *   3) Output paramenters
+     *   4) Moment maps
      *
      * It needs all output fitsfiles to be in the output directory!
      */

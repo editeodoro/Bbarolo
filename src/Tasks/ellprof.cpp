@@ -721,7 +721,7 @@ template <class T>
 void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     
 
-    if (Distance!=0.01) {
+    if (Mass!=0) {
         theStream << "# Galaxy mass: " << scientific << Mass << "Msun" << std::endl;
         theStream << "# Galaxy distance: " << fixed << Distance << " Mpc" << std::endl;
         theStream << "#" << std::endl;

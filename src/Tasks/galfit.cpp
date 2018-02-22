@@ -300,9 +300,10 @@ Galfit<T>::Galfit(Cube<T> *c) {
     if (!c->pars().getflagGalMod()) {
         if (!onefile) showInitial(inR, std::cout);
         else printInitial(inR);
-        // Setup all needed parameters
-        setup(c,inR,&par);
     }
+    
+    // Setup all needed parameters
+    setup(c,inR,&par);
     
 }
 template Galfit<float>::Galfit(Cube<float>*);
