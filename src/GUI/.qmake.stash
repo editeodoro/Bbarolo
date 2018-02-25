@@ -1,0 +1,94 @@
+QMAKE_XCODE_DEVELOPER_PATH = /Applications/Xcode.app/Contents/Developer
+QMAKE_XCODE_VERSION = 6.3.1
+QMAKE_MAC_SDK.macosx.path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk
+QMAKE_MAC_SDK.macosx.version = 10.10
+QMAKE_MAC_SDK.macx-clang.macosx.QMAKE_CC = \
+    /Applications/Xcode.app/Contents/Developer/usr/bin/gcc \
+    -O2 \
+    -ftree-vectorize \
+    -fPIC \
+    -Wuninitialized
+QMAKE_MAC_SDK.macx-clang.macosx.QMAKE_CXX = \
+    /Applications/Xcode.app/Contents/Developer/usr/bin/g++ \
+    -O2 \
+    -ftree-vectorize \
+    -fPIC \
+    -Wuninitialized
+QMAKE_MAC_SDK.macx-clang.macosx.QMAKE_FIX_RPATH = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool \
+    -id
+QMAKE_MAC_SDK.macx-clang.macosx.QMAKE_AR = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar \
+    cq
+QMAKE_MAC_SDK.macx-clang.macosx.QMAKE_RANLIB = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib \
+    -s
+QMAKE_MAC_SDK.macx-clang.macosx.QMAKE_LINK = \
+    /Applications/Xcode.app/Contents/Developer/usr/bin/g++ \
+    -O2 \
+    -ftree-vectorize \
+    -fPIC \
+    -Wuninitialized
+QMAKE_MAC_SDK.macx-clang.macosx.QMAKE_LINK_SHLIB = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
+QMAKE_MAC_SDK.macosx.platform_name = macosx
+QMAKE_MAC_SDK.macosx.platform_path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform
+QMAKE_MAC_SDK.macosx10.11.path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
+QMAKE_MAC_SDK.macosx10.11.platform_path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform
+QMAKE_MAC_SDK.macosx10.11.version = 10.11
+QMAKE_MAC_SDK.macx-clang.macosx10.11.QMAKE_CC = /usr/local/bin/gcc
+QMAKE_MAC_SDK.macx-clang.macosx10.11.QMAKE_CXX = /usr/local/bin/g++
+QMAKE_MAC_SDK.macx-clang.macosx10.11.QMAKE_FIX_RPATH = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool \
+    -id
+QMAKE_MAC_SDK.macx-clang.macosx10.11.QMAKE_AR = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar \
+    cq
+QMAKE_MAC_SDK.macx-clang.macosx10.11.QMAKE_RANLIB = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib \
+    -s
+QMAKE_MAC_SDK.macx-clang.macosx10.11.QMAKE_LINK = /usr/local/bin/g++
+QMAKE_MAC_SDK.macx-clang.macosx10.11.QMAKE_LINK_SHLIB = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
+QMAKE_MAC_SDK.macosx10.11.platform_name = macosx
+QMAKE_MAC_SDK.macx-g++.macosx.QMAKE_CC = \
+    /Applications/Xcode.app/Contents/Developer/usr/bin/gcc \
+    -O2 \
+    -ftree-vectorize \
+    -fPIC \
+    -Wuninitialized \
+    -fopenmp
+QMAKE_MAC_SDK.macx-g++.macosx.QMAKE_CXX = \
+    /Applications/Xcode.app/Contents/Developer/usr/bin/g++ \
+    -O2 \
+    -ftree-vectorize \
+    -fPIC \
+    -Wuninitialized \
+    -fopenmp
+QMAKE_MAC_SDK.macx-g++.macosx.QMAKE_FIX_RPATH = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool \
+    -id
+QMAKE_MAC_SDK.macx-g++.macosx.QMAKE_AR = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar \
+    cq
+QMAKE_MAC_SDK.macx-g++.macosx.QMAKE_RANLIB = \
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib \
+    -s
+QMAKE_MAC_SDK.macx-g++.macosx.QMAKE_LINK = \
+    /Applications/Xcode.app/Contents/Developer/usr/bin/g++ \
+    -O2 \
+    -ftree-vectorize \
+    -fPIC \
+    -Wuninitialized \
+    -fopenmp
+QMAKE_MAC_SDK.macx-g++.macosx.QMAKE_LINK_SHLIB = /Applications/Xcode.app/Contents/Developer/usr/bin/g++
+QMAKE_DEFAULT_INCDIRS = \
+    /usr/include/c++/6.2.1 \
+    /usr/include/c++/6.2.1/x86_64-pc-linux-gnu \
+    /usr/include/c++/6.2.1/backward \
+    /usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include \
+    /usr/local/include \
+    /usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include-fixed \
+    /usr/include
+QMAKE_DEFAULT_LIBDIRS = \
+    /usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1 \
+    /usr/lib \
+    /lib

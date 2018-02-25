@@ -65,11 +65,12 @@
 
 #include <iostream>
 #include <vector>
+#include <random>
 #include <Arrays/cube.hh>
 #include <Arrays/param.hh>
 #include <Arrays/rings.hh>
 #include <Utilities/utils.hh>
-
+#include <functional>
 
 namespace Model {
     
@@ -136,7 +137,12 @@ protected:
     float   arcmconv;                       //< Conversion to arcmin.
     bool    readytomod;
     bool    modCalculated;
-        
+    
+    // Random number engines
+    std::mt19937 generator;
+    std::uniform_real_distribution<float> uniform;
+    std::normal_distribution<float> gaussia;
+    
     /// Private functions.
     
     void    initialize(Cube<Type> *c, int *Boxup, int *Boxlow);
@@ -144,9 +150,7 @@ protected:
     void    galmod();
     void    NHItoRAD();
     double  velgrid(double v);
-    double  fdev(int& idum);
-    double  gasdev(int &idum);
-    int     iran(int &idum);
+    double  fdev();
 
 };
 

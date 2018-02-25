@@ -481,6 +481,7 @@ template double Galfit<double>::func3D(Rings<double>*,double*);
 template <class T>
 T Galfit<T>::model(Rings<T> *dring) {
 
+    
     Model::Galmod<T> *mod = new Model::Galmod<T>;
 
 	int xdis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(0))*arcconv));
@@ -499,6 +500,7 @@ T Galfit<T>::model(Rings<T> *dring) {
 	if (nv==-1) nv=in->DimZ();
 
 	mod->input(in,bhi,blo,dring,nv,par.LTYPE,1,par.CDENS);
+
 	mod->calculate();
 	
 	T *modp = mod->Out()->Array();
@@ -515,7 +517,6 @@ T Galfit<T>::model(Rings<T> *dring) {
 	delete mod;
 
 	return minfunc; 
-
 }
 template float Galfit<float>::model(Rings<float>*);
 template double Galfit<double>::model(Rings<double>*);
@@ -585,18 +586,18 @@ void Galfit<T>::Convolve_fft(T *array, int *bsize) {
 		long size = bsize[0]*bsize[1];
 		double *beforeCON = new double[size];
 		Conv2D cfft;
-		init_Conv2D (cfft, LINEAR_SAME, bsize[0], bsize[1], NconX, NconY);	
-		
+        init_Conv2D(cfft,LINEAR_SAME, bsize[0], bsize[1], NconX, NconY);	
+		 
 		for (uint z=in->DimZ(); z--;) {
 			T *ptr = &array[z*size];
 			for (uint i=size; i--;) beforeCON[i] = ptr[i];
-			convolve (cfft, beforeCON, cfield);			
+			convolve (cfft,beforeCON, cfield);			
 			for (uint i=size; i--;) 
 				ptr[i] = (cfft.dst[i]<1.E-12) ? 0. : cfft.dst[i];	//<<<< Un po' arbitrario, non mi piace.
 		}
-				
-		clear_Conv2D(cfft);	
-		delete [] beforeCON;
+		
+        clear_Conv2D(cfft);
+        delete [] beforeCON;
 	}
 
 }

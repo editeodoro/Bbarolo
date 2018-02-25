@@ -134,12 +134,15 @@ void init_Conv2D (Conv2D &ws, CONV_MODE mode, int w_src, int h_src, int w_kernel
 //  fftw_plan_with_nthreads(omp_get_max_threads());
 //#endif
 
+#pragma omp critical (fftw_plans)
+{
     // Initialization of the plans
     ws.p_forw_src = fftw_plan_dft_r2c_2d(ws.h_fftw, ws.w_fftw, ws.in_src, (fftw_complex*)ws.out_src, FFTW_ESTIMATE);
     ws.p_forw_ker = fftw_plan_dft_r2c_2d(ws.h_fftw, ws.w_fftw, ws.in_ker, (fftw_complex*)ws.out_ker, FFTW_ESTIMATE);
  
     // The backward FFT takes ws.out_kernel as input !!
     ws.p_back = fftw_plan_dft_c2r_2d(ws.h_fftw, ws.w_fftw, (fftw_complex*)ws.out_ker, ws.dst_fft, FFTW_ESTIMATE);
+}
 }
 
 
