@@ -70,7 +70,6 @@
 #include <Arrays/param.hh>
 #include <Arrays/rings.hh>
 #include <Utilities/utils.hh>
-#include <functional>
 
 namespace Model {
     
