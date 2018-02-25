@@ -375,10 +375,11 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
     // Progress bar
     ProgressBar bar(" Computing RMS map... ", true);
     bar.setShowbar(in->pars().getShowbar());
-    if (nthreads>1) bar.setShowbar(false);
-    if (isVerbose) bar.init(xs*ys);
     
-#pragma omp parallel for num_threads(nthreads)   
+#pragma omp parallel num_threads(nthreads)
+{
+    if (isVerbose) bar.init(xs*ys);
+#pragma omp for
     for (int xy=0; xy<xs*ys; xy++) {
         if (isVerbose) bar.update(xy+1);
             
@@ -412,7 +413,7 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
         }
         this->array[xy] = orms;
     }
-    
+}
     if (isVerbose) bar.fillSpace("Done.\n");
 
 

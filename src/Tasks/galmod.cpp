@@ -155,6 +155,7 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
         
     initialize(c, Boxup, Boxlow);
     
+    
     ringIO(rings);
     
     ltype=LTYPE;
@@ -189,6 +190,7 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
     gaussia   = std::normal_distribution<float>(0.,1.);
     
     readytomod=true;
+    
 }
 template void Galmod<float>::input(Cube<float>*,int*,int*,Rings<float>*,int,int,int,float,int);
 template void Galmod<double>::input(Cube<double>*,int*,int*,Rings<double>*,int,int,int,float,int);

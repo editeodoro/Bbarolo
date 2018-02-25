@@ -107,7 +107,30 @@ struct Rings {
         if (nr>1) this->radsep = radii[1]-radii[0];
     }
     
-    
+    void setRings (T minrad, T maxrad, T radsep, T xpos, T ypos, T vsys, T vrot, T vdisp, 
+                   T vrad, T vvert, T dvdz, T zcyl, T dens, T z0, T inc, T phi, int nv) {
+        
+        this->nr = (maxrad-minrad)/radsep + 1;
+        this->radsep = radsep;    
+        for (int i=0; i<this->nr; i++) {
+            this->radii.push_back(minrad+i*radsep);            
+            this->xpos.push_back(xpos);
+            this->ypos.push_back(ypos);
+            this->vsys.push_back(vsys);
+            this->vrot.push_back(vrot);
+            this->vdisp.push_back(vdisp);
+            this->vrad.push_back(vrad);
+            this->vvert.push_back(vvert);
+            this->dvdz.push_back(dvdz);
+            this->zcyl.push_back(zcyl);
+            this->dens.push_back(dens);
+            this->z0.push_back(z0);
+            this->inc.push_back(inc);
+            this->phi.push_back(phi);
+            this->pa.push_back(0);
+            this->nv.push_back(nv);
+        }
+    }
 };
 
 

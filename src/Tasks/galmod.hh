@@ -51,7 +51,6 @@
 //      -int CDENS[1]:  Surface density of clouds in the plane of the 
 //                      rings per area of a pixel. Default is 1.
 //      -int ISEED[-1]: Number to call the random number generator. 
-//                      It must be negative.
 //
 // 2) call calculate() function.
 //
@@ -100,7 +99,6 @@ public:
     bool calculate();
     bool smooth(bool usescalefac=true);
     void normalize();
-
 
 
 protected:

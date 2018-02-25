@@ -122,7 +122,7 @@ int main (int argc, char *argv[]) {
 
 
         /// Source finding utility --------------------------------------
-        if (par->getflagSearch()) {			
+        if (par->getflagSearch()) {
             c->Search();
             c->plotDetections();
             std::ofstream detout((outfolder+"detections.txt").c_str());
@@ -142,7 +142,7 @@ int main (int argc, char *argv[]) {
         }
         // --------------------------------------------------------------
     
-    
+
         // Cube Model task -----------------------------------------------
         if (par->getflagGalMod()) {
             Model::Galfit<float> *fit = new Model::Galfit<float>(c);

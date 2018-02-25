@@ -190,7 +190,6 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 			deallocate_2D(p,ndim+1);
 			delete [] y;
 			return false;
-			//std::terminate();
 		}
 		nfunc += 2;
 		

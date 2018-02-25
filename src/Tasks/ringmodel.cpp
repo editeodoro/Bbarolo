@@ -390,7 +390,10 @@ void Ringmodel::ringfit() {
         
         int nthreads = in->pars().getThreads();
 
-#pragma omp parallel for num_threads(nthreads) 
+#pragma omp parallel num_threads(nthreads)
+{
+        bar.init(nrad);
+#pragma omp for
         for (int ir = 0; ir<nrad; ir++) {
             
             bar.update(ir+1);
@@ -454,7 +457,7 @@ void Ringmodel::ringfit() {
                 vsyse[ir]=vrote[ir]=vexpe[ir]=posae[ir]=incle[ir]=xpose[ir]=ypose[ir]=log(-1);
             }
         }
-        
+}    
         bar.fillSpace("Done.\n");
     
     }

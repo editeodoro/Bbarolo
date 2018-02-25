@@ -430,7 +430,7 @@ bool Param::checkPars() {
     checkHome(outFolder);
     if (outFolder!="" && outFolder[outFolder.size()-1]!='/') outFolder.append("/");
 
-    if (!verbose || threads>1) showbar=false;
+    if (!verbose) showbar=false;
 
     // Checking MASK parameter
     std::string maskstr = makeupper(parGF.MASK);

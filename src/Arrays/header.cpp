@@ -128,6 +128,8 @@ Header& Header::operator=(const Header& h) {
     this->warning   = h.warning;
     
 //    this->wcs = h.wcs;
+#pragma omp critical
+{
     this->wcs = new struct wcsprm;
     this->wcs->flag = -1;
     wcsini(true, h.wcs->naxis, this->wcs);
@@ -135,7 +137,7 @@ Header& Header::operator=(const Header& h) {
     wcsset(this->wcs);
     this->nwcs      = h.nwcs;
     this->wcsIsGood = h.wcsIsGood;
-
+}
     for (unsigned int i=0; i<h.keys.size(); i++)
         this->keys.push_back(h.keys[i]); 
             

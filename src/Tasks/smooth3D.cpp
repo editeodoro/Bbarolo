@@ -492,9 +492,8 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
     long size = (NdatX+NconX-1)*(NdatY+NconY-1);
         
     bool verb = in->pars().isVerbose();
-    ProgressBar bar(" Smoothing... ",true);
+    ProgressBar bar(" Smoothing... ",false);
     bar.setShowbar(in->pars().getShowbar());
-    if (verb) bar.init(NdatZ);
 
     if (!usescalefac) scalefac=1.0;
     
@@ -502,6 +501,7 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
 
 #pragma omp parallel num_threads(nthreads)
 {
+    if (verb) bar.init(NdatZ);
     T *beforeCON = new T[size];
     T *afterCON  = new T[size];
 #pragma omp for
@@ -564,14 +564,13 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
     bool verb = in->pars().isVerbose();
     ProgressBar bar(" Smoothing... ",false);
     bar.setShowbar(in->pars().getShowbar());
-    if (verb) bar.init(NdatZ);
     
     if (!usescalefac) scalefac=1.0;
-
     int nthreads = in->pars().getThreads();
 
 #pragma omp parallel num_threads(nthreads)
 {
+    if (verb) bar.init(NdatZ);
     Conv2D conv_fft;
     init_Conv2D(conv_fft,LINEAR_SAME, NdatX, NdatY, NconX, NconY);
     double *beforeCON = new double[NdatX*NdatY];

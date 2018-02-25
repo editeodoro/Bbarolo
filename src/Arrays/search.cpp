@@ -263,11 +263,12 @@ std::vector <Detection<T> > Cube<T>::search3DArraySpatial() {
     ProgressBar bar("Searching in progress... ");
     bool useBar = (zdim>1);
     bar.setShowbar(par.getShowbar());
-    if(useBar && par.isVerbose()) bar.init(zdim);
-
 
     int nthreads=par.getThreads();
-#pragma omp parallel for num_threads(nthreads) reduction (+:num)
+#pragma omp parallel num_threads(nthreads)
+{
+    if(useBar && par.isVerbose()) bar.init(zdim);
+#pragma omp for reduction (+:num)
     for(int z=0; z<zdim; z++) {
         int imdim[2] = {axisDim[0],axisDim[1]};
         Image2D<T> *channelImage = new Image2D<T>(imdim);
@@ -291,6 +292,7 @@ std::vector <Detection<T> > Cube<T>::search3DArraySpatial() {
         }
         delete channelImage;
     }
+}
 
 
     if(par.isVerbose()){
