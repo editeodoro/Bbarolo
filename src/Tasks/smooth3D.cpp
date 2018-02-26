@@ -490,8 +490,6 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
     }
     
     long size = (NdatX+NconX-1)*(NdatY+NconY-1);
-    T *beforeCON = new T[size];
-    T *afterCON  = new T[size];
         
     bool verb = in->pars().isVerbose();
     ProgressBar bar(" Smoothing... ",true);
@@ -499,7 +497,14 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
     if (verb) bar.init(NdatZ);
 
     if (!usescalefac) scalefac=1.0;
+    
+    int nthreads = in->pars().getThreads();
 
+#pragma omp parallel num_threads(nthreads)
+{
+    T *beforeCON = new T[size];
+    T *afterCON  = new T[size];
+#pragma omp for
     for (int z=0; z<NdatZ; z++) {
         if (verb) bar.update(z+1);  
         for (int x=0; x<(NdatX+NconX-1); x++) {
@@ -519,13 +524,11 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
         int Iresult = Convolve(confie, NconX, NconY, beforeCON, 
                                 afterCON, NdatX+NconX-1, NdatY+NconY-1);
         
-         
-        if (Iresult!=0) {
-            std::cout<<"SMOOTH error: cannot convolve requested functions (code="
-                     << Iresult << ")" << std::endl;
-            return false;
-        }
-       
+        //if (Iresult!=0) {
+        //    std::cout<<"SMOOTH error: cannot convolve requested functions (code="
+        //             << Iresult << ")" << std::endl;
+        //    return false;
+        //}
 
         for (int x=(NconX-1)/2; x<(NdatX+(NconX-1)/2); x++) {
             for (int y=(NconY-1)/2; y<(NdatY+(NconY-1)/2); y++) {
@@ -533,15 +536,12 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
                 long oPix = (x-(NconX-1)/2)+(y-(NconY-1)/2)*NdatX+z*NdatX*NdatY;    
                 NewArray[oPix] = blanks[oPix]*afterCON[nPix]*scalefac;
             }
-        }
-        
-        
-    }   
-
-    if (verb) bar.fillSpace("OK.\n");
-
+        }        
+    }  
     delete [] beforeCON;
-    delete [] afterCON;
+    delete [] afterCON; 
+}
+    if (verb) bar.fillSpace("OK.\n");    
     
     return true;
 }
@@ -560,19 +560,24 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
         return false;
     }
     
-    double *beforeCON = new double[NdatX*NdatY];
         
     bool verb = in->pars().isVerbose();
     ProgressBar bar(" Smoothing... ",false);
     bar.setShowbar(in->pars().getShowbar());
     if (verb) bar.init(NdatZ);
     
-    Conv2D conv_fft;
-    init_Conv2D (conv_fft, LINEAR_SAME, NdatX, NdatY, NconX, NconY);
-    
     if (!usescalefac) scalefac=1.0;
 
+    int nthreads = in->pars().getThreads();
+
+#pragma omp parallel num_threads(nthreads)
+{
+    Conv2D conv_fft;
+    init_Conv2D(conv_fft,LINEAR_SAME, NdatX, NdatY, NconX, NconY);
+    double *beforeCON = new double[NdatX*NdatY];
+#pragma omp for
     for (int z=0; z<NdatZ; z++) {
+
         if (verb) bar.update(z+1);  
         for (int x=0; x<NdatX; x++) {
             for (int y=0; y<NdatY; y++) {
@@ -582,7 +587,7 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
             }
         }
         
-        convolve (conv_fft, beforeCON, confie); 
+        convolve(conv_fft,beforeCON, confie); 
 
         for (int x=0; x<NdatX; x++) {
             for (int y=0; y<NdatY; y++) {
@@ -591,14 +596,12 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
                 NewArray[oPix] = blanks[oPix]*conv_fft.dst[nPix]*scalefac;
             }
         }
-        
     }
+    delete [] beforeCON;
+    clear_Conv2D(conv_fft);
+}
 
     if (verb) bar.fillSpace("Done.\n");
-
-    clear_Conv2D(conv_fft);
-    
-    delete [] beforeCON;
 
     return true;
 }

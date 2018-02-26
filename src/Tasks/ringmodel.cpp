@@ -385,6 +385,7 @@ void Ringmodel::ringfit() {
     if (fieldAllocated && allAllocated) {
         
         ProgressBar bar(" Fitting 2D tilted-ring model... ", true);
+        bar.setShowbar(in->pars().getShowbar());
         bar.init(nrad);
         
         int nthreads = in->pars().getThreads();
@@ -392,7 +393,7 @@ void Ringmodel::ringfit() {
 #pragma omp parallel for num_threads(nthreads) 
         for (int ir = 0; ir<nrad; ir++) {
             
-            if (nthreads==1) bar.update(ir+1);
+            bar.update(ir+1);
             
             int n;
             float   e[MAXPAR];

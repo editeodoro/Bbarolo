@@ -45,7 +45,7 @@ typedef enum
 
 struct Conv2D
 {
-    double  *in_src;            
+    double  *in_src;
     double  *out_src;
     double  *in_ker;
     double  *out_ker;

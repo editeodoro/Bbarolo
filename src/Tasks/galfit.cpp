@@ -543,10 +543,20 @@ void Galfit<T>::galfit() {
 //        }
 //    }
 //    else {
+        double toKpc = KpcPerArc(distance);
         int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
+
+        //#pragma omp parallel for num_threads(4) 
+        // Problemi trovati con OpenMP:
+        // nell funzione Galfit::model()
+        // 1) mod->input() -> out->saveHead()
+        //    wcs param nell'Header copy constructor seems not thread safe.
+        // 2) Destructor of mod -> destructor of outcube gives segfault.
+        // 3) static variables in galmod->iran()
+        // 4) FFTW plans declaration in Conv2D needs a omp critical
         for (int ir=start_rad; ir<inr->nr; ir++) {
             w_r = ir;
-            double toKpc = KpcPerArc(distance);
+            
             if (verb) {
                 time_t t = time(NULL);
                 char Time[11] = "          ";
@@ -670,13 +680,13 @@ void Galfit<T>::galfit() {
                 cout << setw(n) << left << s << setw(3) << right << "= "
                      << setw(m) << outr->z0[ir]*toKpc << left << setw(m) << "  Kpc";
 
-                /*
-            s = "        CD";----
-            if (!mpar[DENS]) s += "(f)";
-            cout << setw(n+4) << left << s << setw(3) << right << "= "
-                 << setw(m-1) << scientific << setprecision(1)
-                 << outr->dens[ir] << left << setw(m) << "  a/cm2";
-            */
+        
+            //s = "        CD";----
+            //if (!mpar[DENS]) s += "(f)";
+            //cout << setw(n+4) << left << s << setw(3) << right << "= "
+            //     << setw(m-1) << scientific << setprecision(1)
+            //     << outr->dens[ir] << left << setw(m) << "  a/cm2";
+            
 
                 cout << endl;
 
@@ -713,7 +723,7 @@ void Galfit<T>::galfit() {
 
         }
   //  }
-
+        
     fileout.close();
 
 
@@ -722,7 +732,6 @@ void Galfit<T>::galfit() {
         cout << fixed << setprecision(2) << setfill(' ');
         in->pars().setVerbosity(true);
     }
-    
     
 }
 template void Galfit<float>::galfit();

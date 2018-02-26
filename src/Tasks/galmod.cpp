@@ -659,7 +659,7 @@ void Galmod<T>::galmod() {
     int nprof = bsize[0]*bsize[1];
 //  Initialize data buffer on zero.
     for (int i=0; i<buflen; i++) datbuf[i]=0.0;
-
+    
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
         if (verb) bar.update(ir+1);
@@ -690,7 +690,7 @@ void Galmod<T>::galmod() {
         double cpa     = cos(r->phi[ir])*cos(crota2)-sin(r->phi[ir])*sin(crota2);
         double nvtmp   = r->nv[ir];
         float  fluxsc  = r->dens[ir]*twopi*rtmp*r->radsep/(nc*nvtmp);
-            
+           
 // ==>> Loop over clouds inside each ring.
         for (int ic=0; ic<nc; ic++) {
 //          Get radius inside ring. The range includes the inner boundary,
@@ -716,33 +716,33 @@ void Galmod<T>::galmod() {
             if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
             if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
 
-/*
-            /////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            float rr, theta;
-            float xr = (-(grid[0]-r->pos[0])*spa+(grid[1]-r->pos[1])*cpa);
-            float yr = (-(grid[0]-r->pos[0])*cpa-(grid[1]-r->pos[1])*spa)/cinc;
-            rr = sqrt(xr*xr+yr*yr);
-            if (rr<0.1) theta = 0.0;            
-            else theta = atan2(yr, xr)/M_PI*180;    
-                
-            int side = 1;
-            bool use;
-            switch (side) {                     // Which side of galaxy.                    
-                case 1:                         //< Receding half.                              
-                    use = (fabs(theta)<=90.0);      
-                    break;
-                case 2:                         //< Approaching half. 
-                    use = (fabs(theta)>=90.0);
-                    break;
-                case 3:                         //< Both halves.
-                    use = 1;
-                    break;
-                default: 
-                    break;  
-            }
-                
-            if (!use) continue;
-*/                  
+
+//            /////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//            float rr, theta;
+//            float xr = (-(grid[0]-r->pos[0])*spa+(grid[1]-r->pos[1])*cpa);
+//            float yr = (-(grid[0]-r->pos[0])*cpa-(grid[1]-r->pos[1])*spa)/cinc;
+//            rr = sqrt(xr*xr+yr*yr);
+//            if (rr<0.1) theta = 0.0;            
+//            else theta = atan2(yr, xr)/M_PI*180;    
+//                
+//            int side = 1;
+//            bool use;
+//            switch (side) {                     // Which side of galaxy.                    
+//                case 1:                         //< Receding half.                              
+//                    use = (fabs(theta)<=90.0);      
+//                    break;
+//                case 2:                         //< Approaching half. 
+//                    use = (fabs(theta)>=90.0);
+//                    break;
+//                case 3:                         //< Both halves.
+//                    use = 1;
+//                    break;
+//                default: 
+//                    break;  
+//            }
+//                
+//            if (!use) continue;
+                  
             //////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
 //              
 //          Get profile number of current pixel and check if position is in
@@ -758,30 +758,30 @@ void Galmod<T>::galmod() {
             else vsys += vverttmp*cinc;     //// <--- Check this. In galmod is a +
                 
                     
-/* ORIGINAL BUILDING PROFILES
+// ORIGINAL BUILDING PROFILES
 // ==>>     Build velocity profile.
-            for (int iv=0; iv<nvtmp; iv++) {
+//            for (int iv=0; iv<nvtmp; iv++) {
 //              Get deviate drawn from gaussian velocity profile and add
 //              to the systematic velocity.
-                double v     = vsys+gasdev(isd)*vdisptmp;
+//                double v     = vsys+gasdev(isd)*vdisptmp;
 //              Get grid of velocity along FREQ-OHEL or VELO axis.
 //              If a grid is not in the range, jump to next velocity profile.
-                int isubs = lround(velgrid(v)+crpix3-1);
-                if (isubs<0 || isubs>=nsubs) continue;                  
-                int idat  = iprof+isubs*nprof;
+//                int isubs = lround(velgrid(v)+crpix3-1);
+//                if (isubs<0 || isubs>=nsubs) continue;                  
+//               int idat  = iprof+isubs*nprof;
 //              Convert HI atom flux per pixel to flux per pixel of 21cm
 //              radiation expressed in W.U. and add subcloud to the data
 //              buffer.
-                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
-            }
+//                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
+//            }
 
-*/
+        
 
 //          PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
             uint nlines = in->pars().getParGM().NLINES;
             float relvel_lines[2] = {0,220000};
             float relint_lines[2] = {1,1.70};
-
+            
             for (int iv=0; iv<nvtmp; iv++) {
                 double vdev = gasdev(isd)*vdisptmp;
                 for (int nl=0; nl<nlines; nl++) {
@@ -991,6 +991,8 @@ int Galmod<T>::iran(int &idum) {
 
     static int ma[56];
     static int inext, inextp, mk;
+    //#pragma omp threadprivate(ma,inext,inextp,mk)
+
     int Iran=0; 
 
     if (idum<0) {
