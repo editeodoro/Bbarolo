@@ -5,7 +5,11 @@ BBarolo
 *.o
 *.DS_Store
 *.swp/
+*.swp
 *.qmake.stash
 src/build/
 *.par
 output/
+*.pyc
+*.dylib*
+*.a
