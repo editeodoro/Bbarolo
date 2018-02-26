@@ -51,7 +51,6 @@
 //      -int CDENS[1]:  Surface density of clouds in the plane of the 
 //                      rings per area of a pixel. Default is 1.
 //      -int ISEED[-1]: Number to call the random number generator. 
-//                      It must be negative.
 //
 // 2) call calculate() function.
 //
@@ -65,11 +64,11 @@
 
 #include <iostream>
 #include <vector>
+#include <random>
 #include <Arrays/cube.hh>
 #include <Arrays/param.hh>
 #include <Arrays/rings.hh>
 #include <Utilities/utils.hh>
-
 
 namespace Model {
     
@@ -100,7 +99,6 @@ public:
     bool calculate();
     bool smooth(bool usescalefac=true);
     void normalize();
-
 
 
 protected:
@@ -136,7 +134,12 @@ protected:
     float   arcmconv;                       //< Conversion to arcmin.
     bool    readytomod;
     bool    modCalculated;
-        
+    
+    // Random number engines
+    std::mt19937 generator;
+    std::uniform_real_distribution<float> uniform;
+    std::normal_distribution<float> gaussia;
+    
     /// Private functions.
     
     void    initialize(Cube<Type> *c, int *Boxup, int *Boxlow);
@@ -144,10 +147,8 @@ protected:
     void    galmod();
     void    NHItoRAD();
     double  velgrid(double v);
-    double  fdev(int& idum);
-    double  gasdev(int &idum);
-    int     iran(int &idum);
-
+    double  fdev(int &idum);
+    
 };
 
 }

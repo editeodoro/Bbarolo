@@ -29,6 +29,9 @@
 #include <sys/ioctl.h>
 #include <Utilities/progressbar.hh>
 #include <Utilities/utils.hh>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void ProgressBar::defaults() {
     
@@ -81,6 +84,12 @@ void ProgressBar::init(int size) {
     /// \param size     The maximum number of iterations to be covered by the
     ///                 progress bar.
 
+#ifdef _OPENMP
+    size /= omp_get_num_threads();
+#endif
+
+#pragma omp master
+{
     stepSize = float(size) / float(length);
     std::cout << title << std::flush;
     if (showbar) {std::cout << "|";
@@ -91,7 +100,7 @@ void ProgressBar::init(int size) {
         
     if (title.size()==0) twidth = 20;
     else twidth = w.ws_col-length-title.size()-8-2;
-    
+}    
 
 }
 
@@ -110,6 +119,8 @@ void ProgressBar::update(int num) {
     
     if (!showbar) return;
 
+#pragma omp master
+{
     int numNeeded = 0;
     for(int i=0;i<length;i++)
         if(num>(i*stepSize)) numNeeded++;
@@ -160,8 +171,9 @@ void ProgressBar::update(int num) {
             printBackSpaces(twidth+backs);  
         }
     }
-    
     stepMade++;
+}
+
 }
 
 

@@ -39,6 +39,10 @@
 #include <Utilities/progressbar.hh>
 #include <Utilities/paramguess.hh>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace Model {
     
 template <class T>
@@ -52,7 +56,6 @@ void Galfit<T>::defaults() {
     wpow = 1;
     anglepar = 3;
     second = false;
-    details = false;
     global=false;
     verb = true;
     func_norm = &Model::Galfit<T>::norm_local;
@@ -365,6 +368,19 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     *inr = *inrings;
     inDefined = true;
     
+    // Check that radii are ok.
+    for (int ir=0; ir<inr->nr-1; ir++) {
+        if (ir!=inr->nr-1) {
+            if (inr->radii[ir+1]<=inr->radii[ir]) {
+                cout << "3DFIT WARNING: Radii not in increasing order.\n";
+            }
+        }
+        if (inr->radii[ir]<0) {
+            cout << "3DFIT ERROR: Negative radius!!!\n";
+            std::terminate();
+        }
+    }
+    
     // Checking that the beam has all information
     in->checkBeam();
     
@@ -433,7 +449,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     // Setting the convolution field
     if (par.SM) {
         if (!setCfield()) {
-            std::cout << "GALFIT warning: can not set an appropriate convolution "
+            std::cout << "3DFIT WARNING: can not set an appropriate convolution "
                       << "field. Turning off the convolution step.\n";
             par.SM = false;
         }
@@ -543,189 +559,176 @@ void Galfit<T>::galfit() {
 //        }
 //    }
 //    else {
-        double toKpc = KpcPerArc(distance);
-        int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
-
-        //#pragma omp parallel for num_threads(4) 
-        // Problemi trovati con OpenMP:
-        // nell funzione Galfit::model()
-        // 1) mod->input() -> out->saveHead()
-        //    wcs param nell'Header copy constructor seems not thread safe.
-        // 2) Destructor of mod -> destructor of outcube gives segfault.
-        // 3) static variables in galmod->iran()
-        // 4) FFTW plans declaration in Conv2D needs a omp critical
-        for (int ir=start_rad; ir<inr->nr; ir++) {
-            w_r = ir;
-            
-            if (verb) {
-                time_t t = time(NULL);
-                char Time[11] = "          ";
-                strftime (Time,11,"[%T]",localtime(&t));
-                cout << fixed << setprecision(2)<<"\n\n Working on ring #"
-                     << ir+1 << " with radius " << inr->radii[ir] << " arcsec ("
-                     << inr->radii[ir]*toKpc << " Kpc)... " << Time << std::endl;
-            }
-
-            if (ir!=inr->nr-1) {
-                if (inr->radii[ir+1]<=inr->radii[ir]) {
-                    cout << "3DFIT error: Radii not in increasing order.\n";
-                    std::terminate();
-                }
-            }
-            if (inr->radii[ir]<0) {
-                cout << "3DFIT error: Negative radius!!!\n";
-                std::terminate();
-            }
-
-            details = false;
-            Rings<T> *dring = new Rings<T>;
-            dring->nr = 2;
-
-            float width1=0, width2=0;
-            if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
-            else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
-            else {
-                width1 = (inr->radii[ir]-inr->radii[ir-1])/2.;
-                width2 = (inr->radii[ir+1]-inr->radii[ir])/2.;
-            }
-
-            dring->radii.push_back(max(double(inr->radii[ir]-width1),0.));
-            dring->radii.push_back(max(double(inr->radii[ir]+width2),0.));
-
-            for (int i=0; i<dring->nr; i++) {
-                dring->vrot.push_back(inr->vrot[ir]);
-                dring->vdisp.push_back(inr->vdisp[ir]);
-                dring->dens.push_back(inr->dens[ir]);
-                dring->z0.push_back(inr->z0[ir]);
-                dring->inc.push_back(inr->inc[ir]);
-                dring->phi.push_back(inr->phi[ir]);
-                dring->xpos.push_back(inr->xpos[ir]);
-                dring->ypos.push_back(inr->ypos[ir]);
-                dring->vsys.push_back(inr->vsys[ir]);
-                dring->vrad.push_back(inr->vrad[ir]);
-                dring->vvert.push_back(inr->vvert[ir]);
-                dring->dvdz.push_back(inr->dvdz[ir]);
-                dring->zcyl.push_back(inr->zcyl[ir]);
-            }
-
-            T minimum=0;
-            T pmin[nfree];
-
-            if (!minimize(dring, minimum, pmin)) continue;
-
-            int k=0;
-            if (mpar[VROT])  outr->vrot[ir]=pmin[k++];
-            if (mpar[VDISP]) outr->vdisp[ir]=pmin[k++];
-            if (mpar[DENS])  outr->dens[ir]=pmin[k++];
-            if (mpar[Z0])    outr->z0[ir]=pmin[k++];
-            if (mpar[INC])   outr->inc[ir]=pmin[k++];
-            if (mpar[PA])    outr->phi[ir]=pmin[k++];
-            if (mpar[XPOS])  outr->xpos[ir]=pmin[k++];
-            if (mpar[YPOS])  outr->ypos[ir]=pmin[k++];
-            if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
-            if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
-
-            if (verb) {
-                int m=8;
-                int n=11;
-                cout << "  Best parameters for ring #" << ir+1
-                     << " (fmin = " << setprecision(6) << minimum << "):\n";
-
-                cout << setprecision(2);
-
-                string s;
-                s = "    Vrot";
-                if (!mpar[VROT]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->vrot[ir] << left << setw(m) << "  km/s";
-
-                s = "        Disp";
-                if (!mpar[VDISP]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->vdisp[ir]
-                        << left << setw(m) << "  km/s" << endl;
-
-                s = "    Vrad";
-                if (!mpar[VRAD]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->vrad[ir] << left << setw(m) << "  km/s";
-                
-                s = "        Vsys";
-                if (!mpar[VSYS]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->vsys[ir] << left << setw(m) << "  km/s" << endl;
-                
-                s = "    Inc";
-                if (!mpar[INC]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->inc[ir] << left << setw(m) << "  deg";
-
-                s = "        PA";
-                if (!mpar[PA]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->phi[ir] << left << setw(m) << "  deg" << endl;
-
-                s = "    Xpos";
-                if (!mpar[XPOS]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->xpos[ir] << left << setw(m) << "  pix";
-
-                s = "        Ypos";
-                if (!mpar[YPOS]) s += "(f)";
-                cout << setw(n+4) << left << s << setw(3) << right << "= "
-                     << setw(m-1) << outr->ypos[ir] << left << setw(m) << "  pix" << endl;
-                
-                s = "    Z0";
-                if (!mpar[Z0]) s += "(f)";
-                cout << setw(n) << left << s << setw(3) << right << "= "
-                     << setw(m) << outr->z0[ir]*toKpc << left << setw(m) << "  Kpc";
-
+    double toKpc = KpcPerArc(distance);
+    int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
+    int nthreads = in->pars().getThreads();
+    
+#pragma omp parallel for num_threads(nthreads) firstprivate (w_r) 
+    for (int ir=start_rad; ir<inr->nr; ir++) {
+        w_r = ir;
         
+        if (verb && nthreads==1) {
+            time_t t = time(NULL);
+            char Time[11] = "          ";
+            strftime (Time,11,"[%T]",localtime(&t));
+            cout << fixed << setprecision(2)<<"\n Working on ring #"
+                 << ir+1 << " at radius " << inr->radii[ir] << " arcsec ("
+                 << inr->radii[ir]*toKpc << " Kpc)... " << Time << std::endl;
+        }
+
+        Rings<T> *dring = new Rings<T>;
+        dring->nr = 2;
+
+        float width1=0, width2=0;
+        if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
+        else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
+        else {
+            width1 = (inr->radii[ir]-inr->radii[ir-1])/2.;
+            width2 = (inr->radii[ir+1]-inr->radii[ir])/2.;
+        }
+
+        dring->radii.push_back(max(double(inr->radii[ir]-width1),0.));
+        dring->radii.push_back(max(double(inr->radii[ir]+width2),0.));
+
+        for (int i=0; i<dring->nr; i++) {
+            dring->vrot.push_back(inr->vrot[ir]);
+            dring->vdisp.push_back(inr->vdisp[ir]);
+            dring->dens.push_back(inr->dens[ir]);
+            dring->z0.push_back(inr->z0[ir]);
+            dring->inc.push_back(inr->inc[ir]);
+            dring->phi.push_back(inr->phi[ir]);
+            dring->xpos.push_back(inr->xpos[ir]);
+            dring->ypos.push_back(inr->ypos[ir]);
+            dring->vsys.push_back(inr->vsys[ir]);
+            dring->vrad.push_back(inr->vrad[ir]);
+            dring->vvert.push_back(inr->vvert[ir]);
+            dring->dvdz.push_back(inr->dvdz[ir]);
+            dring->zcyl.push_back(inr->zcyl[ir]);
+        }
+
+        T minimum=0;
+        T pmin[nfree];
+
+        if (!minimize(dring, minimum, pmin)) continue;
+
+        int k=0;
+        if (mpar[VROT])  outr->vrot[ir]=pmin[k++];
+        if (mpar[VDISP]) outr->vdisp[ir]=pmin[k++];
+        if (mpar[DENS])  outr->dens[ir]=pmin[k++];
+        if (mpar[Z0])    outr->z0[ir]=pmin[k++];
+        if (mpar[INC])   outr->inc[ir]=pmin[k++];
+        if (mpar[PA])    outr->phi[ir]=pmin[k++];
+        if (mpar[XPOS])  outr->xpos[ir]=pmin[k++];
+        if (mpar[YPOS])  outr->ypos[ir]=pmin[k++];
+        if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
+        if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
+
+
+        if (verb) {
+#pragma omp critical
+{
+            if (nthreads>1) {
+                cout << "\n Ring #" << ir+1 << " at radius " << inr->radii[ir] << " arcsec ("
+                     << inr->radii[ir]*toKpc << " Kpc)... \n";
+            }
+            
+            int m=8, n=11;
+            cout << "  Best parameters for ring #" << ir+1
+                 << " (fmin = " << setprecision(6) << minimum << "):\n";
+
+            cout << setprecision(2);
+
+            string s;
+            s = "    Vrot";
+            if (!mpar[VROT]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->vrot[ir] << left << setw(m) << "  km/s";
+
+            s = "        Disp";
+            if (!mpar[VDISP]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->vdisp[ir]
+                 << left << setw(m) << "  km/s" << endl;
+
+            s = "    Vrad";
+            if (!mpar[VRAD]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->vrad[ir] << left << setw(m) << "  km/s";
+            
+            s = "        Vsys";
+            if (!mpar[VSYS]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->vsys[ir] << left << setw(m) << "  km/s" << endl;
+                
+            s = "    Inc";
+            if (!mpar[INC]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->inc[ir] << left << setw(m) << "  deg";
+
+            s = "        PA";
+            if (!mpar[PA]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->phi[ir] << left << setw(m) << "  deg" << endl;
+
+            s = "    Xpos";
+            if (!mpar[XPOS]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->xpos[ir] << left << setw(m) << "  pix";
+
+            s = "        Ypos";
+            if (!mpar[YPOS]) s += "(f)";
+            cout << setw(n+4) << left << s << setw(3) << right << "= "
+                 << setw(m-1) << outr->ypos[ir] << left << setw(m) << "  pix" << endl;
+                
+            s = "    Z0";
+            if (!mpar[Z0]) s += "(f)";
+            cout << setw(n) << left << s << setw(3) << right << "= "
+                 << setw(m) << outr->z0[ir]*toKpc << left << setw(m) << "  Kpc";
+
             //s = "        CD";----
             //if (!mpar[DENS]) s += "(f)";
             //cout << setw(n+4) << left << s << setw(3) << right << "= "
             //     << setw(m-1) << scientific << setprecision(1)
             //     << outr->dens[ir] << left << setw(m) << "  a/cm2";
             
-
-                cout << endl;
-
-            }
-
-
-            fileout << setprecision(3) << fixed << left;
-            fileout << setw(m) << outr->radii[ir]*toKpc
-                    << setw(m+1) << outr->radii[ir]
-                    << setw(m+1) << outr->vrot[ir]
-                    << setw(m+1) << outr->vdisp[ir]
-                    << setw(m) << outr->inc[ir]
-                    << setw(m) << outr->phi[ir]
-                    << setw(m) << outr->z0[ir]*toKpc*1000
-                    << setw(m) << outr->z0[ir]
-                    << setw(m) << outr->dens[ir]/1E20
-                    << setw(m) << outr->xpos[ir]
-                    << setw(m) << outr->ypos[ir]
-                    << setw(m+1) << outr->vsys[ir]
-                    << setw(m+1) << outr->vrad[ir];;
-
-
-            T **errors=allocate_2D<T>(2,nfree);
-            if (par.flagERRORS) {
-                getErrors(dring,errors,ir,minimum);
-                for (int kk=0; kk<nfree; kk++) {
-                    fileout << setw(m) << errors[0][kk] << setw(m) << errors[1][kk];
-                }
-            }
-
-            fileout << endl;
-            deallocate_2D<T>(errors,2);
-            delete dring;
-
+            cout << endl;
         }
-  //  }
-        
-    fileout.close();
+}
 
+        T **errors = allocate_2D<T>(2,nfree);
+        if (par.flagERRORS) getErrors(dring,errors,ir,minimum);
+        
+#pragma omp critical
+{
+        // Writing output file. Not ordered if multithread
+        fileout << setprecision(3) << fixed << left;
+        fileout << setw(m) << outr->radii[ir]*toKpc
+                << setw(m+1) << outr->radii[ir]
+                << setw(m+1) << outr->vrot[ir]
+                << setw(m+1) << outr->vdisp[ir]
+                << setw(m) << outr->inc[ir]
+                << setw(m) << outr->phi[ir]
+                << setw(m) << outr->z0[ir]*toKpc*1000
+                << setw(m) << outr->z0[ir]
+                << setw(m) << outr->dens[ir]/1E20
+                << setw(m) << outr->xpos[ir]
+                << setw(m) << outr->ypos[ir]
+                << setw(m+1) << outr->vsys[ir]
+                << setw(m+1) << outr->vrad[ir];
+            
+        if (par.flagERRORS) 
+            for (int kk=0; kk<nfree; kk++) 
+                fileout << setw(m) << errors[0][kk] << setw(m) << errors[1][kk];
+        
+        fileout << endl;
+}
+        deallocate_2D<T>(errors,2);
+        delete dring;
+    }
+  //  }
+         
+
+    fileout.close();
 
     if (verb) {               
         cout << setfill('=') << setw(74) << " " << endl << endl; 

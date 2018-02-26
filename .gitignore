@@ -1,0 +1,11 @@
+config.log
+config.status
+Makefile
+BBarolo
+*.o
+*.DS_Store
+*.swp/
+*.qmake.stash
+src/build/
+*.par
+output/

@@ -21,37 +21,132 @@
     Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
+// NB: Random number generators supported:
+// 1) GALMOD classic: iran(), gasdev() -> Uncomment lines with "Classic galmod"
+// 2) STD c++ library -> Uncomment lines with "STD library"
+// There are 5 lines to change: 3 in galmod() and 2 in fdev()
+
 #include <iostream>
 #include <cmath>
+#include <random>
 #include <vector>
+#include <functional>
 #include <Tasks/galmod.hh>
 #include <Arrays/cube.hh>
 #include <Tasks/smooth3D.hh>
 #include <Tasks/moment.hh>
 #include <Utilities/utils.hh>
 
-
 #define C  2.99792458E08            // Speed of light in M/S
 #define nran 16777216
+
+int iran(int &idum) {
+    
+    /// Random number generator due to Knuth.
+    /// The choices for MBIG and MSEED are not particularly important 
+    /// since the they are only used 55 times in a linear congruential 
+    /// algorithm to initialize the array ma.
+    
+        
+    const int MBIG = 16777216;
+    const int MSEED= 1618033;
+
+    static int ma[56];
+    static int inext, inextp, mk;
+#pragma omp threadprivate(ma,inext,inextp,mk)
+
+    int Iran=0; 
+
+    if (idum<0) {
+        Iran = MSEED-fabs(idum);
+        Iran = Iran % MBIG;
+        ma[55]=Iran;
+        mk=1;
+        for (int i=1; i<=54; i++) {
+            int ii = (21*i) % 55;
+            ma[ii] = mk;
+            mk = Iran-mk;
+            if (mk<0) mk += MBIG;
+             Iran = ma[ii];
+        }
+        for (int kk=1; kk<=4; kk++) {
+            for (int i=1; i<=55; i++) {
+                int j= (i+30) % 55;             
+                ma[i]=ma[i]-ma[1+j];
+                if (ma[i]<0) ma[i] = ma[i]+MBIG;
+            }
+        }
+
+        inext=0;
+        inextp=31;
+        idum=1;
+    }
+
+    inext=inext+1;
+    if (inext==56) inext=1;
+    inextp=inextp+1;
+    if (inextp==56) inextp=1;
+    Iran = ma[inext]-ma[inextp];
+    if (Iran<0) Iran=Iran+MBIG;
+    ma[inext] = Iran;
+    
+    return Iran;
+}
+
+
+double gasdev(int &idum) {
+
+    /// Function to get random deviates from a gaussian distribution.
+    /// Drawn from 'Numerical Recipes' but modified a bit.
+
+    static double v1, v2, r;
+    static double fac, gset;
+    static int iset=0;
+#pragma omp threadprivate(v1,v2,r,fac,gset,iset)
+    
+    double Gasdev=0;
+    
+    if (iset==0) {
+        int ctrl = 0;
+        while (ctrl==0) {
+            v1 = double(1+2*iran(idum)-nran)/double(nran);
+            v2 = double(1+2*iran(idum)-nran)/double(nran);
+            r=v1*v1+v2*v2;
+            if (r>=1 || r==0) ctrl=0;
+            else ctrl=1;
+        }
+        fac  = sqrt(-2.0*log(r)/r);
+        gset = v1*fac;
+        Gasdev = v2*fac;
+        iset = 1;
+    }
+    else { 
+        Gasdev=gset;
+        iset=0;
+    }
+    
+    return Gasdev;
+
+}
+
 
 namespace Model {
 
 template <class T>
 void Galmod<T>::defaults() {
     
-    subAllocated    = false;
-    outDefined      = false;
-    readytomod      = false;
-    ringDefined     = false;
-    modCalculated   = false;
-    ltype           = 1;
-    cmode           = 1;    
-    crota2          = 0; 
-    cdens           = 1.0;
-    iseed           = -1;   
-    freq0           = 0.1420405751786E10;
-    velsys          = 2;    //Optical or radio definition of the velocities resp. 1 2.      
-    
+    subAllocated  = false;
+    outDefined    = false;
+    readytomod    = false;
+    ringDefined   = false;
+    modCalculated = false;
+    ltype         = 1;
+    cmode         = 1; 
+    iseed           = -1;      
+    crota2        = 0; 
+    cdens         = 1.0;
+    freq0         = 0.1420405751786E10;
+    velsys        = 2;    //Optical or radio definition of the velocities resp. 1 2.              
 }
 template void Galmod<float>::defaults();
 template void Galmod<double>::defaults();
@@ -72,7 +167,6 @@ Galmod<T>::~Galmod() {
     if (subAllocated) delete [] cd2i;
     if (outDefined) delete out;
     if (ringDefined) delete r;
-    
 }
 template Galmod<float>::~Galmod();
 template Galmod<double>::~Galmod();
@@ -157,6 +251,7 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
         
     initialize(c, Boxup, Boxlow);
     
+    
     ringIO(rings);
     
     ltype=LTYPE;
@@ -185,7 +280,13 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
         iseed=-1;
     }
     
+    // Initializing random number engines
+    generator.seed(iseed);
+    uniform   = std::uniform_real_distribution<float>(-1.,1.);
+    gaussia   = std::normal_distribution<float>(0.,1.);
+    
     readytomod=true;
+    
 }
 template void Galmod<float>::input(Cube<float>*,int*,int*,Rings<float>*,int,int,int,float,int);
 template void Galmod<double>::input(Cube<double>*,int*,int*,Rings<double>*,int,int,int,float,int);
@@ -222,7 +323,6 @@ bool Galmod<T>::calculate() {
 }
 template bool Galmod<float>::calculate();
 template bool Galmod<double>::calculate();
-
 
 
 template <class T>
@@ -643,7 +743,7 @@ template void Galmod<double>::ringIO(Rings<double>*);
 
 template <class T>
 void Galmod<T>::galmod() {
-    
+
     const double twopi = 2*M_PI;
     const int buflen=bsize[0]*bsize[1]*nsubs+1;
     T *datbuf = new T [buflen];
@@ -653,12 +753,13 @@ void Galmod<T>::galmod() {
     bar.setShowbar(in->pars().getShowbar());
     if (verb) bar.init(r->nr);
     
-//  Reinitialize random number generator for each new model.
     int isd = iseed;
 //  Get number of velocity profiles that will be done.
     int nprof = bsize[0]*bsize[1];
 //  Initialize data buffer on zero.
     for (int i=0; i<buflen; i++) datbuf[i]=0.0;
+//  Convenient random generator functions
+    auto fran = std::bind(uniform, generator);
     
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
@@ -697,14 +798,16 @@ void Galmod<T>::galmod() {
 //          excludes the outer boundary. The probability of a radius inside
 //          a ring is proportional to the total radius and thus the 
 //          surface density of the clouds is constant over the area of the ring.
-            double ddum = double(iran(isd))/double(nran); 
+            double ddum = fabs(fran());                        // STD library
+            //double ddum = double(iran(isd))/double(nran);       // Classic galmod
             double R    = sqrt(pow((rtmp-0.5*r->radsep),2)+2*r->radsep*rtmp*ddum);
 //          Get azimuth and its sine and cosine.
-            double az   = twopi*double(iran(isd))/double(nran); 
+            double az   = twopi*fabs(fran());                 // STD library
+            //double az   = twopi*double(iran(isd))/double(nran); // Classic galmod
             double saz  = sin(az); 
             double caz  = cos(az); 
 //          Get height above the plane of the ring using a random deviate
-//          drawn from density profile of the laye.
+//          drawn from density profile of the layer.
             double z    = fdev(isd)*z0tmp;
 //          Get position in the plane of the sky with respect to the major
 //          and minor axes of the spiral galaxy.
@@ -715,7 +818,6 @@ void Galmod<T>::galmod() {
                             lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};             
             if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
             if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
-
 
 //            /////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //            float rr, theta;
@@ -775,15 +877,14 @@ void Galmod<T>::galmod() {
 //                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
 //            }
 
-        
-
 //          PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
             uint nlines = in->pars().getParGM().NLINES;
             float relvel_lines[2] = {0,220000};
             float relint_lines[2] = {1,1.70};
             
             for (int iv=0; iv<nvtmp; iv++) {
-                double vdev = gasdev(isd)*vdisptmp;
+                double vdev = gaussia(generator)*vdisptmp;        // STD library
+                //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                 for (int nl=0; nl<nlines; nl++) {
                     double v     = vsys+vdev+relvel_lines[nl];
                     int isubs = lround(velgrid(v)+crpix3-1);
@@ -910,7 +1011,7 @@ template double Galmod<double>::velgrid(double);
 
 
 template <class T>
-double Galmod<T>::fdev(int& idum){
+double Galmod<T>::fdev(int &idum){
     
     /// Function to get random deviates for various functions.
     /// The double precision variable Fdev contains the random deviate.
@@ -920,17 +1021,19 @@ double Galmod<T>::fdev(int& idum){
     double Fdev=0, x=0;
     
     if (ltype==1) {                                 /// Gaussian function: exp(-0.5*x^2) 
-        Fdev = gasdev(idum);
+        Fdev = gaussia(generator);                // STD library
+        //Fdev = gasdev(idum);                        // Classic galmod
     }
     else {
-        x = double(1+2*iran(idum)-nran)/double(nran);
-        if (ltype==2) Fdev = atanh(x);              /// Sech2 function: sech2(x)
-        else if (ltype==3) {                        /// Exponential function: exp(-|x|)
-           if (x>=0.0) Fdev = - log(x);
+        x = uniform(generator);                    // STD library
+        //x = double(1+2*iran(idum)-nran)/double(nran);// Classic galmod
+        if (ltype==2) Fdev = atanh(x);               // Sech2 function: sech2(x)
+        else if (ltype==3) {                         // Exponential function: exp(-|x|)
+           if (x>=0.0) Fdev = -log(x);
            if (x<0.0)  Fdev = log(-x);
         }
-        else if (ltype==4) Fdev = tan(M_PI_2*x);    /// Lorentzian function: 1/(1+x**2)
-        else if (ltype==5) Fdev = x;                /// Box function.
+        else if (ltype==4) Fdev = tan(M_PI_2*x);     // Lorentzian function: 1/(1+x**2)
+        else if (ltype==5) Fdev = x;                 // Box function.
         else cout << "Unknown function." << endl;
     }
 
@@ -938,160 +1041,6 @@ double Galmod<T>::fdev(int& idum){
 }
 template double Galmod<float>::fdev(int&);
 template double Galmod<double>::fdev(int&);
-    
-
-template <class T>
-double Galmod<T>::gasdev(int &idum) {
-
-    /// Function to get random deviates from a gaussian distribution.
-    /// Drawn from 'Numerical Recipes' but modified a bit.
-
-    static double v1, v2, r;
-    static double fac, gset;
-    static int iset=0;
-    double Gasdev=0;
-    
-    if (iset==0) {
-        int ctrl = 0;
-        while (ctrl==0) {
-            v1 = double(1+2*iran(idum)-nran)/double(nran);
-            v2 = double(1+2*iran(idum)-nran)/double(nran);
-            r=v1*v1+v2*v2;
-            if (r>=1 || r==0) ctrl=0;
-            else ctrl=1;
-        }
-        fac  = sqrt(-2.0*log(r)/r);
-        gset = v1*fac;
-        Gasdev = v2*fac;
-        iset = 1;
-    }
-    else { 
-        Gasdev=gset;
-        iset=0;
-    }
-    
-    return Gasdev;
-
-}
-template double Galmod<float>::gasdev(int&);
-template double Galmod<double>::gasdev(int&);
-
-///*
-template <class T>
-int Galmod<T>::iran(int &idum) {
-    
-    /// Random number generator due to Knuth.
-    /// The choices for MBIG and MSEED are not particularly important 
-    /// since the they are only used 55 times in a linear congruential 
-    /// algorithm to initialize the array ma.
-    
-        
-    const int MBIG = 16777216;
-    const int MSEED= 1618033;
-
-    static int ma[56];
-    static int inext, inextp, mk;
-    //#pragma omp threadprivate(ma,inext,inextp,mk)
-
-    int Iran=0; 
-
-    if (idum<0) {
-        Iran = MSEED-fabs(idum);
-        Iran = Iran % MBIG;
-        ma[55]=Iran;
-        mk=1;
-        for (int i=1; i<=54; i++) {
-            int ii = (21*i) % 55;
-            ma[ii] = mk;
-            mk = Iran-mk;
-            if (mk<0) mk = mk+MBIG;
-             Iran = ma[ii];
-        }
-        for (int kk=1; kk<=4; kk++) {
-            for (int i=1; i<=55; i++) {
-                int j= (i+30) % 55;             
-                ma[i]=ma[i]-ma[1+j];
-                if (ma[i]<0) ma[i] = ma[i]+MBIG;
-            }
-        }
-
-        inext=0;
-        inextp=31;
-        idum=1;
-    }
-
-    inext=inext+1;
-    if (inext==56) inext=1;
-    inextp=inextp+1;
-    if (inextp==56) inextp=1;
-    Iran = ma[inext]-ma[inextp];
-    if (Iran<0) Iran=Iran+MBIG;
-    ma[inext] = Iran;
-    
-    return Iran;
-}
-template int Galmod<float>::iran(int&);
-template int Galmod<double>::iran(int&);
-//*/
-
-/*
-template <class T>
-int Galmod<T>::iran(int &idum) {
-    
-    /// Random number generator due to Knuth.
-    /// The choices for MBIG and MSEED are not particularly important 
-    /// since the they are only used 55 times in a linear congruential 
-    /// algorithm to initialize the array ma.
-    
-        
-    const int MBIG = 16777216;
-    const int MSEED= 1618033;
-
-    static int ma[55];
-    static int inext, inextp, mk;
-    int Iran=0; 
-
-    if (idum<0) {
-        Iran = MSEED-fabs(idum);
-        Iran = Iran % MBIG;
-        ma[54]=Iran;
-        mk=1;
-        for (int i=0; i<54; i++) {
-            int ii = (21*(i+1)) % 55;
-            ma[ii] = mk;
-            mk = Iran-mk;
-            if (mk<0) mk = mk+MBIG;
-             Iran = ma[ii];
-        }
-        for (int kk=1; kk<=4; kk++) {
-            for (int i=0; i<55; i++) {
-                int j= (i+1+30) % 55;             
-                ma[i]=ma[i]-ma[1+j];
-                if (ma[i]<0) ma[i] = ma[i]+MBIG;
-            }
-        }
-
-        inext=0;
-        inextp=31;
-        idum=1;
-    }
-
-
-       
-    inext=inext+1;
-    if (inext==55) inext=1;
-    inextp=inextp+1;
-    if (inextp==55) inextp=1;
-    Iran = ma[inext]-ma[inextp];
-    if (Iran<0) Iran=Iran+MBIG;
-    ma[inext] = Iran;
-    
-    return Iran;
-}
-template int Galmod<float>::iran(int&);
-template int Galmod<double>::iran(int&);
-*/
-
 }
 
 #undef C  

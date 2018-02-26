@@ -1338,6 +1338,7 @@ void Galfit<T>::printDetails (Rings<T> *dr, T fmin, long pix, std::ostream& str)
 
     int m=7, n=9;
 
+    bool details = true;
     if (details) {
         str << endl << setfill('-') << setw(80) << " " << setfill(' ') << endl;
         str << setw(n) << right << "Fmin";

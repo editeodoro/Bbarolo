@@ -30,7 +30,9 @@
 #include <Utilities/utils.hh>
 #include <Utilities/lsqfit.hh>
 #include <Utilities/progressbar.hh>
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace std;
 namespace Model {
@@ -39,7 +41,12 @@ template <class T>
 void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
     
     for (int x=2; x--;) for (int y=nfree; y--;) err[x][y]=0.;
-    
+
+    bool chatty = verb;
+#ifdef _OPENMP
+    chatty = chatty && (omp_get_num_threads()==1);
+#endif
+
     ProgressBar bar(" Estimating errors... ", true);
     bar.setShowbar(in->pars().getShowbar());
     
@@ -211,7 +218,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
     
     int n_models=100;
     int n_bin = 40;
-    if (verb) bar.init(n_models*nfree);
+    if (chatty) bar.init(n_models*nfree);
     uint cc=1;
     
     //default_random_engine generator;  
@@ -251,7 +258,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
          
 
         for (int nm=n_models;nm--;) {
-            if (verb) bar.update(cc++);
+            if (chatty) bar.update(cc++);
             var_val[nm] = unifrand(maxv, minv);
             float stddev = 0.25509*min(maxv-midval[nf],midval[nf]-minv);    /// Read: 0.25509=1/(1.386*2*sqrt(2));
             //normal_distribution<double> distribution(midval[nf],stddev);
@@ -461,7 +468,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
     }
     
     //*/    
-    if (verb) bar.fillSpace("Done.\n");
+    if (chatty) bar.fillSpace("Done.\n");
 
 }
 template void Galfit<float>::getErrors (Rings<float>*,float**,int,float);
