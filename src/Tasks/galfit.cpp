@@ -562,35 +562,18 @@ void Galfit<T>::galfit() {
     double toKpc = KpcPerArc(distance);
     int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
     int nthreads = in->pars().getThreads();
-
-#pragma omp parallel for num_threads(nthreads) firstprivate (w_r)
-    // Problemi trovati con OpenMP:
-    // nell funzione Galfit::model()
-    // 1) mod->input() -> out->saveHead()
-    //    wcs param nell'Header copy constructor seems not thread safe.
-    // 2) Destructor of mod -> destructor of outcube gives segfault.
-    // 3) static variables in galmod->iran()
-    // 4) FFTW plans declaration in Conv2D needs a omp critical
+    
+#pragma omp parallel for num_threads(nthreads) firstprivate (w_r) 
     for (int ir=start_rad; ir<inr->nr; ir++) {
         w_r = ir;
         
-        if (verb) {
-            if (nthreads==1) {
-                time_t t = time(NULL);
-                char Time[11] = "          ";
-                strftime (Time,11,"[%T]",localtime(&t));
-                cout << fixed << setprecision(2)<<"\n\n Working on ring #"
-                     << ir+1 << " at radius " << inr->radii[ir] << " arcsec ("
-                     << inr->radii[ir]*toKpc << " Kpc)... " << Time << std::endl;
-            }
-#ifdef _OPENMP
-            else {
-                int nth = omp_get_thread_num()+1;
-#pragma omp critical
-                cout << " Thread #" << nth << " working on ring #" << ir+1 << " at radius " 
-                     << inr->radii[ir] << " arcsec... \n";
-            }
-#endif
+        if (verb && nthreads==1) {
+            time_t t = time(NULL);
+            char Time[11] = "          ";
+            strftime (Time,11,"[%T]",localtime(&t));
+            cout << fixed << setprecision(2)<<"\n Working on ring #"
+                 << ir+1 << " at radius " << inr->radii[ir] << " arcsec ("
+                 << inr->radii[ir]*toKpc << " Kpc)... " << Time << std::endl;
         }
 
         Rings<T> *dring = new Rings<T>;
@@ -640,7 +623,15 @@ void Galfit<T>::galfit() {
         if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
         if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
 
-        if (verb && nthreads==1) {
+
+        if (verb) {
+#pragma omp critical
+{
+            if (nthreads>1) {
+                cout << "\n Ring #" << ir+1 << " at radius " << inr->radii[ir] << " arcsec ("
+                     << inr->radii[ir]*toKpc << " Kpc)... \n";
+            }
+            
             int m=8, n=11;
             cout << "  Best parameters for ring #" << ir+1
                  << " (fmin = " << setprecision(6) << minimum << "):\n";
@@ -702,14 +693,14 @@ void Galfit<T>::galfit() {
             
             cout << endl;
         }
+}
 
-
-        T **errors=allocate_2D<T>(2,nfree);
+        T **errors = allocate_2D<T>(2,nfree);
         if (par.flagERRORS) getErrors(dring,errors,ir,minimum);
-
+        
 #pragma omp critical
 {
-        // Writing output file. Nor ordered.
+        // Writing output file. Not ordered if multithread
         fileout << setprecision(3) << fixed << left;
         fileout << setw(m) << outr->radii[ir]*toKpc
                 << setw(m+1) << outr->radii[ir]
@@ -728,17 +719,15 @@ void Galfit<T>::galfit() {
         if (par.flagERRORS) 
             for (int kk=0; kk<nfree; kk++) 
                 fileout << setw(m) << errors[0][kk] << setw(m) << errors[1][kk];
-            
+        
         fileout << endl;
 }
-
         deallocate_2D<T>(errors,2);
         delete dring;
     }
   //  }
-        
+ 
     fileout.close();
-
 
     if (verb) {               
         cout << setfill('=') << setw(74) << " " << endl << endl; 

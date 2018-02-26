@@ -119,18 +119,22 @@ bool GalWind<T>::compute() {
     outDefined = true;
     for (int i=0; i<out->NumPix(); i++) out->Array(i) = 0;
 
-    // Allocating Galmod objects for the two cylinders
-    Model::Galmod<T> *con1 = new Model::Galmod<T>;
-    Model::Galmod<T> *con2 = new Model::Galmod<T>;
-
     // Starting progress bar
     bool verb = in->pars().isVerbose();
     if (verb) in->pars().setVerbosity(false);
     ProgressBar bar(" Generating outflow model... ",false);
     bar.setShowbar(in->pars().getShowbar());
+    
+    int nthreads = in->pars().getThreads();
+#pragma omp parallel num_threads(nthreads)
+{
+    // Allocating Galmod objects for the two cylinders
+    Model::Galmod<T> *con1 = new Model::Galmod<T>;
+    Model::Galmod<T> *con2 = new Model::Galmod<T>;
     if (verb) bar.init(par.NTOT);
-
-    // Start main loop 
+    
+#pragma omp for
+    // Start main loop
     for (int k=1; k<(par.NTOT+1); k++){
         if (verb) bar.update(k);
 
@@ -191,7 +195,8 @@ bool GalWind<T>::compute() {
     
     delete con1;
     delete con2;
-    
+}
+
     if (verb) bar.fillSpace(" Done.\n");
     
     in->pars().setVerbosity(verb);

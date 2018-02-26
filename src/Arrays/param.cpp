@@ -432,6 +432,13 @@ bool Param::checkPars() {
 
     if (!verbose) showbar=false;
 
+#ifndef _OPENMP
+    if (threads!=1) {
+        std::cerr << "\n WARNING: code has been compiled without OpenMP support. Using only 1 thread.";
+        threads = 1;
+    }
+#endif
+
     // Checking MASK parameter
     std::string maskstr = makeupper(parGF.MASK);
     if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" ||
