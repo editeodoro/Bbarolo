@@ -147,8 +147,8 @@ protected:
     void    galmod();
     void    NHItoRAD();
     double  velgrid(double v);
-    double  fdev();
-
+    double  fdev(int &idum);
+    
 };
 
 }
