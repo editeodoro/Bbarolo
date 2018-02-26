@@ -726,7 +726,8 @@ void Galfit<T>::galfit() {
         delete dring;
     }
   //  }
- 
+         
+
     fileout.close();
 
     if (verb) {               

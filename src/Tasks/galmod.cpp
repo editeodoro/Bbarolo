@@ -877,7 +877,6 @@ void Galmod<T>::galmod() {
 //                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
 //            }
 
-        
 //          PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
             uint nlines = in->pars().getParGM().NLINES;
             float relvel_lines[2] = {0,220000};
@@ -1040,9 +1039,8 @@ double Galmod<T>::fdev(int &idum){
 
     return Fdev;
 }
-template double Galmod<float>::fdev(int &);
-template double Galmod<double>::fdev(int &);
-
+template double Galmod<float>::fdev(int&);
+template double Galmod<double>::fdev(int&);
 }
 
 #undef C  
