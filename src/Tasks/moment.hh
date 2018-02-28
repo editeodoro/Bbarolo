@@ -183,8 +183,12 @@ void MomentMap<T>::ZeroMoment (bool msk) {
     
     ProgressBar bar(" Extracting 0th moment map... ", true);
     bar.setShowbar(in->pars().getShowbar());
-    if (isVerbose) bar.init(this->axisDim[0]);
 
+    int nthreads = in->pars().getThreads();    
+#pragma omp parallel num_threads(nthreads)
+{
+    if (isVerbose) bar.init(this->axisDim[0]);
+#pragma omp for
     for (int x=0; x<this->axisDim[0]; x++) {
         if (isVerbose) bar.update(x+1);
         for (int y=0; y<this->axisDim[1]; y++) {
@@ -201,7 +205,7 @@ void MomentMap<T>::ZeroMoment (bool msk) {
             else this->array[x+y*this->axisDim[0]] = fluxsum;
         }
     }
-
+}
     if (isVerbose) bar.fillSpace("Done.\n");
     
 }
@@ -227,9 +231,12 @@ void MomentMap<T>::FirstMoment (bool msk) {
             
     ProgressBar bar(" Extracting 1st moment map... ", true);
     bar.setShowbar(in->pars().getShowbar());
+    
+    int nthreads = in->pars().getThreads();    
+#pragma omp parallel num_threads(nthreads)
+{
     if (isVerbose) bar.init(this->axisDim[0]);
-    
-    
+#pragma omp for
     for (int x=0; x<this->axisDim[0]; x++) {        
         if (isVerbose) bar.update(x+1);
         for (int y=0; y<this->axisDim[1]; y++) {
@@ -259,7 +266,7 @@ void MomentMap<T>::FirstMoment (bool msk) {
             this->array[x+y*this->axisDim[0]]=num/denom;    
         }
     }
-    
+}
     if (isVerbose) bar.fillSpace("Done.\n");
 
 }
@@ -284,8 +291,12 @@ void MomentMap<T>::SecondMoment (bool msk) {
 
     ProgressBar bar(" Extracting 2nd moment map... ", true);
     bar.setShowbar(in->pars().getShowbar());
+
+    int nthreads = in->pars().getThreads();    
+#pragma omp parallel num_threads(nthreads)
+{
     if (isVerbose) bar.init(this->axisDim[0]);
-    
+#pragma omp for   
     for (int x=0; x<this->axisDim[0]; x++) {        
         if (isVerbose) bar.update(x+1);
         for (int y=0; y<this->axisDim[1]; y++) {
@@ -342,6 +353,7 @@ void MomentMap<T>::SecondMoment (bool msk) {
             this->array[x+y*this->axisDim[0]]=sqrt(num/denom);          
         }
     }
+}
     if (isVerbose) bar.fillSpace("Done.\n");
     
 }

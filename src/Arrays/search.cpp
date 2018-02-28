@@ -37,6 +37,9 @@
 #include <Utilities/progressbar.hh>
 #include <Utilities/utils.hh>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 template <class T>
@@ -268,7 +271,7 @@ std::vector <Detection<T> > Cube<T>::search3DArraySpatial() {
 #pragma omp parallel num_threads(nthreads)
 {
     if(useBar && par.isVerbose()) bar.init(zdim);
-#pragma omp for reduction (+:num)
+#pragma omp for schedule(dynamic) reduction (+:num)
     for(int z=0; z<zdim; z++) {
         int imdim[2] = {axisDim[0],axisDim[1]};
         Image2D<T> *channelImage = new Image2D<T>(imdim);
@@ -382,13 +385,20 @@ void Cube<T>::ObjectMerger() {
 #pragma omp parallel for num_threads(nthreads)
             for(size_t i=0;i<currentList.size();i++){
                 if(par.isVerbose() && par.getShowbar()){
-                    std::cout.setf(std::ios::right);
-                    std::cout << "Growing: " << std::setw(6) << i+1 << "/";
-                    std::cout.unsetf(std::ios::right);
-                    std::cout.setf(std::ios::left);
-                    std::cout << std::setw(6) << currentList.size() << std::flush;
-                    printBackSpace(22);
-                    std::cout << std::flush;
+#ifdef _OPENMP
+                    int tid = omp_get_thread_num();
+                    if(tid==0) {
+#endif
+                        std::cout.setf(std::ios::right);
+                        std::cout << "Growing: " << std::setw(6) << i+1 << "/";
+                        std::cout.unsetf(std::ios::right);
+                        std::cout.setf(std::ios::left);
+                        std::cout << std::setw(6) << currentList.size() << std::flush;
+                        printBackSpace(22);
+                        std::cout << std::flush;
+#ifdef _OPENMP
+                    }
+#endif              
                 }
                 grower.grow(&currentList[i]);
             }

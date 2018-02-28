@@ -88,6 +88,7 @@ HEADS = $(ARRAYDIR)/param.hh\
 	$(TASKDIR)/galwind.hh\
 	$(TASKDIR)/ellprof.hh\
 	$(TASKDIR)/moment.hh\
+    $(TASKDIR)/spacepar.hpp\
 
 OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/header.o\

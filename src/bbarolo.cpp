@@ -36,7 +36,7 @@
 #include <Tasks/galfit.hh>
 #include <Tasks/galwind.hh>
 #include <Tasks/ellprof.hh>
-#include <Tasks/spacepar.hh>
+#include <Tasks/spacepar.hpp>
 #include <Utilities/utils.hh>
 
 /*
@@ -157,6 +157,7 @@ int main (int argc, char *argv[]) {
         if (par->getflagSpace()) {
             Spacepar<float> *sp = new Spacepar<float>(c);
             sp->calculate();
+            sp->plotAll_Python();
             delete sp;
         }
         //----------------------------------------------------------------

@@ -509,12 +509,12 @@ T Galfit<T>::model(Rings<T> *dring) {
 		if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
 		else Convolve(modp, bsize);
 	}
-		
+
 	//<<<<< Normalizing & calculating the residuals....
     double minfunc = (this->*func_norm)(dring,modp,bhi,blo);
 	
 	delete mod;
-
+    
 	return minfunc; 
 }
 template float Galfit<float>::model(Rings<float>*);
@@ -586,7 +586,7 @@ void Galfit<T>::Convolve_fft(T *array, int *bsize) {
 		double *beforeCON = new double[size];
 		Conv2D cfft;
         init_Conv2D(cfft,LINEAR_SAME, bsize[0], bsize[1], NconX, NconY);	
-		 
+        
 		for (uint z=in->DimZ(); z--;) {
 			T *ptr = &array[z*size];
 			for (uint i=size; i--;) beforeCON[i] = ptr[i];

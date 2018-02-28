@@ -13,3 +13,4 @@ output/
 *.pyc
 *.dylib*
 *.a
+updateall.sh

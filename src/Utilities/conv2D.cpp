@@ -213,7 +213,7 @@ void circular_convolution(Conv2D &ws, double *src, double *kernel) {
 void convolve(Conv2D &ws, double *src, double *kernel) {
     
     if(ws.h_fftw<=0 || ws.w_fftw<=0) return;
- 
+    
     // Compute the circular convolution
     circular_convolution(ws, src, kernel);
  
@@ -288,6 +288,7 @@ void convolve(Conv2D &ws, double *src, double *kernel) {
                       << "   - CIRCULAR_CUSTOM\n";
             std::terminate();
     }
+    
 }
  
  

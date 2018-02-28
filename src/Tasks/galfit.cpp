@@ -563,7 +563,7 @@ void Galfit<T>::galfit() {
     int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
     int nthreads = in->pars().getThreads();
     
-#pragma omp parallel for num_threads(nthreads) firstprivate (w_r) 
+#pragma omp parallel for num_threads(nthreads) firstprivate (w_r) schedule(dynamic)
     for (int ir=start_rad; ir<inr->nr; ir++) {
         w_r = ir;
         
@@ -698,7 +698,7 @@ void Galfit<T>::galfit() {
         T **errors = allocate_2D<T>(2,nfree);
         if (par.flagERRORS) getErrors(dring,errors,ir,minimum);
         
-#pragma omp critical
+#pragma omp critical (galfit_write)
 {
         // Writing output file. Not ordered if multithread
         fileout << setprecision(3) << fixed << left;

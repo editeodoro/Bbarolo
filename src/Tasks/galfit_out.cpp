@@ -508,6 +508,7 @@ void Galfit<T>::plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T>
 template void Galfit<float>::plotPVs_Gnuplot(Image2D<float>*,Image2D<float>*,Image2D<float>*,Image2D<float>*);
 template void Galfit<double>::plotPVs_Gnuplot(Image2D<double>*,Image2D<double>*,Image2D<double>*,Image2D<double>*);
 
+
 template <class T>
 int *Galfit<T>::getErrorColumns() {
 
@@ -991,7 +992,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('i (deg)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
             << "axis.errorbar(rad,inc, yerr=[err1_l[4],-err1_h[4]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o-', color=color2) \n";
+            << "if twostage==True: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o', color=color2) \n";
 
     py_file << std::endl
             << "axis=ax[2][0]  \n"
@@ -1000,7 +1001,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
             << "axis.errorbar(rad,pa, yerr=[err1_l[5],-err1_h[5]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o-', color=color2)  \n";
+            << "if twostage==True: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o', color=color2)  \n";
 
     py_file << std::endl
             << "axis=ax[0][1]  \n"
@@ -1017,7 +1018,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('x$_0$ (pix)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')   \n"
             << "axis.errorbar(rad,xpos, yerr=[err1_l[6],-err1_h[6]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o-', color=color2)  \n";
+            << "if twostage==True: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o', color=color2)  \n";
 
     py_file << std::endl
             << "axis=ax[2][1]  \n"
@@ -1026,7 +1027,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
             << "axis.errorbar(rad,ypos, yerr=[err1_l[7],-err1_h[7]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o-', color=color2) \n";
+            << "if twostage==True: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o', color=color2) \n";
 
     py_file << std::endl
             << "axis=ax[0][2]  \n"
@@ -1049,7 +1050,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('V$_\\mathrm{rad}$ (km/s)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='off',top='on',labelbottom='off',labelleft='on')  \n"
             << "axis.errorbar(rad,vrad, yerr=[err1_l[9],-err1_h[9]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,vrad2,yerr=[err2_l[9],-err2_h[9]],fmt='o-', color=color2)  \n";
+            << "if twostage==True: axis.errorbar(rad2,vrad2,yerr=[err2_l[9],-err2_h[9]],fmt='o', color=color2)  \n";
 
 
     py_file << std::endl
@@ -1059,7 +1060,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
             << "axis.errorbar(rad,vsys, yerr=[err1_l[8],-err1_h[8]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,vsys2,yerr=[err2_l[8],-err2_h[8]],fmt='o-', color=color2) \n";
+            << "if twostage==True: axis.errorbar(rad2,vsys2,yerr=[err2_l[8],-err2_h[8]],fmt='o', color=color2) \n";
 
     py_file << std::endl
             << "plt.savefig(outfolder+'plot_parameters.pdf', orientation = 'landscape', format = 'pdf',bbox_inches='tight') \n"

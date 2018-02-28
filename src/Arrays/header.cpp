@@ -128,7 +128,9 @@ Header& Header::operator=(const Header& h) {
     this->warning   = h.warning;
     
 //    this->wcs = h.wcs;
-#pragma omp critical
+    this->wcsIsGood = h.wcsIsGood;
+    if (this->wcsIsGood) {
+#pragma omp critical (wcs_header)
 {
     this->wcs = new struct wcsprm;
     this->wcs->flag = -1;
@@ -136,8 +138,9 @@ Header& Header::operator=(const Header& h) {
     wcscopy(true, h.wcs, this->wcs);
     wcsset(this->wcs);
     this->nwcs      = h.nwcs;
-    this->wcsIsGood = h.wcsIsGood;
 }
+    }
+    
     for (unsigned int i=0; i<h.keys.size(); i++)
         this->keys.push_back(h.keys[i]); 
             
