@@ -1,0 +1,32 @@
+FITSFILE    ngc2403.fits
+THREADS     4
+
+/////////// 3DFIT parameters /////////////
+3DFIT       true
+// Input rings
+NRADII      41
+RADSEP      30     
+VSYS        132.8
+XPOS        77         
+YPOS        77     
+VROT        120  
+VDISP       8          
+INC         60
+PA          123.7
+Z0          10
+// Free parameters
+FREE        VROT VDISP PA
+// Normalization type
+NORM        LOCAL
+// Mask
+MASK        SEARCH
+// Other options
+LTYPE       2
+FTYPE       2
+DISTANCE    3.2
+BWEIGHT     1
+WFUNC       2
+TWOSTAGE    TRUE
+///////////////////////////////////////////
+
+

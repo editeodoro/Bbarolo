@@ -1,0 +1,14 @@
+FITSFILE    ngc2403.fits
+THREADS     4
+
+/////////// SMOOTH parameters /////////////
+SMOOTH      true
+// New beam parameters.
+BMAJ        150
+BMIN        150     
+BPA         0
+// Repixeling
+REDUCE      true
+///////////////////////////////////////////
+
+

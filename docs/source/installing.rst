@@ -31,7 +31,7 @@ Requirements
 
 To compile the code, all you need is:
 
-- a C++ compiler supporting C++11 standard, like the `GNU <https://gcc.gnu.org/>`_ compiler.
+- a C++ compiler supporting C++11 standard, like the `GNU <https://gcc.gnu.org/>`_ compiler. OpenMP support is required for multi-threading.
 - `CFITSIO <http://heasarc.gsfc.nasa.gov/fitsio/>`_ library.
 - `FFTW <http://www.fftw.org/>`_ library.
 - `WCS <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ library.

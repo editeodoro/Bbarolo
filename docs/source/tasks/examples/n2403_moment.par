@@ -1,0 +1,15 @@
+FITSFILE      ngc2403.fits
+THREADS       4
+// Using a threshold mask
+MASK          THRESHOLD
+THRESHOLD     0.01
+// Extracting all maps 
+TOTALMAP      true
+VELOCITYMAP   true
+DISPERSIONMAP true
+RMSMAP        true
+// Extract PV along major axis
+FLAGPV        true
+XPOS_PV       77
+YPOS_PV       77
+PA_PV         123

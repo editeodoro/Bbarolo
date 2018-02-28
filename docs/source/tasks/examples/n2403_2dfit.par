@@ -1,0 +1,22 @@
+FITSFILE    ngc2403.fits
+
+/////////// 2DFIT parameters /////////////
+2DFIT       true
+// Input rings
+NRADII      41
+RADSEP      30     
+VSYS        132.8
+XPOS        77         
+YPOS        77     
+VROT        120  
+INC         60
+PA          123.7
+// Free parameters
+FREE        VROT INC PA
+// Mask for extracting velocity field
+MASK        SEARCH
+// Which side to fit
+SIDE        B
+// Weighting function
+WFUNC       2
+///////////////////////////////////////////

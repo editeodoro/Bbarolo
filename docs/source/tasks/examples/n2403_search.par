@@ -1,0 +1,14 @@
+FITSFILE    ngc2403.fits
+THREADS     4
+
+/////////// SEARCH parameters /////////////
+SEARCH      true
+// Searching map by map
+SEARCHTYPE  spatial
+// Primary and secondary cut
+SNRCUT      10
+GROWTHCUT   3 
+// Setting some criteria for rejection    
+MINPIX      30
+MINCHANNELS 5
+///////////////////////////////////////////

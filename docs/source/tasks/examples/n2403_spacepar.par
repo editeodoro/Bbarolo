@@ -1,0 +1,32 @@
+FITSFILE    ngc2403.fits
+THREADS     1
+
+/////////// SPACEPAR-specific /////////////
+SPACEPAR    true
+//First parameter
+P1          VROT
+//Second parameter
+P2          VDISP  
+//First parameter range 
+P1PAR       0 150 2
+//Second parameter range
+P2PAR       0 30 1 
+///////////////////////////////////////////
+
+// OTHER PARAMETERS IN COMMON WITH 3DFIT
+NRADII      8
+RADSEP      30     
+VSYS        132.8
+XPOS        77         
+YPOS        77     
+VROT        120  
+VDISP       8          
+INC         60
+PA          123.7
+Z0          10
+FREE        VROT VDISP
+LTYPE       2
+FTYPE       2
+DISTANCE    3.2
+MASK        SEARCH
+WFUNC       2

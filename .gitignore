@@ -1,0 +1,12 @@
+.qmake.stash
+.swp
+*__pycache*
+src/Build/
+.DS_Store
+*.pyc
+_build
+_static
+_templates
+docs/build
+updateall.sh
+libBB*

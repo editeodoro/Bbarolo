@@ -14,12 +14,12 @@ For a detailed description of the algorithms used in this code, please refer to 
 **Table of contents:**
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: BBarolo:
 
    installing
    running
-   tasks
+   tasks/index
 
 .. toctree::
    :maxdepth: 2

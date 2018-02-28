@@ -1,0 +1,18 @@
+FITSFILE    ngc2403.fits
+
+/////////// ELLPROF parameters /////////////
+ELLPROF       true
+// Input rings
+NRADII      41
+RADSEP      30     
+XPOS        77         
+YPOS        77     
+INC         60
+PA          123.7
+// Mask for extracting intensity map
+MASK        SEARCH
+// Which side of the galaxy
+SIDE        B
+///////////////////////////////////////////
+
+

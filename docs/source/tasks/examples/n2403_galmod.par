@@ -1,0 +1,22 @@
+FITSFILE    ngc2403.fits
+
+/////////// GALMOD parameters /////////////
+GALMOD      true
+// Input rings
+NRADII      41
+RADSEP      30     
+VSYS        132.8
+XPOS        77         
+YPOS        77     
+VROT        120  
+VDISP       8          
+INC         60
+PA          123.7
+Z0          10
+DENS        1
+VRAD        10
+// Normalization type
+NORM        NONE
+// Mask
+MASK        SMOOTH
+///////////////////////////////////////////
