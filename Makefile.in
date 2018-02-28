@@ -88,7 +88,7 @@ HEADS = $(ARRAYDIR)/param.hh\
 	$(TASKDIR)/galwind.hh\
 	$(TASKDIR)/ellprof.hh\
 	$(TASKDIR)/moment.hh\
-    $(TASKDIR)/spacepar.hpp\
+	$(TASKDIR)/spacepar.hh\
 
 OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/header.o\
@@ -110,6 +110,7 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/galfit_errors.o\
 	 $(OBJDIR)/galfit_out.o\
 	 $(OBJDIR)/slitfit.o\
+	 $(OBJDIR)/spacepar.o\
 	 $(OBJDIR)/ringmodel.o\
 	 $(OBJDIR)/progressbar.o\
 	 $(OBJDIR)/ellprof.o\

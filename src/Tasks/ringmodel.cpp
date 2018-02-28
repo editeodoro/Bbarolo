@@ -456,7 +456,7 @@ void Ringmodel::ringfit() {
             }
         }
 }    
-        bar.fillSpace("Done.\n");
+        if (verb) bar.fillSpace("Done.\n");
     
     }
     else {

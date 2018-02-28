@@ -36,7 +36,7 @@
 #include <Tasks/galfit.hh>
 #include <Tasks/galwind.hh>
 #include <Tasks/ellprof.hh>
-#include <Tasks/spacepar.hpp>
+#include <Tasks/spacepar.hh>
 #include <Utilities/utils.hh>
 
 /*

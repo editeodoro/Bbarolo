@@ -17,59 +17,13 @@
     Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
-#ifndef SPACEPAR_HH_
-#define SPACEPAR_HH_
-
-#include <iostream> 
+#include <iostream>
+#include <cstring>
 #include <cfloat> 
-#include <Arrays/cube.hh>
-#include <Tasks/galfit.hh>
+#include <Tasks/spacepar.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/gnuplot.hh>
 #include <Utilities/progressbar.hh>
-
-#define VROT  0
-#define VDISP 1
-#define DENS  2
-#define Z0    3
-#define INC   4
-#define PA    5
-#define XPOS  6
-#define YPOS  7
-#define VSYS  8
-#define VRAD  9
-#define MAXPAR 10
-
-
-using namespace Model;
-
-template <class T>
-class Spacepar : public Galfit<T>
-{   
-public:
-    Spacepar(Cube<T> *c);
-    ~Spacepar(){if (parspAll) delete parspace;}
-    
-    void calculate();
-    void plotAll_Python();
-    
-private:    
-
-    Cube<T> *parspace;  // A cube object with all parameter spaces
-    bool    parspAll;   // Wheter parspace has been allocated.
-    std::string p1;     // Type of parameter 1
-    std::string p2;     // Type of parameter 2
-    T   minp1;          // Minimum of parameter 1
-    T   minp2;          // Minimum of parameter 2
-    T   maxp1;          // Maximum of parameter 1
-    T   maxp2;          // Maximum of parameter 2
-    T   delp1;          // Step size for parameter 1
-    T   delp2;          // Step size for parameter 2
-    
-    void plotmin_Gnuplot(int n);
-    void setOutSpacepar(int p1_nsteps, int p2_nsteps);
-};
-
 
 template <class T>
 Spacepar<T>::Spacepar(Cube<T> *c) : Galfit<T>::Galfit(c) {
@@ -129,6 +83,8 @@ Spacepar<T>::Spacepar(Cube<T> *c) : Galfit<T>::Galfit(c) {
     
     parspAll = false;
 }
+template Spacepar<float>::Spacepar(Cube<float>*);
+template Spacepar<double>::Spacepar(Cube<double>*);
 
 
 template <class T>
@@ -295,6 +251,8 @@ void Spacepar<T>::calculate() {
     delete [] p1steps;
     delete [] p2steps;
 }
+template void Spacepar<float>::calculate();
+template void Spacepar<double>::calculate();
 
 
 template <class T>
@@ -345,6 +303,9 @@ void Spacepar<T>::plotmin_Gnuplot (int nr) {
     gp.end();
 #endif  
 }
+template void Spacepar<float>::plotmin_Gnuplot(int);
+template void Spacepar<double>::plotmin_Gnuplot(int);
+
 
 template <class T>
 void Spacepar<T>::plotAll_Python() {
@@ -435,6 +396,9 @@ void Spacepar<T>::plotAll_Python() {
 #endif
     
 }
+template void Spacepar<float>::plotAll_Python();
+template void Spacepar<double>::plotAll_Python();
+
 
 template <class T>
 void Spacepar<T>::setOutSpacepar(int p1_nsteps, int p2_nsteps) {
@@ -475,20 +439,6 @@ void Spacepar<T>::setOutSpacepar(int p1_nsteps, int p2_nsteps) {
     parspace->saveHead(h);
     parspAll = true;
 }
+template void Spacepar<float>::setOutSpacepar(int,int);
+template void Spacepar<double>::setOutSpacepar(int,int);
 
-
-
-
-#undef VROT
-#undef VDISP
-#undef DENS
-#undef Z0
-#undef INC
-#undef PA
-#undef XPOS
-#undef YPOS
-#undef VSYS
-#undef VRAD
-#undef MAXPAR
-
-#endif
