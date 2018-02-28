@@ -359,6 +359,7 @@ int Param::readParams(std::string paramfile) {
             if(arg=="startrad")  parGF.STARTRAD   = readIval(ss);
             if(arg=="redshift")  parGF.REDSHIFT   = readDval(ss);
             if(arg=="restwave")  parGF.RESTWAVE   = readDval(ss);
+            if(arg=="restfreq")  parGF.RESTFREQ   = readDval(ss);
             if(arg=="distance")  parGF.DISTANCE   = readFval(ss);
 
             // GALWIND ONLY PARAMETERS
@@ -442,7 +443,7 @@ bool Param::checkPars() {
     // Checking MASK parameter
     std::string maskstr = makeupper(parGF.MASK);
     if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" ||
-        maskstr=="THRESHOLD" || maskstr=="NEGATIVE") {
+        maskstr=="THRESHOLD" || maskstr=="NEGATIVE" ||  maskstr=="SMOOTH&SEARCH") {
         parGF.MASK = maskstr;
     }
     else if (maskstr.find("FILE(")!=std::string::npos) {
@@ -569,7 +570,7 @@ bool Param::checkPars() {
             else if (SIDE=="B"||SIDE=="BOTH") SIDE = "B";
             else if (SIDE=="BS"||SIDE=="S"||SIDE=="SINGLE"||SIDE=="BOTH SINGLE") SIDE = "S";
             else {
-                std::cout << "3DFIT warning: ";
+                std::cout << "3DFIT WARNING: ";
                 std::cout << "Not valid argument for SIDE parameter. ";
                 std::cout << "Assuming B (fitting both sides of the galaxy).\n";
                 parGF.SIDE = "B";
@@ -583,16 +584,16 @@ bool Param::checkPars() {
             std::cout << "Assuming 1 (gaussian layer).\n";
             parGF.LTYPE = 1;
         }
-
-         if ((parGF.RESTWAVE!=-1 && parGF.REDSHIFT==-1) || (parGF.RESTWAVE==-1 && parGF.REDSHIFT!=-1)) {
-            std::cout<< "3DFIT warning: Restwave and Redshift must be set both. Exiting...\n";
-            std::terminate();
-         }
+        
+        //if ((parGF.RESTWAVE!=-1 && parGF.REDSHIFT==-1) || (parGF.RESTWAVE==-1 && parGF.REDSHIFT!=-1)) {
+         //   std::cout<< "3DFIT warning: Restwave and Redshift must be set both. Exiting...\n";
+         //   std::terminate();
+        //}
         
         if (flagSlitfit) {
             checkHome(wavefile);
             checkHome(ivarfile);
-            std::cout<< "3DFIT warning: Galfit and Slitfit cannot be run at the same time. "
+            std::cout<< "3DFIT WARNING: Galfit and Slitfit cannot be run at the same time. "
                      << "Switching off Slitfit. \n";
             flagSlitfit = false;
         }
@@ -603,7 +604,7 @@ bool Param::checkPars() {
     if (parGW.flagGALWIND) {
         std::string str =" is not an optional parameter. Please specify it in the input file.";
         if (parGW.XPOS=="-1") {
-            std::cout << "GALWIND error: XPOS" << str << std::endl;
+            std::cout << "GALWIND ERROR: XPOS" << str << std::endl;
             good = false;
         }
         if (parGW.YPOS=="-1") {
@@ -1052,8 +1053,12 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         recordParam(theStream, "[TWOSTAGE]", "   Two stages minimization?", stringize(par.getParGF().TWOSTAGE));
         if (par.getParGF().TWOSTAGE)
             recordParam(theStream, "[POLYN]", "     Degree of polynomial fitting angles?", par.getParGF().POLYN);
-        recordParam(theStream, "[flagErrors]", "   Estimating errors?", stringize(par.getParGF().flagERRORS));
-
+        recordParam(theStream, "[FLAGERRORS]", "   Estimating errors?", stringize(par.getParGF().flagERRORS));
+        recordParam(theStream, "[REDSHIFT]", "   Redshift of the galaxy?", stringize(par.getParGF().REDSHIFT));
+        if (par.getParGF().RESTWAVE!=-1)  
+            recordParam(theStream, "[RESTWAVE]", "   Transition wavelength at rest?", stringize(par.getParGF().RESTWAVE));
+        if (par.getParGF().RESTFREQ!=-1)  
+            recordParam(theStream, "[RESTFREQ]", "   Transition frequency at rest?", stringize(par.getParGF().RESTFREQ));
     }
     
     // PARAMETERS FOR GALWIND 

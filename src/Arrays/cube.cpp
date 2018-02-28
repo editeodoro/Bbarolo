@@ -291,9 +291,11 @@ bool Cube<T>::readCube (std::string fname) {
     if(!head.header_read(par.getImageFile())) return false;
 
     headDefined = true;
-        // I do not like the two folliwing 2 lines, I should think something better
-        if (par.getRedshift()!=-1) head.setRedshift(par.getRedshift());
-        if (par.getRestwave()!=-1) head.setWave0(par.getRestwave());
+    // I do not like the following 3 lines, I should think something better
+    head.setRedshift(par.getRedshift());
+    head.setWave0(par.getRestwave());
+    // The FREQ0 can be in the header. Override if given by the user.
+    if (par.getRestfreq()!=-1) head.setFreq0(par.getRestfreq());
     axisDim = new int [numAxes];
     axisDimAllocated = true; 
     for (short i=0; i<numAxes; i++) axisDim[i] = head.DimAx(i);
@@ -525,13 +527,54 @@ void Cube<T>::BlankMask (float *channel_noise){
             mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
         }
     }
+    else if (par.getMASK()=="SMOOTH&SEARCH") {
+        // Smoothing first and searching for the largest object
+        double bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
+        double bmin  = head.Bmin()*arcsconv(head.Cunit(0));
+        double bpa   = head.Bpa();
+        float factor = par.getFactor()==-1 ? 2 : par.getFactor();
+        double nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
+        double nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
+        double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
+        Beam oldbeam = {bmaj,bmin,bpa};
+        Beam newbeam = {nbmaj,nbmin,nbpa};
+
+        Smooth3D<T> *sm = new Smooth3D<T>;
+        sm->smooth(this, oldbeam, newbeam);
+        
+        Cube<T> *smoothed = new Cube<T>();
+        smoothed->setCube(sm->Array(),axisDim);
+        smoothed->saveHead(head);
+        smoothed->saveParam(par);
+        smoothed->Head().setBmaj(nbmaj);
+        smoothed->Head().setBmin(nbmin);
+        smoothed->Head().setBpa(nbpa);
+        smoothed->Head().calcArea();
+        smoothed->setCubeStats();
+        smoothed->Search();
+        Detection<T> *larg = smoothed->LargestDetection();
+        if (larg==NULL) {
+            std::cout << "3DFIT error: No sources detected in the datacube. Cannot build mask!!! \n";
+            std::terminate();
+        }
+        std::vector<Voxel<T> > voxlist = larg->getPixelSet();
+        typename std::vector<Voxel<T> >::iterator vox;
+        for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+            mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+        }
+        
+        delete smoothed;
+        delete sm;
+    }
     else if (par.getMASK()=="THRESHOLD") {
+        // Simple cut
         float thresh = par.getParSE().threshold;
         for (uint i=numPix; i--;) {
             if (array[i]>thresh) mask[i] = 1;
         }
     }
     else if (par.getMASK()=="SMOOTH") {
+        // Smooth and cut
         double bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
         double bmin  = head.Bmin()*arcsconv(head.Cunit(0));
         double bpa   = head.Bpa();

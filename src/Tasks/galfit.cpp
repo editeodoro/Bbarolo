@@ -298,8 +298,6 @@ Galfit<T>::Galfit(Cube<T> *c) {
         inR->zcyl.push_back(0);
     }
     
-
-    
     if (!c->pars().getflagGalMod()) {
         if (!onefile) showInitial(inR, std::cout);
         else printInitial(inR);

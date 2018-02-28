@@ -247,10 +247,8 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
     
     /// This function sets all parameters needed to use the Galmod Object. A description
     /// of input is given in the Galmod class definition file (galmod.hh). 
-    
         
     initialize(c, Boxup, Boxlow);
-    
     
     ringIO(rings);
     
@@ -464,7 +462,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     outDefined = true;
     
     /// Information about frequency/velocity axis and conversions.
-    freq0 = c->Head().Freq0();      
+    freq0 = c->Head().Freq0()/(1+c->Head().Redshift());      
     if (freq0==0) {
         freq0 = 0.1420405751786E10;
         std::cout << "Header item FREQ0 not found. Assuming " << freq0;
@@ -506,8 +504,8 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 
         // If redshift and wavelength parameters are set, take them for freq0, otherwise central channel
         double restw = in->pars().getRestwave(), reds = in->pars().getRedshift();
-        if (restw!=-1 && reds!=-1) freq0 = C/(restw*(1+reds)*mconv);
-        else freq0 = crvalfreq;                      // Velocity is 0 always at the reference channel
+        if (restw!=-1) freq0 = C/(restw*(1+reds)*mconv);
+        else freq0 = crvalfreq; // Velocity is 0 always at the reference channel
 
         drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
 
@@ -530,6 +528,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         
         double crvalfreq = c->Head().Crval(2)*hzconv;
         drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
+    
     }
     else if (axtyp==4) {
         

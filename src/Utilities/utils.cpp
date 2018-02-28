@@ -215,15 +215,14 @@ T AlltoVel (T in, Header &h) {
     std::string cunit2 = makelower(h.Cunit(h.NumAx()-1));
     if (h.NumAx()>3) cunit2 = h.Cunit(2);
 
-    double freq0 = h.Freq0();
     const double c = 299792458;
     T vel_km_s = in;
 
     if (cunit2=="km/s" || cunit2=="kms") vel_km_s = in;
     else if (cunit2=="m/s" || cunit2=="ms") vel_km_s = in/1000.;
     else if (cunit2=="hz" || cunit2=="mhz") {
-        const double HIrest = freq0;
-        T vel_m_s = c*(HIrest*HIrest-in*in)/(HIrest*HIrest+in*in);
+        double frest = h.Freq0()/(1+h.Redshift());
+        T vel_m_s = c*(frest*frest-in*in)/(frest*frest+in*in);
         vel_km_s = vel_m_s/1000.;
     }
     else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
@@ -231,7 +230,7 @@ T AlltoVel (T in, Header &h) {
         //int z_cent = floor(h.DimAx(2)/2.)-1;        
         double z_cent = h.Crpix(2)-1;
         double restw = h.Wave0(), reds = h.Redshift();
-        if (restw!=-1 && reds!=-1) {
+        if (restw!=-1) {
             z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
         }
         double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
@@ -266,13 +265,14 @@ T DeltaVel (Header &h) {
         deltaV =h.Cdelt(2)/1000.;
     }
     else if (cunit2=="hz" || cunit2=="mhz") {
-        const double HIrest = h.Freq0();
+        double frest = h.Freq0()/(1+h.Redshift());
+            
         T sum=0;
         for (int i=0; i<zdim-1; i++) {
             T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T ivel = c*(HIrest*HIrest-ipix*ipix)/(HIrest*HIrest+ipix*ipix);
+            T ivel = c*(frest*frest-ipix*ipix)/(frest*frest+ipix*ipix);
             T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T svel = c*(HIrest*HIrest-spix*spix)/(HIrest*HIrest+spix*spix);
+            T svel = c*(frest*frest-spix*spix)/(frest*frest+spix*spix);
             T diff = svel - ivel;
             sum += diff;
         }
@@ -284,7 +284,7 @@ T DeltaVel (Header &h) {
 
         double z_cent = h.DimAx(2)/2.-1;
         double restw = h.Wave0(), reds = h.Redshift();
-        if (restw!=-1 && reds!=-1) {
+        if (restw!=-1) {
             z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
         }
 

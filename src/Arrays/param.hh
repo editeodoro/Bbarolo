@@ -75,8 +75,9 @@ struct GALFIT_PAR : GALMOD_PAR {
     int    STARTRAD   = 0;        ///< Starting radius
     bool   flagERRORS = false;    ///< Whether estimating errors.
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
-    double REDSHIFT   = -1;       ///< Redshift of the galaxy.
-    double RESTWAVE   = -1;       ///< Rest wavelength    
+    double REDSHIFT   = 0;        ///< Redshift of the galaxy.
+    double RESTWAVE   = -1;       ///< Rest wavelength.
+    double RESTFREQ   = -1;       ///< Rest wavelength    
 };
 
 // Container for input parameters for GALWIND (generates a 3D biconical outflow)
@@ -180,6 +181,7 @@ public:
     // This shoudl go on a different param struct
     double  getRedshift() {return parGF.REDSHIFT;}
     double  getRestwave() {return parGF.RESTWAVE;}
+    double  getRestfreq() {return parGF.RESTFREQ;}
     double  getDistance () {return parGF.DISTANCE;}
     string  getMASK() {return parGF.MASK;}
     

@@ -1104,7 +1104,7 @@ int Galfit<T>::plotAll_Python() {
 
     py_file << "# Beginning channel map plot \n"
             << "xcen, ycen, phi = [np.nanmean(xpos)-xmin,np.nanmean(ypos)-ymin,np.nanmean(pa)] \n"
-            << "if twostage==True: xcen, ycen, phi = [np.nanmean(xpos2),np.nanmean(ypos2),np.nanmean(pa2)] \n"
+            << "if twostage==True: xcen, ycen, phi = [np.nanmean(xpos2)-xmin,np.nanmean(ypos2)-ymin,np.nanmean(pa2)] \n"
             << "for k in range (len(files_mod)): \n"
             << "\timage_mod = fits.open(outfolder+files_mod[k]) \n"
             << "\timagedata_mod = image_mod[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
@@ -1153,9 +1153,9 @@ int Galfit<T>::plotAll_Python() {
     float zmax_wcs = AlltoVel(in->getZphys(zmax),in->Head());
     int pa_av = lround(findMedian(&outr->phi[0],outr->nr));
     int pa_min = pa_av+90<360 ? pa_av+90 : pa_av-90;
-    if (zmin_wcs>zmax_wcs) std::swap(zmin_wcs,zmax_wcs);
+//    if (zmin_wcs>zmax_wcs) std::swap(zmin_wcs,zmax_wcs);
     bool reverse = (pa_av>=45 && pa_av<225);
-    if (cdelt3_kms<0) reverse = !reverse;
+    //if (cdelt3_kms<0) reverse = !reverse;
 
     py_file << "# Now plotting the position-velocity diagrams \n"
             << "image_maj     = fits.open('"<< in->pars().getOutfolder() << in->Head().Name() << "_pv_a.fits') \n"
@@ -1223,7 +1223,7 @@ int Galfit<T>::plotAll_Python() {
             << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = matplotlib.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
             << "\t\taxis.contour(toplot[0][i],v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[i]) \n"
             << "\t\taxis.contour(toplot[0][i],v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[i]) \n"
-            << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=0.7,colors='#B22222',extent=ext[i]) \n"
+            << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=1,colors='#B22222',extent=ext[i]) \n"
             << "\t\taxis.axhline(y=0,color='black') \n"
             << "\t\taxis.axvline(x=0,color='black') \n"
             << "\t\tif i==0 : \n"
