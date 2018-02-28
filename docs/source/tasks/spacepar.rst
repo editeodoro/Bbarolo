@@ -14,11 +14,11 @@ Basic parameters for SPACEPAR are the same of the :ref:`3DFIT task <ringio>`. Ad
 
 * **P1** [none]. First parameter to explore. Can be any of the 3DFIT **FREE** parameters.
 
-* **P1P** [none]. A list of three numbers: the minimum value, the maximum value and the step size of the parameter space sampling for **P1**. For example, '0 100 1' samples between 0 and 100 with step size 1.
+* **P1PAR** [none]. A list of three numbers: the minimum value, the maximum value and the step size of the parameter space sampling for **P1**. For example, '0 100 1' samples between 0 and 100 with step size 1.
 
 * **P2** [none]. Second parameter to explore. Can be any of the 3DFIT **FREE** parameters.
 
-* **P2P** [none]. A list of three numbers: the minimum value, the maximum value and the step size of the parameter space sampling for **P2**. For example, '1 50 0.5' samples between 1 and 50 with step size 0.5.
+* **P2PAR** [none]. A list of three numbers: the minimum value, the maximum value and the step size of the parameter space sampling for **P2**. For example, '1 50 0.5' samples between 1 and 50 with step size 0.5.
 
 Outputs
 ========
