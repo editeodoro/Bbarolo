@@ -131,18 +131,19 @@ public:
     
     /// Inline functions to access private member:
     
-    string  getImageFile () {return imageFile;};    
-    string  getImageList () {return imageList;};
-    string  getImage (int i) {return images[i];};   
-    int     getListSize () {return images.size();};     
-    void    setImageFile (std::string fname) {imageFile = fname;};      
-    void    setImage (std::string fname) {images.push_back(fname);};
-    string  getOutfolder () {return outFolder;};
-    void    setOutfolder (std::string s) {if (s!="" && s[s.size()-1]!='/') s.append("/"); outFolder=s;}; 
-    bool    isVerbose () {return verbose;};
-    void    setVerbosity (bool f) {verbose=f;};
-    bool    getShowbar () {return showbar;};
-    int     getThreads () {return threads;};
+    string  getImageFile () {return imageFile;}    
+    string  getImageList () {return imageList;}
+    string  getImage (int i) {return images[i];}  
+    int     getListSize () {return images.size();}
+    void    setImageFile (std::string fname) {imageFile = fname;}     
+    void    setImage (std::string fname) {images.push_back(fname);}
+    string  getOutfolder () {return outFolder;}
+    void    setOutfolder (std::string s) {if (s!="" && s[s.size()-1]!='/') s.append("/"); outFolder=s;}
+    bool    isVerbose () {return verbose;}
+    void    setVerbosity (bool f) {verbose=f;}
+    bool    getShowbar () {return showbar;}
+    int     getThreads () {return threads;}
+    void    setThreads (int t) {threads=t;}
     bool    getFlagDebug() {return debug;}
     bool    getFlagPlots() {return plots;}
     

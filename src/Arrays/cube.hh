@@ -123,7 +123,7 @@ public:
     void    Search(std::string searchtype, float snrCut, float threshold, bool adjacent, 
                    int threshSpatial, int threshVelocity, int minPixels, int minChannels,
                    int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
-                   float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage);
+                   float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage,int NTHREADS);
     void    CubicSearch();                               /// Front-end to next functions. 
     std::vector <Detection<T> > search3DArray();         /// Switch functions for spectral or spatial.
     std::vector <Detection<T> > search3DArraySpectral(); /// Research objects in the 1-D spectra.

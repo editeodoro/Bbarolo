@@ -687,7 +687,7 @@ int Ringmodel::getdat (std::vector<float> &x, std::vector<float> &y, std::vector
             int   ip = (ry-blo[1])*nlt+ (rx-blo[0]);
             float v  = vfield[ip];                 // Radial velocity at this position.
             
-            if ((v==v)) {
+            if (v==v) {
                 float xr = (-(rx-x0)*sinp + (ry-y0)*cosp);
                 float yr = (-(rx-x0)*cosp - (ry-y0)*sinp)/cosi;
                 float r = sqrt(xr*xr+yr*yr);

@@ -795,7 +795,7 @@ template bool getDataColumn (std::vector<double> &,std::string);
 template <class T> 
 Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     
-    short NPAR = 14;
+    const short NPAR = 14;
     
     // Try to read ring information from an input file
     Rings<T> fr;

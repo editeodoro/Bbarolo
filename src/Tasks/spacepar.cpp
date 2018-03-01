@@ -373,7 +373,7 @@ void Spacepar<T>::plotAll_Python() {
             << "\tax.set_ylim(ext[2],ext[3])\n"
             << "\tax.imshow(toplot,origin='lower',extent=ext,aspect='auto',cmap=cmap)\n"
             << "\tax.plot(p1min,p2min,'x',mew=2,ms=8,c='w')\n"
-            << "\tradstr = 'R = %s %s'%(rings[i],ru)\n"
+            << "\tradstr = 'R = %.2f %s'%(rings[i],ru)\n"
             << "\tminstr = 'min = (%.1f %s, %.1f %s)'%(p1min,p1u,p2min,p2u)\n"
             << "\tax.text(0.01,1.1,radstr,transform=ax.transAxes)\n"
             << "\tax.text(0.01,1.03,minstr,transform=ax.transAxes)\n"

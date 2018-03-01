@@ -1,6 +1,6 @@
 """
 This module defines several classes to interface pyBBarolo with
-the underlying pwind c++ code, with some extra functionality.
+the underlying BBarolo C++ code, with some extra functionality.
 """
 
 ########################################################################
@@ -202,8 +202,8 @@ class Model3D(Task):
         self._inri = None
         # The output model cube (astropy PrimaryHDU)
         self.outmodel = None
-        self._opts = {'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
-                      'nv'    : [-1, np.int, "Number of subclouds per profile"]}
+        self._opts.update ({'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
+                            'nv'    : [-1, np.int, "Number of subclouds per profile"]})
         
         
     def init(self,*args,**kwargs):
@@ -211,12 +211,14 @@ class Model3D(Task):
         self._input(*args,**kwargs)
 
 
-    def compute(self):
+    def compute(self,threads=1):
         """ Compute the model 
         
         This function needs to be called after :func:`init`.
         """
-        return self._compute()
+        if not isinstance(threads,int):
+            raise ValueError("%s ERROR: threads must and integer."%self.taskname)
+        return self._compute(threads)
 
 
     def smooth(self,beam=None):
@@ -315,7 +317,7 @@ class GalMod(Model3D):
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi,0)
     
         
-    def _compute(self):
+    def _compute(self,threads=1):
         """ Compute the model 
         
         This function needs to be called after :func:`input`.
@@ -328,7 +330,7 @@ class GalMod(Model3D):
         self._check_options()
         op = self._opts
         self._mod = libBB.Galmod_new(self.inp._cube,self._inri._rings,op['nv'][0],op['ltype'][0],\
-                                     op['cmode'][0], op['cdens'][0], op['iseed'][0])
+                                     op['cmode'][0], op['cdens'][0], op['iseed'][0],int(threads))
         self._modCalculated = libBB.Galmod_compute(self._mod)
         data_mod  = reshapePointer(libBB.Galmod_array(self._mod),self.inp.dim[::-1])
         
@@ -414,7 +416,7 @@ class GalWind(Model3D):
         self.ready = True
     
 
-    def _compute(self):
+    def _compute(self,threads=1):
         """ Compute the model 
         
         This function needs to be called after :func:`input`.
@@ -430,8 +432,8 @@ class GalWind(Model3D):
             if self._mod: self.__del__()
             self._mod = libBB.Galwind_new(self.inp._cube,ar['xpos'][0],ar['ypos'][0],ar['phi'][0],\
                                           ar['inc'][0],ar['vdisp'][0],ar['dens'][0],ar['vsys'][0],\
-                                          ar['vwind'][0],ar['openang'][0],ar['htot'][0],\
-                                          op["dtype"][0],op["ntot"][0],op["cdens"][0],op["nv"][0])
+                                          ar['vwind'][0],ar['openang'][0],ar['htot'][0],op["dtype"][0],\
+                                          op["ntot"][0],op["cdens"][0],op["nv"][0],int(threads))
             
             self._modCalculated = libBB.Galwind_compute(self._mod)
             data_mod  = reshapePointer(libBB.Galwind_array(self._mod),self.inp.dim[::-1])
@@ -536,7 +538,7 @@ class FitMod3D(Model3D):
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi,0)
                   
 
-    def _compute(self):
+    def _compute(self,threads=1):
         """ Fit the model.
 
         Run this function after having set initial parameters with :func:`init` and options with
@@ -561,7 +563,7 @@ class FitMod3D(Model3D):
                                              op['norm'][0].encode('utf-8'),op['free'][0].encode('utf-8'),\
                                              op['side'][0].encode('utf-8'),op['twostage'][0],op['polyn'][0].encode('utf-8'),\
                                              op['errors'][0],op['smooth'][0],op['distance'][0],op['redshift'][0],\
-                                             op['restwave'][0],op['outfolder'][0].encode('utf-8'))
+                                             op['restwave'][0],op['outfolder'][0].encode('utf-8'),int(threads))
         
         # Calculating the model                         
         self.modCalculated = libBB.Galfit_galfit(self._mod)        
@@ -646,7 +648,7 @@ class Search(Task):
                        "rejectbeforemerge" : [True, np.bool, "Whether to reject sources before merging"],
                        "twostagemerge" : [True, np.bool, "Whether to do a partial merge during search"]}
 
-    def search(self):
+    def search(self,threads=1):
         """ Perform the source finding """
         self._check_options()
         op = self._opts
@@ -655,7 +657,7 @@ class Search(Task):
                             op['thrvelocity'][0],op['minpixels'][0],op['minchannels'][0],\
                             op['minvoxels'][0],op['maxchannels'][0],op['maxangsize'][0],\
                             op['growth'][0],op['growthcut'][0], op['growththresh'][0],\
-                            op['rejectbeforemerge'][0],op['twostagemerge'][0])
+                            op['rejectbeforemerge'][0],op['twostagemerge'][0],int(threads))
                         
                             
     def _check_options(self):

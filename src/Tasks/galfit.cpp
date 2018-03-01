@@ -315,7 +315,7 @@ template <class T>
 Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI, int LTYPE, int FTYPE, 
                    int WFUNC, int BWEIGHT, int NV, double TOL, int CDENS, int STARTRAD, string MASK, 
                    string NORM, string FREE, string SIDE, bool TWOSTAGE, string POLYN, bool ERRORS, 
-                   bool SMOOTH, float DISTANCE, double REDSHIFT, double RESTWAVE, string OUTFOLD) {
+                   bool SMOOTH, float DISTANCE, double REDSHIFT, double RESTWAVE, string OUTFOLD, int NTHREADS) {
                        
     // Setting all parameters in the GALFIT_PAR container
     par.DELTAINC = DELTAINC;
@@ -345,15 +345,16 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     // Create directory tree if it does not exist
     checkHome(OUTFOLD);    
     c->pars().setOutfolder(OUTFOLD);
+    c->pars().setThreads(NTHREADS);
     mkdirp(OUTFOLD.c_str());
     
     setup(c,inrings,&par);
     
 }
-template Galfit<float>::Galfit(Cube<float>*,Rings<float> *,float,float,int,int,int,int,int,double,int,
-                               int,string,string,string,string,bool,string,bool,bool,float,double,double,string);
-template Galfit<double>::Galfit(Cube<double>*,Rings<double> *,float,float,int,int,int,int,int,double,int,
-                                int,string,string,string,string,bool,string,bool,bool,float,double,double,string);
+template Galfit<float>::Galfit(Cube<float>*,Rings<float> *,float,float,int,int,int,int,int,double,int,int,
+                               string,string,string,string,bool,string,bool,bool,float,double,double,string,int);
+template Galfit<double>::Galfit(Cube<double>*,Rings<double> *,float,float,int,int,int,int,int,double,int,int,
+                                string,string,string,string,bool,string,bool,bool,float,double,double,string,int);
 
 
 template <class T>

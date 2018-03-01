@@ -34,7 +34,7 @@
 
 template <class T>
 GalWind<T>::GalWind(Cube<T> *c, T x0, T y0, T pa, T inc, T disp, T dens, T vsys, T vw, 
-                    T openang, T htot, int denstype, int ntot, int cdens, int nv) {
+                    T openang, T htot, int denstype, int ntot, int cdens, int nv, int nthreads) {
             
     in          = c;
     par.XPOS    = to_string(x0);
@@ -51,11 +51,12 @@ GalWind<T>::GalWind(Cube<T> *c, T x0, T y0, T pa, T inc, T disp, T dens, T vsys,
     par.NTOT    = ntot;
     par.CDENS   = cdens;
     par.NV      = nv;
-        
+    in->pars().setThreads(nthreads);
+    
     in->checkBeam();
 }
-template GalWind<float>::GalWind(Cube<float>*,float,float,float,float,float,float,float,float,float,float,int,int,int,int);
-template GalWind<double>::GalWind(Cube<double>*,double,double,double,double,double,double,double,double,double,double,int,int,int,int);
+template GalWind<float>::GalWind(Cube<float>*,float,float,float,float,float,float,float,float,float,float,int,int,int,int,int);
+template GalWind<double>::GalWind(Cube<double>*,double,double,double,double,double,double,double,double,double,double,int,int,int,int,int);
 
 
 template <class T>

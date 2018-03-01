@@ -1,3 +1,7 @@
+"""
+Interface between C++ and Python functions.
+"""
+
 import os
 from ctypes import *
 import numpy as np
@@ -65,8 +69,8 @@ libBB.Galfit_new.restype = c_void_p
 libBB.Galfit_new.argtypes = [c_void_p]
 libBB.Galfit_new_all.restype = c_void_p
 libBB.Galfit_new_all.argtypes = [c_void_p,c_void_p,c_float,c_float,c_int,c_int,c_int,c_int,c_int,\
-                                 c_double,c_int,c_int,c_char_p,c_char_p,c_char_p,c_char_p,\
-                                 c_bool,c_char_p,c_bool,c_bool,c_float,c_double,c_double,c_char_p]
+                                 c_double,c_int,c_int,c_char_p,c_char_p,c_char_p,c_char_p,c_bool,\
+                                 c_char_p,c_bool,c_bool,c_float,c_double,c_double,c_char_p,c_int]
 libBB.Galfit_delete.restype = None
 libBB.Galfit_delete.argtypes = [c_void_p]
 libBB.Galfit_galfit.restype = c_bool
@@ -83,7 +87,7 @@ libBB.Galfit_plotModel.argtypes = [c_void_p]
 # Class Galwind interface ##############################################################
 libBB.Galwind_new.restype = c_void_p
 libBB.Galwind_new.argtypes = [c_void_p,c_float,c_float,c_float,c_float,c_float,c_float,\
-                              c_float,c_float,c_float,c_float,c_int,c_int,c_int,c_int]
+                              c_float,c_float,c_float,c_float,c_int,c_int,c_int,c_int,c_int]
 libBB.Galwind_delete.restype = None
 libBB.Galwind_delete.argtypes = [c_void_p]
 libBB.Galwind_array.restype = POINTER(c_float)
@@ -103,5 +107,5 @@ libBB.Galwind_writeMomentMaps.argtypes = [c_void_p]
 libBB.Search_search.restype = None
 libBB.Search_search.argtypes = [c_void_p,c_char_p,c_float,c_float,c_bool,c_int,c_int,\
                                 c_int,c_int,c_int,c_int,c_float,c_bool,c_float,c_float,\
-                                c_bool,c_bool]
+                                c_bool,c_bool,c_int]
 ########################################################################################

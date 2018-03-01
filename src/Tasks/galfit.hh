@@ -49,11 +49,11 @@ public:
     Galfit(Cube<T> *c);
     Galfit(Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {setup(c,inrings,p);}
     Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC=5, float DELTAPHI=15, 
-            int LTYPE=1, int FTYPE=2, int WFUNC=1, int BWEIGHT=1, int NV=-1, 
-            double TOL=1E-03, int CDENS=10, int STARTRAD=0, std::string MASK="SMOOTH", 
-            std::string NORM="LOCAL", std::string FREE="VROT VDISP INC PA", std::string SIDE="B", 
-            bool TWOSTAGE=true, std::string POLYN="bezier", bool ERRORS=false, bool SMOOTH=true, 
-            float DISTANCE=-1, double redshift=-1, double RESTWAVE=-1, std::string OUTFOLD="./");
+            int LTYPE=1, int FTYPE=2, int WFUNC=1, int BWEIGHT=1, int NV=-1, double TOL=1E-03, 
+            int CDENS=10, int STARTRAD=0, std::string MASK="SMOOTH", std::string NORM="LOCAL", 
+            std::string FREE="VROT VDISP INC PA", std::string SIDE="B", bool TWOSTAGE=true, 
+            std::string POLYN="bezier", bool ERRORS=false, bool SMOOTH=true, float DISTANCE=-1, 
+            double redshift=-1, double RESTWAVE=-1, std::string OUTFOLD="./", int THREADS=1);
     virtual ~Galfit();
     Galfit(const Galfit &g) {operator=(g);}     //< Copy constructor.
     Galfit& operator=(const Galfit &g);         //< Copy operator.

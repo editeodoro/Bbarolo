@@ -87,10 +87,10 @@ template void Cube<double>::Search();
 
 
 template <class T>
-void Cube<T>::Search(std::string searchtype, float snrCut, float threshold, bool adjacent, 
-                     int threshSpatial, int threshVelocity, int minPixels, int minChannels,
-                     int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
-                     float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage) {
+void Cube<T>::Search(std::string searchtype, float snrCut, float threshold, bool adjacent, int threshSpatial, 
+                     int threshVelocity, int minPixels, int minChannels, int minVoxels, int maxChannels, 
+                     float maxAngSize, bool flagGrowth, float growthCut, float growthThreshold, bool RejectBefore, 
+                     bool TwoStage, int NTHREADS) {
     
     SEARCH_PAR &p       = par.getParSE();
     p.searchType        = searchtype;
@@ -111,16 +111,17 @@ void Cube<T>::Search(std::string searchtype, float snrCut, float threshold, bool
     p.TwoStageMerging   = TwoStage;
     if (p.threshold!=0) p.UserThreshold = true;
     if (p.growthThreshold!=0) p.flagUserGrowthT = true;
+    par.setThreads(NTHREADS);
     
     setCubeStats();
     Search();
     
 }
-template void Cube<short>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
-template void Cube<int>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
-template void Cube<long>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
-template void Cube<float>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
-template void Cube<double>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool);
+template void Cube<short>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool,int);
+template void Cube<int>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool,int);
+template void Cube<long>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool,int);
+template void Cube<float>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool,int);
+template void Cube<double>::Search(std::string,float,float,bool,int,int,int,int,int,int,float,bool,float,float,bool,bool,int);
 
 
 

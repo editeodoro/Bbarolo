@@ -53,10 +53,10 @@ Galfit<float>* Galfit_new_all(Cube<float> *c, Rings<float> *inrings, float DELTA
                               int FTYPE, int WFUNC, int BWEIGHT, int NV, double TOL, int CDENS, int STARTRAD, 
                               const char* MASK, const char* NORM, const char* FREE, const char* SIDE, bool TWOSTAGE, 
                               const char* POLYN, bool ERRORS, bool SMOOTH, float DISTANCE, double REDSHIFT, 
-                              double RESTWAVE, const char* OUTFOLD) {
+                              double RESTWAVE, const char* OUTFOLD, int NTHREADS) {
                               return new Galfit<float>(c,inrings,DELTAINC,DELTAPHI,LTYPE,FTYPE,WFUNC,BWEIGHT,NV,TOL,
                               CDENS,STARTRAD,string(MASK),string(NORM),string(FREE),string(SIDE),TWOSTAGE,string(POLYN),
-                              ERRORS,SMOOTH,DISTANCE,REDSHIFT,RESTWAVE,string(OUTFOLD));}
+                              ERRORS,SMOOTH,DISTANCE,REDSHIFT,RESTWAVE,string(OUTFOLD),NTHREADS);}
 
 void Galfit_delete(Galfit<float> *g) {delete g;}
 bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit(); return true;}
@@ -69,8 +69,8 @@ int Galfit_plotModel(Galfit<float> *g) {signal(SIGINT, signalHandler); return g-
 // Interface for Galwind class //////////////////////////////////////////////////////////
 GalWind<float>* Galwind_new (Cube<float> *c, float x0, float y0, float pa, float inc, float disp, 
                              float dens, float vsys, float vw, float openang, float htot, 
-                             int denstype, int ntot, int cdens, int nv) { 
-            return new GalWind<float>(c,x0,y0,pa,inc,disp,dens,vsys,vw,openang,htot,denstype,ntot,cdens,nv);}
+                             int denstype, int ntot, int cdens, int nv, int NTHREADS) { 
+            return new GalWind<float>(c,x0,y0,pa,inc,disp,dens,vsys,vw,openang,htot,denstype,ntot,cdens,nv, NTHREADS);}
     
 void Galwind_delete(GalWind<float> *gw) {delete gw;} 
 float* Galwind_array(GalWind<float> *gw) {return gw->getArray();}
@@ -84,9 +84,9 @@ bool Galwind_writeMomentMaps(GalWind<float> *gw) {return gw->writeMomentMaps();}
 void Search_search(Cube<float> *c, const char* searchtype, float snrCut, float threshold, bool adjacent, 
                    int threshSpatial, int threshVelocity, int minPixels, int minChannels,
                    int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
-                   float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage) 
+                   float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage,int NTHREADS) 
                    {signal(SIGINT, signalHandler); c->Search(string(searchtype),snrCut,threshold,
                     adjacent,threshSpatial,threshVelocity,minPixels,minChannels,minVoxels,maxChannels,
-                    maxAngSize,flagGrowth,growthCut,growthThreshold,RejectBefore,TwoStage);}
+                    maxAngSize,flagGrowth,growthCut,growthThreshold,RejectBefore,TwoStage,NTHREADS);}
 //////////////////////////////////////////////////////////////////////////////////////////
 }

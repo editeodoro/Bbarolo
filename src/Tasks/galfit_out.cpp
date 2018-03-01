@@ -843,7 +843,10 @@ int Galfit<T>::plotAll_Python() {
     float crpix3_kms = in->Head().Crpix(2);
     float cdelt3_kms = DeltaVel<float>(in->Head());
     float crval3_kms = AlltoVel(in->Head().Crval(2),in->Head());
-
+    float bmaj = in->Head().Bmaj()/in->Head().PixScale();
+    float bmin = in->Head().Bmin()/in->Head().PixScale();
+    float bpa  = in->Head().Bpa();
+    
     float cont = 0;
     int xpos = findMedian(&outr->xpos[0],outr->nr);
     int ypos = findMedian(&outr->ypos[0],outr->nr);
@@ -1066,7 +1069,6 @@ int Galfit<T>::plotAll_Python() {
             << "plt.savefig(outfolder+'plot_parameters.pdf', orientation = 'landscape', format = 'pdf',bbox_inches='tight') \n"
             << std::endl << std::endl;
 
-
     py_file << "# CHANNEL MAPS: Setting all the needed variables \n"
             << "image = fits.open('" << in->pars().getImageFile() << "') \n"
             << "xmin, xmax = " << xmin << ", " << xmax << std::endl
@@ -1078,6 +1080,7 @@ int Galfit<T>::plotAll_Python() {
     py_file << "zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
             << "head = image[0].header \n"
             << "zsize=imagedata[:,0,0].size \n"
+            << "cdeltsp=" << in->Head().PixScale()*arcconv << std::endl
             << "cont = " << cont << std::endl
             << "v = np.array([1,2,4,8,16,32,64])*cont \n"
             << "v_neg = [-cont] \n"
@@ -1126,18 +1129,28 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
             << "\t\t\tvelo = ' v = ' + str(int(velo_kms)) + ' km/s' \n"
             << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
-            << "\t\t\tplt.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
-            << "\t\t\tplt.title(velo, fontsize=10,loc='left') \n"
-            << "\t\t\tplt.imshow(z,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
-            << "\t\t\tplt.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
-            << "\t\t\tplt.contour(z,v_neg,origin='lower',linewidths=0.1,colors='gray') \n"
-            << "\t\t\tplt.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
-            << "\t\t\tplt.subplot(grid[j][1,i]) \n"
-            << "\t\t\tplt.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
-            << "\t\t\tplt.imshow(z_mod,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
-            << "\t\t\tplt.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
-            << "\t\t\tplt.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
-            << "\t\t\tif (j==i==0): plt.text(0, 1.5, gname, transform=ax.transAxes,fontsize=15) \n"
+            << "\t\t\tax.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
+            << "\t\t\tax.set_title(velo, fontsize=10,loc='left') \n"
+            << "\t\t\tax.imshow(z,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
+            << "\t\t\tax.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
+            << "\t\t\tax.contour(z,v_neg,origin='lower',linewidths=0.1,colors='gray') \n"
+            << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
+            << "\t\t\tif (j==i==0): \n"
+            << "\t\t\t\tax.text(0, 1.4, gname, transform=ax.transAxes,fontsize=15,va='center') \n"
+            << "\t\t\t\tlbar = 0.5*(xmax-xmin)*cdeltsp \n"
+            << "\t\t\t\tltex = \"%.0f'' \"%lbar if lbar>10 else \"%.2f'' \"%lbar \n"
+            << "\t\t\t\tif lbar>600: ltex = \"%.0f' \"%(lbar/60.) \n"
+            << "\t\t\t\tax.annotate('', xy=(4.5, 1.4), xycoords='axes fraction', xytext=(5, 1.4),arrowprops=dict(arrowstyle='<->', color='k'))\n"
+            << "\t\t\t\tax.text(4.75,1.50,ltex,transform=ax.transAxes,fontsize=11, ha='center')\n"
+            << "\t\t\t\tbmaj, bmin, bpa = " << bmaj << "/float(xmax-xmin), " << bmin << "/float(ymax-ymin)," << bpa << std::endl
+            << "\t\t\t\tbeam = matplotlib.patches.Ellipse((3.5, 1.4), bmaj, bmin, bpa, color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
+            << "\t\t\t\tax.add_artist(beam) \n"
+            << "\t\t\t\tax.text(3.6+bmaj/1.8,1.4,'Beam',transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
+            << "\t\t\tax = plt.subplot(grid[j][1,i]) \n"
+            << "\t\t\tax.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
+            << "\t\t\tax.imshow(z_mod,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
+            << "\t\t\tax.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
+            << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
             << "\t\t\tnum = num+1 \n"
             << std::endl
             << "\toutfile = 'plot_chanmaps.pdf' \n"
