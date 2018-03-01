@@ -562,9 +562,8 @@ void Galfit<T>::galfit() {
     int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
     int nthreads = in->pars().getThreads();
     
-#pragma omp parallel for num_threads(nthreads) firstprivate (w_r) schedule(dynamic)
+#pragma omp parallel for num_threads(nthreads) schedule(dynamic)
     for (int ir=start_rad; ir<inr->nr; ir++) {
-        w_r = ir;
         
         if (verb && nthreads==1) {
             time_t t = time(NULL);
@@ -577,7 +576,8 @@ void Galfit<T>::galfit() {
 
         Rings<T> *dring = new Rings<T>;
         dring->nr = 2;
-
+        dring->id = ir;
+        
         float width1=0, width2=0;
         if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
         else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
@@ -723,6 +723,7 @@ void Galfit<T>::galfit() {
 }
         deallocate_2D<T>(errors,2);
         delete dring;
+        
     }
   //  }
          

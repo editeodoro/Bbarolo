@@ -74,6 +74,7 @@ struct Rings {
     std::vector<T> phi;
     std::vector<T> pa;
     std::vector<int>  nv;
+    int id;
     
     
     void ClearAll () {

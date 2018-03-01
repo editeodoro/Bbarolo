@@ -282,7 +282,8 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar) {
 //    T vrad  = dring->vrad.front();
     
 
-    int n=1, np=0;
+    int n=1, np=0, w_r=dring->id;
+
     if (global) {n=dring->nr; w_r=0;}
     T vrot[n],vdisp[n],dens[n],z0[n],inc[n],phi[n],xpos[n],ypos[n],vsys[n],vrad[n];
 

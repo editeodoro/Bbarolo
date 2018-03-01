@@ -99,7 +99,6 @@ protected:
     int      NconY;             //< Convolution field Y-dimensione 
     int      wpow;              //< Weighing function power.
     int      anglepar;          //< Number of parameter for polynomial fit of angles.
-    int      w_r;               //< Current working ring.
     bool     second;
     bool     verb;
     Cube<T>  *line_im;          //< Line Image;
