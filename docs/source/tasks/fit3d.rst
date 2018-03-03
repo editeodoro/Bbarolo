@@ -99,6 +99,7 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **LINEAR** [0.85]. This parameter controls the spectral broadening of the instrument. It is in units of channel and it represents the standard deviation, not the FWHM. The default is for data that has been Hanning smoothed, so that FWHM = 2 channels and σ = FWHM/2.355.
 
+* **ADRIFT** [false]. If true, calculate the asymmetric drift correction. First regularize velocity dispersion and density profile and then compute the correction following classical prescription (see e.g. `Iorio et al. 2017 <http://adsabs.harvard.edu/abs/2017MNRAS.466.4159I>`_).
 
 Additional parameters for high-z galaxies 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -139,6 +140,8 @@ The 3DFIT task produces several outputs to check the goodness of the fit. In the
 
 * A text file *densprof.txt*, with the radial intensity profiles along the best-fit rings.
 
+* If **ADRIFT** is true, a PDF file *asymdrift.txt* with the asymmetric drift correction parameters.
+
 * A Gnuplot script *gnuscript.gnu* to plot P-V diagrams and best-fit parameters. This is only used if Gnuplot support is on and Python support is off.
 
 * A Python script *pyscript.py* to conveniently plot all the above outputs. This script produces all the following plots.
@@ -177,6 +180,16 @@ The 3DFIT task produces several outputs to check the goodness of the fit. In the
 
 .. figure:: examples/params.png
    :alt: Position-velocity plots
+   :figwidth: 100%
+   :align: center
+
+|
+|
+
+* If **ADRIFT** is true, a PDF file *asymmetricdrift.pdf* with the asymmetric drift correction.
+
+.. figure:: examples/adrift.png
+   :alt: Asymmetric drift plots
    :figwidth: 100%
    :align: center
 

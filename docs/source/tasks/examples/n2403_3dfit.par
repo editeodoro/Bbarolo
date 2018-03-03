@@ -27,4 +27,5 @@ DISTANCE    3.2
 BWEIGHT     1
 WFUNC       2
 TWOSTAGE    TRUE
+ADRIFT      TRUE
 ///////////////////////////////////////////

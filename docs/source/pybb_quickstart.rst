@@ -75,7 +75,7 @@ First of all, we import and start FitMod3D::
 Secondly, we initialize rings with initial guesses for the fit::
 
     # Initializing rings. Parameters can be values or arrays
-    f3d.init(radii=np.arange(15,450,30),xpos=77,ypos=77,vsys=132.8,vrot=120,vdisp=8,vrad=0,z0=10,inc=60,phi=123.7)
+    f3d.init(radii=np.arange(15,1200,30),xpos=77,ypos=77,vsys=132.8,vrot=120,vdisp=8,vrad=0,z0=10,inc=60,phi=123.7)
 
 A list of needed arguments can be printed with ``f3d.show_arguments()``.
 
@@ -91,7 +91,7 @@ If the beam information is not available in the FITS header, it is fundamental t
     
 It is now time to run the fit::
     
-    bfrings, bestmod = f3d.compute() 
+    bfrings, bestmod = f3d.compute(threads=4) 
 
 This function performs the fit and writes relevant FITS files in the output directory. The function returns a *n* x *m* matrix containing the best-fit rings (``bfrings``), where *n* = number of rings and *m* = number of parameters, and a FITS astropy object (``bestmod``) containing the best-fit model. These are also written in ``bfit`` and ``outmodel`` methods of FitMod3D class. 
 
