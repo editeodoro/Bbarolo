@@ -78,7 +78,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     double REDSHIFT   = 0;        ///< Redshift of the galaxy.
     double RESTWAVE   = -1;       ///< Rest wavelength.
     double RESTFREQ   = -1;       ///< Rest frequency
-    bool   flagADRIFT = true;     ///< Whether correcting for asymmetric drift.  
+    bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.  
 };
 
 // Container for input parameters for GALWIND (generates a 3D biconical outflow)
