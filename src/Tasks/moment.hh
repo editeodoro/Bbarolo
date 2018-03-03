@@ -91,27 +91,17 @@ void MomentMap<T>::input (Cube<T> *c, int *Blo, int *Bhi) {
     this->numPix = this->axisDim[0]*this->axisDim[1];
     this->array = new T[this->numPix];
     this->arrayAllocated = true;
-    
+    this->par = c->pars();
 }
 
 
 template <class T> 
 void MomentMap<T>::input (Cube<T> *c) {
     
-    in = c;
+    int blo[3] = {0,0,0};
+    int bhi[3] = {c->AxesDim(0),c->AxesDim(1),c->AxesDim(2)};
     
-    for (int i=0; i<3; i++) {
-        blo[i] = 0;
-        bhi[i] = in->AxesDim(i);
-    }
-    
-    this->axisDim[0] = bhi[0]-blo[0];
-    this->axisDim[1] = bhi[1]-blo[1];
-    nsubs = bhi[2]-blo[2]; 
-    
-    this->numPix = this->axisDim[0]*this->axisDim[1];
-    this->array = new T[this->numPix];
-    this->arrayAllocated = true;
+    input(c,blo,bhi);
     
 }
 

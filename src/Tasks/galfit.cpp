@@ -479,7 +479,7 @@ void Galfit<T>::galfit() {
     
     int m=10;
     fileout << left << setw(m) << "#RAD(Kpc)"
-            << setw(m+1)   << "RAD(arcs)"
+            << setw(m+1) << "RAD(arcs)"
             << setw(m+1) << "VROT(km/s)"
             << setw(m+1) << "DISP(km/s)"
             << setw(m)   << "INC(deg)" 
@@ -506,7 +506,6 @@ void Galfit<T>::galfit() {
     }
         
     fileout << endl; 
-    
         
     if (verb) { 
         in->pars().setVerbosity(false);
@@ -558,6 +557,10 @@ void Galfit<T>::galfit() {
 //        }
 //    }
 //    else {
+    
+    T ***errors = allocate_3D<T>(inr->nr,2,nfree);
+    
+    
     double toKpc = KpcPerArc(distance);
     int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
     int nthreads = in->pars().getThreads();
@@ -622,9 +625,8 @@ void Galfit<T>::galfit() {
         if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
         if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
 
-
         if (verb) {
-#pragma omp critical
+#pragma omp critical (galfit_outmsg)
 {
             if (nthreads>1) {
                 cout << "\n Ring #" << ir+1 << " at radius " << inr->radii[ir] << " arcsec ("
@@ -694,8 +696,7 @@ void Galfit<T>::galfit() {
         }
 }
 
-        T **errors = allocate_2D<T>(2,nfree);
-        if (par.flagERRORS) getErrors(dring,errors,ir,minimum);
+        if (par.flagERRORS) getErrors(dring,errors[ir],ir,minimum);
         
 #pragma omp critical (galfit_write)
 {
@@ -717,18 +718,76 @@ void Galfit<T>::galfit() {
             
         if (par.flagERRORS) 
             for (int kk=0; kk<nfree; kk++) 
-                fileout << setw(m) << errors[0][kk] << setw(m) << errors[1][kk];
+                fileout << setw(m) << errors[ir][0][kk] << setw(m) << errors[ir][1][kk];
         
         fileout << endl;
 }
-        deallocate_2D<T>(errors,2);
         delete dring;
         
     }
   //  }
          
-
     fileout.close();
+
+    // If multi-threads rewrite ordered outfile
+    if (nthreads>1) {
+        fileout.open(fileo.c_str());
+    
+        fileout << left << setw(m) << "#RAD(Kpc)"
+                << setw(m+1)   << "RAD(arcs)"
+                << setw(m+1) << "VROT(km/s)"
+                << setw(m+1) << "DISP(km/s)"
+                << setw(m)   << "INC(deg)" 
+                << setw(m)   << "P.A.(deg)" 
+                << setw(m)   << "Z0(pc)"
+                << setw(m)   << "Z0(arcs)"
+                << setw(m)   << "SIG(E20)"
+                << setw(m)   << "XPOS(pix)"
+                << setw(m)   << "YPOS(pix)"
+                << setw(m+1) << "VSYS(km/s)"
+                << setw(m+1) << "VRAD(km/s)";
+            
+        if (par.flagERRORS) {       
+            if (mpar[VROT])  fileout << setw(m) << "E_VROT1" << setw(m) << "E_VROT2";
+            if (mpar[VDISP]) fileout << setw(m) << "E_DISP1" << setw(m) << "E_DISP2";
+            if (mpar[DENS])  fileout << setw(m) << "E_DENS1" << setw(m) << "E_DENS2";
+            if (mpar[Z0])    fileout << setw(m) << "E_Z01"   << setw(m) << "E_Z02";
+            if (mpar[INC])   fileout << setw(m) << "E_INC1"  << setw(m) << "E_INC2";
+            if (mpar[PA])    fileout << setw(m) << "E_PA1"   << setw(m) << "E_PA2";
+            if (mpar[XPOS])  fileout << setw(m) << "E_XPOS1" << setw(m) << "E_XPOS2";
+            if (mpar[YPOS])  fileout << setw(m) << "E_YPOS1" << setw(m) << "E_YPOS2";
+            if (mpar[VSYS])  fileout << setw(m) << "E_VSYS1" << setw(m) << "E_VSYS2";
+            if (mpar[VRAD])  fileout << setw(m) << "E_VRAD1" << setw(m) << "E_VRAD2";
+        }
+        
+        fileout << endl; 
+        
+        for (int ir=start_rad; ir<inr->nr; ir++) {
+            fileout << setprecision(3) << fixed << left;
+            fileout << setw(m) << outr->radii[ir]*toKpc
+                    << setw(m+1) << outr->radii[ir]
+                    << setw(m+1) << outr->vrot[ir]
+                    << setw(m+1) << outr->vdisp[ir]
+                    << setw(m) << outr->inc[ir]
+                    << setw(m) << outr->phi[ir]
+                    << setw(m) << outr->z0[ir]*toKpc*1000
+                    << setw(m) << outr->z0[ir]
+                    << setw(m) << outr->dens[ir]/1E20
+                    << setw(m) << outr->xpos[ir]
+                    << setw(m) << outr->ypos[ir]
+                    << setw(m+1) << outr->vsys[ir]
+                    << setw(m+1) << outr->vrad[ir];
+            
+            if (par.flagERRORS) 
+                for (int kk=0; kk<nfree; kk++) 
+                    fileout << setw(m) << errors[ir][0][kk] << setw(m) << errors[ir][1][kk];
+        
+            fileout << endl;
+        }
+        fileout.close();
+    }
+
+    deallocate_3D<T>(errors,inr->nr,2);
 
     if (verb) {               
         cout << setfill('=') << setw(74) << " " << endl << endl; 
@@ -1169,42 +1228,80 @@ void Galfit<T>::setFree() {
 template void Galfit<float>::setFree();
 template void Galfit<double>::setFree();
 
-}
 
-
-
-template <class T> T polyn (T *c, T *p, int npar) {
-    T value=0;
-    for (int i=0; i<npar; i++) value += p[i]*std::pow(double(c[0]),double(i));
-    return value;
-}
-template short polyn(short*,short*,int);
-template int polyn(int*,int*,int);
-template long polyn(long*,long*,int);
-template float polyn(float*,float*,int);
-template double polyn(double*,double*,int);
-
-template <class T> void polynd (T *c, T *p, T *d, int npar) {
-    for (int i=0; i<npar; i++) d[i]=std::pow(double(c[0]),double(i));
-}
-template void polynd(short*,short*,short*,int);
-template void polynd(int*,int*,int*,int);
-template void polynd(long*,long*,long*,int);
-template void polynd(float*,float*,float*,int);
-template void polynd(double*,double*,double*,int);
-
-template <class T> void fpolyn (T x, T *p, int npar, T &y, T *dydp) {
+template <class T>
+bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn) {
     
-    T value=0;
-    for (int i=0; i<npar; i++) {
-        value += p[i]*std::pow(double(x),double(i));
-        dydp[i]=std::pow(double(x),double(i));
+    // Compute an asymmetric drift correction, following procedure in Iorio+17, sec 4.3
+        
+    // Fitting dispersion with a third degree polynomial
+    int npar1 = 4;
+    T cdisp[npar1], cdisperr[npar1], ww[nn];
+    bool mp[npar1];
+    for (int i=0; i<npar1; i++) mp[i] = true;
+    for (int i=0; i<nn; i++) ww[i] = 1;
+    Lsqfit<T> lsq1(rad,1,dispprof,ww,nn,cdisp,cdisperr,mp,npar1,&polyn,&polynd);
+    int nrt = lsq1.fit();
+    if (nrt<0) {
+        if (in->pars().isVerbose())  std::cout << "3DFIT ERROR: cannot least-square fit the dispersion for asymmetric drift.\n";
+        par.flagADRIFT = false;
+        return false;
     }
-    y = value;
+    
+    // Now fitting density*disp2 with a exponential function (line in log space)
+    T *fun = new T[nn];
+    int npar2 = 2;
+    T cfun[npar2], cfunerr[npar2];
+    bool mpp[npar2];
+    for (int i=0; i<npar2; i++) mpp[i] = true;
+    for (int i=0; i<nn; i++) {
+        fun[i] = log(dispprof[i]*dispprof[i]*densprof[i]*cos(inc[i]*M_PI/180.));
+        ww[i] = 1;
+    }
+    //Lsqfit<T> lsq2(rad,1,fun,ww,nn,cfun,cfunerr,mpp,npar2,&coreExp,&coreExpd);
+    Lsqfit<T> lsq2(rad,1,fun,ww,nn,cfun,cfunerr,mpp,2,&polyn,&polynd);
+    nrt = lsq2.fit();
+    if (nrt<0) {
+        if (in->pars().isVerbose()) std::cout << "3DFIT ERROR: cannot least-square fit the fun for asymmetric drift.\n";
+        par.flagADRIFT = false;
+        return false;
+    }
+    
+    // Now writing to a text file
+    std::ofstream fout(in->pars().getOutfolder()+"asymdrift.txt");
+    
+    int m=16;
+    fout << fixed << setprecision(4);
+    fout << "#" << setw(m-1) << "RAD(arcs)"
+         << setw(m) << "ASYMDRIFT(km/s)"
+         << setw(m) << "DISP_REG(km/s)"
+         << setw(m) << "FUN" 
+         << setw(m) << "FUN_REG\n";
+    
+    T a1 = exp(cfun[0]);
+    T a2 = 0;
+    T a3 = -1/cfun[1];
+    
+    int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
+    
+    for (int i=start_rad; i<nn; i++) {
+        T disp_reg = polyn(&rad[i],cdisp,npar1);
+        T fun_reg = polyn(&rad[i],cfun,npar2);
+        T expn = exp(rad[i]/a3);
+        T asdrift = sqrt(rad[i]*disp_reg*disp_reg*expn/(a3*(a2+expn)));
+        fout << setw(m) << rad[i] << setw(m) << asdrift
+             << setw(m) << disp_reg << setw(m) << fun[i] << setw(m) << fun_reg << std::endl;
+    }
+    
+    fout.close();
+    
+    delete [] fun;
+    
+    return true;
+    
 }
-template void fpolyn(short,short*,int,short&,short*);
-template void fpolyn(int,int*,int,int&,int*);
-template void fpolyn(long,long*,int,long&,long*);
-template void fpolyn(float,float*,int,float&,float*);
-template void fpolyn(double,double*,int,double&,double*);
+template bool Galfit<float>::AsymmetricDrift(float*,float*,float*,float*,int);
+template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,int);
+
+}
 

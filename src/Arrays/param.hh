@@ -77,7 +77,8 @@ struct GALFIT_PAR : GALMOD_PAR {
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
     double REDSHIFT   = 0;        ///< Redshift of the galaxy.
     double RESTWAVE   = -1;       ///< Rest wavelength.
-    double RESTFREQ   = -1;       ///< Rest wavelength    
+    double RESTFREQ   = -1;       ///< Rest frequency
+    bool   flagADRIFT = true;     ///< Whether correcting for asymmetric drift.  
 };
 
 // Container for input parameters for GALWIND (generates a 3D biconical outflow)

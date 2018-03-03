@@ -361,6 +361,7 @@ int Param::readParams(std::string paramfile) {
             if(arg=="restwave")  parGF.RESTWAVE   = readDval(ss);
             if(arg=="restfreq")  parGF.RESTFREQ   = readDval(ss);
             if(arg=="distance")  parGF.DISTANCE   = readFval(ss);
+            if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
 
             // GALWIND ONLY PARAMETERS
             if(arg=="htot")      parGW.HTOT       = readFval(ss);
@@ -732,6 +733,7 @@ void Param::printDefaults (std::ostream& theStream) {
     recordParam(theStream, "[TWOSTAGE]", "   Two stages minimization?", stringize(par.getParGF().TWOSTAGE));
     recordParam(theStream, "[POLYN]", "     Degree of polynomial fitting angles?", par.getParGF().POLYN);
     recordParam(theStream, "[flagErrors]", "   Estimating errors?", stringize(par.getParGF().flagERRORS));
+    recordParam(theStream, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(par.getParGF().flagADRIFT));
     
     recordParam(theStream, "[GALWIND]", "Generating a 3D datacube with a wind model?", stringize(par.getParGW().flagGALWIND));
     recordParam(theStream, "[NTOT]", "   Number of layers/cylinder for each cone", par.getParGW().NTOT);
@@ -1054,13 +1056,14 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
         if (par.getParGF().TWOSTAGE)
             recordParam(theStream, "[POLYN]", "     Degree of polynomial fitting angles?", par.getParGF().POLYN);
         recordParam(theStream, "[FLAGERRORS]", "   Estimating errors?", stringize(par.getParGF().flagERRORS));
-        recordParam(theStream, "[REDSHIFT]", "   Redshift of the galaxy?", stringize(par.getParGF().REDSHIFT));
+        recordParam(theStream, "[REDSHIFT]", "   Redshift of the galaxy?", par.getParGF().REDSHIFT);
         if (par.getParGF().RESTWAVE!=-1)  
-            recordParam(theStream, "[RESTWAVE]", "   Transition wavelength at rest?", stringize(par.getParGF().RESTWAVE));
+            recordParam(theStream, "[RESTWAVE]", "   Transition wavelength at rest?", par.getParGF().RESTWAVE);
         if (par.getParGF().RESTFREQ!=-1)  
-            recordParam(theStream, "[RESTFREQ]", "   Transition frequency at rest?", stringize(par.getParGF().RESTFREQ));
+            recordParam(theStream, "[RESTFREQ]", "   Transition frequency at rest?", par.getParGF().RESTFREQ);
     }
-    
+        recordParam(theStream, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(par.getParGF().flagADRIFT));
+        
     // PARAMETERS FOR GALWIND 
     recordParam(theStream, "[GALWIND]", "Generating a 3D datacube with a wind model?", stringize(par.getParGW().flagGALWIND));
     if (par.getParGW().flagGALWIND) {

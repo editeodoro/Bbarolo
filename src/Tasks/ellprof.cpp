@@ -32,6 +32,8 @@
 #include <Tasks/ellprof.hh>
 #include <Tasks/galmod.hh>
 #include <Utilities/utils.hh>
+#include <Utilities/progressbar.hh>
+
 
 namespace Tasks {
 
@@ -399,11 +401,20 @@ void Ellprof<T>::RadialProfile () {
     Bgridhi[1] = std::min(im->DimY()-1, int(Position[1]+Rmax/fabs(Dy)+1));
 
     /* Start looping over all pixels */
+    
+    ProgressBar bar(" Computing radial profile... ", true);
+    bar.setShowbar(im->pars().getShowbar());        
+    bool verb = im->pars().isVerbose();
+    if (verb) bar.init(Bgridhi[0]-Bgridlo[0]);   
+    
     for (size_t x = Bgridlo[0]; x <= Bgridhi[0]; x++) {
+        if (verb) bar.update(x-Bgridlo[0]+1);   
         for (size_t y = Bgridlo[1]; y <= Bgridhi[1]; y++) {
             processpixel(x, y, im->Array(x,y));
         }
     }
+    
+    if (verb) bar.fillSpace("Done.\n");
 
 
     float Sumtotgeo    = 0.0;        /* Sum of all complete rings */
@@ -736,7 +747,7 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     theStream << "#" << setw(m-1) << "RADIUS" << " "
               << setw(m) << "SUM" << " "
               << setw(m) << "MEAN" << " "
-    //          << setw(m) << "MEDIAN" << " "
+              << setw(m) << "MEDIAN" << " "
               << setw(m) << "ERR_RMS" << " "
               << setw(m-5) << "NUMPIX" << " "
               << setw(m) << "SURFDENS" << " "
@@ -748,7 +759,7 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     theStream << "#" << setw(m-1) << "arcsec" << " "
               << setw(m) << unit << " "
               << setw(m) << unit << " "
-    //          << setw(m) << unit << " "
+              << setw(m) << unit << " "
               << setw(m) << unit << " "
               << setw(m-5) << "numb" << " "
               << setw(m) << unit+"/arcs2" << " "
@@ -770,7 +781,7 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
         theStream << setw(m) << Radius[i] << " "
                   << setw(m) << Sum[i][seg] << " "
                   << setw(m) << Mean[i][seg] << " "
-      //            << setw(m) << Median[i][seg] << " "
+                  << setw(m) << Median[i][seg] << " "
                   << setw(m) << sqrt(fabs(Var[i][seg])) << " "
                   << setw(m-5) << Num[i][seg] / (subpix[0]*subpix[1]) << " "
                   << setw(m) << Surfdens[i][seg] << " "

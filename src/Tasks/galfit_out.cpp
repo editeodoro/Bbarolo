@@ -279,6 +279,19 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         
     }
 
+
+    // Computing asymmetric drift correction
+    if (par.flagADRIFT) {
+        if (verb) std::cout << "    Computing asymmetric drift correction..." << std::flush;
+        T *dens_m = new T[outr->nr];
+        for (int i=0; i<outr->nr; i++) dens_m[i] = ell.getMedian(i);
+        bool ok = AsymmetricDrift(&outr->radii[0],dens_m,&outr->vdisp[0],&outr->inc[0],outr->nr);
+        if (verb) {
+            if (ok) std::cout << " Done." << std::endl;
+            else std::cout << " Failed." << std::endl;
+        }
+    }
+
     // Now plotting everything
     if (makeplots) {
         if (verb) std::cout << "    Writing creative plots..." << std::flush;
@@ -954,7 +967,7 @@ int Galfit<T>::plotAll_Python() {
     }
 
     py_file << std::endl
-            << "rad_sd, surfdens, sd_err = np.genfromtxt(filesb, usecols=(0,2,3),unpack=True) \n";
+            << "rad_sd, surfdens, sd_err = np.genfromtxt(filesb, usecols=(0,3,4),unpack=True) \n";
 
     py_file << "# Opening maps and retrieving intensity map units\n"
             << "f0 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_0mom.fits') \n"
@@ -1004,7 +1017,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
             << "axis.errorbar(rad,pa, yerr=[err1_l[5],-err1_h[5]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o', color=color2)  \n";
+            << "if twostage==True: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o-', color=color2)  \n";
 
     py_file << std::endl
             << "axis=ax[0][1]  \n"
@@ -1013,7 +1026,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
             << "axis.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o', color=color2)  \n"   ;
+            << "if twostage==True: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o-', color=color2)  \n"   ;
     
     py_file << std::endl
             << "axis=ax[1][1]  \n"
@@ -1021,7 +1034,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('x$_0$ (pix)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')   \n"
             << "axis.errorbar(rad,xpos, yerr=[err1_l[6],-err1_h[6]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o', color=color2)  \n";
+            << "if twostage==True: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o-', color=color2)  \n";
 
     py_file << std::endl
             << "axis=ax[2][1]  \n"
@@ -1030,7 +1043,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
             << "axis.errorbar(rad,ypos, yerr=[err1_l[7],-err1_h[7]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o', color=color2) \n";
+            << "if twostage==True: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o-', color=color2) \n";
 
     py_file << std::endl
             << "axis=ax[0][2]  \n"
@@ -1326,6 +1339,39 @@ int Galfit<T>::plotAll_Python() {
             << "\tif (typ[k]=='LOCAL'): outfile = 'plot_maps_local.pdf' \n"
             << "\tplt.savefig(outfolder+outfile, bbox_inches = 'tight') \n";
 
+    if (par.flagADRIFT) {
+        py_file << "\n#Asymmetric drift correction\n"
+                << "va, dispr, fun, funr = np.genfromtxt(outfolder+'asymdrift.txt',usecols=(1,2,3,4),unpack=True)\n"
+                << "if twostage: \n"
+                << "\tvrot, disp = vrot2, disp2 \n"
+                << "\terr1_l, err1_h = err2_l, err2_h\n"
+                << "fig4=plt.figure(figsize=(10,10), dpi=150) \n" 
+                << "ax1 = fig4.add_axes([0.10,0.1,0.3,0.25])\n"
+                << "ax2 = fig4.add_axes([0.48,0.1,0.3,0.25])\n"
+                << "ax3 = fig4.add_axes([0.86,0.1,0.3,0.25])\n"
+                << "vcirc = np.sqrt(vrot**2+va**2)\n"
+                << "ax1.set_xlim(0,max_rad)\n"
+                << "ax1.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
+                << "ax1.set_ylabel('V (km/s)', fontsize=11)\n"
+                << "ax1.plot(rad,vrot,'-', color=color2,label=r'V$_\\mathrm{rot}$',zorder=1)\n"
+                << "ax1.plot(rad,va,'--', color='#FABC11',label=r'V$_\\mathrm{A}$',zorder=2)\n" 
+                << "ax1.errorbar(rad,vcirc, yerr=[err1_l[0],-err1_h[0]],fmt='o', color='#43A8D4',label=r'V$_\\mathrm{circ}$',zorder=0)\n"  
+                << "ax1.legend()\n"
+                << "ax2.set_xlim(0,max_rad)\n" 
+                << "ax2.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
+                << "ax2.set_ylabel('$\\sigma$ (km/s)', fontsize=11)\n"
+                << "ax2.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color2,label=r'$\\sigma_\\mathrm{gas}$',zorder=0)\n"  
+                << "ax2.plot(rad,dispr,'-', color='#0FA45A',label=r'$\\sigma_\\mathrm{reg}$',zorder=1)\n"
+                << "ax2.legend()\n"
+                << "ax3.set_xlim(0,max_rad)\n"  
+                << "ax3.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
+                << "ax3.set_ylabel(r'$f = \\log(\\sigma_\\mathrm{gas}^2\\Sigma_\\mathrm{gas}\\cos(i)$)', fontsize=11)\n" 
+                << "ax3.plot(rad,fun,'o', color=color2,label=r'$f_\\mathrm{obs}$',zorder=0)\n"   
+                << "ax3.plot(rad,funr,'-', color='#0FA45A',label=r'$f_\\mathrm{reg}$',zorder=1)\n"
+                << "ax3.legend()\n"
+                << "fig4.savefig(outfolder+'asymmetricdrift.pdf',bbox_inches='tight')\n";
+    }    
+        
     py_file.close();
 
 #ifdef HAVE_PYTHON

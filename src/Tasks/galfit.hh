@@ -72,7 +72,7 @@ public:
     void writeModel(std::string normtype, bool makeplots=true);
     void writePVs(Cube<T> *mod, std::string suffix="");
     int  plotAll_Python ();
-    
+    bool AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn);
 
     /// Functions defined in slitfit.cpp
     void slit_init(Cube<T> *c);
@@ -151,8 +151,47 @@ protected:
 
 }
 
-template <class T> T polyn (T*, T*, int);
-template <class T> void polynd (T*, T*, T*, int);
-template <class T> void fpolyn (T , T*, int, T&, T*);
+
+// Some fitting function used in Galfit
+template <class T>
+T coreExp (T *c, T *p, int npar) {
+    return p[0]*(p[1]+1)/(p[1]+exp(c[0]/p[2]));
+}
+
+
+template <class T>
+void coreExpd (T *c, T *p, T *d, int npar) {
+    T expn = exp(c[0]/p[2]);
+    T denm = p[1]+expn;
+    d[0] = (p[1]+1)/denm;
+    d[1] = p[0]*(expn-1)/(denm*denm);
+    d[2] = p[0]*c[0]*(p[1]+1)*expn/(p[2]*p[2]*denm*denm);
+}
+
+
+template <class T> 
+T polyn (T *c, T *p, int npar) {
+    T value=0;
+    for (int i=0; i<npar; i++) value += p[i]*std::pow(double(c[0]),double(i));
+    return value;
+}
+
+
+template <class T> 
+void polynd (T *c, T *p, T *d, int npar) {
+    for (int i=0; i<npar; i++) d[i]=std::pow(double(c[0]),double(i));
+}
+
+
+template <class T> 
+void fpolyn (T x, T *p, int npar, T &y, T *dydp) {
+    
+    T value=0;
+    for (int i=0; i<npar; i++) {
+        value += p[i]*std::pow(double(x),double(i));
+        dydp[i]=std::pow(double(x),double(i));
+    }
+    y = value;
+}
 
 #endif
