@@ -26,6 +26,6 @@ FTYPE       2
 DISTANCE    3.2
 BWEIGHT     1
 WFUNC       2
-TWOSTAGE    TRUE
-ADRIFT      TRUE
+TWOSTAGE    true
+ADRIFT      true
 ///////////////////////////////////////////

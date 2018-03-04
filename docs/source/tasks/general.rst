@@ -20,6 +20,8 @@ Input/output parameters
 
 * **SHOWBAR** [true]. Whether to show progress bars.
 
+.. _beam:
+
 Beam parameters
 ^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -108,12 +108,14 @@ For high-z galaxies the following additional parameters are available.
 
 * **REDSHIFT** [0]. The redshift of the galaxy.
 
-* **RESTWAVE** [none]. The rest wavelength of the line you want to fit, if the spectral axis of the data is wavelength. Units must be the same of the spectral axis of the cube. For example, if we want to fit the H-alpha line and CUNIT3 = "angstrom", set a value 6563. 
+* **RESTWAVE** [none]. The rest wavelength of the line you want to fit, if the spectral axis of the data is wavelength. Units must be the same of the spectral axis of the cube. For example, if we want to fit the H-alpha line and CUNIT3 = "angstrom", set a value 6563. It can be a single value, or a list of values for fitting multiple lines at the same time.
 
-* **RESTFREQ** [none]. The rest frequency of the line you want to fit, if the spectral axis of the data is frequency. Units must be the same of the spectral axis of the cube. The rest frequency value is often read from the FITS header and does not need to be explicitly set by the user. If set, the RESTFREQ value overrides the header value.
+* **RESTFREQ** [none]. The rest frequency of the line you want to fit, if the spectral axis of the data is frequency. Units must be the same of the spectral axis of the cube. The rest frequency value is often read from the FITS header and does not need to be explicitly set by the user. If set, the RESTFREQ value overrides the header value. It can be a single value, or a list of values for fitting multiple lines at the same time.
 
+These parameters are used to calculate the conversion from wavelengths/frequencies to velocities. The velocity reference is set to 0 at RESTWAVE*(REDSHIFT+1) or RESTFREQ/(REDSHIFT+1). VSYS has to be set to 0, but can be also used to fine-tune the redshift. Finally, if these two parameters are not set, BBarolo will use the CRPIX3 as velocity reference and the proper VSYS has to be set based on that.
 
-These two parameters are used to calculate the conversion from wavelengths/frequencies to velocities. The velocity reference is set to 0 at RESTWAVE*(REDSHIFT+1) or RESTFREQ/(REDSHIFT+1). VSYS has to be set to 0, but can be also used to fine-tune the redshift. Finally, if these two parameters are not set, BBarolo will use the CRPIX3 as velocity reference and the proper VSYS has to be set based on that.
+* **RELINT** [1]. A list of line ratios for multiple line fitting. The number of ratios must be the same of given **RESTFREQ** or **RESTWAVE**. 
+
 
 Outputs
 ========
@@ -140,7 +142,7 @@ The 3DFIT task produces several outputs to check the goodness of the fit. In the
 
 * A text file *densprof.txt*, with the radial intensity profiles along the best-fit rings.
 
-* If **ADRIFT** is true, a PDF file *asymdrift.txt* with the asymmetric drift correction parameters.
+* If **ADRIFT** is true, a text file *asymdrift.txt* with the asymmetric drift correction parameters.
 
 * A Gnuplot script *gnuscript.gnu* to plot P-V diagrams and best-fit parameters. This is only used if Gnuplot support is on and Python support is off.
 
@@ -199,4 +201,25 @@ Above outputs can be obtained with the following :download:`parameter <examples/
 
 .. literalinclude:: examples/n2403_3dfit.par
    :language: c
+
+
+Guidelines for a successful fit
+================================
+
+To obtain a good fit with very low resolution data, I usually follow some basic steps:
+
+1. *Observational parameters*. Check that the header of your datacube has information on the PSF/beam of your observations. These are usually stored in the BMAJ, BMIN and BPA keywords. If these are not present in the header, you can use the :ref:`beam parameters <beam>` to specify them. Be sure also to set the correct spectral broadening with the LINEAR parameter. These infos are fundamental to properly account for observational biases.
+
+|
+
+2. *Obtain a mask*. A good mask is important for a nice fit because it tells the code which regions are real emission and which are just noise. The mask should be as large as possible to include faint emission, but not too large to include lots of noise. Try the different algorithms available in BBarolo and compare the produced masks with your data. When you find a mask you're happy with, keep that configuration.
+
+|
+
+3. *Initial guesses*. The parameter space can be quite degenerate and it's very important to provide the code with reliable initial guesses for parameters. In particular, the code is very sensitive to the initial value of the inclination angle. BBarolo comes with some algorithms to automatically estimate initial values when these are not explicitly given in the parameter file. However these algorithms are simple and may fail in a number of situations, depending also on the quality of your data. If you let the code estimating the initial values, always check that these make sense before going on with the fit. I usually prefer to provide my initial guesses. I extract the moment maps using the mask just obtained and use them to get the initial guesses. Center position and inclination (XPOS, YPOS, INC) can be obtained from the intensity map. If higher resolution observations are available (like HST), I would rather use them for the galaxy center and inclination. The velocity field can be used to estimate the position angle (PA). The midpoint of the global spectrum can be used as systemic velocity (VSYS). I stress that the code is quite good in estimating the VSYS, so it is quite safe to let it unset (but always check!). The initial values of rotation velocity and velocity dispersion are not very important, so you can give some random sensible value.
+
+|
+
+4. *Fit*. Depending on the data, you can decide to fit several parameters at the same time or keep some of them fixed. If your data have very low resolution, it may be wise to keep the geometry fixed and fit only the kinematics (VROT and VDISP). Check the outputs and if you are not happy with the model, try to change the :ref:`fit options <3dfitopt>`.
+
 

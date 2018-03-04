@@ -7,9 +7,9 @@ Installing BBarolo
 Pre-compiled binaries
 =====================
 
-Pre-compiled executable files for the GUI are available `at this page <http://editeodoro.github.io/Bbarolo/downloads/binaries/>`_. Binaries are for Linux x86_64 and Mac OS X (> 10.6). 
+Pre-compiled executable files for the GUI and the command line utility are available `at this page <http://editeodoro.github.io/Bbarolo/downloads/binaries/>`_. Binaries are for Linux x86_64 and Mac OS X (> 10.6). 
 
-The command line executable (``BBarolo``) is also included in these binary packages and can be found at:
+The command line executable (``BBarolo``) is also included in the GUI binary packages and can be found at:
 
 * **Linux**: same directory of BBaroloGUI
 * **MacOS**: BBaroloGUI.app/Contents/MacOS/BBarolo
