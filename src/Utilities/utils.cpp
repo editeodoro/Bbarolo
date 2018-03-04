@@ -234,6 +234,7 @@ T AlltoVel (T in, Header &h) {
             z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
         }
         double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+        
         T vel_m_s = c*(in*in-line_wave*line_wave)/(in*in+line_wave*line_wave);
         vel_km_s = vel_m_s/1000.;
     }

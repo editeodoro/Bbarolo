@@ -279,13 +279,13 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         
     }
 
-
     // Computing asymmetric drift correction
     if (par.flagADRIFT) {
         if (verb) std::cout << "    Computing asymmetric drift correction..." << std::flush;
         T *dens_m = new T[outr->nr];
+        int strad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
         for (int i=0; i<outr->nr; i++) dens_m[i] = ell.getMedian(i);
-        bool ok = AsymmetricDrift(&outr->radii[0],dens_m,&outr->vdisp[0],&outr->inc[0],outr->nr);
+        bool ok = AsymmetricDrift(&outr->radii[strad],&dens_m[strad],&outr->vdisp[strad],&outr->inc[strad],outr->nr-strad);
         if (verb) {
             if (ok) std::cout << " Done." << std::endl;
             else std::cout << " Failed." << std::endl;
@@ -846,6 +846,7 @@ int Galfit<T>::plotAll_Python() {
      *   2) Position-Velocity diagrams along major/minor axis
      *   3) Output paramenters
      *   4) Moment maps
+     *   5) Asymmetric drift correction
      *
      * It needs all output fitsfiles to be in the output directory!
      */

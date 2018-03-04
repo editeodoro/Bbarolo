@@ -146,7 +146,11 @@ void Galmod<T>::defaults() {
     crota2        = 0; 
     cdens         = 1.0;
     freq0         = 0.1420405751786E10;
-    velsys        = 2;    //Optical or radio definition of the velocities resp. 1 2.              
+    velsys        = 2;    //Optical or radio definition of the velocities resp. 1 2.
+    nlines        = 1;
+    relvel.push_back(0);
+    relint.push_back(1);
+           
 }
 template void Galmod<float>::defaults();
 template void Galmod<double>::defaults();
@@ -212,6 +216,9 @@ Galmod<T>& Galmod<T>::operator=(const Galmod &g) {
     this->axtyp     = g.axtyp;
     this->freq0     = g.freq0;
     this->crota2    = g.crota2;
+    this->nlines    = g.nlines;
+    this->relvel    = g.relvel;
+    this->relint    = g.relint;
     this->readytomod= g.readytomod;
     
     this->nsubs     = g.nsubs;
@@ -233,7 +240,6 @@ Galmod<T>& Galmod<T>::operator=(const Galmod &g) {
     this->iseed = g.iseed;
     this->arcmconv = g.arcmconv;
     this->modCalculated = g.modCalculated;
-
     
     return *this;
 }
@@ -461,6 +467,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     out->Head().setCrpix(1, c->Head().Crpix(1)-blo[1]);
     outDefined = true;
     
+    double reds = in->pars().getRedshift();
     /// Information about frequency/velocity axis and conversions.
     freq0 = c->Head().Freq0()/(1+c->Head().Redshift());      
     if (freq0==0) {
@@ -502,13 +509,24 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 
         double crvalfreq = C/crval3;
 
-        // If redshift and wavelength parameters are set, take them for freq0, otherwise central channel
-        double restw = in->pars().getRestwave(), reds = in->pars().getRedshift();
+        // If wavelength parameter is set, take them for freq0, otherwise central channel
+        double restw = in->pars().getRestwave(); 
         if (restw!=-1) freq0 = C/(restw*(1+reds)*mconv);
         else freq0 = crvalfreq; // Velocity is 0 always at the reference channel
 
         drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
 
+        // Set number of emission lines
+        nlines = in->pars().getParGM().RESTWAVE.size();
+        if (nlines>1) {
+            relint.clear();
+            relvel.clear();
+            for (auto i=0; i<nlines; i++) {
+                double wred = in->pars().getParGM().RESTWAVE[i]*(1+reds);
+                relvel.push_back(AlltoVel(wred,in->Head())*1000.);
+                relint.push_back(in->pars().getParGM().RELINT[i]);
+            }
+        }
     }
     else if (axtyp==3) {
         
@@ -528,7 +546,18 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         
         double crvalfreq = c->Head().Crval(2)*hzconv;
         drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
-    
+        
+        // Set number of emission lines
+        nlines = in->pars().getParGM().RESTFREQ.size();
+        if (nlines>1) {
+            relint.clear();
+            relvel.clear();
+            for (auto i=0; i<nlines; i++) {
+                double fred = in->pars().getParGM().RESTFREQ[i]*(1+reds);
+                relvel.push_back(AlltoVel(fred,in->Head())*1000.);
+                relint.push_back(in->pars().getParGM().RELINT[i]);                
+            }
+        }
     }
     else if (axtyp==4) {
         
@@ -877,19 +906,19 @@ void Galmod<T>::galmod() {
 //            }
 
 //          PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
-            uint nlines = in->pars().getParGM().NLINES;
-            float relvel_lines[2] = {0,220000};
-            float relint_lines[2] = {1,1.70};
+            //uint nlines = in->pars().getParGM().NLINES;
+            //float relvel_lines[2] = {0,220000};
+            //float relint_lines[2] = {1,1.70};
             
             for (int iv=0; iv<nvtmp; iv++) {
                 double vdev = gaussia(generator)*vdisptmp;        // STD library
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                 for (int nl=0; nl<nlines; nl++) {
-                    double v     = vsys+vdev+relvel_lines[nl];
+                    double v     = vsys+vdev+relvel[nl];
                     int isubs = lround(velgrid(v)+crpix3-1);
                     if (isubs<0 || isubs>=nsubs) continue;
                     int idat  = iprof+isubs*nprof;
-                    datbuf[idat] = datbuf[idat]+relint_lines[nl]*fluxsc*cd2i[isubs];
+                    datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
                 }
             }
         }

@@ -52,7 +52,10 @@ struct GALMOD_PAR {
     int    CDENS      = 10;     ///< Surface density of clouds in the plane of ring (1e20).
     int    LTYPE      = 1;      ///< Layer type along z.
     int    NV         = -1;     ///< Number of subclouds per profile.
-    size_t NLINES     = 1;      ///< Number of lines
+    double REDSHIFT   = 0;      ///< Redshift of the galaxy.
+    vector<double> RESTWAVE = {-1}; ///< Rest wavelengths.
+    vector<double> RESTFREQ = {-1}; ///< Rest frequencies.
+    vector<double> RELINT   = {1}; ///< Relative intensities of lines.
     bool   SM         = true;   /// If false, disable smoothing
     
 };
@@ -75,9 +78,6 @@ struct GALFIT_PAR : GALMOD_PAR {
     int    STARTRAD   = 0;        ///< Starting radius
     bool   flagERRORS = false;    ///< Whether estimating errors.
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
-    double REDSHIFT   = 0;        ///< Redshift of the galaxy.
-    double RESTWAVE   = -1;       ///< Rest wavelength.
-    double RESTFREQ   = -1;       ///< Rest frequency
     bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.  
 };
 
@@ -182,8 +182,8 @@ public:
        
     // This shoudl go on a different param struct
     double  getRedshift() {return parGF.REDSHIFT;}
-    double  getRestwave() {return parGF.RESTWAVE;}
-    double  getRestfreq() {return parGF.RESTFREQ;}
+    double  getRestwave() {return parGF.RESTWAVE[0];}
+    double  getRestfreq() {return parGF.RESTFREQ[0];}
     double  getDistance () {return parGF.DISTANCE;}
     string  getMASK() {return parGF.MASK;}
     

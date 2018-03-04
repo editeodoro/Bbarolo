@@ -319,7 +319,6 @@ int Param::readParams(std::string paramfile) {
             if(arg=="galmod")    parGM.flagGALMOD  = readFlag(ss);
             if(arg=="galwind")   parGW.flagGALWIND = readFlag(ss);
             if(arg=="spacepar")  flagSpace  = readFlag(ss);
-            if(arg=="box")       readVec<int>(ss,BOX,6);
             if(arg=="nradii")    parGM.NRADII = parGF.NRADII               = readIval(ss);
             if(arg=="radii")     parGM.RADII  = parGF.RADII                = readFilename(ss);
             if(arg=="radsep")    parGM.RADSEP = parGF.RADSEP               = readDval(ss);
@@ -340,7 +339,10 @@ int Param::readParams(std::string paramfile) {
             if(arg=="nv")        parGM.NV     = parGF.NV     = parGW.NV    = readIval(ss);
             if(arg=="sm")        parGM.SM     = parGF.SM     = parGW.SM    = readFlag(ss);
             if(arg=="ltype")     parGM.LTYPE  = parGF.LTYPE                = readIval(ss);
-            if(arg=="nlines")    parGM.NLINES = parGF.NLINES               = readIval(ss);
+            if(arg=="redshift")  parGM.REDSHIFT = parGF.REDSHIFT           = readDval(ss);
+            if(arg=="restwave")  parGM.RESTWAVE = parGF.RESTWAVE           = readVec<double>(ss);
+            if(arg=="restfreq")  parGM.RESTFREQ = parGF.RESTFREQ           = readVec<double>(ss);
+            if(arg=="relint")    parGM.RELINT = parGF.RELINT           = readVec<double>(ss);
             
             // GALFIT ONLY PARAMETERS
             if(arg=="deltainc")  parGF.DELTAINC   = readFval(ss);
@@ -357,9 +359,6 @@ int Param::readParams(std::string paramfile) {
             if(arg=="norm")      parGF.NORM       = makeupper(readFilename(ss));
             if(arg=="polyn")     parGF.POLYN      = readFilename(ss);
             if(arg=="startrad")  parGF.STARTRAD   = readIval(ss);
-            if(arg=="redshift")  parGF.REDSHIFT   = readDval(ss);
-            if(arg=="restwave")  parGF.RESTWAVE   = readDval(ss);
-            if(arg=="restfreq")  parGF.RESTFREQ   = readDval(ss);
             if(arg=="distance")  parGF.DISTANCE   = readFval(ss);
             if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
 
@@ -371,12 +370,12 @@ int Param::readParams(std::string paramfile) {
             if(arg=="denstype")  parGW.DENSTYPE   = readIval(ss);
  
             if(arg=="p1")        P1 = readFilename(ss);
-            if(arg=="p1par")     readVec<float>(ss,P1p,3);
+            if(arg=="p1par")     readArray<float>(ss,P1p,3);
             if(arg=="p2")        P2 = readFilename(ss);
-            if(arg=="p2par")     readVec<float>(ss,P2p,3);
+            if(arg=="p2par")     readArray<float>(ss,P2p,3);
             
             if(arg=="smooth")    flagSmooth = readFlag(ss);
-            if(arg=="box")       readVec<int>(ss,BOX,6);
+            if(arg=="box")       readArray<int>(ss,BOX,6);
             if(arg=="bmaj")      bmaj = readDval(ss); 
             if(arg=="bmin")      bmin = readDval(ss);
             if(arg=="bpa")       bpa = readDval(ss);
@@ -598,7 +597,19 @@ bool Param::checkPars() {
                      << "Switching off Slitfit. \n";
             flagSlitfit = false;
         }
-            
+        
+        if (parGF.RESTWAVE.size()==0) parGF.RESTWAVE.push_back(-1);
+        if (parGF.RESTFREQ.size()==0) parGF.RESTFREQ.push_back(-1);
+        if (parGF.RELINT.size()==0) parGF.RELINT.push_back(-1);
+        
+        if (parGF.RESTWAVE[0]!=-1 && parGF.RELINT.size()!=parGF.RESTWAVE.size()) {
+            std::cerr << "3DFIT ERROR: RESTWAVE and RELINT must have same size.";
+            good = false;
+        }
+        if (parGF.RESTFREQ[0]!=-1 && parGF.RELINT.size()!=parGF.RESTFREQ.size()) {
+            std::cerr << "3DFIT ERROR: RESTFREQ and RELINT must have same size.";
+            good = false;
+        }
     }
     
     // Check parameters for GALWIND task
@@ -663,7 +674,7 @@ bool Param::checkPars() {
             bmin = bmaj;
         }
     }
-    
+
     return good;
 }
 
@@ -1057,12 +1068,23 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
             recordParam(theStream, "[POLYN]", "     Degree of polynomial fitting angles?", par.getParGF().POLYN);
         recordParam(theStream, "[FLAGERRORS]", "   Estimating errors?", stringize(par.getParGF().flagERRORS));
         recordParam(theStream, "[REDSHIFT]", "   Redshift of the galaxy?", par.getParGF().REDSHIFT);
-        if (par.getParGF().RESTWAVE!=-1)  
-            recordParam(theStream, "[RESTWAVE]", "   Transition wavelength at rest?", par.getParGF().RESTWAVE);
-        if (par.getParGF().RESTFREQ!=-1)  
-            recordParam(theStream, "[RESTFREQ]", "   Transition frequency at rest?", par.getParGF().RESTFREQ);
-    }
+        if (par.getParGF().RESTWAVE[0]!=-1) {
+            string rstr = "";
+            for (int i=0; i<par.getParGF().RESTWAVE.size(); i++) rstr = rstr + to_string<double>(par.getParGF().RESTWAVE[i],2) + " ";
+            recordParam(theStream, "[RESTWAVE]", "   Transition wavelength at rest?", rstr);
+        }
+        if (par.getParGF().RESTFREQ[0]!=-1) {
+            string rstr = "";
+            for (int i=0; i<par.getParGF().RESTFREQ.size(); i++) rstr = rstr + to_string<double>(par.getParGF().RESTFREQ[i],2) + " ";
+            recordParam(theStream, "[RESTFREQ]", "   Transition frequency at rest?", rstr);
+        }
+        if (par.getParGF().RELINT.size()>1) {
+            string rstr = "";
+            for (int i=0; i<par.getParGF().RELINT.size(); i++) rstr = rstr + to_string<double>(par.getParGF().RELINT[i],2) + " ";
+            recordParam(theStream, "[RELINT]", "   Relative intensities of lines?", rstr);
+        }
         recordParam(theStream, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(par.getParGF().flagADRIFT));
+    }
         
     // PARAMETERS FOR GALWIND 
     recordParam(theStream, "[GALWIND]", "Generating a 3D datacube with a wind model?", stringize(par.getParGW().flagGALWIND));

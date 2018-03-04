@@ -123,15 +123,29 @@ int readIval(std::stringstream& ss) {
 
 
 template <class T>
-void readVec(std::stringstream& ss, T *val, int n) {
+void readArray(std::stringstream& ss, T *val, int n) {
  
   for (int i=0; i<n; i++) ss >> val[i]; 
- 
 }
-template void readVec(std::stringstream&, int*, int);
-template void readVec(std::stringstream&, long*, int);
-template void readVec(std::stringstream&, float*, int);
-template void readVec(std::stringstream&, double*, int);
+template void readArray(std::stringstream&, int*, int);
+template void readArray(std::stringstream&, long*, int);
+template void readArray(std::stringstream&, float*, int);
+template void readArray(std::stringstream&, double*, int);
+
+
+template <class T>
+std::vector<T> readVec(std::stringstream& ss) {
+  T value; 
+  std::vector<T> val;
+  while (ss >> value) val.push_back(value);
+  return val;
+}
+template std::vector<int> readVec(std::stringstream&);
+template std::vector<long> readVec(std::stringstream&);
+template std::vector<float> readVec(std::stringstream&);
+template std::vector<double> readVec(std::stringstream&);
+
+
 
 
 std::string removeLeadingBlanks(std::string s) {

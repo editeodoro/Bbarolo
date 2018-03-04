@@ -123,6 +123,9 @@ protected:
     double  chwidth;                        //< Velocity width of the channels in M/S.
     double  sig_instr;                      //< Instrumental dispersion in M/S.
     float   crota2;                         //< Rotation angle.
+    short   nlines;                         //< Number of emission lines.
+    std::vector<float> relvel;              //< Relative velocities of lines.
+    std::vector<float> relint;              //< Relative velocities of lines.
         
     Rings<Type> *r;                         //< Set of rings.       
     bool    ringDefined;            

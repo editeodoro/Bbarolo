@@ -337,7 +337,7 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     par.SM       = SMOOTH;
     par.DISTANCE = DISTANCE;
     par.REDSHIFT = REDSHIFT;
-    par.RESTWAVE = RESTWAVE;
+    par.RESTWAVE[0] = RESTWAVE;   //@TODO Update for doublets
     par.flagERRORS = ERRORS;
     
     c->pars().getParGF() = par;
@@ -1282,9 +1282,7 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
     T a2 = 0;
     T a3 = -1/cfun[1];
     
-    int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
-    
-    for (int i=start_rad; i<nn; i++) {
+    for (int i=0; i<nn; i++) {
         T disp_reg = polyn(&rad[i],cdisp,npar1);
         T fun_reg = polyn(&rad[i],cfun,npar2);
         T expn = exp(rad[i]/a3);
