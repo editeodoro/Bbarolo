@@ -42,7 +42,7 @@ WCSLIB = @WCSLIB@
 PYINC = @PYTHON_INCLUDE@
 PYLIB = @PYTHON_LIBS@
 
-OPT = @GNUPLOT@ @FFTW3@ @HAVEPYTHON@
+OPT = @GNUPLOT@ @FFTW3@ @HAVEPYTHON@ @HAVEMPI@
 
 ifeq ($(OS),MACOSX)
 	OPT += -DMACOSX
@@ -62,7 +62,8 @@ TASKDIR = $(BASE)/Tasks
 PYBBDIR = $(BASE)/../pyBBarolo
 OBJDIR = $(BASE)/Build
 
-HEADS = $(ARRAYDIR)/param.hh\
+HEADS = $(BASE)/bbarolo.hh\
+	$(ARRAYDIR)/param.hh\
 	$(ARRAYDIR)/header.hh\
 	$(ARRAYDIR)/cube.hh\
 	$(ARRAYDIR)/image.hh\
@@ -255,7 +256,11 @@ guistaticlinux :
 	make && \
 	cd ../.. &&\
 	$(LINK) -o BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
+
+mpi: lib
+	mpicxx $(CFLAGS) -o BBarolo_MPI $(BASE)/bbarolo_mpi.cpp $(LIB) $(LIBS) $(OPT) $(CINC)
     
+   
 pybb : lib
 	mv $(LIB) $(PYBBDIR)
 	mv $(LIB_LN) $(PYBBDIR)

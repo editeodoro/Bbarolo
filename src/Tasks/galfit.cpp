@@ -559,10 +559,11 @@ void Galfit<T>::galfit() {
 //    else {
     
     T ***errors = allocate_3D<T>(inr->nr,2,nfree);
-    
-    
+    bool fitok[inr->nr];
     double toKpc = KpcPerArc(distance);
     int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
+    
+    
     int nthreads = in->pars().getThreads();
     
 #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
@@ -611,7 +612,8 @@ void Galfit<T>::galfit() {
         T minimum=0;
         T pmin[nfree];
 
-        if (!minimize(dring, minimum, pmin)) continue;
+        fitok[ir] = minimize(dring, minimum, pmin);
+        if (!fitok[ir]) continue;
 
         int k=0;
         if (mpar[VROT])  outr->vrot[ir]=pmin[k++];
@@ -763,6 +765,7 @@ void Galfit<T>::galfit() {
         fileout << endl; 
         
         for (int ir=start_rad; ir<inr->nr; ir++) {
+            if (!fitok[ir]) continue;
             fileout << setprecision(3) << fixed << left;
             fileout << setw(m) << outr->radii[ir]*toKpc
                     << setw(m+1) << outr->radii[ir]
@@ -1157,7 +1160,7 @@ Model::Galmod<T>* Galfit<T>::getModel() {
     if (nv==-1) nv=in->DimZ();
     mod->input(in,bhi,blo,outr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();
-    mod->smooth();
+    if (par.SM) mod->smooth();
     return mod;
 }
 template Model::Galmod<float>* Galfit<float>::getModel();

@@ -32,10 +32,116 @@ else
 	AC_MSG_RESULT(yes)
 fi
 ])
-##########################################################################
+###########################################################################
+
+######### ------ Macro that checks for MPI implementation ----- ###########
+AC_DEFUN([AX_PROG_CXX_MPI], [
+AC_PREREQ(2.50)
+
+# Check for compiler
+# Needs to be split off into an extra macro to ensure right expansion
+# order.
+AC_REQUIRE([_AX_PROG_CXX_MPI],[_AX_PROG_CXX_MPI([$1])])
+
+AS_IF([test x"$_ax_prog_cxx_mpi_mpi_wanted" = xno],
+  [ _ax_prog_cxx_mpi_mpi_found=no ],
+  [
+    AC_LANG_PUSH([C++])
+
+    # test whether MPI_Init() is available
+    # We do not use AC_SEARCH_LIBS here, as it caches its outcome and
+    # thus disallows corresponding calls in the other AX_PROG_*_MPI
+    # macros.
+    for lib in NONE mpi mpich; do
+      save_LIBS=$LIBS
+      if test x"$lib" = xNONE; then
+        AC_MSG_CHECKING([for function MPI_Init])
+      else
+        AC_MSG_CHECKING([for function MPI_Init in -l$lib])
+        LIBS="-l$lib $LIBS"
+      fi
+      AC_LINK_IFELSE([
+        AC_LANG_PROGRAM([
+extern "C" { void MPI_Init(); }
+],[MPI_Init();])],
+        [ _ax_prog_cxx_mpi_mpi_found=yes ],
+        [ _ax_prog_cxx_mpi_mpi_found=no ])
+      AC_MSG_RESULT($_ax_prog_cxx_mpi_mpi_found)
+      if test "x$_ax_prog_cxx_mpi_mpi_found" = "xyes"; then
+        break;
+      fi
+      LIBS=$save_LIBS
+    done
+
+    # Check for header
+    AS_IF([test x"$_ax_prog_cxx_mpi_mpi_found" = xyes], [
+      AC_MSG_CHECKING([for mpi.h])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <mpi.h>])],
+        [ AC_MSG_RESULT(yes)],
+        [ AC_MSG_RESULT(no)
+         _ax_prog_cxx_mpi_mpi_found=no
+      ])
+    ])
+    AC_LANG_POP([C++])
+])
+
+# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
+AS_IF([test x"$_ax_prog_cxx_mpi_mpi_found" = xyes], [
+        ifelse([$2],,[AC_DEFINE(HAVE_MPI,1,[Define if you have the MPI library.])],[$2])
+        :
+],[
+        $3
+        :
+])
+
+])dnl AX_PROG_CXX_MPI
+
+dnl _AX_PROG_CXX_MPI is an internal macro required by AX_PROG_CXX_MPI.
+dnl To ensure the right expansion order, the main function AX_PROG_CXX_MPI
+dnl has to be split into two parts.
+dnl
+dnl Known MPI C++ compilers:
+dnl  mpic++
+dnl  mpicxx
+dnl  mpiCC
+dnl  sxmpic++     NEC SX
+dnl  hcp
+dnl  mpxlC_r
+dnl  mpxlC
+dnl  mpixlcxx_r
+dnl  mpixlcxx
+dnl  mpg++
+dnl  mpc++
+dnl  mpCC
+dnl  cmpic++
+dnl  mpiFCC       Fujitsu
+dnl  CC
+dnl
+AC_DEFUN([_AX_PROG_CXX_MPI], [
+  AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
+  ifelse([$1],,[_ax_prog_cxx_mpi_mpi_wanted=yes],[
+    AC_MSG_CHECKING([whether to compile using MPI])
+    if $1; then
+      _ax_prog_cxx_mpi_mpi_wanted=yes
+    else
+      _ax_prog_cxx_mpi_mpi_wanted=no
+    fi
+    AC_MSG_RESULT($_ax_prog_cxx_mpi_mpi_wanted)
+  ])
+  if test x"$_ax_prog_cxx_mpi_mpi_wanted" = xyes; then
+    if test -z "$CXX" && test -n "$MPICXX"; then
+      CXX="$MPICXX"
+    else
+      AC_CHECK_TOOLS([CXX], [mpic++ mpicxx mpiCC sxmpic++ hcp mpxlC_r mpxlC mpixlcxx_r mpixlcxx mpg++ mpc++ mpCC cmpic++ mpiFCC CCicpc pgCC pathCC sxc++ xlC_r xlC bgxlC_r bgxlC openCC sunCC crayCC g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC])
+    fi
+  fi
+  AC_PROG_CXX
+])dnl _AX_PROG_CXX_MPI
+###########################################################################
 
 
 
+# Here starts configure
 
 AC_CONFIG_AUX_DIR([config])
 
@@ -64,10 +170,25 @@ case $build_os in
         ;;
 esac
 AC_SUBST([OP])
-
-
+  
 # Checks for programs.
 AC_LANG([C++])
+
+# If --with-mpi=auto is used, try to find MPI, but use standard C compiler if it is not found.
+# If --with-mpi=yes is used, try to find MPI and fail if it isn't found.
+# If --with-mpi=no is used, use a standard C compiler instead.
+AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],
+      [compile with MPI (parallelization) support. If none is found,
+      MPI is not used. Default: no])
+  ],,[with_mpi=no])
+   AX_PROG_CXX_MPI([test x"$with_mpi" != xno],[AC_SUBST([HAVEMPI], "-DHAVE_MPI")],[
+    if test x"$with_mpi" = xyes; then
+      AC_MSG_WARN([MPI compiler requested, but couldn't use MPI.])
+    else
+      AC_MSG_WARN([No MPI compiler found, won't use MPI.])
+    fi
+])
+
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CPP
@@ -109,7 +230,6 @@ AC_PROG_RANLIB
 # Installation utilities.
 #AC_PROG_LN_S
 #AC_PROG_INSTALL
-
 
 # Shared library generation.
 if test "x$ac_cv_c_compiler_gnu" = xyes ; then

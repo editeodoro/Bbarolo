@@ -582,12 +582,6 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         std::cout << "Unknown axis type: no velocities along spectral axis.\n";
         std::terminate();
     }
- 
-    //std::string bunit = c->Head().Bunit();
-    //if (bunit=="NONE") 
-        //std::cout << "GALMOD warning: No units in the maps found.\n";
-    //if (bunit!="W.U." && bunit!="w.u.")
-    //  std::cout << "GALMOD warning: Units in the maps should be W.U..\n";
     
     // Get the instrumental broadnening: when Hanning smoothing has been applied, 
     // the instrumental profile can be approximated by a gaussian with a FWHM of 
@@ -906,10 +900,6 @@ void Galmod<T>::galmod() {
 //            }
 
 //          PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
-            //uint nlines = in->pars().getParGM().NLINES;
-            //float relvel_lines[2] = {0,220000};
-            //float relint_lines[2] = {1,1.70};
-            
             for (int iv=0; iv<nvtmp; iv++) {
                 double vdev = gaussia(generator)*vdisptmp;        // STD library
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod

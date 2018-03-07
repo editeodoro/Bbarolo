@@ -10,9 +10,9 @@ MAKEFILE      = Makefile
 
 ####### Compiler, tools and options
 
-CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DOpenMP_C++_FLAGS -DOpenMP_C_FLAGS
-CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DOpenMP_C++_FLAGS -DOpenMP_C_FLAGS
-DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DOpenMP_C++_FLAGS -DOpenMP_C_FLAGS
+CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
+CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
+DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I/Users/edt/Dropbox/Codex/BBarolo/src -I/usr/local/include -I/usr/local/include/fftw3lib -I/usr/local/include -I/usr/local/include -I/usr/local/include/wcslib -O2 -Wall -W -fPIC $(DEFINES)
 INCPATH       = -I. -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
@@ -621,8 +621,7 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ../Build/bbarolowindow.o: bbarolowindow.cpp bbarolowindow.h \
 		../Arrays/param.hh \
-		ui_bbarolowindow.h \
-		qcustomplot.h
+		ui_bbarolowindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/bbarolowindow.o bbarolowindow.cpp
 
 ../Build/bbarolowindow_run.o: bbarolowindow_run.cpp bbarolowindow.h \

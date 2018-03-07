@@ -56,8 +56,8 @@ struct Ring {
 
 template <class T>
 struct Rings {
-    int     nr;                     //< Number of rings.
-    double radsep;                  //< Separation between rings.
+    int     nr;                 //< Number of rings.
+    double radsep;              //< Separation between rings.
     std::vector<T> radii;
     std::vector<T> xpos;
     std::vector<T> ypos;
@@ -74,7 +74,7 @@ struct Rings {
     std::vector<T> phi;
     std::vector<T> pa;
     std::vector<int>  nv;
-    int id;
+    int id;                     // ID of the ring (for 3dFIT)
     
     
     void ClearAll () {

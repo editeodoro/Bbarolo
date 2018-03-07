@@ -644,12 +644,9 @@ template <class T>
 bool Ellprof<T>::IsInRing(float Xr, float Yr, int radnr) {
     // Return true if position Xr Yr is inside a ring
 
-    float    Xx, Yy,R_sqr;
-
-
-    Xx =  Xr * Cosphi[radnr] - Yr * Sinphi[radnr];
-    Yy = (Xr * Sinphi[radnr] + Yr * Cosphi[radnr]) / Cosinc[radnr];
-    R_sqr = Xx*Xx + Yy*Yy;
+    float Xx =  Xr * Cosphi[radnr] - Yr * Sinphi[radnr];
+    float Yy = (Xr * Sinphi[radnr] + Yr * Cosphi[radnr]) / Cosinc[radnr];
+    float R_sqr = Xx*Xx + Yy*Yy;
     return( (Annuli[radnr][0]*Annuli[radnr][0] <= R_sqr && R_sqr < Annuli[radnr][1]*Annuli[radnr][1]) );
 }
 template bool Ellprof<float>::IsInRing(float,float,int);

@@ -302,7 +302,6 @@ private:
     bool            debug;
 };
 
-
   /// Write out info on a parameter to e.g. the results file.
 void recordParameters(ostream& theStream, string paramName, string paramDesc, string paramValue);
 
@@ -314,9 +313,9 @@ void recordParameters(ostream& theStream, string paramName, string paramDesc, st
         recordParameters(outstream,string1,string2,oss.str());   \
     } while(0)
 
-
+// Some utility functions
 void helpscreen(ostream& Str=cout);
-
-//#include "param.cpp"
+void versionInfo(ostream& Str, char ** argv);
+void printParams (ostream& Str, Param &p, bool defaults=false);
 
 #endif
