@@ -14,7 +14,7 @@ Input/output parameters
 
 * **VERBOSE** [true]. Enable all the output messages.
 
-* **THREADS** [1]. Number of CPUs to use for task execution. All BBarolo's tasks have shared-memory parallelization. The code needs to be compiled with OpenMP support. If you encounter any problem with multi-thread execution, switch back to single-thread mode and signal the problem.
+* **THREADS** [max CPUs]. Number of CPUs to use for task execution. All BBarolo's tasks have shared-memory parallelization. The code needs to be compiled with OpenMP support. If you encounter any problem with multi-thread execution, switch back to single-thread mode and signal the problem.
 
 * **PLOTS** [true]. If true, output plots will be produced (Python/Gnuplot needed).
 

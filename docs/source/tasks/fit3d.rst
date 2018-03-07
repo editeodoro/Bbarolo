@@ -216,4 +216,17 @@ To obtain a good fit with very low resolution data, I usually follow some basic 
 
 | 4. *Fit*. Depending on the data, you can decide to fit several parameters at the same time or keep some of them fixed. If your data have very low resolution, it may be wise to keep the geometry fixed and fit only the kinematics (VROT and VDISP). Check the outputs and if you are not happy with the model, try to change the initial parameters and/or the :ref:`fit options <3dfitopt>`.
 
+Fitting several galaxies at the same time
+=========================================
+An experimental function of BBarolo 1.4 allow the user to fit several galaxies at the same time. This can be useful, for example, when a large sample needs to be analysed on a supercluster. BBarolo launches a number of MPI processes and each process takes care of a galaxy at a time. 
+
+To use this function, you need to compile BBarolo with MPI::
+
+    > make mpi
+    
+If you have an MPI interface (OpenMPI, MPICH, etc...), this command will create an executable BBarolo_MPI in the working directory. You need to prepare a text file with a list of parameter files *params.list* and then run BBarolo_MPI through mpirun::
+
+    > mpirun -np NPROC BBarolo_MPI -l params.list
+    
+where NPROC is the number of MPI processes. Each MPI process can be also run in multi-thread mode with the usual **THREAD** parameter.
 
