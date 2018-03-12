@@ -228,5 +228,5 @@ If you have an MPI interface (OpenMPI, MPICH, etc...), this command will create 
 
     > mpirun -np NPROC BBarolo_MPI -l params.list
     
-where NPROC is the number of MPI processes. Each MPI process can be also run in multi-thread mode with the usual **THREAD** parameter.
+where NPROC is the number of MPI processes. Each MPI process can be also run in multi-thread mode with the usual **THREAD** parameter. This is basically the same of running NPROC instances of BBarolo, each with a single parameter file.
 

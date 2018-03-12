@@ -52,7 +52,9 @@ Available tasks
 
 * **Search()**: wrapped class for BBarolo's :ref:`SEARCH <searchtask>` task.
 
-More to come....
+* **FitMod2D()**: wrapped class for BBarolo's :ref:`2DFIT <2dfit>` task.
+
+* **Ellprof()**: wrapped class for BBarolo's :ref:`ELLPROF <ellproftask>` task.
 
  
 Example 1: 3D fit of a galaxy
@@ -126,6 +128,15 @@ It is also possible to simply build a 3D model datacube from given parameters. T
     # mymodel is an astropy cube and we can do whatever we like with it.
     mymodel.writeto("awesome_model.fits",overwrite=True)
         
+
+
+Example 3: All tasks 
+================================
+This :download:`script <pyBB_test.py>` shows how to use all wrapped classes:
+
+.. literalinclude:: pyBB_test.py
+   :language: python
+
 
 .. Example 3: 3D model of an outflow
    =================================
