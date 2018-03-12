@@ -1194,7 +1194,11 @@ void Galfit<T>::setFree() {
     else mpar[INC]=true;
 
     found = FREE.find("pa");
-    if (found<0) mpar[PA]=false;
+    if (found<0) {
+        found = FREE.find("phi");
+        if (found<0) mpar[PA]=false;
+        else mpar[PA]=true;
+    }
     else mpar[PA]=true;
 
     found = FREE.find("xpos");

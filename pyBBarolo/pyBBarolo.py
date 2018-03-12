@@ -76,7 +76,7 @@ class FitsCube(object):
         
     
 class Rings(object):
-    """Wrapper class for C++ Rings structure (galmod.hh)"""
+    """Wrapper class for C++ Rings structure (rings.hh)"""
     
     def __init__(self,nrings):
         # Number of rings
@@ -145,6 +145,11 @@ class Task(object):
         
     
     
+    def init(self,*args,**kwargs):
+        """Initialize a task. Refer to derived class for *args and **kwargs."""
+        self._input(*args,**kwargs)
+        
+        
     def set_options(self,**kwargs):
         """Set options for the task. Keywords **kwargs are given in self._opts."""
         for key in kwargs:
@@ -186,6 +191,17 @@ class Task(object):
         print ("%s\n"%("-"*70))
 
 
+    def compute(self,threads=1):
+        """ Compute the model 
+        
+        This function needs to be called after :func:`init`.
+        """
+        if not isinstance(threads,int):
+            raise ValueError("%s ERROR: threads must and integer."%self.taskname)
+        return self._compute(threads)
+        
+        
+
 class Model3D(Task):
     """Superclass for all 3D models, derived from Task
     
@@ -205,21 +221,6 @@ class Model3D(Task):
         self._opts.update ({'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
                             'nv'    : [-1, np.int, "Number of subclouds per profile"]})
         
-        
-    def init(self,*args,**kwargs):
-        """Initialize the model. Refer to derived class for *args and **kwargs."""
-        self._input(*args,**kwargs)
-
-
-    def compute(self,threads=1):
-        """ Compute the model 
-        
-        This function needs to be called after :func:`init`.
-        """
-        if not isinstance(threads,int):
-            raise ValueError("%s ERROR: threads must and integer."%self.taskname)
-        return self._compute(threads)
-
 
     def smooth(self,beam=None):
         """Smooth the model and return the smoothed array 
@@ -473,6 +474,8 @@ class FitMod3D(Model3D):
       fitsname (str): FITS file of the galaxy to fit
     
     """
+    #@TODO: Wrap MASK as class containing all the additional parameters to control the mask (3DFIT, 2DFIT, ELLPROF, GALMOD)
+    
     def __init__(self,fitsname):
         super(FitMod3D,self).__init__(fitsname=fitsname)
         # Task name
@@ -609,11 +612,14 @@ class FitMod3D(Model3D):
                 raise ValueError("%s ERROR: %s can only be 1, 2 or 3."%(self.taskname,key))
             if key=='startrad' and op[key][0]<0:
                 raise ValueError("%s ERROR: %s can only be positive."%(self.taskname,key))
-            if key=='mask' and op[key][0] not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','NONE']:
-                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE' or 'NONE'."%(self.taskname,key))
-            if key=='norm' and op[key][0] not in ['LOCAL','AZIM','NONE']:
+            if key=='mask' and op[key][0].upper() not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
+                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH' or 'NONE'."%(self.taskname,key))
+            if key=='norm' and op[key][0].upper() not in ['LOCAL','AZIM','NONE']:
                 raise ValueError("%s ERROR: %s can only 'LOCAL','AZIM' or 'NONE'."%(self.taskname,key))
-
+            if key=='side' and op[key][0].upper() not in ['A','R','B']:
+                raise ValueError("%s ERROR: %s can only 'A' (approaching),'R' (receding) or 'B' (both)."%(self.taskname,key))
+            if key=='wfunc' and (op[key][0]<0 or op[key][0]>2):
+                raise ValueError("%s ERROR: %s can only be 0, 1 or 2."%(self.taskname,key))
 
     def __str__ (self):
         self.show_options()
@@ -648,7 +654,12 @@ class Search(Task):
                        "rejectbeforemerge" : [True, np.bool, "Whether to reject sources before merging"],
                        "twostagemerge" : [True, np.bool, "Whether to do a partial merge during search"]}
 
+
     def search(self,threads=1):
+        return self._compute(threads)
+
+
+    def _compute(self,threads=1):
         """ Perform the source finding """
         self._check_options()
         op = self._opts
@@ -658,8 +669,8 @@ class Search(Task):
                             op['minvoxels'][0],op['maxchannels'][0],op['maxangsize'][0],\
                             op['growth'][0],op['growthcut'][0], op['growththresh'][0],\
                             op['rejectbeforemerge'][0],op['twostagemerge'][0],int(threads))
-                        
-                            
+    
+    
     def _check_options(self):
         """ Check if current options are ok for the C++ code """
         op = self._opts
@@ -676,3 +687,192 @@ class Search(Task):
             if key=="growththresh" and op[key][0]>op['threshold'][0]:
                 raise ValueError("%s ERROR: %s can only be < threshold"%(self.taskname,key))
                 
+
+
+class FitMod2D(Task):
+    """Classic 2D tilted-ring model
+    
+    Args:
+      fitsname (str): FITS file to fit with a 2D tilted-ring model
+    """
+    def __init__(self,fitsname):
+        super(FitMod2D,self).__init__(fitsname=fitsname)
+        self.taskname = '2DFIT'
+        # A pointer to the C++ model
+        self._mod = None
+        # Input rings
+        self._inri = None
+        # Output rings as a dictionary
+        self.outrings = None
+        # Options and arguments
+        self._opts = { 'free'    : ['VROT', str, "Free parameters"],
+                       'side'    : ['B', str, "Which side of the galaxy to fit"],
+                       'wfunc'   : [2, np.int, "Weighting function for major axis"],
+                       'mask'    : ['SMOOTH', str, "Mask type"]}
+        self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
+                      'xpos' : [None, 'X-center of the galaxy in pixels'],
+                      'ypos' : [None, 'Y center of the galaxy in pixels'],
+                      'vsys' : [None, 'Systemic velocity of the galaxy in km/s'],
+                      'vrot' : [None, 'Rotation velocity in km/s'],
+                      'vrad' : [None, 'Radial velocity in km/s'],
+                      'inc'  : [None, 'Inclination angle in degrees'],
+                      'phi'  : [None, 'Position angle of the receding part of the major axis (N->W)']}
+        
+    
+    def __del__(self):
+        if self._mod: libBB.Fit2D_delete(self._mod)
+        
+    
+    def _input(self,radii,xpos,ypos,vsys,vrot,inc,phi,vrad=0):
+        """ Initialize rings for the fit 
+                
+        Args:
+          radii (list):        Radii of the model in arcsec
+          xpos (float, list):  X center of the galaxy in pixels
+          ypos (float, list):  Y center of the galaxy in pixels
+          vsys (float, list):  Systemic velocity of the galaxy in km/s
+          vrot (float, list):  Rotation velocity in km/s
+          vrad (float, list):  Radial velocity in km/s
+          inc (float, list):   Inclination angle in degrees
+          phi (float, list):   Position angle of the receding part of the major axis (N->W)
+    
+        """
+        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        self._inri = Rings(len(radii))
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi,0)
+
+    
+    def _compute(self,threads=1):
+        """ Fit the model.
+
+        Run this function after having set initial parameters with :func:`init` and options with
+        :func:`set_options`.
+
+        Returns:
+        a dictionary containing all the best fit rings
+        """
+        if self._inri is None: 
+            raise ValueError("%s ERROR: you need to set the model with init(...) before calling compute()."%self.taskname)
+        self.__del__()
+        self._check_options()
+        op = self._opts
+        self._mod = libBB.Fit2D_new(self.inp._cube,self._inri._rings,op['mask'][0].encode('utf-8'),op['free'][0].encode('utf-8'),\
+                                    op['side'][0].encode('utf-8'),op['wfunc'][0],int(threads))
+        libBB.Fit2D_compute(self._mod)
+        libBB.Fit2D_write(self._mod,'rings.txt'.encode('utf-8'))
+        a = np.genfromtxt('rings.txt') 
+        try: os.remove('rings.txt')
+        except: pass
+        self.outrings = {'rad':a[:,1],'vsys':a[:,2],'vrot':a[:,3],'vrad':a[:,4],\
+                         'phi':a[:,5],'inc':a[:,6],'xpos':a[:,7],'ypos':a[:,8]}
+        return self.outrings
+        
+    
+    def _check_options(self):
+        """ Check if current options are ok for the C++ code """
+        op = self._opts
+        for key in op:
+            op[key][0] = op[key][1](op[key][0])
+            if key=='mask' and op[key][0].upper() not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
+                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH' or 'NONE'."%(self.taskname,key))
+            if key=='side' and op[key][0].upper() not in ['A','R','B']:
+                raise ValueError("%s ERROR: %s can only be 'A' (approaching),'R' (receding) or 'B' (both)."%(self.taskname,key))
+            if key=='wfunc' and (op[key][0]<0 or op[key][0]>2):
+                raise ValueError("%s ERROR: %s can only be 0, 1 or 2."%(self.taskname,key))
+    
+    
+    def writeto(self,filename):
+        """ Write the best-fit ring model to a text file """
+        if self._inri is None or self._mod is None: 
+            raise ValueError("%s ERROR: you need to compute the model with compute (...) before calling writeto()."%self.taskname)
+        libBB.Fit2D_write(self._mod,filename.encode('utf-8'))
+
+
+
+class Ellprof(Task):
+    """Find statistics over rings
+    
+    Args:
+      fitsname (str): FITS file to fit with a 2D tilted-ring model
+    """
+    def __init__(self,fitsname):
+        super(Ellprof,self).__init__(fitsname=fitsname)
+        self.taskname = 'ELLPROF'
+        # Pointer to the C++ Ellprof class
+        self._mod = None
+        # Input rings
+        self._inri = None
+        # Output rings as a dictionary
+        self.outrings = None
+        # Options and arguments
+        self._opts = {'side'    : ['B', str, "Which side of the galaxy to fit"],
+                      'mask'    : ['SMOOTH', str, "Mask type"]}
+        self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
+                      'xpos' : [None, 'X-center of the galaxy in pixels'],
+                      'ypos' : [None, 'Y center of the galaxy in pixels'],
+                      'inc'  : [None, 'Inclination angle in degrees'],
+                      'phi'  : [None, 'Position angle of the receding part of the major axis (N->W)']}
+        
+    
+    def __del__(self):
+        if self._mod: libBB.Ellprof_delete(self._mod)
+        
+    
+    def _input(self,radii,xpos,ypos,inc,phi):
+        """ Initialize rings 
+        
+        Args:
+          radii (list):        Radii of the model in arcsec
+          xpos (float, list):  X center of the galaxy in pixels
+          ypos (float, list):  Y center of the galaxy in pixels
+          vsys (float, list):  Systemic velocity of the galaxy in km/s
+          inc (float, list):   Inclination angle in degrees
+          phi (float, list):   Position angle of the receding part of the major axis (N->W)
+            
+        """
+        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        self._inri = Rings(len(radii))
+        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi,0)
+        
+
+    def _compute(self,threads=1):
+        """ Extract profiles along the rings.
+
+        Run this function after having set initial parameters with :func:`init` and options with
+        :func:`set_options`.
+
+        Returns:
+        a dictionary containing all the statistics along the rings
+        """
+        if self._inri is None: 
+            raise ValueError("%s ERROR: you need to set the model with init(...) before calling compute()."%self.taskname)
+        self.__del__()
+        self._check_options()
+        op = self._opts
+        self._mod = libBB.Ellprof_new(self.inp._cube,self._inri._rings,op['mask'][0].encode('utf-8'),op['side'][0].encode('utf-8'),int(threads))
+        libBB.Ellprof_compute(self._mod)
+        libBB.Ellprof_write(self._mod,'rings.txt'.encode('utf-8'))
+        a = np.genfromtxt('rings.txt') 
+        try: os.remove('rings.txt')
+        except: pass
+        self.outrings = {'rad':a[:,0],'sum':a[:,1],'mean':a[:,2],'median':a[:,3],'rms':a[:,4],'numpix':a[:,5],\
+                         'surfdens':a[:,6],'surfdens_fo':a[:,7],'msurfdens':a[:,8],'msurfdens':a[:,9]}
+        return self.outrings
+        
+    
+    def _check_options(self):
+        """ Check if current options are ok for the C++ code """
+        op = self._opts
+        for key in op:
+            op[key][0] = op[key][1](op[key][0])
+            if key=='mask' and op[key][0].upper() not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
+                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH' or 'NONE'."%(self.taskname,key))
+            if key=='side' and op[key][0].upper() not in ['A','R','B']:
+                raise ValueError("%s ERROR: %s can only be 'A' (approaching),'R' (receding) or 'B' (both)."%(self.taskname,key))
+
+    
+    def writeto(self,filename):
+        """ Write the profiles to a text file """
+        if self._inri is None or self._mod is None: 
+            raise ValueError("%s ERROR: you need to compute the profiles with compute() before calling writeto()."%self.taskname)
+        libBB.Ellprof_write(self._mod,filename.encode('utf-8'))

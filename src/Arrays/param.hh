@@ -179,8 +179,7 @@ public:
     bool    getflagGalFit () {return parGF.flagGALFIT;};
     bool    getflagGalMod () {return parGM.flagGALMOD;};
     
-       
-    // This shoudl go on a different param struct
+    // This should go on a different param struct
     double  getRedshift() {return parGF.REDSHIFT;}
     double  getRestwave() {return parGF.RESTWAVE[0];}
     double  getRestfreq() {return parGF.RESTFREQ[0];}

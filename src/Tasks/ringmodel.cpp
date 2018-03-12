@@ -105,12 +105,18 @@ Ringmodel::Ringmodel(int nrings) {
 
 
 Ringmodel::Ringmodel (Cube<float> *c)  {
+    
+    // Reading ring inputs
+    Rings<float> *r = readRings<float>(in->pars().getParGF(),c->Head());
+    setfromCube(c,r);
+}
+
+
+void Ringmodel::setfromCube (Cube<float> *c, Rings<float> *r)  { 
 
     in = c;
     GALFIT_PAR p = in->pars().getParGF();
-    
-    // Reading ring inputs
-    Rings<float> *r = readRings<float>(p,c->Head());
+
     int nrings = r->nr-1;
     float *widths = new float[nrings];
     float *radii = new float[nrings];
@@ -137,7 +143,11 @@ Ringmodel::Ringmodel (Cube<float> *c)  {
     else mpar[VROT]=true;
 
     found = FREE.find("pa");
-    if (found<0) mpar[PA]=false;
+    if (found<0) {
+        found = FREE.find("phi");
+        if (found<0) mpar[PA]=false;
+        else mpar[PA]=true;
+    }
     else mpar[PA]=true;
 
     found = FREE.find("inc");
@@ -179,6 +189,7 @@ Ringmodel::Ringmodel (Cube<float> *c)  {
     int boxup[2] = {map.DimX()-1, map.DimY()-1};
     setfield(map.Array(),map.DimX(),map.DimY(),boxup,boxlow);
 }
+
 
 
 Ringmodel::Ringmodel (int nrings, float *radii, float *widths, float *vsys, float *vrot, 

@@ -27,6 +27,7 @@
 #include <vector>
 #include <fstream>
 #include <Arrays/cube.hh>
+#include <Arrays/rings.hh>
 
 enum ALLPARS {VSYS, VROT, VEXP, PA, INC, X0, Y0};
 
@@ -54,6 +55,8 @@ public:                                 /// model.
               
     void set (int nrings, float *radii, float widths, float vsys, float vrot, 
               float vexp, float posang, float incl, float xcenter, float ycenter);
+    
+    void setfromCube (Cube<float> *c, Rings<float> *r);
     
     /// Inline functions to access private members:
     float&   getRadius(int i) {return rads [i];};

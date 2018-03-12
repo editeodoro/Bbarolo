@@ -183,6 +183,47 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
 
     // Reading input rings from parameter file
     Rings<T> *inR = readRings<T>(c->pars().getParGF(), c->Head());
+    setFromCube(c,inR);
+    delete inR;
+
+}
+template Ellprof<float>::Ellprof(Cube<float>*);
+template Ellprof<double>::Ellprof(Cube<double>*);
+
+
+template <class T>
+Ellprof<T>::Ellprof(MomentMap<T> *image, size_t nrad, float width, float phi, float inc, float *pos, size_t nseg, float* segments) {
+
+    Rings<T> *r = new Rings<T>;
+
+    r->nr = nrad;
+    r->radsep = width;
+    for (size_t i=0; i<r->nr; i++) {
+        r->radii.push_back(i*width + width/2.);
+        r->phi.push_back(phi);
+        r->inc.push_back(inc);
+        r->xpos.push_back(pos[0]);
+        r->ypos.push_back(pos[1]);
+    }
+
+    init(image, r, nseg, segments);
+
+    delete r;
+}
+template Ellprof<float>::Ellprof(MomentMap<float>*,size_t,float,float,float,float*,size_t,float*);
+template Ellprof<double>::Ellprof(MomentMap<double>*,size_t,float,float,float,float*,size_t,float*);
+
+
+template <class T>
+Ellprof<T>::Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* segments) {
+    init(image,rings,nseg,segments);
+}
+template Ellprof<float>::Ellprof(MomentMap<float>*,Rings<float>*,size_t,float*);
+template Ellprof<double>::Ellprof(MomentMap<double>*,Rings<double>*,size_t,float*);
+
+
+template <class T>
+void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
     
     // Setting other options
     T meanPA = findMean(&inR->phi[0], inR->nr);
@@ -226,43 +267,9 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
     float mass = 2.365E5*dist*dist*totflux;
     setOptions(mass,dist); 
     //im->fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_0th.fits").c_str());
-
-    delete inR;
-
 }
-template Ellprof<float>::Ellprof(Cube<float>*);
-template Ellprof<double>::Ellprof(Cube<double>*);
-
-
-template <class T>
-Ellprof<T>::Ellprof(MomentMap<T> *image, size_t nrad, float width, float phi, float inc, float *pos, size_t nseg, float* segments) {
-
-    Rings<T> *r = new Rings<T>;
-
-    r->nr = nrad;
-    r->radsep = width;
-    for (size_t i=0; i<r->nr; i++) {
-        r->radii.push_back(i*width + width/2.);
-        r->phi.push_back(phi);
-        r->inc.push_back(inc);
-        r->xpos.push_back(pos[0]);
-        r->ypos.push_back(pos[1]);
-    }
-
-    init(image, r, nseg, segments);
-
-    delete r;
-}
-template Ellprof<float>::Ellprof(MomentMap<float>*,size_t,float,float,float,float*,size_t,float*);
-template Ellprof<double>::Ellprof(MomentMap<double>*,size_t,float,float,float,float*,size_t,float*);
-
-
-template <class T>
-Ellprof<T>::Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* segments) {
-    init(image,rings,nseg,segments);
-}
-template Ellprof<float>::Ellprof(MomentMap<float>*,Rings<float>*,size_t,float*);
-template Ellprof<double>::Ellprof(MomentMap<double>*,Rings<double>*,size_t,float*);
+template void Ellprof<float>::setFromCube(Cube<float> *, Rings<float> *);
+template void Ellprof<double>::setFromCube(Cube<double> *, Rings<double> *);
 
 
 template <class T>

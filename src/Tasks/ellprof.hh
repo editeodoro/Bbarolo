@@ -112,12 +112,14 @@ class Ellprof
 {
 public:
     Ellprof(Cube<T> *c);
+    Ellprof(Cube<T> *c, Rings<T> *inR) {setFromCube(c,inR);}
     Ellprof(MomentMap<T> *image, size_t nrad, float width, float phi, float inc, float *pos, size_t nseg=1, float* segments=NULL);
     Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg=1, float* segments=NULL);
     Ellprof(const Ellprof& p);
     Ellprof& operator= (const Ellprof& p);
     virtual ~Ellprof() {deallocateArrays();}
     
+    void   setFromCube(Cube<T> *c, Rings<T> *inR);
     void   setOptions (bool overlap, float *range, float *subp);
     void   setOptions (float mass, float distance);
     void   RadialProfile ();

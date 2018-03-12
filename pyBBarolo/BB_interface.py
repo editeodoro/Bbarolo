@@ -109,3 +109,27 @@ libBB.Search_search.argtypes = [c_void_p,c_char_p,c_float,c_float,c_bool,c_int,c
                                 c_int,c_int,c_int,c_int,c_float,c_bool,c_float,c_float,\
                                 c_bool,c_bool,c_int]
 ########################################################################################
+
+
+# Class Ringmodel interface ############################################################
+libBB.Fit2D_new.restype = c_void_p
+libBB.Fit2D_new.argtypes = [c_void_p,c_void_p,c_char_p,c_char_p,c_char_p,c_int,c_int]
+libBB.Fit2D_delete.restype = None
+libBB.Fit2D_delete.argtypes = [c_void_p]
+libBB.Fit2D_compute.restype = None
+libBB.Fit2D_compute.argtypes = [c_void_p]
+libBB.Fit2D_write.restype = None
+libBB.Fit2D_write.argtypes = [c_void_p,c_char_p]
+########################################################################################
+
+
+# Class Ellprof interface ############################################################
+libBB.Ellprof_new.restype = c_void_p
+libBB.Ellprof_new.argtypes = [c_void_p,c_void_p,c_char_p,c_char_p,c_int]
+libBB.Ellprof_delete.restype = None
+libBB.Ellprof_delete.argtypes = [c_void_p]
+libBB.Ellprof_compute.restype = None
+libBB.Ellprof_compute.argtypes = [c_void_p]
+libBB.Ellprof_write.restype = None
+libBB.Ellprof_write.argtypes = [c_void_p,c_char_p]
+########################################################################################

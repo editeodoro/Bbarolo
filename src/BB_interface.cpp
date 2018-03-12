@@ -2,12 +2,17 @@
 #include<csignal>
 #include<Arrays/param.hh>
 #include<Arrays/cube.hh>
+#include<Arrays/rings.hh>
 #include<Tasks/galmod.hh>
 #include<Tasks/galfit.hh>
 #include<Tasks/galwind.hh>
+#include<Tasks/ringmodel.hh>
+#include<Tasks/ellprof.hh>
+
 
 using namespace Model;
 using namespace std;
+using namespace Tasks;
 
 // Wrapped C functions cannot be stopped in python with CTRL-C.
 // Using handler to catch the SIGINT. Use signal(SIGINT, signalHandler)
@@ -89,4 +94,26 @@ void Search_search(Cube<float> *c, const char* searchtype, float snrCut, float t
                     adjacent,threshSpatial,threshVelocity,minPixels,minChannels,minVoxels,maxChannels,
                     maxAngSize,flagGrowth,growthCut,growthThreshold,RejectBefore,TwoStage,NTHREADS);}
 //////////////////////////////////////////////////////////////////////////////////////////
+                    
+
+// Interface for 2DFIT class //////////////////////////////////////////////////////////
+Ringmodel* Fit2D_new(Cube<float> *c, Rings<float> *r, const char* mask, const char* free, const char* side, int wfunc, int NTHREADS) {
+                    c->pars().getParGF().MASK = string(mask); c->pars().getParGF().FREE = string(free); 
+                    c->pars().getParGF().SIDE = string(side); c->pars().getParGF().WFUNC= wfunc; c->pars().setThreads(NTHREADS);
+                     Ringmodel *rm = new Ringmodel(); rm->setfromCube(c,r); return rm;}
+void Fit2D_delete(Ringmodel *rm) {delete rm;}
+void Fit2D_compute(Ringmodel *rm) {signal(SIGINT, signalHandler); rm->ringfit();}
+void Fit2D_write(Ringmodel *rm, const char *fout) {std::ofstream fileo(fout); rm->printfinal(fileo);}
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Interface for ELLPROF class //////////////////////////////////////////////////////////
+Ellprof<float>* Ellprof_new(Cube<float> *c, Rings<float> *r, const char* mask, const char* side, int NTHREADS) {
+                            c->pars().getParGF().MASK = string(mask); c->pars().getParGF().SIDE = string(side);
+                            c->pars().setThreads(NTHREADS); return new Ellprof<float>(c,r);}
+void Ellprof_delete(Ellprof<float> *e) {delete e;}
+void Ellprof_compute(Ellprof<float> *e) {signal(SIGINT, signalHandler); e->RadialProfile();}
+void Ellprof_write(Ellprof<float> *e, const char *fout) {std::ofstream fileo(fout); e->printProfile(fileo);}
+//////////////////////////////////////////////////////////////////////////////////////////                  
+                    
 }
