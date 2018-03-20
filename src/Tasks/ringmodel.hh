@@ -29,7 +29,7 @@
 #include <Arrays/cube.hh>
 #include <Arrays/rings.hh>
 
-enum ALLPARS {VSYS, VROT, VEXP, PA, INC, X0, Y0};
+enum ALLPARS {VSYS, VROT, VEXP, PA, INC, X0, Y0, MAXPAR};
 
 class Ringmodel                         /// A class to make a least-square fitting
 {                                       /// of velocity field with a tilted rings

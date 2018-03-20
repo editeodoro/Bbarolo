@@ -39,7 +39,6 @@
 #include <Utilities/progressbar.hh>
 
 
-#define MAXPAR  7
 #define nint(x)     (x>0.0?(int)(x+0.5):(int)(x-0.5))
 
 
@@ -107,7 +106,7 @@ Ringmodel::Ringmodel(int nrings) {
 Ringmodel::Ringmodel (Cube<float> *c)  {
     
     // Reading ring inputs
-    Rings<float> *r = readRings<float>(in->pars().getParGF(),c->Head());
+    Rings<float> *r = readRings<float>(c->pars().getParGF(),c->Head());
     setfromCube(c,r);
 }
 
@@ -141,7 +140,7 @@ void Ringmodel::setfromCube (Cube<float> *c, Rings<float> *r)  {
     found = FREE.find("vrot");
     if (found<0) mpar[VROT]=false;
     else mpar[VROT]=true;
-
+    
     found = FREE.find("pa");
     if (found<0) {
         found = FREE.find("phi");
@@ -403,10 +402,10 @@ void Ringmodel::ringfit() {
 #pragma omp parallel num_threads(nthreads)
 {
         if (verb) bar.init(nrad);
-#pragma omp for
+#pragma omp for 
         for (int ir = 0; ir<nrad; ir++) {        
             if (verb) bar.update(ir+1);
-    
+            
             int n;
             float   e[MAXPAR];
             float   p[MAXPAR];
@@ -421,36 +420,36 @@ void Ringmodel::ringfit() {
             p[Y0]   = yposi;
             float ri = rads[ir] - 0.5 * wids[ir];
             float ro = rads[ir] + 0.5 * wids[ir];
-            if ( ri < 0.0 ) ri = 0.0;
-        
-            if (rotfit(ri, ro, p, e, n, q)>0) {
+            if (ri<0.0) ri = 0.0;
             
-                vsysf[ir] = p[0];
-                if (e[0] < 999.99) vsyse[ir] = e[0];
+            if (rotfit(ri, ro, p, e, n, q)>0) {
+                
+                vsysf[ir] = p[VSYS];
+                if (e[VSYS] < 999.99) vsyse[ir] = e[VSYS];
                 else vsyse[ir] = 999.99;
             
-                vrotf[ir] = p[1];
-                if (e[1] < 999.99) vrote[ir] = e[1];
+                vrotf[ir] = p[VROT];
+                if (e[VROT] < 999.99) vrote[ir] = e[VROT];
                 else vrote[ir] = 999.99;
             
-                vexpf[ir] = p[2];
-                if (e[2] < 999.99) vexpe[ir] = e[2];
+                vexpf[ir] = p[VEXP];
+                if (e[VEXP] < 999.99) vexpe[ir] = e[VEXP];
                 else vexpe[ir] = 999.99;
             
-                posaf[ir] = p[3];
-                if (e[3] < 999.99) posae[ir] = e[3];
+                posaf[ir] = p[PA];
+                if (e[PA] < 999.99) posae[ir] = e[PA];
                 else posae[ir] = 999.99;
             
-                inclf[ir] = p[4];
-                if (e[4] < 999.99) incle[ir] = e[4];
+                inclf[ir] = p[INC];
+                if (e[INC] < 999.99) incle[ir] = e[INC];
                 else incle[ir] = 999.99;
             
-                xposf[ir] = p[5];
-                if (e[5] < 999.99) xpose[ir] = e[5];
+                xposf[ir] = p[X0];
+                if (e[X0] < 999.99) xpose[ir] = e[X0];
                 else xpose[ir] = 999.99;
             
-                yposf[ir] = p[6];
-                if (e[6] < 999.99) ypose[ir] = e[6];
+                yposf[ir] = p[Y0];
+                if (e[Y0] < 999.99) ypose[ir] = e[Y0];
                 else ypose[ir] = 999.99;
             
                 elp[ir][0] = elp4[0];
@@ -465,7 +464,9 @@ void Ringmodel::ringfit() {
                 vsysf[ir]=vrotf[ir]=vexpf[ir]=posaf[ir]=inclf[ir]=xposf[ir]=yposf[ir]=log(-1);
                 vsyse[ir]=vrote[ir]=vexpe[ir]=posae[ir]=incle[ir]=xpose[ir]=ypose[ir]=log(-1);
             }
+            
         }
+            
 }    
         if (verb) bar.fillSpace("Done.\n");
     
@@ -491,72 +492,61 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
   ///
   /// \return           Error or success.    
 
-    int     i, h;
+    int     i, h=0;
     int     ier = 0;            // Error return. 
     int     nfr;                // Number of free parameters.
     int     nrt;                // Return code from lsqfit.
-    int     stop;               // Stop ? 
     int     t = 100;            // Max. number of iterations.
     float   b[MAXPAR];          // Partial derivatives.
     float   chi;                // Old chi-squared.
     float   df[MAXPAR];         // Difference vector.
-    float   eps[MAXPAR];        // Stop criterium.
-    float   flip;               // Direction.
+    float   eps = 0.1;          // Stop criterium.
     float   lab = 0.001;        // Mixing parameter.        
     
     std::vector<float> x,y,w;           // (x,y) position, f(x,y) and w(x,y).
     float *pf  = new float [MAXPAR];    // Intermediate results.
-
-    for (nfr=0, i=0; i<MAXPAR; i++) {
-        eps[i] = 0.1;                   // Convergence criterium.
-        nfr += mask[i];
-    }
-   
-    h = 0;                              
+    
+    for (nfr=0, i=0; i<MAXPAR; i++) nfr += mask[i];
+    
     n = getdat(x, y, w, p, ri, ro, q, nfr);
 
-    stop = 0;
-    do {                    
+    bool stop = false;
+    while (!stop && h++<t) {                    
         int npar = MAXPAR;                              // Number of parameters.
         int xdim = 2;                                   // Function is two-dimensional.
-        h += 1;             
         chi = q;                                        // Save chi-squared.
-        for (i=0; i<MAXPAR; i++) {                      // Loop to save initial estimates.
-            pf[i] = p[i];
-        }
-        
+        for (i=0; i<MAXPAR; i++) pf[i] = p[i];          // Loop to save initial estimates.
+                
         Lsqfit<float> lsqfit(&x[0], xdim, &y[0], &w[0], n, pf, e, mask, npar, &func, &derv, tol, t, lab);
         nrt = lsqfit.fit();
 
         if (nrt<0) break;                               // Stop because of error.
-        for (i=0; i<MAXPAR; i++)                        // Calculate difference vector.
-            df[i] = pf[i] - p[i];
+        for (i=0; i<MAXPAR; i++) df[i] = pf[i] - p[i];  // Calculate difference vector.
         
-        flip = 1.0;                                     // Factor for inner loop.
-        while (1) {                                     // Inner loop. 
+        float flip = 1.0;                                // Factor for inner loop.
+        while (true) {                                   // Inner loop. 
+            
             for (i=0; i<MAXPAR; i++)                    // Calculate new parameters.
                 pf[i] = flip * df[i] + p[i];
          
             if (pf[INC] > 90.0)  pf[INC] -= 180.0;      // In case inclination > 90.
             
             n = getdat(x, y, w, pf, ri, ro, q, nfr);
-         
+            
             if (q<chi) {                                // Better fit.
                 for (i=0; i<MAXPAR; i++)                // Save new parameters.
                     p[i] = pf[i];
                 break;  
             } 
-            else {
+            else {                
                 if ((2*h) > t) {
-                    for (stop=1, i=0; i<MAXPAR; i++) {
-                        stop = (stop && (fabs(flip * df[i]) < eps[i]));
+                    for (stop=true, i=0; i<MAXPAR; i++) {
+                        stop = (stop && fabs(flip*df[i]) < eps);
                     }
                 } 
                 else {
-                    if (q == chi && chi == 0.0)
-                        stop = 1;
-                    else
-                        stop = ((fabs(q-chi)/chi) < tol);
+                    if (q == chi && chi == 0.0) stop = true;
+                    else stop = fabs(q-chi)/chi < tol;
                 }
                 if (stop) {
                     q = chi;
@@ -564,20 +554,16 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
                 }
             }
             if (flip > 0.0) flip *= -1.0;
-            else flip *= -0.5;
-         
+            else flip *= -0.5;      
         }
-    } while (!stop && h<t);
-   
+
+        
+    }
    
     // Find out why we quit fitting and printing errors
-    
-    if (stop)                   // Good fit:  ier = number of big loops.
-        ier = h;                
-    else if (nrt < 0)           // Error from lsqfit: ier = return code of lsqfit.
-        ier = nrt;
-    else if ( h == t )          // Maximum number of iterations.
-        ier = -4;
+    if (stop)       ier = h;   // Good fit:  ier = number of big loops.
+    else if (nrt<0) ier = nrt; // Error from lsqfit: ier = return code of lsqfit.
+    else if (h==t)  ier = -4;  // Maximum number of iterations.
    
     switch (ier) {
         
@@ -615,20 +601,18 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
     }
         
     // Calculate ellipse parameters.
-   
     if (ier==1 && cor[0]>-1 && cor[1]>-1 ) {
-        int   maxpar = MAXPAR;
         float a11 = 0.0;
         float a12 = 0.0;
         float a22 = 0.0;
         float sigma2 = 0.0;
 
         for (i=0; i < n; i++) {
-            derv( &x[2*i], p, b, maxpar);
+            derv( &x[2*i], p, b, MAXPAR);
             a11 = a11 + w[i] * b[cor[0]] * b[cor[0]];
             a22 = a22 + w[i] * b[cor[1]] * b[cor[1]];
             a12 = a12 + w[i] * b[cor[0]] * b[cor[1]];
-            sigma2 = sigma2+w[i]*std::pow(double(y[i]-func(&x[2*i], p, maxpar)), double(2.0));
+            sigma2 = sigma2+w[i]*std::pow(double(y[i]-func(&x[2*i], p, MAXPAR)), double(2.0));
         }
         sigma2 = sigma2 / (float) (n);
         elp4[0] = a11;
@@ -1012,6 +996,7 @@ float func (float *c, float *p, int npar) {
     static float sinp1 = 0.0;
     static float cosi1 = 1.0;
     static float sini1 = 0.0;
+#pragma omp threadprivate(phi,inc,cosp1,sinp1,cosi1,sini1)
 
     vs = p[VSYS];                           // Systemic velocity.
     vc = p[VROT];                           // Circular velocity.
@@ -1019,14 +1004,14 @@ float func (float *c, float *p, int npar) {
     
     if (p[PA] != phi) {                     // Position angle.
         phi = p[PA];                            
-        float factor = M_PI/180.;
+        double factor = M_PI/180.;
         cosp1 = cos(factor*phi);                        
         sinp1 = sin (factor*phi);                           
     }
    
     if (p[INC] != inc) {                    // Inclination.
         inc = p[INC];   
-        float factor = M_PI/180.;           
+        double factor = M_PI/180.;           
         cosi1 = cos(factor*inc);                            
         sini1 = sin (factor*inc);               
     }
@@ -1066,6 +1051,7 @@ void derv (float *c, float *p, float *d, int npar) {
     static float sinp1 = 0.0;
     static float cosi1 = 1.0, cosi2 = 1.0;
     static float sini1 = 0.0, sini2 = 0.0;
+#pragma omp threadprivate(phi,inc,cosp1,sinp1,cosi1,sini1,cosi2,sini2)
     
     const double F = M_PI/180.;
 

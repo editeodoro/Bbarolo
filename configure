@@ -5204,7 +5204,7 @@ INCDIRS="$INCDIRS           \
          /usr/local/fftw3   \
          /usr/local/cfitsio \
          /local/cfitsio     \
-				 /usr/local/wcslib	\
+         /usr/local/wcslib	\
          /opt/local/include"
 
 LIBDIRS="$LIBDIRS           \
@@ -5213,8 +5213,8 @@ LIBDIRS="$LIBDIRS           \
          /usr/local/cfitsio \
          /local/lib         \
          /local/cfitsio     \
-				 /usr/local/wcslib	\
-	     	/opt/local/lib"
+         /usr/local/wcslib	\
+         /opt/local/lib"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: LIBDIRS" >&5
 $as_echo "$as_me: LIBDIRS" >&6;}
@@ -5601,7 +5601,7 @@ eval ac_res=\$$as_ac_File
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  CPPFLAGS="$CPPFLAGS -I$INCDIR"; FFTW3INCDIR=$INCDIR; break
+  CPPFLAGS="$CPPFLAGS -I$INCDIR"; FFTW3INCDIR=$INCDIR; break;
 else
   continue
 fi
@@ -5738,7 +5738,7 @@ $as_echo "#define HAVE_FFTW3LIB 1" >>confdefs.h
            fftw3lib"
 
   for LIBBASE in $FFTW3LIBDIRS ; do
-    for DIR in $DIRLIST; do
+     for DIR in $DIRLIST; do
       if test "x$DIR" = x.; then
        LIBDIR=$LIBBASE
       else
@@ -5765,7 +5765,7 @@ if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
   FFTW3LIBFRONT="-L$LIBDIR"; break
 fi
 
-    done
+     done
   done
   FFTW3LIB="$FFTW3LIBFRONT $FFTW3LIB"
 fi
@@ -5866,7 +5866,6 @@ WCSLIBDIRS=$LIBDIRS
 fi
 
 
-
 if test "x$WCSINCDIR" = x; then
   for INCBASE in $WCSINCDIRS ; do
     as_ac_File=`$as_echo "ac_cv_file_$INCBASE/wcslib/wcs.h" | $as_tr_sh`
@@ -5916,7 +5915,7 @@ fi
 fi
 
 
-# Look for libwcs.a, and libpgsbox.a
+# Look for libwcs.a
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wcss2p in -lwcs" >&5
 $as_echo_n "checking for wcss2p in -lwcs... " >&6; }
 if ${ac_cv_lib_wcs_wcss2p+:} false; then :
@@ -5958,50 +5957,6 @@ if test "x$ac_cv_lib_wcs_wcss2p" = xyes; then :
 fi
 
 
-# Only use libpgsbox if we have pgplot enabled - determine this by testing the PGPLOTINCDIRS variable
-if test "x$PGPLOTINCDIRS" != x; then
-     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cpgsbox in -lpgsbox" >&5
-$as_echo_n "checking for cpgsbox in -lpgsbox... " >&6; }
-if ${ac_cv_lib_pgsbox_cpgsbox+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpgsbox $WCSLIB $LIBS $CFITSIOLIB $PGPLOTLIB $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char cpgsbox ();
-int
-main ()
-{
-return cpgsbox ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_pgsbox_cpgsbox=yes
-else
-  ac_cv_lib_pgsbox_cpgsbox=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pgsbox_cpgsbox" >&5
-$as_echo "$ac_cv_lib_pgsbox_cpgsbox" >&6; }
-if test "x$ac_cv_lib_pgsbox_cpgsbox" = xyes; then :
-  WCSLIB="$WCSLIB -lpgsbox"
-fi
-
-fi
-
 if test "x$WCSINC" = x -o "x$WCSLIB" = x; then
   as_fn_error 1 "
     ------------------------------------------------------------
@@ -6018,8 +5973,7 @@ $as_echo "$as_me: WCSLIB appears to be available." >&6;}
 $as_echo "#define HAVE_WCSLIB 1" >>confdefs.h
 
 # Now add the -L statements to start of WCSLIB.
-# Search for libwcs.a, and, if we find it, search for libpgsbox in same directory and
-#   then in other directories, keeping the appropriate order of -L calls.
+# Search for libwcs.a
 
   DIRLIST=". \
            wcs \
@@ -6050,61 +6004,7 @@ eval ac_res=\$$as_ac_File
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  WCSLIBFRONT="-L$LIBDIR";
-             as_ac_File=`$as_echo "ac_cv_file_$LIBDIR/libpgsbox.a" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LIBDIR/libpgsbox.a" >&5
-$as_echo_n "checking for $LIBDIR/libpgsbox.a... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "$LIBDIR/libpgsbox.a"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-
-else
-
-               for LIBBASE2 in $WCSLIBDIRS ; do
-                for DIR2 in $DIRLIST; do
-                 if test "x$DIR" = x.; then
-                  LIBDIR=$LIBBASE
-                 else
-                  LIBDIR="$LIBBASE/$DIR"
-                 fi
-                 as_ac_File=`$as_echo "ac_cv_file_$LIBDIR2/libpgsbox.a" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LIBDIR2/libpgsbox.a" >&5
-$as_echo_n "checking for $LIBDIR2/libpgsbox.a... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "$LIBDIR2/libpgsbox.a"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  WCSLIBFRONT="$WCSLIB -L$LIBDIR2"; break
-fi
-
-                done
-               done
-fi
-
-              break
+  WCSLIBFRONT="-L$LIBDIR"; break
 fi
 
     done

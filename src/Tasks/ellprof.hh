@@ -182,6 +182,7 @@ private:
     double  **Mean;               /* Means of pixel values */
     double  **Median;             /* Medians of pixel values */
     double  **Var;                /* Store the variances */
+    double  **MAD;                /* Median absolute deviation from the median */
     double  **Area;               /* Areas covered by pixels */
     double  **Blankarea;          /* Areas covered by BLANK pixels */
     double  **Surfdens;           /* Surface density in BUNIT / arcsec2 */
@@ -201,7 +202,7 @@ private:
     float   stepxy[2];
     float   maprotation;
     long    **Contrib;      /* Number of different pixels in a ring/segment */
-    std::vector<T> **medianArray;
+    std::vector<double> **medianArray;
 
 
     void   defaults();

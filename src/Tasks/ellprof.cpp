@@ -74,6 +74,7 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
     Datamin = new double*[nrad];
     Datamax = new double*[nrad];
     Var = new double*[nrad];
+    MAD = new double*[nrad];
     Contrib = new long*[nrad];
 
     Mean = new double*[nrad];
@@ -85,7 +86,7 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
     Mass_Surfdens = new double[nrad];
     Mass_Surfdens_Bl = new double[nrad];
 
-    medianArray = new std::vector<T>*[nrad];
+    medianArray = new std::vector<double>*[nrad];
 
     for (size_t i=0; i<nrad; i++) {
         Annuli[i] = new T[2];
@@ -96,6 +97,7 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
         Datamin[i] = new double[nseg];
         Datamax[i] = new double[nseg];
         Var[i] = new double[nseg];
+        MAD[i] = new double[nseg];
         Contrib[i] = new long[nseg];
         Mean[i] = new double[nseg];
         Median[i] = new double[nseg];
@@ -103,13 +105,13 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
         Blankarea[i] = new double[nseg];
         Surfdens[i] = new double[nseg];
         Surfdens_Bl[i] = new double[nseg];
-        medianArray[i] = new std::vector<T>[nseg];
+        medianArray[i] = new std::vector<double>[nseg];
     }
 
     for (size_t i=0; i<nrad; i++) {
         for (size_t j=0; j<nseg; j++) {
             Annuli[i][j]=Sum[i][j]=Sumsqr[i][j]=Num[i][j]=Numblanks[i][j]=0;
-            Datamin[i][j]=Datamax[i][j]=Var[i][j]=Contrib[i][j]=Mean[i][j]=0;
+            Datamin[i][j]=Datamax[i][j]=Var[i][j]=MAD[i][j]=Contrib[i][j]=Mean[i][j]=0;
             Median[i][j]=Area[i][j]=Blankarea[i][j]=Surfdens[i][j]=Surfdens_Bl[i][j]=0;
         }
     } 
@@ -131,6 +133,7 @@ void Ellprof<T>::deallocateArrays () {
         delete [] Datamin[i];
         delete [] Datamax[i];
         delete [] Var[i];
+        delete [] MAD[i];
         delete [] Contrib[i];
         delete [] Mean[i];
         delete [] Median[i];
@@ -160,6 +163,7 @@ void Ellprof<T>::deallocateArrays () {
     delete [] Datamin;
     delete [] Datamax;
     delete [] Var;
+    delete [] MAD;
     delete [] Contrib;
 
     delete [] Mean;
@@ -391,7 +395,7 @@ void Ellprof<T>::RadialProfile () {
         for (size_t s=0; s< Nseg; s++) {
              /* Reset the statistics variables */
             Sum[i][s]=Mean[i][s]=Median[i][s]=0.0;
-            Var[i][s]=Area[i][s]= 0.0;
+            Var[i][s]=MAD[i][s]=Area[i][s]= 0.0;
             Num[i][s]=Numblanks[i][s]=Contrib[i][s]= 0;
             Datamin[i][s]=FLT_MAX;
             Datamax[i][s]=-FLT_MAX;
@@ -459,12 +463,13 @@ void Ellprof<T>::RadialProfile () {
             Sum[i][m] /= subpixtot;
 
             if (Num[i][m]==0) {
-                Mean[i][m] = 0.0;
-                Median[i][m] = 0.0;
-                Var[i][m]  = 0.0;
-                Datamin[i][m] = 0.0;
-                Datamax[i][m] = 0.0;
-                Area[i][m] = 0.0;
+                Mean[i][m] = 0;
+                Median[i][m] = 0;
+                Var[i][m]  = 0;
+                MAD[i][m] = 0;
+                Datamin[i][m] = 0;
+                Datamax[i][m] = 0;
+                Area[i][m] = 0;
             }
             else {
                 /* The 'processpixel' function calculated too much FLUX. Each intensity has to    */
@@ -477,7 +482,8 @@ void Ellprof<T>::RadialProfile () {
 
             Blankarea[i][m] = Numblanks[i][m] / subpixtot;
             Median[i][m]  = findMedian(&medianArray[i][m][0], Num[i][m]);
-
+            MAD[i][m]  = findMADFM(&medianArray[i][m][0], Num[i][m],Median[i][m],false);
+            
             area = Area[i][m] * fabs(Dx*Dy);
             if (area == 0.0)  surfdens = 0.0;
             else surfdens = Sum[i][m] / area;
@@ -735,46 +741,63 @@ template bool Ellprof<double>::IsInSegment(float,float,float);
 template <class T>
 void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     
-
-    if (Mass!=0) {
+    std::string unit = deblankAll(im->Head().Bunit());
+    std::string unit_l = makelower(unit);
+    
+    // Checking if units are in JY
+    bool isJy = false;
+    if (unit_l.find("jy")!=std::string::npos) isJy = true;
+    
+    theStream << "# ELLPROF results for " << im->Head().Name() << std::endl;
+    
+    if (Mass!=0 && Distance>1) {
         theStream << "# Galaxy mass: " << scientific << Mass << "Msun" << std::endl;
         theStream << "# Galaxy distance: " << fixed << Distance << " Mpc" << std::endl;
         theStream << "#" << std::endl;
     }
     
-    theStream << "# NB: Columns 8-9 make sense only if units in Column 3 are JY/BEAM*KM/S or JY*KM/S.\n";
-    theStream << "# \n"; 
+    theStream << "#\n# Map units: unit = " << unit << std::endl;
+    theStream << "# Pixel area: " << fabs(Dx*Dy) << " arcs2" << std::endl << "#\n";
+    theStream << "# Columns 2-6  : ring stats (sum, mean, median, standard deviation and median absolute deviation from the median).\n";
+    theStream << "# Column  7    : number of pixels within the ring.\n";
+    theStream << "# Columns 8-10 : surface density, its error and face-on surface density (inclination corrected).\n";
     
-    int m=16;
-    std::string unit = im->Head().Bunit();
-    theStream << fixed << setprecision(6);
-    theStream << "#" << setw(m-1) << "RADIUS" << " "
+    if (isJy)
+        theStream << "# Columns 11-12: face-on (inclination corrected) mass surface densities with two different techniques.\n";
+    
+    int m=11;
+    theStream << "#\n#" << setw(m-1) << "RADIUS" << " "
               << setw(m) << "SUM" << " "
               << setw(m) << "MEAN" << " "
               << setw(m) << "MEDIAN" << " "
-              << setw(m) << "ERR_RMS" << " "
-              << setw(m-5) << "NUMPIX" << " "
-              << setw(m) << "SURFDENS" << " "
-              << setw(m) << "SURFDENS_FO" << " "
-              << setw(m) << "MSURFDENS" << " "
-              << setw(m) << "MSURFDENS2" << " "    
-              << std::endl;
+              << setw(m) << "STDDEV" << " "
+              << setw(m) << "MAD" << " "
+              << setw(m-5) << "NPIX" << " "
+              << setw(m+1) << "SURFDENS" << " "
+              << setw(m+1) << "ERR_SD" << " "
+              << setw(m+1) << "SURFDENS_FO" << " ";
+    if (isJy)
+        theStream << setw(m) << "MSURFDENS" << " "
+                  << setw(m) << "MSURFDENS2" << " ";    
 
-    theStream << "#" << setw(m-1) << "arcsec" << " "
-              << setw(m) << unit << " "
-              << setw(m) << unit << " "
-              << setw(m) << unit << " "
-              << setw(m) << unit << " "
-              << setw(m-5) << "numb" << " "
-              << setw(m) << unit+"/arcs2" << " "
-              << setw(m) << unit+"/arcs2" << " "
-              << setw(m) << "Msun/pc2" << " "
-              << setw(m) << "Msun/pc2" << " "    
-              << std::endl << "#" << std::endl;
+    theStream << "\n#" << setw(m-1) << "arcsec" << " "
+              << setw(m) << "unit" << " "
+              << setw(m) << "unit" << " "
+              << setw(m) << "unit" << " "
+              << setw(m) << "unit" << " "
+              << setw(m) << "unit" << " "
+              << setw(m-5) << "#" << " "
+              << setw(m+1) << "unit/arcs2" << " "
+              << setw(m+1) << "unit/arcs2" << " " 
+              << setw(m+1) << "unit/arcs2" << " ";
+    if (isJy)
+        theStream << setw(m) << "Msun/pc2" << " "
+                  << setw(m) << "Msun/pc2" << " ";    
+              
+    theStream << std::endl << "#" << std::endl;
 
     // Calculating Mass surface density with Roberts75 formula.
     // This works only if units of map are JY/B * KM/S or JY * KM/S
-    std::string unit_l = deblankAll(makelower(unit));
     double barea = im->Head().Bmaj()*im->Head().Bmin();
     barea *= abs(arcsconv(im->Head().Cunit(0))*arcsconv(im->Head().Cunit(1))); 
     if (!(unit_l.find("/b")!=std::string::npos)) barea /= im->Head().BeamArea();
@@ -782,17 +805,20 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     for (size_t i=0; i<Nrad; i++) {
         double massd = 8794*Mean[i][seg]/barea*Cosinc[i];
         // Writing 
-        theStream << setw(m) << Radius[i] << " "
-                  << setw(m) << Sum[i][seg] << " "
+        theStream << fixed << setprecision(3) << setw(m) << Radius[i] << " "
+                  << scientific << setw(m) << Sum[i][seg] << " "
                   << setw(m) << Mean[i][seg] << " "
                   << setw(m) << Median[i][seg] << " "
                   << setw(m) << sqrt(fabs(Var[i][seg])) << " "
-                  << setw(m-5) << Num[i][seg] / (subpix[0]*subpix[1]) << " "
-                  << setw(m) << Surfdens[i][seg] << " "
-                  << setw(m) << getSurfDensFaceOn(i,seg) << " "
-                  << setw(m) << Mass_Surfdens[i] << " "
-                  << setw(m) << massd << " "
-                  << std::endl;
+                  << setw(m) << MAD[i][seg] << " "
+                  << setw(m-5) << int(Area[i][seg]) << " "
+                  << setw(m+1) << Surfdens[i][seg] << " "
+                  << setw(m+1) << sqrt(fabs(Var[i][seg]))/fabs(Dx*Dy) << " "
+                  << setw(m+1) << getSurfDensFaceOn(i,seg) << " ";
+        if (isJy)
+            theStream << setw(m) << Mass_Surfdens[i] << " "
+                      << setw(m) << massd << " ";
+        theStream << std::endl;
     }
 }
 template void Ellprof<float>::printProfile (ostream&, int);

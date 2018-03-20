@@ -289,7 +289,7 @@ INCDIRS="$INCDIRS           \
          /usr/local/fftw3   \
          /usr/local/cfitsio \
          /local/cfitsio     \
-				 /usr/local/wcslib	\
+         /usr/local/wcslib	\
          /opt/local/include"
 
 LIBDIRS="$LIBDIRS           \
@@ -298,8 +298,8 @@ LIBDIRS="$LIBDIRS           \
          /usr/local/cfitsio \
          /local/lib         \
          /local/cfitsio     \
-				 /usr/local/wcslib	\
-	     	/opt/local/lib"
+         /usr/local/wcslib	\
+         /opt/local/lib"
 
 AC_MSG_NOTICE(LIBDIRS)
 
@@ -407,8 +407,7 @@ else
   done
   for INCDIR in $FFTW3INCDIRS ; do
     AC_CHECK_FILE([$INCDIR/fftw3lib], 
-                  [CPPFLAGS="$CPPFLAGS -I$INCDIR"; FFTW3INCDIR=$INCDIR; break], 
-		  [continue])
+                  [CPPFLAGS="$CPPFLAGS -I$INCDIR"; FFTW3INCDIR=$INCDIR; break;],[continue])
   done
 fi
 ],
@@ -457,7 +456,7 @@ else
            fftw3lib"
 
   for LIBBASE in $FFTW3LIBDIRS ; do
-    for DIR in $DIRLIST; do
+     for DIR in $DIRLIST; do
       if test "x$DIR" = x.; then
        LIBDIR=$LIBBASE
       else
@@ -465,7 +464,7 @@ else
       fi
       AC_CHECK_FILE([$LIBDIR/libfftw3.a], 
              [FFTW3LIBFRONT="-L$LIBDIR"; break])
-    done
+     done
   done
   FFTW3LIB="$FFTW3LIBFRONT $FFTW3LIB"
 fi
@@ -515,7 +514,6 @@ WCSINCDIRS=$INCDIRS
 WCSLIBDIRS=$LIBDIRS
 ])
 
-
 if test "x$WCSINCDIR" = x; then
   for INCBASE in $WCSINCDIRS ; do
     AC_CHECK_FILE([$INCBASE/wcslib/wcs.h], [WCSINC="-I$INCBASE -I$INCBASE/wcslib $WCSINC"; break])
@@ -525,15 +523,9 @@ else
 fi
 
 
-# Look for libwcs.a, and libpgsbox.a
+# Look for libwcs.a
 AC_CHECK_LIB([wcs], [wcss2p], [WCSLIB="$WCSLIB -lwcs"], [],
              [$WCSLIB $LIBS $CFITSIOLIB $PGPLOTLIB])
-
-# Only use libpgsbox if we have pgplot enabled - determine this by testing the PGPLOTINCDIRS variable
-if test "x$PGPLOTINCDIRS" != x; then 
-     AC_CHECK_LIB([pgsbox], [cpgsbox], [WCSLIB="$WCSLIB -lpgsbox"], [],
-                 [$WCSLIB $LIBS $CFITSIOLIB $PGPLOTLIB])
-fi
 
 if test "x$WCSINC" = x -o "x$WCSLIB" = x; then
   AC_MSG_ERROR([
@@ -548,8 +540,7 @@ else
   AC_MSG_NOTICE([WCSLIB appears to be available.])
   AC_DEFINE([HAVE_WCSLIB], [1], [Define to 1 if WCSLIB is available.])
 # Now add the -L statements to start of WCSLIB.
-# Search for libwcs.a, and, if we find it, search for libpgsbox in same directory and
-#   then in other directories, keeping the appropriate order of -L calls.
+# Search for libwcs.a
 
   DIRLIST=". \
            wcs \
@@ -563,20 +554,7 @@ else
        LIBDIR="$LIBBASE/$DIR"
       fi
       AC_CHECK_FILE([$LIBDIR/libwcs.a], 
-             [WCSLIBFRONT="-L$LIBDIR"; 
-             AC_CHECK_FILE([$LIBDIR/libpgsbox.a], [], [
-               for LIBBASE2 in $WCSLIBDIRS ; do
-                for DIR2 in $DIRLIST; do
-                 if test "x$DIR" = x.; then
-                  LIBDIR=$LIBBASE
-                 else
-                  LIBDIR="$LIBBASE/$DIR"
-                 fi
-                 AC_CHECK_FILE([$LIBDIR2/libpgsbox.a],
-                               [WCSLIBFRONT="$WCSLIB -L$LIBDIR2"; break])
-                done
-               done])
-              break])
+             [WCSLIBFRONT="-L$LIBDIR"; break])
     done
   done
   WCSLIB="$WCSLIBFRONT $WCSLIB"
