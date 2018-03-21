@@ -101,6 +101,8 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **ADRIFT** [false]. If true, calculate the asymmetric drift correction. First regularize velocity dispersion and density profile and then compute the correction following classical prescription (see e.g. `Iorio et al. 2017 <http://adsabs.harvard.edu/abs/2017MNRAS.466.4159I>`_).
 
+* **PLOTMASK** [false]. If true, the mask contour is overlayed on the channel maps and PVs plots.
+
 Additional parameters for high-z galaxies 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
