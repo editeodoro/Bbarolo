@@ -430,7 +430,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     if (maxs[INC]>90) maxs[INC] = 90;
     if (mins[INC]<0)  mins[INC] = 0;
     if (maxs[PA]>360) maxs[PA]  = 360;
-    if (mins[PA]<0)   mins[PA]  = 0;
+    if (mins[PA]<-360) mins[PA]  = -360;
     maxs[XPOS] = *max_element(inr->xpos.begin(),inr->xpos.end())+10;
     mins[XPOS] = *min_element(inr->xpos.begin(),inr->xpos.end())-10;
     maxs[YPOS] = *max_element(inr->ypos.begin(),inr->ypos.end())+10;

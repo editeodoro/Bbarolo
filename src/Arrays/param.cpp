@@ -378,6 +378,7 @@ int Param::readParams(std::string paramfile) {
             if(arg=="startrad")  parGF.STARTRAD   = readIval(ss);
             if(arg=="distance")  parGF.DISTANCE   = readFval(ss);
             if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
+            if(arg=="plotmask")  parGF.PLOTMASK   = readFlag(ss);
 
             // GALWIND ONLY PARAMETERS
             if(arg=="htot")      parGW.HTOT       = readFval(ss);
@@ -1035,6 +1036,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
             recordParam(Str, "[RELINT]", "   Relative intensities of lines?", rstr);
         }
         recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));
+        recordParam(Str, "[PLOTMASK]", "   Overlaying mask to output plots?", stringize(p.getParGF().PLOTMASK));
     
         // PARAMETERS FOR SPACEPAR
         recordParam(Str, "[SPACEPAR]", "Full parameter space for a pair of parameters", stringize(p.getflagSpace()));    

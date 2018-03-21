@@ -457,7 +457,7 @@ bool MomentMap<T>::setHead(int type) {
 
 
 template <class T>
-Image2D<T>* PositionVelocity (Cube<T> *c, T x0, T y0, T Phi) {
+Image2D<T>* PositionVelocity (Cube<T> *c, float x0, float y0, float Phi) {
     
     T phi = Phi;
     while(phi>=180) phi -= 180;

@@ -316,13 +316,17 @@ template <class T>
 void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
 
     // Extracts PVs along major and minor axis and write them in fits.
-    T meanPA = findMean(&outr->phi[0], outr->nr);
-    T meanXpos = findMean(&outr->xpos[0], outr->nr);
-    T meanYpos = findMean(&outr->ypos[0], outr->nr);
-    T meanPAp90= meanPA+90<360 ? meanPA+90 : meanPA-90;
-    std::string outfold = in->pars().getOutfolder();
+    std::string outfold = in->pars().getOutfolder()+"pvs/";
     std::string object = in->Head().Name();
+    
+    mkdirp((outfold).c_str());
+    
+    float meanPA = findMean(&outr->phi[0], outr->nr);
+    float meanXpos = findMean(&outr->xpos[0], outr->nr);
+    float meanYpos = findMean(&outr->ypos[0], outr->nr);
+    float meanPAp90= meanPA+90<360 ? meanPA+90 : meanPA-90;
 
+    // Extract pvs of data
     Image2D<T> *pv_max = PositionVelocity(in,meanXpos,meanYpos,meanPA);
     std::string mfile = outfold+object+"_pv_a.fits";
     pv_max->fitswrite_2d(mfile.c_str());
@@ -330,6 +334,7 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     mfile = outfold+object+"_pv_b.fits";
     pv_min->fitswrite_2d(mfile.c_str());
 
+    // Extract pvs of data
     Image2D<T> *pv_max_m = PositionVelocity(mod,meanXpos,meanYpos,meanPA);
     mfile = outfold+object+"mod_pv_a"+suffix+".fits";
     pv_max_m->fitswrite_2d(mfile.c_str());
@@ -337,6 +342,20 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     mfile = outfold+object+"mod_pv_b"+suffix+".fits";
     pv_min_m->fitswrite_2d(mfile.c_str());
 
+    // Extract pvs of mask
+    Cube<short> *m = new Cube<short>(in->AxisDim());
+    m->saveHead(in->Head());
+    m->saveParam(in->pars());
+    m->Head().setMinMax(0.,0);
+    for (size_t i=in->NumPix(); i--;) m->Array()[i] = short(mask[i]);
+    
+    Image2D<short> *pv_max_ma = PositionVelocity(m,meanXpos,meanYpos,meanPA);
+    mfile = outfold+object+"mask_pv_a.fits";
+    pv_max_ma->fitswrite_2d(mfile.c_str());
+    Image2D<short> *pv_min_ma = PositionVelocity(m,meanXpos,meanYpos,meanPAp90);
+    mfile = outfold+object+"mask_pv_b.fits";
+    pv_min_ma->fitswrite_2d(mfile.c_str());
+    
 #ifndef HAVE_PYTHON
 #ifdef HAVE_GNUPLOT
     plotPVs_Gnuplot(pv_max,pv_min,pv_max_m,pv_min_m);
@@ -345,6 +364,10 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
 
     delete pv_max; delete pv_min;
     delete pv_max_m; delete pv_min_m;
+    delete m;
+    
+   // delete pv_max_ma; delete pv_min_ma;
+    
 }
 template void Galfit<float>::writePVs(Cube<float>*, std::string);
 template void Galfit<double>::writePVs(Cube<double>*, std::string);
@@ -933,10 +956,13 @@ int Galfit<T>::plotAll_Python() {
             << "outfolder = '" << in->pars().getOutfolder() <<"' \n"
             << "file1 = outfolder+'ringlog1.txt' \n"
             << "file2 = outfolder+'ringlog2.txt' \n"
-            << "filesb= outfolder+'densprof.txt' \n"
-            << "twostage=False \n";
+            << "filesb= outfolder+'densprof.txt' \n";
 
     if (par.TWOSTAGE) py_file << "twostage=True \n";
+    else  py_file << "twostage=False \n";
+
+    if (par.PLOTMASK) py_file << "plotmask=True \n";
+    else py_file << "plotmask=False \n";
 
     py_file << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.genfromtxt(file1,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True) \n"
             << "err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",len(rad))), np.zeros(shape=(" << MAXPAR << ",len(rad)))\n"
@@ -952,7 +978,7 @@ int Galfit<T>::plotAll_Python() {
         }
     }
 
-    py_file << "\nif twostage==True: \n"
+    py_file << "\nif twostage: \n"
             << "\trad2, vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2, vrad2 = np.genfromtxt(file2,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True)\n"
             << "\terr2_l, err2_h = np.zeros(shape=(" << MAXPAR << ",len(rad2))), np.zeros(shape=(" << MAXPAR << ",len(rad2)))\n"
             << "\tcolor='#A0A0A0' \n"
@@ -1001,7 +1027,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylim(0,1.2*max_vrot)  \n"
             << "axis.set_ylabel('v$_\\mathrm{rot}$ (km/s)', fontsize=14)  \n"
             << "axis.errorbar(rad,vrot, yerr=[err1_l[0],-err1_h[0]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,vrot2, yerr=[err2_l[0],-err2_h[0]],fmt='o', color=color2) \n";
+            << "if twostage: axis.errorbar(rad2,vrot2, yerr=[err2_l[0],-err2_h[0]],fmt='o', color=color2) \n";
     
     py_file << std::endl
             << "axis=ax[1][0]  \n"
@@ -1009,7 +1035,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('i (deg)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
             << "axis.errorbar(rad,inc, yerr=[err1_l[4],-err1_h[4]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o', color=color2) \n";
+            << "if twostage: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o', color=color2) \n";
 
     py_file << std::endl
             << "axis=ax[2][0]  \n"
@@ -1018,7 +1044,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
             << "axis.errorbar(rad,pa, yerr=[err1_l[5],-err1_h[5]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o-', color=color2)  \n";
+            << "if twostage: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o-', color=color2)  \n";
 
     py_file << std::endl
             << "axis=ax[0][1]  \n"
@@ -1027,7 +1053,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
             << "axis.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o-', color=color2)  \n"   ;
+            << "if twostage: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o-', color=color2)  \n"   ;
     
     py_file << std::endl
             << "axis=ax[1][1]  \n"
@@ -1035,7 +1061,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('x$_0$ (pix)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')   \n"
             << "axis.errorbar(rad,xpos, yerr=[err1_l[6],-err1_h[6]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o-', color=color2)  \n";
+            << "if twostage: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o-', color=color2)  \n";
 
     py_file << std::endl
             << "axis=ax[2][1]  \n"
@@ -1044,7 +1070,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
             << "axis.errorbar(rad,ypos, yerr=[err1_l[7],-err1_h[7]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o-', color=color2) \n";
+            << "if twostage: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o-', color=color2) \n";
 
     py_file << std::endl
             << "axis=ax[0][2]  \n"
@@ -1085,35 +1111,33 @@ int Galfit<T>::plotAll_Python() {
 
     py_file << "# CHANNEL MAPS: Setting all the needed variables \n"
             << "image = fits.open('" << in->pars().getImageFile() << "') \n"
+            << "image_mas = fits.open(outfolder+'mask.fits') \n"
             << "xmin, xmax = " << xmin << ", " << xmax << std::endl
             << "ymin, ymax = " << ymin << ", " << ymax << std::endl
             << "zmin, zmax = " << zmin << ", " << zmax << std::endl
-            << "imagedata = image[0].data[";
+            << "data = image[0].data[";
     if (in->Head().NumAx()>3)
         for (int i=0; i<in->Head().NumAx()-3; i++) py_file << "0,";
     py_file << "zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
+            << "data_mas = image_mas[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
             << "head = image[0].header \n"
-            << "zsize=imagedata[:,0,0].size \n"
+            << "zsize=data[:,0,0].size \n"
             << "cdeltsp=" << in->Head().PixScale()*arcconv << std::endl
             << "cont = " << cont << std::endl
             << "v = np.array([1,2,4,8,16,32,64])*cont \n"
             << "v_neg = [-cont] \n"
             << "interval = PercentileInterval(99.5) \n"
-            << "vmax = interval.get_limits(imagedata)[1] \n"
+            << "vmax = interval.get_limits(data)[1] \n"
             << "norm = ImageNormalize(vmin=cont, vmax=vmax, stretch=PowerStretch(0.5)) \n\n";
 
-    py_file << "files_mod, files_pva_mod, files_pvb_mod, typ = [], [], [], [] \n"
+    py_file << "files_mod, typ = [], [] \n"
             << "for thisFile in os.listdir(outfolder): \n"
             << "\tif 'mod_azim.fits'  in thisFile: files_mod.append(thisFile) \n"
-            << "\tif 'pv_a_azim.fits' in thisFile: files_pva_mod.append(thisFile) \n"
-            << "\tif 'pv_b_azim.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
             << std::endl
             << "if len(files_mod)==1: typ.append('AZIM') \n"
             << std::endl
             << "for thisFile in os.listdir(outfolder): \n"
             << "\tif 'mod_local.fits'  in thisFile: files_mod.append(thisFile) \n"
-            << "\tif 'pv_a_local.fits' in thisFile: files_pva_mod.append(thisFile) \n"
-            << "\tif 'pv_b_local.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
             << std::endl
             << "if len(files_mod)==2: typ.append('LOCAL') \n"
             << "elif (len(files_mod)==1 and len(typ)==0): typ.append('LOCAL') \n"
@@ -1124,7 +1148,7 @@ int Galfit<T>::plotAll_Python() {
             << "if twostage==True: xcen, ycen, phi = [np.nanmean(xpos2)-xmin,np.nanmean(ypos2)-ymin,np.nanmean(pa2)] \n"
             << "for k in range (len(files_mod)): \n"
             << "\timage_mod = fits.open(outfolder+files_mod[k]) \n"
-            << "\timagedata_mod = image_mod[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
+            << "\tdata_mod = image_mod[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
             << "\tplt.figure(figsize=(8.27, 11.69), dpi=100) \n"
             << "\tgrid = [gridspec.GridSpec(2,5),gridspec.GridSpec(2,5),gridspec.GridSpec(2,5)] \n"
             << "\tgrid[0].update(top=0.90, bottom=0.645, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
@@ -1136,8 +1160,8 @@ int Galfit<T>::plotAll_Python() {
             << "\tfor j in range (0,3): \n"
             << "\t\tfor i in range (0,5): \n"
             << "\t\t\tchan = int(num*(zsize)/15) \n"
-            << "\t\t\tz = imagedata[chan,:,:] \n"
-            << "\t\t\tz_mod = imagedata_mod[chan,:,:] \n"
+            << "\t\t\tz = data[chan,:,:] \n"
+            << "\t\t\tz_mod = data_mod[chan,:,:] \n"
             << "\t\t\t#New matplotlib draws wrong contours when no contours are found. This is a workaround.\n"
             << "\t\t\tif np.all(z_mod<v[0]): z_mod[:,:] =0\n"
             << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
@@ -1149,6 +1173,8 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tax.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
             << "\t\t\tax.contour(z,v_neg,origin='lower',linewidths=0.1,colors='gray') \n"
             << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
+            << "\t\t\tif plotmask: \n"
+            << "\t\t\t\tax.contour(data_mas[chan],[1],origin='lower',linewidths=2,colors='k') \n"
             << "\t\t\tif (j==i==0): \n"
             << "\t\t\t\tax.text(0, 1.4, gname, transform=ax.transAxes,fontsize=15,va='center') \n"
             << "\t\t\t\tlbar = 0.5*(xmax-xmin)*cdeltsp \n"
@@ -1185,8 +1211,19 @@ int Galfit<T>::plotAll_Python() {
     //if (cdelt3_kms<0) reverse = !reverse;
 
     py_file << "# Now plotting the position-velocity diagrams \n"
-            << "image_maj     = fits.open('"<< in->pars().getOutfolder() << in->Head().Name() << "_pv_a.fits') \n"
-            << "image_min     = fits.open('"<< in->pars().getOutfolder() << in->Head().Name() << "_pv_b.fits') \n"
+            << "files_pva_mod, files_pvb_mod = [], [] \n"
+            << "for thisFile in os.listdir(outfolder+'pvs/'): \n"
+            << "\tif 'pv_a_azim.fits' in thisFile: files_pva_mod.append(thisFile) \n"
+            << "\tif 'pv_b_azim.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
+            << std::endl
+            << "for thisFile in os.listdir(outfolder+'pvs/'): \n"
+            << "\tif 'pv_a_local.fits' in thisFile: files_pva_mod.append(thisFile) \n"
+            << "\tif 'pv_b_local.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
+            << std::endl
+            << "image_maj     = fits.open(outfolder+'pvs/'+gname+'_pv_a.fits') \n"
+            << "image_min     = fits.open(outfolder+'pvs/'+gname+'_pv_b.fits') \n"
+            << "image_mas_maj = fits.open(outfolder+'pvs/'+gname+'mask_pv_a.fits') \n"
+            << "image_mas_min = fits.open(outfolder+'pvs/'+gname+'mask_pv_b.fits') \n"
             << "head = [image_maj[0].header,image_min[0].header] \n"
             << "crpixpv = np.array([head[0]['CRPIX1'],head[1]['CRPIX1']]) \n"
             << "cdeltpv = np.array([head[0]['CDELT1'],head[1]['CDELT1']]) \n"
@@ -1196,8 +1233,10 @@ int Galfit<T>::plotAll_Python() {
             << "if xminpv[1]<0: xminpv[1]=0 \n"
             << "if xmaxpv[0]>=head[0]['NAXIS1']: xmaxpv[0]=head[0]['NAXIS1']-1 \n"
             << "if xmaxpv[1]>=head[1]['NAXIS1']: xmaxpv[1]=head[1]['NAXIS1']-1 \n"
-            << "imagedata_maj = image_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"
-            << "imagedata_min = image_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
+            << "data_maj = image_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"
+            << "data_min = image_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
+            << "data_mas_maj = image_mas_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"
+            << "data_mas_min = image_mas_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
             << "xmin_wcs = ((xminpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
             << "xmax_wcs = ((xmaxpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
             << "zmin_wcs, zmax_wcs = " << zmin_wcs << ", " << zmax_wcs << std::endl;
@@ -1221,11 +1260,11 @@ int Galfit<T>::plotAll_Python() {
     
     py_file << "# Beginning PV plot \n"
             << "for k in range (len(files_mod)): \n"
-            << "\timage_mod_maj = fits.open(outfolder+files_pva_mod[k]) \n"
-            << "\timage_mod_min = fits.open(outfolder+files_pvb_mod[k]) \n"
-            << "\timagedata_mod_maj = image_mod_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"    
-            << "\timagedata_mod_min = image_mod_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
-            << "\ttoplot = [[imagedata_maj,imagedata_min],[imagedata_mod_maj,imagedata_mod_min]] \n"
+            << "\timage_mod_maj = fits.open(outfolder+'pvs/'+files_pva_mod[k]) \n"
+            << "\timage_mod_min = fits.open(outfolder+'pvs/'+files_pvb_mod[k]) \n"
+            << "\tdata_mod_maj = image_mod_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"    
+            << "\tdata_mod_min = image_mod_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
+            << "\ttoplot = [[data_maj,data_min],[data_mod_maj,data_mod_min],[data_mas_maj,data_mas_min]] \n"
             << std::endl
             << "\tfig=plt.figure(figsize=(11.69,8.27), dpi=150) \n"
             << "\tfig_ratio = 11.69/8.27 \n"
@@ -1253,6 +1292,8 @@ int Galfit<T>::plotAll_Python() {
             << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=1,colors='#B22222',extent=ext[i]) \n"
             << "\t\taxis.axhline(y=0,color='black') \n"
             << "\t\taxis.axvline(x=0,color='black') \n"
+            << "\t\tif plotmask: \n"
+            << "\t\t\taxis.contour(toplot[2][i],[1],origin='lower',linewidths=2,colors='k',extent=ext[i]) \n"
             << "\t\tif i==0 : \n"
             << "\t\t\taxis2.plot(radius,vlos,'yo') \n"
             << "\t\t\taxis.text(0, 1.1, gname, transform=axis.transAxes,fontsize=22) \n"
@@ -1280,7 +1321,7 @@ int Galfit<T>::plotAll_Python() {
             << "\tif 'azim_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
             << "\tif 'azim_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
             << std::endl
-            << "for thisFile in os.listdir(outfolder+'/maps/'): \n"
+            << "for thisFile in os.listdir(outfolder+'maps/'): \n"
             << "\tif 'local_0mom.fits' in thisFile: files_mod0.append(thisFile) \n"
             << "\tif 'local_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
             << "\tif 'local_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"

@@ -254,6 +254,7 @@ template void Cube<double>::checkBeam ();
 template <class T>
 void Cube<T>::setCube (T *input, int *dim) {
 
+    
     if (arrayAllocated) delete [] array;
     if (axisDimAllocated) delete [] axisDim;
     numAxes = 3;
@@ -263,12 +264,7 @@ void Cube<T>::setCube (T *input, int *dim) {
     numPix = axisDim[0]*axisDim[1]*axisDim[2];
     array = new T [numPix];
     arrayAllocated=true;
-    for (int i=0; i<axisDim[2]; i++)
-        for (int j=0; j<axisDim[1]; j++) 
-            for (int k=0; k<axisDim[0]; k++) {
-                long nPix = k+j*axisDim[0]+i*axisDim[0]*axisDim[1];
-                array[nPix]=input[nPix]; 
-            }
+    for (int i=0; i<numPix; i++) array[i]=input[i]; 
     if (mapAllocated) delete [] detectMap;
     detectMap = new short [axisDim[0]*axisDim[1]];
     mapAllocated=true;

@@ -56,8 +56,7 @@ struct GALMOD_PAR {
     vector<double> RESTWAVE = {-1}; ///< Rest wavelengths.
     vector<double> RESTFREQ = {-1}; ///< Rest frequencies.
     vector<double> RELINT   = {1}; ///< Relative intensities of lines.
-    bool   SM         = true;   /// If false, disable smoothing
-    
+    bool   SM         = true;   /// If false, disable smoothing    
 };
 
 // Container for input parameters for GALFIT (fit a 3D galaxy model)
@@ -78,7 +77,9 @@ struct GALFIT_PAR : GALMOD_PAR {
     int    STARTRAD   = 0;        ///< Starting radius
     bool   flagERRORS = false;    ///< Whether estimating errors.
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
-    bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.  
+    bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.
+    bool   PLOTMASK   = false;    ///< Whether to show the mask in output plots/
+      
 };
 
 // Container for input parameters for GALWIND (generates a 3D biconical outflow)
