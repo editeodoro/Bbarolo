@@ -27,6 +27,8 @@
 #include <iomanip>
 #include <string>
 #include <cstdlib>
+#include <ctime>
+#include <random>
 #include <Utilities/utils.hh>
 
 
@@ -146,8 +148,6 @@ template std::vector<float> readVec(std::stringstream&);
 template std::vector<double> readVec(std::stringstream&);
 
 
-
-
 std::string removeLeadingBlanks(std::string s) {
   
  /// All blank spaces from the start of the string to the first
@@ -264,4 +264,36 @@ void checkHome(std::string &s) {
     }
     */
     
+}
+
+
+std::string randomAdjective (int type) {
+    
+    // Return a random good (type=1) or bad (type=2) adjective
+    
+    std::vector<std::string> good = 
+        {"trustful","awesome","stunning","creative","flabbergasting","fabulous","gorgeous",
+         "unbelievable","extraordinary","breathtaking","astonishing","stonking","brilliant",
+         "marvelous","ungodly","incredible","wondrous","magnificent","glorious","splendiferous",
+         "wonderful","phantasmagoric","phenomenal","excellent","exceptional","refulgent",
+         "ambitious","exuberant","frank","witty","amiable","fearless","honest","ineffable",
+         "arcadian","egregious","didactic","efficacious","judicious","propitious","sagacious","zealous"}; 
+    
+    std::vector<std::string> bad = 
+        {"flummoxed","cranky","pernicious","modest","shameful","wobbling","knackered","flippant",
+         "wonky","bellicose","caustic","calamitous","crapulous","dowdy","execrable","fastidious",
+         "guileless","hubristic","insidious","insolent","irksome","mendacious","meretricious",
+         "noxious","obtuse","recalcitrant","risible","strident","wheedling","withering","pauciloquent"};
+    
+    static auto const seed = std::random_device()();
+    static std::mt19937 generator(seed);
+    
+    if (type==1) {
+        std::uniform_int_distribution<int> distr(1,good.size()-1);
+        return good[distr(generator)];
+    }
+    else {
+        std::uniform_int_distribution<int> distr(1,bad.size()-1);
+        return bad[distr(generator)];
+    }
 }

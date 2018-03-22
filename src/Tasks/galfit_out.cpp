@@ -56,7 +56,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     // Get the total intensity, velocity and dispersion maps of data
     mkdirp((outfold+"maps/").c_str());
-    if (verb) std::cout << "    Extracting modest 2D maps..." << std::flush;
+    if (verb) std::cout << "    Extracting "<< randomAdjective(2) << " 2D maps..." << std::flush;
     MomentMap<T> *totalmap = new MomentMap<T>;
     totalmap->input(in);
     totalmap->ZeroMoment(true);
@@ -84,7 +84,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     float mass = 2.365E5*FluxtoJy(totflux_data,in->Head())*fabs(DeltaVel<float>(in->Head()))*distance*distance;
 
     // Calculate radial profile along the output rings
-    if (verb) std::cout << "    Deriving trustful radial profile..." << std::flush;
+    if (verb) std::cout << "    Deriving " << randomAdjective(1) << " radial profile..." << std::flush;
     T meanPA = findMean(&outr->phi[0], outr->nr);
     int nseg = 1;
     float segments[4] = {0, 360., 0., 0};
@@ -161,13 +161,13 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         for (int i=0; i<in->NumPix(); i++) outarray[i] *= factor;
         if (verb) std::cout << " Done." << std::endl;
 
-        if (verb) std::cout << "    Writing useful azimuthally-normalized model..." << std::flush;
+        if (verb) std::cout << "    Writing " << randomAdjective(1) << " azimuthally-normalized model..." << std::flush;
         std::string mfile = outfold+object+"mod_azim.fits";
         mod->Out()->fitswrite_3d(mfile.c_str());
         writePVs(mod->Out(),"_azim");
         if (verb) std::cout << " Done." << std::endl;
 
-        if (verb) std::cout << "    Writing shameful kinematic maps..." << std::flush;
+        if (verb) std::cout << "    Writing " << randomAdjective(2) << " kinematic maps..." << std::flush;
         MomentMap<T> *map = new MomentMap<T>;
         map->input(mod->Out());
         map->ZeroMoment(false);
@@ -205,7 +205,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         }
         if (verb && normtype!="BOTH") std::cout << " Done." << std::endl;
 
-        if (verb) std::cout << "    Writing awesome locally-normalized model..." << std::flush;
+        if (verb) std::cout << "    Writing " << randomAdjective(1) << " locally-normalized model..." << std::flush;
         std::string mfile = outfold+object+"mod_local.fits";
         mod->Out()->fitswrite_3d(mfile.c_str());
 
@@ -215,7 +215,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         if (verb) {
             std::cout << "    Writing " << std::flush;
             if (normtype=="BOTH") std::cout << "even more " << std::flush;
-            std::cout << "shameful kinematic maps..." << std::flush;
+            std::cout << randomAdjective(2) << " kinematic maps..." << std::flush;
         }
         MomentMap<T> *map = new MomentMap<T>;
         map->input(mod->Out());
@@ -250,7 +250,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         writePVs(mod->Out(),"_nonorm");
         if (verb) std::cout << " Done." << std::endl;
 
-        if (verb) std::cout << "    Writing shameful kinematic maps..." << std::flush;
+        if (verb) std::cout << "    Writing " << randomAdjective(1) << " kinematic maps..." << std::flush;
         MomentMap<T> *map = new MomentMap<T>;
         map->input(mod->Out());
         map->ZeroMoment(false);
@@ -294,7 +294,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     // Now plotting everything
     if (makeplots) {
-        if (verb) std::cout << "    Writing creative plots..." << std::flush;
+        if (verb) std::cout << "    Producing " << randomAdjective(1) << " plots..." << std::flush;
         int ret = plotParam();
         if (verb) {
             if (ret==0) std::cout << " Done." << std::endl;
