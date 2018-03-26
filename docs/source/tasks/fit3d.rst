@@ -69,6 +69,8 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **NV** [nchan]. Number of subclouds in the velocity profile of a single cloud (see also GIPSY `GALMOD <https://www.astro.rug.nl/~gipsy/tsk/galmod.dc1>`_). Default is the number of channels in the datacube.
 
+* **BWEIGHT** [1]. Weight to apply to blank pixels. Large numbers mean that models that extend further away than observations are severely discouraged.
+
 * **SIDE** [B]: Side of the galaxy to be fitted. Accepted values are: A = approaching, R = receding and B = both (default)
 
 * **MASK** [SMOOTH]. This parameter tells the code how to build a mask to identify the regions of genuine galaxy emission. Accepted values are *SMOOTH*, *SEARCH*, *SMOOTH&SEARCH*, *THRESHOLD*, *NONE* or a FITS mask file:
@@ -230,5 +232,5 @@ If you have an MPI interface (OpenMPI, MPICH, etc...), this command will create 
 
     > mpirun -np NPROC BBarolo_MPI -l params.list
     
-where NPROC is the number of MPI processes. Each MPI process can be also run in multi-thread mode with the usual **THREAD** parameter. This is basically the same of running NPROC instances of BBarolo, each with a single parameter file.
+where NPROC is the number of MPI processes. Each MPI process can be also run in multi-thread mode with the usual **THREADS** parameter. This is basically the same of running NPROC instances of BBarolo, each with a single parameter file.
 
