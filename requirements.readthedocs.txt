@@ -1,1 +1,1 @@
-./pyBBarolo
+./pyBBarolo/
