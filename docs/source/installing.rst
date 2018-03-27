@@ -47,16 +47,16 @@ Compiling
 
 If your machine satisfies the above requirements, compiling BBarolo will hopefully be a piece of cake. 
 
-1. **Download** the `latest <https://github.com/editeodoro/Bbarolo/archive/1.3.tar.gz>`_ stable release. From a terminal::
+1. **Download** the `latest <https://github.com/editeodoro/Bbarolo/archive/1.4.tar.gz>`_ stable release. From a terminal::
 
     > wget https://github.com/editeodoro/Bbarolo/archive/X.Y.tar.gz .
 
 
-  where *X.Y* is the release version. If you are brave, you can also try the last (non stable) source code from `here <https://github.com/editeodoro/Bbarolo>`_.
+  where *X.Y* is the release version. If you are brave, you can also try the latest (non stable) source code from `here <https://github.com/editeodoro/Bbarolo>`_.
 
 2. **Uncompress** it and enter the BBarolo directory::
 
-    > tar -xvzf Bbarolo-X.Y.tar
+    > tar -xvf Bbarolo-X.Y.tar.gz
     > cd Bbarolo-X.Y
 
 

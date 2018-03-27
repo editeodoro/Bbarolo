@@ -21,7 +21,7 @@ The python package can be alternatively installed from the main repository. You'
 1. Follow steps 1-4 of procedure to :ref:`compile BBarolo from source <compiling>`::
 
     > wget https://github.com/editeodoro/Bbarolo/archive/X.Y.tar.gz .
-    > tar -xvzf Bbarolo-X.Y.tar && cd Bbarolo-X.Y
+    > tar -xvf Bbarolo-X.Y.tar.gz && cd Bbarolo-X.Y
     > ./configure
     > make
 
