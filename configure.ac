@@ -1,10 +1,11 @@
 # -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 # If autoconf fails with 'possibly undefined macro', run autoreconf -i --force
-
+# Macro can be installed with the autoconf-archive. After that, run aclocal before autoconf
+# to pull the required macros into aclocal.m4
 
 AC_PREREQ(2.59)
-AC_INIT([BAROLO], [1.4], [enrico.diteodoro@anu.edu.au])
+AC_INIT([BBAROLO], [1.4], [enrico.diteodoro@gmail.com])
 #AC_CONFIG_HEADER([src/config.h])
 #AC_PREFIX_DEFAULT(/usr/local)
 
@@ -196,11 +197,10 @@ AC_PROG_LN_S
 AC_CHECK_PROGS(INSTALL, install)
 
 # Check for maths library -- will add -lm to $LIBS
-AC_CHECK_LIB([m], [log])
+#AC_CHECK_LIB([m], [log])
 
 # Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([unistd.h ctime cmath iostream fstream])
+AC_CHECK_HEADERS([iostream fstream])
 if test "x$ac_cv_header_stdc" = xno; then
   AC_MSG_ERROR([
     -------------------------------------------------------------------
@@ -227,9 +227,6 @@ AC_SUBST([BASEDIR])
 #------------------------------------
 # Static library generation.
 AC_PROG_RANLIB
-# Installation utilities.
-#AC_PROG_LN_S
-#AC_PROG_INSTALL
 
 # Shared library generation.
 if test "x$ac_cv_c_compiler_gnu" = xyes ; then
@@ -237,16 +234,14 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
   SHRFLAGS="-fPIC"
   SHRLD="\$(LINK) $SHRFLAGS"
 
-  case "$build_os" in
-  darwin*)
+  case "$build_os" in darwin*)
     AC_MSG_NOTICE([ Using darwin build option])
     SHRLIB="libBBarolo.dylib.$PACKAGE_VERSION"
     SHRLD="$SHRLD -dynamiclib -single_module"
     SHRLD="$SHRLD -compatibility_version $PACKAGE_VERSION -current_version $PACKAGE_VERSION"
     SHRLN="libBBarolo.dylib"
 
-    case "$build_cpu" in
-    powerpc*)
+    case "$build_cpu" in powerpc*)
       AC_MSG_NOTICE([ Using darwin build option with powerpc subcase])		
       # Switch off -fPIC (not applicable for Intel Macs).
       CFLAGS="$CFLAGS -mdynamic-no-pic"
@@ -278,27 +273,16 @@ AC_SUBST([SHRSFX])
 AC_SUBST([SHRLN])
 
 
-# Checks for library functions.
-AC_FUNC_STRTOD
-AC_CHECK_FUNCS([floor cos lround])
-
 # Extra places to look for third-party include files and libraries.
 INCDIRS="$INCDIRS           \
          /usr/include       \
          /usr/local/include \
-         /usr/local/fftw3   \
-         /usr/local/cfitsio \
-         /local/cfitsio     \
-         /usr/local/wcslib	\
          /opt/local/include"
 
 LIBDIRS="$LIBDIRS           \
          /usr/lib           \
          /usr/local/lib     \
-         /usr/local/cfitsio \
          /local/lib         \
-         /local/cfitsio     \
-         /usr/local/wcslib	\
          /opt/local/lib"
 
 AC_MSG_NOTICE(LIBDIRS)
@@ -350,11 +334,9 @@ for INCDIR in $CFITSIOINCDIRS ; do
 done
 
 AC_CHECK_LIB([socket],  [recv],   [CFITSIOLIB="$CFITSIOLIB -lsocket"], [], [$LIBS])
-AC_CHECK_LIB([cfitsio], [ffopen], [CFITSIOLIB="$CFITSIOLIB -lcfitsio"], [],
-             [$CFITSIOLIB $LIBS])
+AC_CHECK_LIB([cfitsio], [ffopen], [CFITSIOLIB="$CFITSIOLIB -lcfitsio"], [], [$CFITSIOLIB $LIBS])
 
-# CFITSIO is essential for BBarolo, so exit with error message if it
-#   is not present.
+# CFITSIO is essential for BBarolo, so exit with error message if not present.
 if test "x$CFITSIOINC" = x -o "x$CFITSIOLIB" = x; then
   AC_MSG_ERROR([
     -------------------------------------------------------------
@@ -367,12 +349,24 @@ if test "x$CFITSIOINC" = x -o "x$CFITSIOLIB" = x; then
 else
   AC_MSG_NOTICE([CFITSIO appears to be available.])
   AC_DEFINE([HAVE_CFITSIO], [1], [Define to 1 if CFITSIO is available.])
-for LIBDIR in $CFITSIOLIBDIRS ; do
-  AC_CHECK_FILE([$LIBDIR/libcfitsio.a], [CFITSIOLIB="-L$LIBDIR $CFITSIOLIB"; break])
-  LIBDIR=$LIBDIR/cfitsio
-  AC_CHECK_FILE([$LIBDIR/libcfitsio.a], [CFITSIOLIB="-L$LIBDIR $CFITSIOLIB"; break])
-done
+  # Now add the -L statements to start of CFITSIOLIB.
+  # Search for libcfitsio.a.
 
+  DIRLIST=". \
+           cfitsio"
+
+  for LIBBASE in $CFITSIOLIBDIRS ; do
+    for DIR in $DIRLIST; do
+      if test "x$DIR" = x.; then
+        LIBDIR=$LIBBASE
+      else
+        LIBDIR="$LIBBASE/$DIR"
+      fi
+      AC_CHECK_FILE([$LIBDIR/libcfitsio.a], [CFITSIOLIBFRONT="-L$LIBDIR"; \
+                     STATICLIBS+="$LIBDIR/libcfitsio.a "; break 2])
+     done
+  done
+  CFITSIOLIB="$CFITSIOLIBFRONT $CFITSIOLIB"
 fi
 
 AC_SUBST([CFITSIOINC])
@@ -393,7 +387,7 @@ AC_ARG_WITH(fftw3,
 if test "x$withval" = xno; then
   AC_MSG_NOTICE([
     The FFTW3 library is required.
-    Ignoring the "--with-fftw3lib=no" and searching for the library.], [1])
+    Ignoring the "--with-fftw3=no" and searching for the library.], [1])
   FFTW3INCDIRS=$INCDIRS
   FFTW3LIBDIRS=$LIBDIRS
 else
@@ -419,10 +413,10 @@ FFTW3LIBDIRS=$LIBDIRS
 
 if test "x$FFTW3INCDIR" = x; then
   for INCBASE in $FFTW3INCDIRS ; do
-    AC_CHECK_FILE([$INCBASE/fftw3.h], [FFTW3INC="-I$INCBASE -I$INCBASE/fftw3lib $FFTW3INC"; break])
+    AC_CHECK_FILE([$INCBASE/fftw3.h], [FFTW3INC="-I$INCBASE $FFTW3INC"; break])
   done
 else
-  AC_CHECK_FILE([$FFTW3INCDIR/fftw3lib/fftw3.h], [FFTW3INC="-I$FFTW3INCDIR -I$FFTW3INCDIR/fftw3lib $FFTW3INC"])
+  AC_CHECK_FILE([$FFTW3INCDIR/fftw3lib/fftw3.h], [FFTW3INC="-I$FFTW3INCDIR/fftw3lib $FFTW3INC"])
 fi
 
 
@@ -463,7 +457,7 @@ else
        LIBDIR="$LIBBASE/$DIR"
       fi
       AC_CHECK_FILE([$LIBDIR/libfftw3.a], 
-             [FFTW3LIBFRONT="-L$LIBDIR"; break])
+             [FFTW3LIBFRONT="-L$LIBDIR"; STATICLIBS+="$LIBDIR/libfftw3.a "; break 2])
      done
   done
   FFTW3LIB="$FFTW3LIBFRONT $FFTW3LIB"
@@ -516,16 +510,15 @@ WCSLIBDIRS=$LIBDIRS
 
 if test "x$WCSINCDIR" = x; then
   for INCBASE in $WCSINCDIRS ; do
-    AC_CHECK_FILE([$INCBASE/wcslib/wcs.h], [WCSINC="-I$INCBASE -I$INCBASE/wcslib $WCSINC"; break])
+    AC_CHECK_FILE([$INCBASE/wcslib/wcs.h], [WCSINC="-I$INCBASE $WCSINC"; break])
   done
 else
-  AC_CHECK_FILE([$WCSINCDIR/wcslib/wcs.h], [WCSINC="-I$WCSINCDIR -I$WCSINCDIR/wcslib $WCSINC"])
+  AC_CHECK_FILE([$WCSINCDIR/wcslib/wcs.h], [WCSINC="-I$WCSINCDIR/wcslib $WCSINC"])
 fi
 
 
 # Look for libwcs.a
-AC_CHECK_LIB([wcs], [wcss2p], [WCSLIB="$WCSLIB -lwcs"], [],
-             [$WCSLIB $LIBS $CFITSIOLIB $PGPLOTLIB])
+AC_CHECK_LIB([wcs], [wcss2p], [WCSLIB="$WCSLIB -lwcs"], [], [$WCSLIB $LIBS $CFITSIOLIB])
 
 if test "x$WCSINC" = x -o "x$WCSLIB" = x; then
   AC_MSG_ERROR([
@@ -554,7 +547,7 @@ else
        LIBDIR="$LIBBASE/$DIR"
       fi
       AC_CHECK_FILE([$LIBDIR/libwcs.a], 
-             [WCSLIBFRONT="-L$LIBDIR"; break])
+             [WCSLIBFRONT="-L$LIBDIR"; STATICLIBS+="$LIBDIR/libwcs.a "; break 2])
     done
   done
   WCSLIB="$WCSLIBFRONT $WCSLIB"
@@ -564,7 +557,10 @@ AC_SUBST([WCSINC])
 AC_SUBST([WCSLIB])
 ##########################################################################
 
+AC_SUBST([STATICLIBS])
+
 ################### CHECKING FOR PYTHON ##################################
+AC_MSG_NOTICE([  -- PYTHON -- ])
 AM_PATH_PYTHON
 AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
 AC_ARG_VAR([PYTHON_LIBS], [Library flags for python, bypassing python-config])
@@ -633,9 +629,6 @@ fi
 ##########################################################################
 
 
-
-
-
 AC_SUBST([LDFLAGS])
 
 AC_CONFIG_FILES([Makefile])
@@ -645,12 +638,15 @@ AC_MSG_NOTICE([
 
    Configuration Summary:
       Operating System:  ${build_os}
-      Compilator:        ${CXX}
+      Compiler:          ${CXX}
       Source directory:  ${BASEDIR}
       Target directory:  ${prefix}
       CFITSIO library:   ${CFITSIOLIB}
+      CFITSIO headers:   ${CFITSIOINC}
       FFTW3 library:     ${FFTW3LIB}
+      FFTW3 headers:     ${FFTW3INC}
       WCS library:       ${WCSLIB}
+      WCS headers:       ${WCSINC}
       Have Gnuplot:      ${GNUPLOT}
       Have Python:       ${HAVEPYTHON}
 ])

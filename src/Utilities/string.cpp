@@ -277,7 +277,8 @@ std::string randomAdjective (int type) {
          "marvelous","ungodly","incredible","wondrous","magnificent","glorious","splendiferous",
          "wonderful","phantasmagoric","phenomenal","excellent","exceptional","refulgent",
          "ambitious","exuberant","frank","witty","amiable","fearless","honest","ineffable",
-         "arcadian","egregious","didactic","efficacious","judicious","propitious","sagacious","zealous"}; 
+         "arcadian","egregious","didactic","efficacious","judicious","propitious","sagacious",
+         "zealous","flamboyant"}; 
     
     std::vector<std::string> bad = 
         {"flummoxed","cranky","pernicious","modest","shameful","wobbling","knackered","flippant",

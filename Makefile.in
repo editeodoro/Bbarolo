@@ -2,7 +2,7 @@ CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @CFLAGS@
 #CFLAGS = -O0 -g -fbounds-check -Wall -Wextra @CFLAGS@ 
 #CFLAGS = -fast -Wall @CFLAGS@ 
 
-OS = @OP@
+OS = @OP@ 
 CC =    @CC@ $(CFLAGS)
 CXX =   @CXX@ $(CFLAGS)
 LINK=   @CXX@ $(CFLAGS) -flto
@@ -53,7 +53,8 @@ OTHERLIB = -lm
 CINC = -I$(BASE) $(FFTW3INC) $(CFITSIOINC) $(WCSINC) #$(PYINC)
 
 LIBS = $(FFTW3LIB) $(CFITSIOLIB) $(WCSLIB) $(OTHERLIB) #$(PYLIB)
-STATICLIBS = $(LIBDIR)/libcfitsio.a $(LIBDIR)/libfftw3.a $(LIBDIR)/libwcs.a #$(PYLIB)/libpython3.5.a
+STATICLIBS = @STATICLIBS@ -lcurl
+#$(PYLIB)/libpython3.6.a
 
 ARRAYDIR = $(BASE)/Arrays
 MAPDIR = $(BASE)/Map
@@ -231,12 +232,11 @@ all:
 	make && make gui
 
 static: build $(OBJECTS)
-	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT)
-	make guistatic
+	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT) -static-libgcc -static-libstdc++
 
 guistatic :
 	rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
-	macdeployqt ./BBaroloGUI.app/
+	macdeployqt ./BBaroloGUI.app/ -no-plugins
 	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
 	$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
 

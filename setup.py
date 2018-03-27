@@ -5,7 +5,7 @@ from distutils.core import setup
 from distutils.dir_util import remove_tree, mkpath
 import multiprocessing as mpr
 #from pyBBarolo import __version__ as version
-version = "1.0.6"
+version = "1.0.7"
 logfile = "setup.log"
 try: os.remove(logfile)
 except: pass

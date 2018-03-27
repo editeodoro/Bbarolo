@@ -32,7 +32,6 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-
 #define BBVERSION 1.4
 
 
@@ -1012,6 +1011,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         else if (t==1) typ = "|cos(θ)|";
         else if (t==2) typ = "cos(θ)^2";
         recordParam(Str, "[WFUNC]", "   Weighting function", typ);
+        recordParam(Str, "[BWEIGHT]", "   Weight for blank pixels", p.getParGF().BWEIGHT);
         
         recordParam(Str, "[TOL]", "   Minimization tolerance", p.getParGF().TOL); 
         recordParam(Str, "[SIDE]", "   What side of the galaxy to be used", (p.getParGF().SIDE)); 

@@ -662,12 +662,14 @@ void BBaroloWindow::on_listWidget_itemChanged(QListWidgetItem *item)
             set3DModelFlag(item->checkState());
             ui->GalfitgroupBox->setEnabled(item->checkState());
             ui->AdvancedgroupBox->setEnabled(item->checkState());
+            break;
         case 3:
             ui->SearchgroupBox->setEnabled(item->checkState());
             ui->SearchAdvgroupBox->setEnabled(item->checkState());
             break;
         case 4:
             ui->SmoothgroupBox->setEnabled(item->checkState());
+            break;
         default:
             break;
         }
