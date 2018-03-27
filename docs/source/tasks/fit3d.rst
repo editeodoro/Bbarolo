@@ -69,8 +69,6 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **NV** [nchan]. Number of subclouds in the velocity profile of a single cloud (see also GIPSY `GALMOD <https://www.astro.rug.nl/~gipsy/tsk/galmod.dc1>`_). Default is the number of channels in the datacube.
 
-* **BWEIGHT** [1]. Weight to apply to blank pixels. Large numbers mean that models that extend further away than observations are severely discouraged.
-
 * **SIDE** [B]: Side of the galaxy to be fitted. Accepted values are: A = approaching, R = receding and B = both (default)
 
 * **MASK** [SMOOTH]. This parameter tells the code how to build a mask to identify the regions of genuine galaxy emission. Accepted values are *SMOOTH*, *SEARCH*, *SMOOTH&SEARCH*, *THRESHOLD*, *NONE* or a FITS mask file:
@@ -93,7 +91,7 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **POLYN** [-1]. Degree of polynomials for the regularization of inclination and position angles. -1 enables the Bezier function.
 
-* **BWEIGHT** [2]. Exponent of weight for blank pixels. See Section 2.4 of reference paper for details.
+* **BWEIGHT** [1]. Exponent of weight for blank pixels. See Section 2.4 of reference paper for details. Large numbers mean that models that extend further away than observations are severely discouraged.
 
 * **FLAGERRORS** [false]. Whether the code has to estimate the errors. This usually heavily slows down the run.
 
