@@ -25,7 +25,7 @@ import numpy as np
 #from .BB_interface import libBB
 from astropy.io import fits
 
-print ("hello")
+
 def reshapePointer (p, shape):
     """Take a POINTER to c_float and reshape it.
     
