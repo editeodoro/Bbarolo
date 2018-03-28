@@ -2,7 +2,7 @@
 API
 #############
 
-.. automodule:: pyBBarolo
+.. automodule:: pyBBarolo.pyBBarolo
     :members:
     :undoc-members:
     :show-inheritance:
