@@ -127,7 +127,7 @@ namespace PixelInfo
   
   
   template <class T>
-  Pixel<T>::Pixel(const Pixel& p) {
+  Pixel<T>::Pixel(const Pixel<T>& p) {
    
     operator=(p);
   }

@@ -179,7 +179,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
                              file_rings.z0.size(),file_rings.dens.size(),file_rings.inc.size(),
                              file_rings.phi.size(),file_rings.vrad.size()};
 
-    int max_size=INT_MAX;
+    size_t max_size=UINT_MAX;
     for (int i=0; i<MAXPAR+1; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
     
     int nr=0;
@@ -386,7 +386,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     // Setting other GALFIT variables
     verb = in->pars().isVerbose();
     arcconv = arcsconv(in->Head().Cunit(0));
-    distance = par.DISTANCE;
+    distance = par.DISTANCE==-1 ? VeltoDist(fabs(inr->vsys[0])) : par.DISTANCE;
     chan_noise = new float[in->DimZ()];
     chan_noiseAllocated = true;
     for (int z=0; z< in->DimZ(); z++) chan_noise[z]=1;
@@ -470,7 +470,7 @@ void Galfit<T>::galfit() {
     verb = in->pars().isVerbose();
     
     static int n=0;
-    n++;
+    n = n==1 ? 2 : 1;
     std::string fileo = in->pars().getOutfolder()+"ringlog"+to_string(n)+".txt";
     remove(fileo.c_str());
 
@@ -1285,7 +1285,7 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
          << setw(m) << "FUN" 
          << setw(m) << "FUN_REG\n";
     
-    T a1 = exp(cfun[0]);
+    //T a1 = exp(cfun[0]);
     T a2 = 0;
     T a3 = -1/cfun[1];
     

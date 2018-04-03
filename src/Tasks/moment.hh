@@ -382,12 +382,12 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
 {
     if (isVerbose) bar.init(xs*ys);
 #pragma omp for
-    for (int xy=0; xy<xs*ys; xy++) {
+    for (size_t xy=0; xy<xs*ys; xy++) {
         if (isVerbose) bar.update(xy+1);
             
         // Getting the spectrum at x,y pixel
         std::vector<float> sp(zs);
-        for (int z=0; z<zs; z++) 
+        for (size_t z=0; z<zs; z++) 
             if (in->Array(xy+z*xs*ys)==in->Array(xy+z*xs*ys)) 
                 sp[z] = in->Array(xy+z*xs*ys);
             

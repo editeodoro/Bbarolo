@@ -350,7 +350,7 @@ bool Galmod<T>::smooth(bool usescalefac) {
     if(!smoothed->smooth(out, oldbeam, newbeam, out->Array(), out->Array()))
         return false;   
     
-    for (int i=0; i<out->NumPix(); i++)
+    for (size_t i=0; i<out->NumPix(); i++)
         if (out->Array(i)<1.E-12) out->Array()[i] = 0;
     
     delete smoothed;

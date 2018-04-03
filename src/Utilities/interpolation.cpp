@@ -415,7 +415,7 @@ void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
                double log_dsr_to_the_n = n*log(1-sr);
                double log_sr_over_dsr  = log(sr)-log(1-sr);
 
-               for (int j=0; j<=n; j++) {
+               for (unsigned j=0; j<=n; j++) {
                    double u = exp(bc[j]+log_dsr_to_the_n+j*log_sr_over_dsr);
                    px += x_in[j+fp]*u;
                    py += y_in[j+fp]*u;

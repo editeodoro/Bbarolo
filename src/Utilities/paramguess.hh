@@ -1053,7 +1053,7 @@ T ParamGuess<T>::funcIncfromMap(T *mypar) {
     delete totalmap;
 
     double profmin=FLT_MAX;
-    for (size_t i=0; i<rings->nr; i++) {
+    for (int i=0; i<rings->nr; i++) {
         double mean = ell.getMean(i);
         if (!isNaN(mean) && profmin>mean && mean>0) profmin = mean;
     }
@@ -1066,7 +1066,7 @@ T ParamGuess<T>::funcIncfromMap(T *mypar) {
         profmin /= 10;
         factor /= 10;
     }
-    for (size_t i=0; i<rings->nr; i++) {
+    for (int i=0; i<rings->nr; i++) {
         rings->dens[i]=factor*fabs(ell.getMean(i))*1E20;
         if (rings->dens[i]==0) rings->dens[i]=profmin*1E20;
     }

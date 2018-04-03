@@ -882,7 +882,7 @@ void Cube<T>::plotDetections() {
 
     /// Write a datacube with just the detected objects
     Cube<T> *det = new Cube<T>(axisDim);
-    for (int i=0; i<det->NumPix(); i++) det->Array()[i] = array[i]*isObj[i];
+    for (size_t i=0; i<det->NumPix(); i++) det->Array()[i] = array[i]*isObj[i];
     det->saveHead(head);
     det->saveParam(par);
     det->Head().setMinMax(0,0);

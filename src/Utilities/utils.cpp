@@ -820,8 +820,8 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
                       fr.vrot.size(),fr.vrad.size(),fr.vvert.size(),fr.dvdz.size(),
                       fr.zcyl.size(),fr.vdisp.size(),fr.z0.size(),fr.dens.size(),
                       fr.inc.size(),fr.phi.size()};
-    int max_size=INT_MAX;
-    for (int i=0; i<NPAR; i++) if (s[i]!=0 && s[i]<max_size) max_size=s[i];
+    size_t max_size=UINT_MAX;
+    for (short i=0; i<NPAR; i++) if (s[i]!=0 && s[i]<max_size) max_size=s[i];
 
     // Reading parameter rings without caring if they are file or not
     T vsys        = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : 0;
@@ -850,7 +850,7 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     nr = nr>0 && nr<max_size ? nr : max_size;
     if (radii_b) {
         radsep = 0;
-        for (uint i=1; i<fr.radii.size()-1; i++)
+        for (unsigned i=1; i<fr.radii.size()-1; i++)
             radsep += fr.radii[i+1]-fr.radii[i];
         radsep/=(fr.radii.size()-2);
     }
@@ -909,13 +909,13 @@ double* getCenterCoordinates(std::string *pos, Header &h) {
     for (int i=0; i<2; i++) {
         std::string coord_str = pos[i];
         std::string coord_typ = makelower(h.Ctype(i));
-        if (coord_str.find('d')!=-1) {
+        if (coord_str.find('d')!=std::string::npos) {
             std::string substr = coord_str.erase(coord_str.find('d'),coord_str.size()-1);
             world[i] = atof(substr.c_str());
         }
-        else if (coord_str.find(':')!=-1) {                         // Found sexagesimal
+        else if (coord_str.find(':')!=std::string::npos) {      // Found sexagesimal
             double pos_deg = dmsToDec(coord_str);
-            if (coord_typ.find("ra")!=-1) pos_deg*=15;
+            if (coord_typ.find("ra")!=std::string::npos) pos_deg*=15;
             world[i] = pos_deg;
         }
         else isPOS[i]=true;

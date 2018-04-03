@@ -53,7 +53,7 @@ public:
     /// Obvious inline functions to access a private member of class:   
     
     int     NumAx () {return numAxes;};
-    long    NumPix() {return numPix;};
+    size_t  NumPix() {return numPix;};
     int*    AxisDim () {return axisDim;};
     int     AxesDim (int i) {return axisDim[i];};
     int     DimX(){return axisDim[0];}; 
@@ -143,7 +143,7 @@ public:
 
     /// Blanking and Maps functions.
     
-    void    BlankCube (T *Array, long size);            /// Blank a input array using Cube::mask.
+    void    BlankCube (T *Array, size_t size);            /// Blank a input array using Cube::mask.
     void    BlankMask(float *channel_noise=NULL);       /// Define Cube::mask;
 
     //void  WriteFITSMap (T *Array, int T);          /// Write a map in a FITS file.

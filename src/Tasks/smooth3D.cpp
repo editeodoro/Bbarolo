@@ -524,11 +524,10 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
         int Iresult = Convolve(confie, NconX, NconY, beforeCON, 
                                 afterCON, NdatX+NconX-1, NdatY+NconY-1);
         
-        //if (Iresult!=0) {
-        //    std::cout<<"SMOOTH error: cannot convolve requested functions (code="
-        //             << Iresult << ")" << std::endl;
-        //    return false;
-        //}
+        if (Iresult!=0) {
+            std::cerr << "SMOOTH error: cannot convolve requested functions (code="
+                      << Iresult << ")" << std::endl;
+        }
 
         for (int x=(NconX-1)/2; x<(NdatX+(NconX-1)/2); x++) {
             for (int y=(NconY-1)/2; y<(NdatY+(NconY-1)/2); y++) {
@@ -857,8 +856,7 @@ void Smooth3D<T>::fitswrite() {
     
     int ax[3] = {NdatX, NdatY, NdatZ};
     Cube<T> *out = new Cube<T>(ax);
-    for (int i=0; i<out->NumPix(); i++) 
-        out->Array()[i] = array[i];
+    for (size_t i=0; i<out->NumPix(); i++) out->Array()[i] = array[i];
     out->saveHead(in->Head());
     out->saveParam(in->pars());
     out->Head().setDimAx(0, NdatX);

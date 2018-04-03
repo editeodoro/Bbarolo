@@ -264,7 +264,7 @@ void Cube<T>::setCube (T *input, int *dim) {
     numPix = axisDim[0]*axisDim[1]*axisDim[2];
     array = new T [numPix];
     arrayAllocated=true;
-    for (int i=0; i<numPix; i++) array[i]=input[i]; 
+    for (size_t i=0; i<numPix; i++) array[i]=input[i]; 
     if (mapAllocated) delete [] detectMap;
     detectMap = new short [axisDim[0]*axisDim[1]];
     mapAllocated=true;
@@ -450,7 +450,7 @@ template void Cube<double>::setCubeStats();
 
 
 template <class T>
-void Cube<T>::BlankCube (T *Array, long size) {
+void Cube<T>::BlankCube (T *Array, size_t size) {
     
   /// A function for blanking an array with Cube mask data.
   ///
@@ -462,14 +462,14 @@ void Cube<T>::BlankCube (T *Array, long size) {
         std::cout << "Error blanking cube: array size is different from cube size" << std::endl;
     else {
         if (!maskAllocated) BlankMask();
-        for (int i=0; i<size; i++) Array[i] *= mask[i];
+        for (size_t i=0; i<size; i++) Array[i] *= mask[i];
     }
 }
-template void Cube<short>::BlankCube (short*, long);
-template void Cube<int>::BlankCube (int*, long);
-template void Cube<long>::BlankCube (long*, long);
-template void Cube<float>::BlankCube (float*, long);
-template void Cube<double>::BlankCube (double*, long);
+template void Cube<short>::BlankCube (short*, size_t);
+template void Cube<int>::BlankCube (int*, size_t);
+template void Cube<long>::BlankCube (long*, size_t);
+template void Cube<float>::BlankCube (float*, size_t);
+template void Cube<double>::BlankCube (double*, size_t);
 
 
 
@@ -498,7 +498,7 @@ void Cube<T>::BlankMask (float *channel_noise){
     if (maskAllocated) delete [] mask;
     mask = new bool[numPix];
 
-    for (int i=0; i<numPix; i++) mask[i]=0;
+    for (size_t i=0; i<numPix; i++) mask[i]=0;
 
     bool verb = par.isVerbose();
     if (verb) {
@@ -584,7 +584,7 @@ void Cube<T>::BlankMask (float *channel_noise){
         Smooth3D<T> *sm = new Smooth3D<T>;
         sm->smooth(this, oldbeam, newbeam);
         bool *blanks = new bool[numPix];
-        for (int i=0; i<numPix; i++) blanks[i] = isBlank(sm->Array(i)) ? false : true;
+        for (size_t i=0; i<numPix; i++) blanks[i] = isBlank(sm->Array(i)) ? false : true;
         st->calculate(sm->Array(),numPix,blanks);
         st->setThresholdSNR(par.getBlankCut());
 
@@ -637,11 +637,11 @@ void Cube<T>::BlankMask (float *channel_noise){
             if (channel_noise!=NULL) channel_noise[z]=st->getSpread();
         }
     }
-    else if (par.getMASK().find("FILE(")!=-1) {
+    else if (par.getMASK().find("FILE(")!=std::string::npos) {
         std::string str = par.getMASK();
         size_t first = str.find_first_of("(");
         size_t last = str.find_last_of(")");
-        if (first==-1 || last==-1) {
+        if (first==std::string::npos || last==std::string::npos) {
             std::cerr << "\n  ERROR: MASK parameter is not correct. Provide file(Maskfitsfile)\n";
             std::terminate();
         }
@@ -907,7 +907,7 @@ void Cube<T>::CheckChannels () {
     int NdatZ = axisDim[2]-bad.size(); 
     int ax[3] = {axisDim[0], axisDim[1], NdatZ};
     Cube<T> *out = new Cube<T>(ax);
-    for (int i=0; i<out->NumPix(); i++) 
+    for (size_t i=0; i<out->NumPix(); i++) 
         out->Array()[i] = array[i+count*xySize];
     out->saveHead(head);
     out->saveParam(par);

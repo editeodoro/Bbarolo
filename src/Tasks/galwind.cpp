@@ -101,7 +101,7 @@ bool GalWind<T>::compute() {
     bool vwind_b = getDataColumn(Vwind,par.VWIND);
     bool vdisp_b = getDataColumn(Vdisp,par.VDISP);
     bool dens_b  = getDataColumn(Dens,par.DENS);
-    for (int i=0; i<par.NTOT; i++) {
+    for (size_t i=0; i<par.NTOT; i++) {
         // If only 1 value is given, fill vectors with this value
         if (!vwind_b) Vwind.push_back(atof(par.VWIND.c_str()));
         if (!vdisp_b) Vdisp.push_back(atof(par.VDISP.c_str()));
@@ -118,7 +118,7 @@ bool GalWind<T>::compute() {
     out = new Cube<T>(in->AxisDim());
     out->saveHead(in->Head());
     outDefined = true;
-    for (int i=0; i<out->NumPix(); i++) out->Array(i) = 0;
+    for (size_t i=0; i<out->NumPix(); i++) out->Array(i) = 0;
 
     // Starting progress bar
     bool verb = in->pars().isVerbose();
@@ -136,7 +136,7 @@ bool GalWind<T>::compute() {
     
 #pragma omp for
     // Start main loop
-    for (int k=1; k<(par.NTOT+1); k++){
+    for (size_t k=1; k<(par.NTOT+1); k++){
         if (verb) bar.update(k);
 
         // Assign distribution and kinematics to cylinder k
@@ -187,7 +187,7 @@ bool GalWind<T>::compute() {
         con2->input(in, r, nv, par.LTYPE, 1, par.CDENS, -k);
         con2->calculate();
 
-        for (int i=0; i<in->NumPix(); i++) 
+        for (size_t i=0; i<in->NumPix(); i++) 
             out->Array(i) += (con1->Out()->Array(i)+con2->Out()->Array(i));
 
         delete r;
@@ -221,7 +221,7 @@ bool GalWind<T>::smooth(bool scalefac) {
         smoothed->setUseBlanks(false);
         smoothed->smooth(out, oldbeam, newbeam, out->Array(), out->Array());
 
-        for (int i=0; i<out->NumPix(); i++)
+        for (size_t i=0; i<out->NumPix(); i++)
             if (out->Array(i)<1.E-12) out->Array()[i] = 0.;
 
         delete smoothed;

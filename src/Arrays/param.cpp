@@ -1022,17 +1022,17 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         recordParam(Str, "[REDSHIFT]", "   Redshift of the galaxy?", p.getParGF().REDSHIFT);
         if (p.getParGF().RESTWAVE[0]!=-1 || defaults) {
             string rstr = "";
-            for (int i=0; i<p.getParGF().RESTWAVE.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RESTWAVE[i],2) + " ";
+            for (unsigned i=0; i<p.getParGF().RESTWAVE.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RESTWAVE[i],2) + " ";
             recordParam(Str, "[RESTWAVE]", "   Transition wavelength at rest?", rstr);
         }
         if (p.getParGF().RESTFREQ[0]!=-1 || defaults) {
             string rstr = "";
-            for (int i=0; i<p.getParGF().RESTFREQ.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RESTFREQ[i],2) + " ";
+            for (unsigned i=0; i<p.getParGF().RESTFREQ.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RESTFREQ[i],2) + " ";
             recordParam(Str, "[RESTFREQ]", "   Transition frequency at rest?", rstr);
         }
         if (p.getParGF().RELINT.size()>1 || defaults) {
             string rstr = "";
-            for (int i=0; i<p.getParGF().RELINT.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RELINT[i],2) + " ";
+            for (unsigned i=0; i<p.getParGF().RELINT.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RELINT[i],2) + " ";
             recordParam(Str, "[RELINT]", "   Relative intensities of lines?", rstr);
         }
         recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));

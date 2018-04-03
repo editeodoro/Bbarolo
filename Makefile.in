@@ -124,10 +124,10 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/wcsUtils.o\
 	 $(OBJDIR)/BB_interface.o\
 
-bbarolo : build $(OBJECTS)
+bbarolo : builddir $(OBJECTS)
 	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(LIBS) $(OPT)
 
-lib : build $(OBJECTS)
+lib : builddir $(OBJECTS)
 	$(AR) $(LIB) $(OBJECTS)
 	$(RANLIB) $(LIB)
 	$(SHAREDLIB) $(CINC) $(LIBS) -o $(LIBSO) $(OBJECTS)
@@ -186,8 +186,7 @@ $(OBJDIR)/%.o: $(TASKDIR)/%.cpp
 .c.o:
 	$(CC) -c $< $(CINC) -o $@ $(OPT)
 	
-
-build: 
+builddir: 
 	mkdir -p $(OBJDIR)
 	
 clean : cleanup
@@ -231,7 +230,7 @@ endif
 all: 
 	make && make gui
 
-static: build $(OBJECTS)
+static: builddir $(OBJECTS)
 	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT) -static-libgcc -static-libstdc++
 
 guistatic :

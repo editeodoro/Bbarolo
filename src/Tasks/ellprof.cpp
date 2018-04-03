@@ -202,7 +202,7 @@ Ellprof<T>::Ellprof(MomentMap<T> *image, size_t nrad, float width, float phi, fl
 
     r->nr = nrad;
     r->radsep = width;
-    for (size_t i=0; i<r->nr; i++) {
+    for (size_t i=0; i<nrad; i++) {
         r->radii.push_back(i*width + width/2.);
         r->phi.push_back(phi);
         r->inc.push_back(inc);
