@@ -222,9 +222,10 @@ bool Param::getopts(int argc, char ** argv) {
                 
                 case 'f':
                 file = optarg;
-                imageFile = file;
+                images.push_back(file);
                 beamFWHM /= 3600.;
                 parSE.flagSearch=true;
+                parGF.flagGALFIT=true;
                 returnValue = true;
                 break;
                 
