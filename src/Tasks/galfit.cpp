@@ -192,45 +192,27 @@ Galfit<T>::Galfit(Cube<T> *c) {
 
     if (toEstimate) {
 
-        if (!c->getIsSearched()) c->Search();
-        Detection<T> *largest = c->LargestDetection();
-
-        if (largest==NULL) {
-            std::cout << " 3DFIT ERROR: No sources detected in the datacube. Cannot fit!!! \n";
-            std::terminate();
-        }
-
         if (verb) std::cout << "\n Estimating initial parameters... " << std::flush;
-        ParamGuess<T> *init_par = new ParamGuess<T>(c,largest);
-        init_par->findInitial();
-
+        T *init_par = EstimateInitial(c,&par);
+        if (verb) std::cout << "Done." << std::endl;
+        
         string pos[2] = {par.XPOS, par.YPOS};
         double *pixs = getCenterCoordinates(pos, c->Head());
-        if (par.XPOS!="-1" && par.YPOS!="-1") {
-            init_par->setXcentre(pixs[0]);
-            init_par->setYcentre(pixs[1]);
-        }
-        if (par.PHI!="-1")  init_par->setPosang(atof(par.PHI.c_str()));
-
-        init_par->fitEllipse();
-        if (c->pars().getFlagDebug()) init_par->fitIncfromMap();
-        if (c->pars().getFlagDebug()) init_par->plotGuess();
-        if (c->pars().isVerbose()) std::cout << "Done." << std::endl;
-
-        nr    = par.NRADII!=-1 ? par.NRADII : init_par->nrings;
-        radsep= par.RADSEP!=-1 ? par.RADSEP : init_par->radsep;
-        xpos  = par.XPOS!="-1" ? pixs[0] : init_par->xcentre;
-        ypos  = par.YPOS!="-1" ? pixs[1] : init_par->ycentre;
-        vsys  = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : init_par->vsystem;
+        
+        nr    = par.NRADII!=-1 ? par.NRADII : init_par[0];
+        radsep= par.RADSEP!=-1 ? par.RADSEP : init_par[1];
+        xpos  = par.XPOS!="-1" ? pixs[0] : init_par[2];
+        ypos  = par.YPOS!="-1" ? pixs[1] : init_par[3];
+        vsys  = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : init_par[4];
         if (distance==-1) distance = VeltoDist(fabs(vsys));
-        vrot  = par.VROT!="-1" ? atof(par.VROT.c_str()) : init_par->vrot;
+        vrot  = par.VROT!="-1" ? atof(par.VROT.c_str()) : init_par[5];
         vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;// default is 8 km/s
         z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.; // default is infinitely thin disk
         dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
-        inc   = par.INC!="-1" ? atof(par.INC.c_str()) : init_par->inclin;
-        pa    = par.PHI!="-1" ? atof(par.PHI.c_str()) : init_par->posang;
+        inc   = par.INC!="-1" ? atof(par.INC.c_str()) : init_par[6];
+        pa    = par.PHI!="-1" ? atof(par.PHI.c_str()) : init_par[7];
         vrad  = par.VRAD!="-1" ? atof(par.VRAD.c_str()) : 0.;
-        delete init_par;
+        delete [] init_par;
     }
     else {
         nr    = par.NRADII;
@@ -337,9 +319,9 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     par.SM       = SMOOTH;
     par.DISTANCE = DISTANCE;
     par.REDSHIFT = REDSHIFT;
-    par.RESTWAVE[0] = RESTWAVE;   //@TODO Update for doublets
+    par.RESTWAVE[0] = RESTWAVE;   //@TODO Update for doublets from pyBBarolo
     par.flagERRORS = ERRORS;
-    
+        
     c->pars().getParGF() = par;
     
     // Create directory tree if it does not exist
@@ -1307,6 +1289,51 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
 }
 template bool Galfit<float>::AsymmetricDrift(float*,float*,float*,float*,int);
 template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,int);
+
+
+
+template <class T>
+T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
+    
+    if (!c->getIsSearched()) c->Search();
+    Detection<T> *largest = c->LargestDetection();
+
+    if (largest==NULL) {
+        std::cout << " 3DFIT ERROR: No sources detected in the datacube. Cannot fit!!! \n";
+        std::terminate();
+    }
+
+    ParamGuess<T> *ip = new ParamGuess<T>(c,largest);
+    ip->findInitial();
+
+    string pos[2] = {p->XPOS, p->YPOS};
+    double *pixs = getCenterCoordinates(pos, c->Head());
+    if (p->XPOS!="-1" && p->YPOS!="-1") {
+        ip->setXcentre(pixs[0]);
+        ip->setYcentre(pixs[1]);
+    }
+    if (p->PHI!="-1")  ip->setPosang(atof(p->PHI.c_str()));
+
+    ip->fitEllipse();
+    if (c->pars().getFlagDebug()) ip->fitIncfromMap();
+    if (c->pars().getFlagDebug()) ip->plotGuess();
+    
+    T *init_par = new T[8];
+    init_par[0] = ip->nrings;
+    init_par[1] = ip->radsep; 
+    init_par[2] = ip->xcentre;
+    init_par[3] = ip->ycentre;
+    init_par[4] = ip->vsystem;
+    init_par[5] = ip->vrot;
+    init_par[6] = ip->inclin;
+    init_par[7] = ip->posang;
+    
+    delete ip;
+    return init_par;
+}
+template float* Galfit<float>::EstimateInitial(Cube<float>*,GALFIT_PAR*);
+template double* Galfit<double>::EstimateInitial(Cube<double>*,GALFIT_PAR*);
+
 
 }
 

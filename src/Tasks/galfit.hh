@@ -67,6 +67,8 @@ public:
     void galfit();
     Galmod<T>* getModel();
     bool SecondStage();
+    T* EstimateInitial(Cube<T> *c, GALFIT_PAR *p);
+    
 
     /// Functions defined in galfit_out.cpp
     void writeModel(std::string normtype, bool makeplots=true);
