@@ -879,7 +879,7 @@ int Galfit<T>::plotAll_Python() {
 
     float crpix3_kms = in->Head().Crpix(2);
     float cdelt3_kms = DeltaVel<float>(in->Head());
-    float crval3_kms = AlltoVel(in->Head().Crval(2),in->Head());
+    float crval3_kms = AlltoVel(in->Head().Crval(2),in->Head());    
     float bmaj = in->Head().Bmaj()/in->Head().PixScale();
     float bmin = in->Head().Bmin()/in->Head().PixScale();
     float bpa  = in->Head().Bpa();

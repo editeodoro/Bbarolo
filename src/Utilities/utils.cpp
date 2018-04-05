@@ -213,7 +213,7 @@ T AlltoVel (T in, Header &h) {
   /// No errors if can not convert, just return input value
     
     std::string cunit2 = makelower(h.Cunit(h.NumAx()-1));
-    if (h.NumAx()>3) cunit2 = h.Cunit(2);
+    if (h.NumAx()>3) cunit2 = makelower(h.Cunit(2));
 
     const double c = 299792458;
     T vel_km_s = in;
@@ -667,7 +667,6 @@ template int Pbcor (PixelInfo::Voxel<int>&, Header&);
 template long Pbcor (PixelInfo::Voxel<long>&, Header&);
 template float Pbcor (PixelInfo::Voxel<float>&, Header&);
 template double Pbcor (PixelInfo::Voxel<double>&, Header&);
-
 
 
 

@@ -4,8 +4,7 @@ import os, sys, pip, subprocess
 from distutils.core import setup
 from distutils.dir_util import remove_tree, mkpath
 import multiprocessing as mpr
-#from pyBBarolo import __version__ as version
-version = "1.0.8"
+version=open("pyBBarolo/_version.py").readlines()[-1].split()[-1].strip("\"'")
 logfile = "setup.log"
 try: os.remove(logfile)
 except: pass
@@ -34,7 +33,7 @@ def compileBB():
     if ret!=0: sys.exit("\nCompilation failed. Check %s for errors.\n"%logfile)
     print ("OK.")
     
-      
+
 if sys.argv[1]=='sdist':  
     # If we are creating the sdist package, make a tar with BB source
     try: remove_tree("pyBBarolo/BBarolo")
@@ -55,6 +54,8 @@ if sys.argv[1]=='sdist':
     package_data = {'pyBBarolo': ['*.tar.gz']}
     
 else:
+    print ("------ Installing pyBBarolo v%s ------"%version)
+    
     # First: check if dependencies are available
     modules = ['numpy','astropy']
     for m in modules: checkModule(m)

@@ -40,6 +40,7 @@ def reshapePointer (p, shape):
     return np.ctypeslib.as_array(p, shape=tuple(shape))
 
 
+
 class FitsCube(object):
     def __init__(self,fitsname):
         # File name of the FITS file to read
@@ -73,8 +74,9 @@ class FitsCube(object):
         
         """
         libBB.Cube_setBeam(self._cube,np.float32(bmaj),np.float32(bmin),np.float32(bpa))
-        
-    
+
+
+
 class Rings(object):
     """Wrapper class for C++ Rings structure (rings.hh)"""
     
@@ -123,7 +125,7 @@ class Rings(object):
                         vdisp,vrad,vvert, dvdz,zcyl,dens,z0,inc,phi,nv)
         
         self.rinDef = True
-        
+
 
 
 class Task(object):
@@ -199,8 +201,8 @@ class Task(object):
         if not isinstance(threads,int):
             raise ValueError("%s ERROR: threads must and integer."%self.taskname)
         return self._compute(threads)
-        
-        
+
+
 
 class Model3D(Task):
     """Superclass for all 3D models, derived from Task
@@ -210,7 +212,6 @@ class Model3D(Task):
     
     """
     def __init__(self,fitsname):
-        super(Model3D,self).__init__(fitsname=fitsname)
         # A pointer to the C++ model
         self._mod = None
         self._modCalculated = False
@@ -218,6 +219,7 @@ class Model3D(Task):
         self._inri = None
         # The output model cube (astropy PrimaryHDU)
         self.outmodel = None
+        super(Model3D,self).__init__(fitsname=fitsname)
         self._opts.update ({'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
                             'nv'    : [-1, np.int, "Number of subclouds per profile"]})
         
@@ -261,7 +263,7 @@ class Model3D(Task):
         
         """
         self.inp.setBeam(bmaj/3600.,bmin/3600.,bpa)
-        
+
 
 
 class GalMod(Model3D):
@@ -464,8 +466,8 @@ class GalWind(Model3D):
                 raise ValueError("%s ERROR: %s can only be > 0."%(self.taskname,key))
             if key=='dtype' and op[key][0] not in range(0,3):
                 raise ValueError("%s ERROR: %s can only be 0, 1, 2"%(self.taskname,key))
-    
-    
+
+
 
 class FitMod3D(Model3D):
     """Fit a galaxy model to a 3D datacube 
@@ -501,7 +503,7 @@ class FitMod3D(Model3D):
                            'errors'  : [False, np.bool, "Whether estimating errors"],
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
-                           'restwave': [-1., np.float64, "Rest wavelenght of observed line"],
+                           'restwave': [-1., np.float64, "Rest wavelength of observed line"],
                            'outfolder' : ['./', str, "Directory for outputs" ]})
         self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None, 'X-center of the galaxy in pixels'],
@@ -624,7 +626,7 @@ class FitMod3D(Model3D):
     def __str__ (self):
         self.show_options()
         return ""
-            
+
 
 
 class Search(Task):
@@ -686,7 +688,7 @@ class Search(Task):
                 raise ValueError("%s ERROR: %s can only be < snrcut"%(self.taskname,key))
             if key=="growththresh" and op[key][0]>op['threshold'][0]:
                 raise ValueError("%s ERROR: %s can only be < threshold"%(self.taskname,key))
-                
+
 
 
 class FitMod2D(Task):

@@ -39,12 +39,13 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 	/// This function uses the Downhill Simplex Method 
 	/// in multidimensions due to Nelder and Mead.
 	
-    const int NMAX=2000;
-	const double TINY = 1.0e-10;
-	const double tol  = par.TOL;
+    const double TINY = 1.0e-10;
+    const double tol  = par.TOL;
     
     int ndim=nfree;
     if (global) ndim=nfree*dring->nr;
+
+    const int NMAX=200*ndim;
 
 	int mpts=ndim+1;
 	T **p = allocate_2D<T>(mpts,ndim);

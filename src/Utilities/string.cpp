@@ -284,17 +284,18 @@ std::string randomAdjective (int type) {
         {"flummoxed","cranky","pernicious","modest","shameful","wobbling","knackered","flippant",
          "wonky","bellicose","caustic","calamitous","crapulous","dowdy","execrable","fastidious",
          "guileless","hubristic","insidious","insolent","irksome","mendacious","meretricious",
-         "noxious","obtuse","recalcitrant","risible","strident","wheedling","withering","pauciloquent"};
+         "noxious","obtuse","recalcitrant","risible","strident","wheedling","withering","pauciloquent",
+         "preposterous","brazenly"};
     
     static auto const seed = std::random_device()();
     static std::mt19937 generator(seed);
     
     if (type==1) {
-        std::uniform_int_distribution<int> distr(1,good.size()-1);
+        std::uniform_int_distribution<int> distr(0,good.size()-1);
         return good[distr(generator)];
     }
     else {
-        std::uniform_int_distribution<int> distr(1,bad.size()-1);
+        std::uniform_int_distribution<int> distr(0,bad.size()-1);
         return bad[distr(generator)];
     }
 }
