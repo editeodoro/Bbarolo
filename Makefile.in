@@ -268,7 +268,7 @@ pybb : lib
 
 pybbdist : 
 	python setup.py sdist upload
-    rm -rf build dist MANIFEST
+	rm -rf build dist MANIFEST
     
 pybbinst:
 	python setup.py install

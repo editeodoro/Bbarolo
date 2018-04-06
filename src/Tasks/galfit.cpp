@@ -402,7 +402,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     maxs[VROT]  = 1000;
     mins[VROT]  = 0;
     maxs[VDISP] = 500;
-    mins[VDISP] = 1;
+    mins[VDISP] = 0.01;
     maxs[Z0] = 5/kpcperarc;         // Max scaleheight allowed is 5 Kpc.  
     mins[Z0] = 0.;                  // Min scaleheight allowed is 0 pc.
     maxs[INC] = *max_element(inr->inc.begin(),inr->inc.end())+par.DELTAINC;

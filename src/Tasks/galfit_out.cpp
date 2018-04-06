@@ -1191,6 +1191,9 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tax.imshow(z_mod,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
             << "\t\t\tax.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
             << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
+            << "\t\t\tif (i==0 and j==2): \n"
+            << "\t\t\t\tclab = 'Contour levels at 2$^n \\, c_{min}$, where $c_{min}$ = %s " << in->Head().Bunit() << " and n = 0,1,..,8 '%cont \n"
+            << "\t\t\t\tax.text(0.01,-0.16,clab,transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
             << "\t\t\tnum = num+1 \n"
             << std::endl
             << "\toutfile = 'plot_chanmaps.pdf' \n"

@@ -5,7 +5,7 @@
 
 BBarolo is a 3D fitting tool to derive the kinematics of galaxies from emission-line observations.
 
-Full documentantion is hosted at http://bbarolo.readthedocs.io/en/latest. 
+Full documentation is hosted at http://bbarolo.readthedocs.io/en/latest. 
 
 
 ## Dependencies

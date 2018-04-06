@@ -111,8 +111,9 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
     }
     if (mpar[VDISP]) {
         for (int j=0;j<n;j++) {
-            if (dring->vdisp[j]>10+mins[VDISP]) dels[k]=10.;
-            else dels[k]=mins[VDISP];
+            if (dring->vdisp[j]>12) dels[k]=10.;
+            else if (dring->vdisp[j]<=2) dels[k]=0.2;
+            else dels[k]=1;
             point[k++]=dring->vdisp[j];
         }
     }
