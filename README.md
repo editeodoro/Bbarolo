@@ -13,7 +13,6 @@ Full documentantion is hosted at http://bbarolo.readthedocs.io/en/latest.
 Needed: FFTW3, WCSLIB, CFITSIO. 
 Optional: GNUPLOT, PYTHON with ASTROPY (for output plots), QT Kit (for the GUI) 
 
-|
 
 ## Installing BBarolo
 
