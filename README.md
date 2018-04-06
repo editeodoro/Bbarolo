@@ -11,6 +11,7 @@ Full documentantion is hosted at http://bbarolo.readthedocs.io/en/latest.
 ## Dependencies
 
 Needed: FFTW3, WCSLIB, CFITSIO. 
+
 Optional: GNUPLOT, PYTHON with ASTROPY (for output plots), QT Kit (for the GUI) 
 
 
