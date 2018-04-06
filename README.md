@@ -1,36 +1,45 @@
------------------ BBAROLO SHORT GUIDE -----------------------
+<p align="center">
+  <img src="http://editeodoro.github.io/Bbarolo/files/bbarolo.jpg" alt="BBlogo"/>
+</p>
+
 
 BBarolo is a 3D fitting tool to derive the kinematics of galaxies from emission-line observations.
 
-Needed dependencies: FFTW3, WCSLIB, CFITSIO. 
+Full documentantion is hosted at http://bbarolo.readthedocs.io/en/latest. 
+
+
+## Dependencies
+
+Needed: FFTW3, WCSLIB, CFITSIO. 
 Optional: GNUPLOT, PYTHON with ASTROPY (for output plots), QT Kit (for the GUI) 
 
+|
 
-1) Compiling the code.
+## Installing BBarolo
 
- > ./configure
- > make
- > make install (optional)
- 
-For the GUI (optional): 
- 
- > make gui
+Clone the repository:
 
+````
+git clone https://github.com/editeodoro/Bbarolo
+cd Bbarolo
+````
 
-
-2) Running examples (to be separetely downloaded): 
-
- > ./BBarolo -p examples/n2403.par
-
-
-3) A few commands:
-
- - Template input file: 
-	> ./BBarolo -t
-	
- - List of available parameters:
-	> ./BBarolo -d
+Compile:
+````
+./configure
+make
+make install
+ ````
+Last command is optional to install BBarolo executable in a given path (default /usr/local/bin).
 
 
-A deeper description of parameters can be found at BBarolo's website (http://editeodoro.github.io/Bbarolo/). 
+To compile the GUI (optional): 
+ ````
+ make gui
+````
+
+To install Python wrapper pyBBarolo:
+ ````
+ python setup.py install
+````
 
