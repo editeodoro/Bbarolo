@@ -1571,16 +1571,14 @@ template void Galfit<double>::showInitial(Rings<double>*,std::ostream&);
 
 
 template <class T>
-void Galfit<T>::printInitial (Rings<T> *inr) {
+void Galfit<T>::printInitial (Rings<T> *inr, std::string outfile) {
 
     int m=11;
-    std::ofstream initout;
-    initout.open((in->pars().getOutfolder()+"initial_rings.txt").c_str());
-    initout << setfill('=');
+    std::ofstream initout(outfile.c_str());    
+    initout << "#" << setfill('=');
     initout << setw(66) << right << " Initial parameters " << setw(46) << " " << endl;
     initout << setfill(' ');
-
-    initout << left << setw(m) << "RAD(arcs)"
+    initout << left << setw(m) << "#RAD(arcs)"
             << setw(m) << "VROT(km/s)"
             << setw(m) << "DISP(km/s)"
             << setw(m) << "INC(deg)"
@@ -1590,6 +1588,7 @@ void Galfit<T>::printInitial (Rings<T> *inr) {
             << setw(m) << "XPOS(pix)"
             << setw(m) << "YPOS(pix)"
             << setw(m) << "VSYS(km/s)" << endl;
+    
     for (int i=0; i<inr->nr; i++) {
         initout << setw(m) << inr->radii[i]
             << setw(m) << inr->vrot[i]
@@ -1605,8 +1604,8 @@ void Galfit<T>::printInitial (Rings<T> *inr) {
     initout.close();
 
 }
-template void Galfit<float>::printInitial(Rings<float>*);
-template void Galfit<double>::printInitial(Rings<double>*);
+template void Galfit<float>::printInitial(Rings<float>*,std::string);
+template void Galfit<double>::printInitial(Rings<double>*,std::string);
 
 
 template <class T>

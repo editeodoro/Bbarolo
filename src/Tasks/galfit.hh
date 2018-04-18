@@ -139,7 +139,7 @@ protected:
     /// Functions defined in galfit_out.cpp
     void printDetails  (Rings<T> *dr, T fmin, long pix, std::ostream& str=std::cout);
     void showInitial (Rings<T> *inr, std::ostream& Stream);
-    void printInitial (Rings<T> *inr);
+    void printInitial (Rings<T> *inr, std::string outfile);
     void DensityProfile (T *surf_dens, int *count);
     int* getErrorColumns();
     int  plotParam() {plotPar_Gnuplot();return plotAll_Python();}

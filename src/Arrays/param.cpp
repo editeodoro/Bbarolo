@@ -430,8 +430,10 @@ int Param::readParams(std::string paramfile) {
         }
         file.close();           
     }
-    else images.push_back(imageFile);
-    
+    else {
+        checkHome(imageFile);
+        images.push_back(imageFile);
+    }
 
     beamFWHM /= 3600.;
 

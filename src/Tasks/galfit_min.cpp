@@ -592,7 +592,7 @@ void Galfit<T>::Convolve_fft(T *array, int *bsize) {
         
 		for (uint z=in->DimZ(); z--;) {
 			T *ptr = &array[z*size];
-			for (uint i=size; i--;) beforeCON[i] = ptr[i];
+			for (uint i=size; i--;) beforeCON[i] = isNaN(ptr[i]) ? 0 : ptr[i];
 			convolve (cfft,beforeCON, cfield);			
 			for (uint i=size; i--;) 
 				ptr[i] = (cfft.dst[i]<1.E-12) ? 0. : cfft.dst[i];	//<<<< Un po' arbitrario, non mi piace.

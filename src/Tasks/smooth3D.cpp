@@ -298,9 +298,7 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
     blanksAllocated = true;
     for (int i=0; i<NdatX*NdatY*NdatZ; i++) blanks[i] = isBlank(c->Array(i)) && useBlanks ? false : true;
 
-
     bool allOK;
-
     if (fft) allOK = calculatefft(c->Array(), array);
     else allOK = calculate(c->Array(), array);
     if (!allOK) {
@@ -581,7 +579,7 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
             for (int y=0; y<NdatY; y++) {
                 long nPix = x+y*NdatX;
                 long oPix = (x+blo[0])+(y+blo[1])*dimAxes[0]+(z+blo[2])*dimAxes[0]*dimAxes[1];  
-                beforeCON[nPix] = OldArray[oPix];   
+                beforeCON[nPix] = isNaN(OldArray[oPix]) ? 0 : OldArray[oPix];   
             }
         }
         
@@ -591,7 +589,8 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
             for (int y=0; y<NdatY; y++) {
                 long nPix = x+y*NdatX;
                 long oPix = x+y*NdatX+z*NdatX*NdatY;
-                NewArray[oPix] = blanks[oPix]*conv_fft.dst[nPix]*scalefac;
+                if (!blanks[oPix]) NewArray[oPix] = log(-1);
+                else NewArray[oPix] = conv_fft.dst[nPix]*scalefac;
             }
         }
     }

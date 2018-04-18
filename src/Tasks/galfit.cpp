@@ -246,7 +246,6 @@ Galfit<T>::Galfit(Cube<T> *c) {
         radsep/=(file_rings.radii.size()-2);
     }
 
-
     Rings<T> *inR = new Rings<T>;
     inR->nr     = nr;
     inR->radsep = radsep;
@@ -279,15 +278,17 @@ Galfit<T>::Galfit(Cube<T> *c) {
         inR->dvdz.push_back(0);
         inR->zcyl.push_back(0);
     }
+
     
     if (!c->pars().getflagGalMod()) {
         if (!onefile) showInitial(inR, std::cout);
-        else printInitial(inR);
+        else printInitial(inR, c->pars().getOutfolder()+"initial_rings.txt");
     }
-    
+
+
     // Setup all needed parameters
     setup(c,inR,&par);
-    
+  
 }
 template Galfit<float>::Galfit(Cube<float>*);
 template Galfit<double>::Galfit(Cube<double>*);
@@ -342,13 +343,13 @@ template Galfit<double>::Galfit(Cube<double>*,Rings<double> *,float,float,int,in
 template <class T>
 void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     
-    defaults();
+    defaults();    
     in = c;
     par = *p;
     inr = new Rings<T>;
     *inr = *inrings;
     inDefined = true;
-    
+
     // Check that radii are ok.
     for (int ir=0; ir<inr->nr-1; ir++) {
         if (ir!=inr->nr-1) {
@@ -364,7 +365,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     
     // Checking that the beam has all information
     in->checkBeam();
-    
+
     // Setting other GALFIT variables
     verb = in->pars().isVerbose();
     arcconv = arcsconv(in->Head().Cunit(0));
