@@ -673,7 +673,15 @@ void Cube<T>::BlankMask (float *channel_noise){
     }
 
     delete st;
-
+    
+    // Writing mask to FITS file
+    Cube<short> *m = new Cube<short>(axisDim);
+    m->saveHead(head);
+    m->saveParam(par);
+    m->Head().setMinMax(0.,0);
+    for (size_t i=numPix; i--;) m->Array(i) = short(mask[i]);
+    m->fitswrite_3d((par.getOutfolder()+"mask.fits").c_str());
+    delete m;
 
     if (verb) {
         std::cout << " Done." << std::endl;

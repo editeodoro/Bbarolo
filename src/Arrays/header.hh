@@ -128,7 +128,7 @@ public:
     bool read_keyword(std::string keyword, T &key, bool err=false); 
     
 private:
-    int numAxes;                ///< Number of axes.
+    int     numAxes;                ///< Number of axes.
     int     bitpix;                 ///< Image type.
     long    *dimAxes;               ///< Dimensions of axes.
     double  *crpix;                 ///< Central pixels.
@@ -143,13 +143,13 @@ private:
     float   bscale;                 ///< Scale for physical values.
     float   blank;                  ///< Value for blank pixel.
     float   beamArea;               ///< The area of the beam.
-        float   epoch;                  ///< Epoch for coordinates.
+    float   epoch;                  ///< Epoch for coordinates.
     double  freq0;                  ///< Frequency at rest.
-        double  wave0;                                  ///< Wavelength at rest
+    double  wave0;                  ///< Wavelength at rest
     double  crota;                  ///< Rotation angle.
     double  datamin;                ///< Minimum pixel value.
     double  datamax;                ///< Maximum data value.
-        double  redshift;
+    double  redshift;
     std::string fitsname;           ///< The name of the fitsfile.
     std::string btype;              ///< Beam type.
     std::string bunit;              ///< Units of pixel value.
@@ -160,9 +160,9 @@ private:
     std::string telescope;          ///< Instrument.
     std::vector<std::string> keys;  ///< Whole header as strings.
 
-        struct wcsprm *wcs;             ///< The WCS parameters in a struct from the wcslib library.
-        int    nwcs;                    ///< The number of WCS parameters
-        bool   wcsIsGood;               ///< A flag indicating whether there is a valid WCS
+    struct wcsprm *wcs;             ///< The WCS parameters in a struct from the wcslib library.
+    int    nwcs;                    ///< The number of WCS parameters
+    bool   wcsIsGood;               ///< A flag indicating whether there is a valid WCS
 
 
     bool    warning;               ///< Write warning on std::cout.

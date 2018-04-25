@@ -172,23 +172,25 @@ Galfit<T>::Galfit(Cube<T> *c) {
     bool dens_b  = getDataColumn(file_rings.dens,par.DENS);
     bool inc_b   = getDataColumn(file_rings.inc,par.INC);
     bool pa_b    = getDataColumn(file_rings.phi,par.PHI);
-    bool onefile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||dens_b||inc_b||pa_b||vrad_b;
+    bool vvert_b = getDataColumn(file_rings.vvert,par.VVERT);
+    bool dvdz_b  = getDataColumn(file_rings.dvdz,par.DVDZ);
+    bool zcyl_b  = getDataColumn(file_rings.zcyl,par.ZCYL);
+    bool onefile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||dens_b||inc_b||pa_b||vrad_b||vvert_b||dvdz_b||zcyl_b;
 
-    size_t size[MAXPAR+1] = {file_rings.radii.size(),file_rings.xpos.size(), file_rings.ypos.size(), 
+    size_t size[MAXPAR+4] = {file_rings.radii.size(),file_rings.xpos.size(), file_rings.ypos.size(), 
                              file_rings.vsys.size(),file_rings.vrot.size(),file_rings.vdisp.size(),
-                             file_rings.z0.size(),file_rings.dens.size(),file_rings.inc.size(),
-                             file_rings.phi.size(),file_rings.vrad.size()};
+                             file_rings.z0.size(),file_rings.dens.size(),file_rings.inc.size(),file_rings.phi.size(),
+                             file_rings.vrad.size(),file_rings.vvert.size(),file_rings.dvdz.size(),file_rings.zcyl.size()};
 
     size_t max_size=UINT_MAX;
-    for (int i=0; i<MAXPAR+1; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
+    for (int i=0; i<MAXPAR+4; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
     
     int nr=0;
-    T radsep, xpos, ypos, vsys, vrot, vdisp, z0, dens, inc, pa, vrad;
+    T radsep, xpos, ypos, vsys, vrot, vdisp, z0, dens, inc, pa, vrad, vvert, zcyl, dvdz;
 
     bool toEstimate =  (par.RADII=="-1" && (par.NRADII==-1 || par.RADSEP==-1)) ||
                         par.XPOS=="-1" || par.YPOS=="-1" || par.VSYS=="-1" ||
                         par.VROT=="-1" || par.PHI=="-1"  || par.INC=="-1";
-
 
     if (toEstimate) {
 
@@ -232,7 +234,10 @@ Galfit<T>::Galfit(Cube<T> *c) {
         pa    = atof(par.PHI.c_str());
     }
     
-
+    vvert = par.VVERT!="-1" ? atof(par.VVERT.c_str()) : 0.;
+    dvdz  = par.DVDZ!="-1" ? atof(par.DVDZ.c_str()) : 0.;
+    zcyl  = par.ZCYL!="-1" ? atof(par.ZCYL.c_str()) : 0.;
+    
     if (nr==0) {
         std::cout << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
         std::terminate();
@@ -274,11 +279,13 @@ Galfit<T>::Galfit(Cube<T> *c) {
         else inR->vrad.push_back(vrad);
         
         // In the current version, vertical motions, and gradients are not fitted
-        inR->vvert.push_back(0);
-        inR->dvdz.push_back(0);
-        inR->zcyl.push_back(0);
+        if (vvert_b) inR->vvert.push_back(file_rings.vvert[i]);
+        else inR->vvert.push_back(vvert);
+        if (dvdz_b) inR->vvert.push_back(file_rings.dvdz[i]);
+        else inR->dvdz.push_back(dvdz);
+        if (zcyl_b) inR->vvert.push_back(file_rings.zcyl[i]);
+        else inR->zcyl.push_back(zcyl);
     }
-
     
     if (!c->pars().getflagGalMod()) {
         if (!onefile) showInitial(inR, std::cout);
@@ -390,13 +397,6 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     // Creating mask if does not exist and write it in a fitsfile.
     if (!in->MaskAll()) in->BlankMask(chan_noise);
     mask = in->Mask();
-    Cube<short> *m = new Cube<short>(in->AxisDim());
-    m->saveHead(in->Head());
-    m->saveParam(in->pars());
-    m->Head().setMinMax(0.,0);
-    for (size_t i=in->NumPix(); i--;) m->Array()[i] = short(mask[i]);
-    m->fitswrite_3d((in->pars().getOutfolder()+"mask.fits").c_str());
-    delete m;
     
     // Setting limits for fitting parameters
     double kpcperarc = KpcPerArc(distance);
