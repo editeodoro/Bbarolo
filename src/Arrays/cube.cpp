@@ -343,11 +343,15 @@ bool Cube<T>::fitsread_3d() {
         return false;
     } 
     
-
     // Close the FITS File
     if (fits_close_file(fptr3, &status)){
         fits_report_error(stderr, status);
     }
+
+    ///////// I need to solve the problem with NANs in a better way ////////////////////////////
+    for (size_t i=numPix; i--;)
+        if (isNaN(array[i])) array[i] = 0;
+    ////////////////////////////////////////////////////////////////////////////////////////////
 
     if (par.isVerbose()) std::cout << "Done.\n" << std::endl;
 

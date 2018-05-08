@@ -1035,7 +1035,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('i (deg)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
             << "axis.errorbar(rad,inc, yerr=[err1_l[4],-err1_h[4]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o', color=color2) \n";
+            << "if twostage: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o-', color=color2) \n";
 
     py_file << std::endl
             << "axis=ax[2][0]  \n"
@@ -1053,7 +1053,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_ylabel('$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=14)  \n"
             << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
             << "axis.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o-', color=color2)  \n"   ;
+            << "if twostage: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o', color=color2)  \n"   ;
     
     py_file << std::endl
             << "axis=ax[1][1]  \n"
@@ -1541,12 +1541,11 @@ void Galfit<T>::showInitial (Rings<T> *inr, std::ostream& Stream) {
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
            << setw(m-1) << inr->phi[0] << left << setw(m) << "  deg" << endl;
 
-    double toKpc = KpcPerArc(distance);
     s = "    Z0";
     if (par.Z0=="-1") s += " (d)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
-           << setw(m) << inr->z0[0]*toKpc*1000 << left << setw(m) << "  pc";
+           << setw(m) << inr->z0[0] << left << setw(m) << "  arcs";
 
     s = "        Disp";
     if (par.VDISP=="-1") s += " (d)";

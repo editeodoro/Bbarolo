@@ -125,6 +125,7 @@ bool BBcore (Param *par) {
         w->smooth();
         w->writeFITS();
         w->writeMomentMaps();
+        w->writePV();
         delete w;
     }
     //----------------------------------------------------------------

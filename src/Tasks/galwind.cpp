@@ -272,3 +272,23 @@ bool GalWind<T>::writeMomentMaps() {
 template bool GalWind<float>::writeMomentMaps();
 template bool GalWind<double>::writeMomentMaps();
 
+template <class T>
+bool GalWind<T>::writePV(std::string fname){
+    
+    if (outDefined) {
+        std::string fn = fname;
+        if (fn=="") fn = in->pars().getOutfolder()+in->Head().Name()+"_wind_pv.fits";
+        float ang = atof(par.PHI.c_str())-90;
+        string pos[2] = {par.XPOS, par.YPOS};
+        double *pixs = getCenterCoordinates(pos, in->Head());
+        float x0  = pixs[0], y0=pixs[1];
+        // Extract pv
+        Image2D<T> *pv_max = PositionVelocity(out,x0,y0,ang);
+        return pv_max->fitswrite_2d(fn.c_str());
+    }
+    else return false;
+    
+}
+template bool GalWind<float>::writePV(std::string);
+template bool GalWind<double>::writePV(std::string);
+

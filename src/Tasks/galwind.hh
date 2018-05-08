@@ -71,6 +71,8 @@ public:
     bool smooth(bool scalefac=true);
     bool writeFITS (std::string fname="", bool fullHead=false);
     bool writeMomentMaps();
+    bool writePV(std::string fname="");
+    
 
 private:
     Cube<T>     *in;                //< A pointer to the input cube.
