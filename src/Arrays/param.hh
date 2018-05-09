@@ -56,7 +56,8 @@ struct GALMOD_PAR {
     vector<double> RESTWAVE = {-1}; ///< Rest wavelengths.
     vector<double> RESTFREQ = {-1}; ///< Rest frequencies.
     vector<double> RELINT   = {1}; ///< Relative intensities of lines.
-    bool   SM         = true;   /// If false, disable smoothing    
+    bool   SM         = true;   /// If false, disable smoothing.
+    double NOISERMS   = 0;      /// RMS noise to be added to the cube.
 };
 
 // Container for input parameters for GALFIT (fit a 3D galaxy model)

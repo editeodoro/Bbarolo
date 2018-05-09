@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION 1.4
+#define BBVERSION "1.4.1"
 
 
 Param::Param() {
@@ -359,7 +359,8 @@ int Param::readParams(std::string paramfile) {
             if(arg=="redshift")  parGM.REDSHIFT = parGF.REDSHIFT           = readDval(ss);
             if(arg=="restwave")  parGM.RESTWAVE = parGF.RESTWAVE           = readVec<double>(ss);
             if(arg=="restfreq")  parGM.RESTFREQ = parGF.RESTFREQ           = readVec<double>(ss);
-            if(arg=="relint")    parGM.RELINT = parGF.RELINT           = readVec<double>(ss);
+            if(arg=="relint")    parGM.RELINT = parGF.RELINT               = readVec<double>(ss);
+            if(arg=="noiserms")  parGM.NOISERMS = parGF.NOISERMS           = readDval(ss);
             
             // GALFIT ONLY PARAMETERS
             if(arg=="deltainc")  parGF.DELTAINC   = readFval(ss);
@@ -1040,6 +1041,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         }
         recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));
         recordParam(Str, "[PLOTMASK]", "   Overlaying mask to output plots?", stringize(p.getParGF().PLOTMASK));
+        recordParam(Str, "[NOISERMS]", "   RMS noise to add to the model", stringize(p.getParGF().NOISERMS));
     
         // PARAMETERS FOR SPACEPAR
         recordParam(Str, "[SPACEPAR]", "Full parameter space for a pair of parameters", stringize(p.getflagSpace()));    

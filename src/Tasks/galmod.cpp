@@ -1059,6 +1059,8 @@ double Galmod<T>::fdev(int &idum){
 }
 template double Galmod<float>::fdev(int&);
 template double Galmod<double>::fdev(int&);
+
+
 }
 
 #undef C  

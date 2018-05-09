@@ -30,6 +30,7 @@
 #include <Arrays/image.hh>
 #include <Tasks/galfit.hh>
 #include <Tasks/galmod.hh>
+#include <Tasks/smooth3D.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/gnuplot.hh>
 #include <Tasks/moment.hh>
@@ -237,6 +238,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
                 for (size_t z=0; z<in->DimZ(); z++)
                     totflux_model += outarray[i+z*in->DimY()*in->DimX()];
             }
+            else {
+                  //for (size_t z=0; z<in->DimZ(); z++)
+                  //     outarray[i+z*in->DimY()*in->DimX()]=0;
+              }
         }
 
         double factor = totflux_data/totflux_model;
@@ -278,6 +283,35 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         
         
     }
+    
+    // Adding noise to a model
+    if (par.NOISERMS!=0) { 
+        if (verb) std::cout << "    Writing " << randomAdjective(1) << " noisy model..." << std::flush;
+        size_t nPix = mod->Out()->NumPix();
+        // Getting gaussian noise
+        T *noise = SimulateNoise<T>(par.NOISERMS,nPix);
+        double fac = 1.;
+        if (par.SM) {
+            // Smoothing the noise
+            Beam obeam = {0., 0., 0};    
+            Beam nbeam = {in->Head().Bmaj()*arcconv,in->Head().Bmin()*arcconv,in->Head().Bpa()};
+            Smooth3D<T> *sm = new Smooth3D<T>;    
+            sm->smooth(in, obeam, nbeam, noise, noise);
+            // Rescaling the noise to match the required rms
+            T stdd = findStddev(noise,nPix);
+            fac = par.NOISERMS/stdd;
+            delete sm;
+        }
+        // Add noise to the model
+        for (size_t i=nPix; i--;) mod->Out()->Array(i) += (noise[i]*fac);    
+        // Writing to FITS file
+        std::string mfile = outfold+object+"mod_noise.fits";
+        mod->Out()->fitswrite_3d(mfile.c_str());
+        delete [] noise;
+        if (verb) std::cout << " Done." << std::endl;
+    }
+
+    
 
     // Computing asymmetric drift correction
     if (par.flagADRIFT) {

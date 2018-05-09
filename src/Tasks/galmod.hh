@@ -100,7 +100,6 @@ public:
     bool smooth(bool usescalefac=true);
     void normalize();
 
-
 protected:
 
     Cube<Type>  *in;                        //< A pointer to the input cube.

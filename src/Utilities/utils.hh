@@ -163,6 +163,8 @@ template <class T> Rings<T> *readRings(GALFIT_PAR &par, Header &h);
 double* getCenterCoordinates(std::string *pos, Header &h);
 
 template <class T> T* RingRegion (Rings<T> *r, Header &h);
+template <class T> T* SimulateNoise(double stddev, size_t size);
+
 
 template <class T> int selectBitpix();
 template <class T> int selectDatatype();

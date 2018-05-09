@@ -28,6 +28,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cmath>
+#include <random>
 #include <Utilities/utils.hh>
 #include <Arrays/header.hh>
 #include <Arrays/param.hh>
@@ -991,6 +992,23 @@ T* RingRegion (Rings<T> *r, Header &h) {
 }
 template float* RingRegion (Rings<float>*,Header&);
 template double* RingRegion (Rings<double>*,Header&);
+
+
+template <class T>
+T* SimulateNoise(double stddev, size_t size) {
+    
+    T *noise = new T[size];
+    // Random engine generator
+    auto const seed = std::random_device()();
+    std::mt19937 gen(seed);
+    // Gaussian distribution draw
+    std::normal_distribution<T> gaussian(0.,stddev);
+    // Filling the vector with random draws
+    for (size_t i=size; i--;) noise[i] = gaussian(gen);
+    return noise;
+}
+template float* SimulateNoise(double,size_t);
+template double* SimulateNoise(double,size_t);
 
 
 template <> int selectBitpix<short>() {return SHORT_IMG;}
