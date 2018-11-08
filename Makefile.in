@@ -2,10 +2,10 @@ CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @CFLAGS@
 #CFLAGS = -O0 -g -fbounds-check -Wall -Wextra @CFLAGS@ 
 #CFLAGS = -fast -Wall @CFLAGS@ 
 
-OS = @OP@ 
-CC =    @CC@ $(CFLAGS)
-CXX =   @CXX@ $(CFLAGS)
-LINK=   @CXX@ $(CFLAGS) -flto
+OPS = @OP@
+CC  = @CC@ $(CFLAGS)
+CXX = @CXX@ $(CFLAGS)
+LINK= @CXX@ $(CFLAGS) -flto
 
 BASE = @BASEDIR@
 
@@ -44,7 +44,7 @@ PYLIB = @PYTHON_LIBS@
 
 OPT = @GNUPLOT@ @FFTW3@ @HAVEPYTHON@ @HAVEMPI@
 
-ifeq ($(OS),MACOSX)
+ifeq ($(OPS),MACOSX)
 	OPT += -DMACOSX
 endif
 
@@ -215,14 +215,14 @@ gui :
 	qmake && \
 	rm BbaroloGUI.pro && mv BbaroloGUI.or BbaroloGUI.pro && \
 	make
-ifeq ($(OS),MACOSX)
+ifeq ($(OPS),MACOSX)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
 endif
 
 justgui : 
 	cd ./src/GUI && make
-ifeq ($(OS),MACOSX)
+ifeq ($(OPS),MACOSX)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
 endif

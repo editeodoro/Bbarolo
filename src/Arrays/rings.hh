@@ -31,9 +31,9 @@ template <class T>
 struct Ring {
     
     Ring (T radius, T xpos, T ypos, T vsys, T vrot, T vdisp, T vrad, T vvert, T dvdz,
-          T zcyl, T dens, T z0, T inc, T phi, T pa, int nv) : radius(radius), xpos(xpos),
+          T zcyl, T dens, T z0, T inc, T phi, T pa) : radius(radius), xpos(xpos),
           ypos(ypos), vsys(vsys), vrot(vrot), vdisp(vdisp), vrad(vrad), vvert(vvert),
-          dvdz(dvdz), zcyl(zcyl), dens(dens), z0(z0), inc(inc), phi(phi), pa(pa), nv(nv) {}
+          dvdz(dvdz), zcyl(zcyl), dens(dens), z0(z0), inc(inc), phi(phi), pa(pa) {}
     
     T    radius;         //< Radius
     T    xpos;           //< X-center 
@@ -50,7 +50,6 @@ struct Ring {
     T    inc;            //< Inclination angles.
     T    phi;            //< Position angles.
     T    pa;             //< Position angles+rotation angles.
-    int  nv;             //< Number of subclouds. 
 };
 
 
@@ -73,18 +72,17 @@ struct Rings {
     std::vector<T> inc;
     std::vector<T> phi;
     std::vector<T> pa;
-    std::vector<int>  nv;
     int id;                     // ID of the ring (for 3dFIT)
     
     
     void ClearAll () {
         xpos.clear(); ypos.clear(); vsys.clear(); radii.clear(); vrot.clear(); vdisp.clear();
         vrad.clear(); vvert.clear(); dvdz.clear(); zcyl.clear(); dens.clear(); z0.clear();
-        inc.clear(); phi.clear(); pa.clear(); nv.clear();
+        inc.clear(); phi.clear(); pa.clear();
     } 
     
     void setRings (int size, T* radii, T* xpos, T* ypos, T* vsys, T* vrot, T* vdisp, T* vrad, 
-                   T* vvert, T* dvdz, T* zcyl, T* dens, T* z0, T* inc, T* phi, int* nv) {
+                   T* vvert, T* dvdz, T* zcyl, T* dens, T* z0, T* inc, T* phi) {
         this->nr = size;
         for (int i=0; i<nr; i++) {
             this->radii.push_back(radii[i]);            
@@ -102,14 +100,13 @@ struct Rings {
             this->inc.push_back(inc[i]);
             this->phi.push_back(phi[i]);
             this->pa.push_back(0);
-            this->nv.push_back(nv[i]);
         }
         this->radsep = 0;
         if (nr>1) this->radsep = radii[1]-radii[0];
     }
     
     void setRings (T minrad, T maxrad, T radsep, T xpos, T ypos, T vsys, T vrot, T vdisp, 
-                   T vrad, T vvert, T dvdz, T zcyl, T dens, T z0, T inc, T phi, int nv) {
+                   T vrad, T vvert, T dvdz, T zcyl, T dens, T z0, T inc, T phi) {
         
         this->nr = (maxrad-minrad)/radsep + 1;
         this->radsep = radsep;    
@@ -129,7 +126,6 @@ struct Rings {
             this->inc.push_back(inc);
             this->phi.push_back(phi);
             this->pa.push_back(0);
-            this->nv.push_back(nv);
         }
     }
 };
@@ -142,6 +138,24 @@ struct newRings {
     std::vector<Ring<T> > rings;     
     inline Ring<T>& operator[] (size_t n) {return rings[n];}
 
+};
+
+// A structure to define a spherical shell
+template <class T>
+struct Shells {
+    int    ns;                  //< Number of shells.
+    double sep;                 //< Separation between shells.
+    std::vector<T> radii;       //< Radii
+    std::vector<T> xpos;        //< Xcenter
+    std::vector<T> ypos;        //< Ycenter
+    std::vector<T> vsys;        //< Systemic velocity
+    std::vector<T> vrot;        //< Azimuthal velocity
+    std::vector<T> vsph;        //< Radial velocity (spherical)
+    std::vector<T> vdisp;       //< Velocity dispersion
+    std::vector<T> dens;        //< Column density
+    std::vector<T> inc;         //< Inclination angle
+    std::vector<T> pa;          //< Position angle
+    std::vector<T> openang;     //< Opening angle
 };
 
 #endif

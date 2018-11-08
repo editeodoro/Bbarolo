@@ -36,8 +36,8 @@ float* Cube_getBeam(Cube<float> *c) {return c->getBeam();}
 // Interface for the Rings struct //////////////////////////////////////////////////////
 Rings<float>* Rings_new() {return new Rings<float>;};
 void Rings_set(Rings<float>* r, int size, float* radii, float* xpos, float* ypos, float* vsys, float* vrot, float* vdisp, 
-               float* vrad, float* vvert, float* dvdz, float* zcyl, float* dens, float* z0, float* inc, float* phi, int* nv)
-                   {r->setRings(size,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi,nv);}
+               float* vrad, float* vvert, float* dvdz, float* zcyl, float* dens, float* z0, float* inc, float* phi)
+                   {r->setRings(size,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi);}
 ////////////////////////////////////////////////////////////////////////////////////////
 
 

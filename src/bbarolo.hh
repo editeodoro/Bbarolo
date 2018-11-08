@@ -122,10 +122,11 @@ bool BBcore (Param *par) {
     if (par->getParGW().flagGALWIND) {
         GalWind<float> *w = new GalWind<float>(c);   
         w->compute();
-        w->smooth();
+        if (par->getParGF().SM) w->smooth();
         w->writeFITS();
         w->writeMomentMaps();
         w->writePV();
+        if (par->getFlagPlots()) w->makePlots();
         delete w;
     }
     //----------------------------------------------------------------

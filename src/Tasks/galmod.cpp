@@ -37,6 +37,9 @@
 #include <Tasks/moment.hh>
 #include <Utilities/utils.hh>
 
+#include <sys/socket.h>
+#include <math.h>
+#include <stdlib.h>
 #define C  2.99792458E08            // Speed of light in M/S
 #define nran 16777216
 
@@ -258,36 +261,16 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
     
     ringIO(rings);
     
-    ltype=LTYPE;
-    cmode=CMODE;
-    if (cmode<0 || cmode>2) {
-        std::cout << "GALMOD warning: CMODE must be 0,1 or 2. Assuming 1.\n";
-        cmode=1;
-    }
-    
-    cdens = CDENS;
-    if (cdens<0) {
-        std::cout << "GALMOD warning: CDENS must greater than 0. Assuming 1.0.\n";
-        cdens=1.;
-    }
+    setOptions(LTYPE, CMODE, CDENS, ISEED);
     
     int nvtmp = NV;
     if (nvtmp<1) nvtmp=nsubs;
     for (int i=0; i<r->nr; i++) {
-        if (r->vdisp[i]==0) r->nv.push_back(1);
-        else r->nv.push_back(nvtmp);
-    }    
+        if (r->vdisp[i]==0) nv.push_back(1);
+        else nv.push_back(nvtmp);
+    }   
     
-    iseed = ISEED;
-    if (iseed>=0) {
-        std::cout << "GALMOD warning: ISEED must be negative. Assuming -1.\n";
-        iseed=-1;
-    }
-    
-    // Initializing random number engines
-    generator.seed(iseed);
-    uniform   = std::uniform_real_distribution<float>(-1.,1.);
-    gaussia   = std::normal_distribution<float>(0.,1.);
+    NHItoRAD();
     
     readytomod=true;
     
@@ -311,12 +294,43 @@ template void Galmod<double>::input(Cube<double>*,Rings<double>*,int,int,int,flo
 
 
 template <class T>
+void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED) {
+    
+    ltype=LTYPE;
+    cmode=CMODE;
+    if (cmode<0 || cmode>2) {
+        std::cout << "GALMOD warning: CMODE must be 0,1 or 2. Assuming 1.\n";
+        cmode=1;
+    }
+    
+    cdens = CDENS;
+    if (cdens<0) {
+        std::cout << "GALMOD warning: CDENS must greater than 0. Assuming 1.0.\n";
+        cdens=1.;
+    } 
+    
+    iseed = ISEED;
+    if (iseed>=0) {
+        std::cout << "GALMOD warning: ISEED must be negative. Assuming -1.\n";
+        iseed=-1;
+    }
+    
+    // Initializing random number engines
+    generator.seed(iseed);
+    uniform   = std::uniform_real_distribution<float>(-1.,1.);
+    gaussia   = std::normal_distribution<float>(0.,1.);
+        
+}
+template void Galmod<float>::setOptions(int,int,float,int);
+template void Galmod<double>::setOptions(int,int,float,int);
+
+
+template <class T>
 bool Galmod<T>::calculate() {
     
     /// Front end function to calculate the model.
     
     if (readytomod) {
-        NHItoRAD();
         galmod();
     }
     else {
@@ -468,13 +482,6 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     outDefined = true;
     
     double reds = in->pars().getRedshift();
-    /// Information about frequency/velocity axis and conversions.
-    freq0 = c->Head().Freq0()/(1+c->Head().Redshift());      
-    if (freq0==0) {
-        freq0 = 0.1420405751786E10;
-        std::cout << "Header item FREQ0 not found. Assuming " << freq0;
-        std::cout << std::endl; 
-    }                                                           
     ctype3 = makelower(c->Head().Ctype(2));
     cunit3 = makelower(c->Head().Cunit(2));
     cdelt3 = c->Head().Cdelt(2);
@@ -493,7 +500,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         std::terminate(); 
     }
     
-    if (axtyp==2) {
+    if (axtyp==2) {                 // Wavelength axis
         float mconv=0;
         if (cunit3=="um"||cunit3=="mum"||cunit3=="micron") mconv = 1.E-06;
         else if (cunit3=="nm"||cunit3=="nanom") mconv = 1.0E-09;
@@ -528,7 +535,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             }
         }
     }
-    else if (axtyp==3) {
+    else if (axtyp==3) {                // Frequency axis
         
         float hzconv=0;
         if (cunit3=="hz") hzconv = 1;
@@ -543,6 +550,14 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         
         crval3=crval3*hzconv;
         cdelt3=cdelt3*hzconv;  
+        
+        /// Information about frequency/velocity axis and conversions.
+        freq0 = c->Head().Freq0()/(1+c->Head().Redshift());      
+        if (freq0==0) {
+            freq0 = 0.1420405751786E10;
+            std::cout << "Header item FREQ0 not found. Assuming " << freq0;
+            std::cout << std::endl; 
+        }
         
         double crvalfreq = c->Head().Crval(2)*hzconv;
         drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
@@ -559,7 +574,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             }
         }
     }
-    else if (axtyp==4) {
+    else if (axtyp==4) {                // Velocity axis
         
         float msconv=0;
         if (cunit3=="m/s" || cunit3=="ms") msconv = 1;
@@ -571,12 +586,19 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             std::terminate(); 
         }
         
+        /// Information about frequency/velocity axis and conversions.
+        freq0 = c->Head().Freq0()/(1+c->Head().Redshift());      
+        if (freq0==0) {
+            freq0 = 0.1420405751786E10;
+            std::cout << "Header item FREQ0 not found. Assuming " << freq0;
+            std::cout << std::endl; 
+        }
+        
         crval3=crval3*msconv;
         cdelt3=cdelt3*msconv;
         double crvalvel = c->Head().Crval(2)*msconv;
         drval3=freq0*sqrt((C-crvalvel)/(C+crvalvel));
-        //std::cout << "Give frequency at reference grid in HZ. DRVAL3= ";
-        //std::cin >> drval3;
+        
     }
     else { 
         std::cout << "Unknown axis type: no velocities along spectral axis.\n";
@@ -640,7 +662,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         }
     }
     
-    bool empty = true;
+    bool empty = false;
     /*
     if (uradii[0]!=0) {
         std::cout << "Leave innerpart of first ring empty? [Y,N]";
@@ -762,7 +784,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 template void Galmod<float>::ringIO(Rings<float>*);
 template void Galmod<double>::ringIO(Rings<double>*);
 
-
+///*
 template <class T>
 void Galmod<T>::galmod() {
 
@@ -811,7 +833,7 @@ void Galmod<T>::galmod() {
         double cinc    = cos(r->inc[ir]);
         double spa     = sin(r->phi[ir])*cos(crota2)+cos(r->phi[ir])*sin(crota2);
         double cpa     = cos(r->phi[ir])*cos(crota2)-sin(r->phi[ir])*sin(crota2);
-        double nvtmp   = r->nv[ir];
+        double nvtmp   = nv[ir];
         float  fluxsc  = r->dens[ir]*twopi*rtmp*r->radsep/(nc*nvtmp);
            
 // ==>> Loop over clouds inside each ring.
@@ -872,7 +894,7 @@ void Galmod<T>::galmod() {
 //          Get profile number of current pixel and check if position is in
 //          range of positions of profiles that are currently being done.
 //          If outside any of the ranges, jump to next cloud.
-            int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0];  
+            int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0];
 //          Get systematic velocity of cloud.
             double vsys = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
 //          Adding vertical rotational gradient after zcyl
@@ -931,7 +953,183 @@ void Galmod<T>::galmod() {
 }
 template void Galmod<float>::galmod();
 template void Galmod<double>::galmod();
+//*/  
+
+/*
+// GALMOD FOR SMC
+template <class T>
+void Galmod<T>::galmod() {
+
+    const double twopi = 2*M_PI;
+    const int buflen=bsize[0]*bsize[1]*nsubs+1;
+    T *datbuf = new T [buflen];
+            
+    bool verb = in->pars().isVerbose();
+    ProgressBar bar(" Modeling... ",false);;
+    bar.setShowbar(in->pars().getShowbar());
+    if (verb) bar.init(r->nr);
     
+    double *ras  = new double[in->DimX()*in->DimY()];
+    double *decs = new double[in->DimX()*in->DimY()];
+    double *phis = new double[in->DimX()*in->DimY()];
+    double *rhos = new double[in->DimX()*in->DimY()];    
+    
+    double pc[3] = {double(r->xpos[0]),double(r->ypos[0]),0}; 
+    double *wc = new double[3]; 
+    pixToWCSSingle(in->Head().WCS(),pc,wc);
+    double xcc = wc[0]*M_PI/180.; 
+    double ycc = wc[1]*M_PI/180.;
+    
+    for (auto x=0; x<in->DimX(); x++) {
+        for (auto y=0; y<in->DimY(); y++) {
+            double p[3] = {double(x),double(y),0}; 
+            double *w = new double[3]; 
+            pixToWCSSingle(in->Head().WCS(),p,w);
+            size_t a = x+y*in->DimX();
+            ras[a] = w[0]*M_PI/180.;
+            decs[a] = w[1]*M_PI/180.;
+            rhos[a] = acos(cos(decs[a])*cos(ycc)*cos(ras[a]-xcc)+sin(decs[a])*sin(ycc));
+            phis[a] = asin((sin(decs[a])*cos(ycc)-cos(decs[a])*sin(ycc)*cos(ras[a]-xcc))/sin(rhos[a]))-M_PI_2;
+            if (x<r->xpos[0]) phis[a] = abs(phis[a]);
+            else phis[a] = (phis[a]+2*M_PI);
+        }
+    }
+    
+    //FitsWrite_2D("diorho.fits",rhos,in->DimX(),in->DimY());
+    //FitsWrite_2D("diophi.fits",phis,in->DimX(),in->DimY());
+    
+    // Kallivayalil et al. (2013)
+    const double mu_w = -0.772;
+    const double mu_n = -1.117;
+    const double D0   = 63.;
+    const double didt = -281;
+    const double c1   = 3.08568E19/3.15576E07/3.6E06*M_PI/180.; // Conversion kpc * mas/yr  -> m/s
+    const double c2   = 3.08568E19/3.15576E16*M_PI/180.;        // Conversion kpc * deg/Gyr -> m/s 
+    
+    
+    int isd = iseed;
+//  Get number of velocity profiles that will be done.
+    int nprof = bsize[0]*bsize[1];
+//  Initialize data buffer on zero.
+    for (int i=0; i<buflen; i++) datbuf[i]=0.0;
+//  Convenient random generator functions
+    auto fran = std::bind(uniform, generator);
+    
+    // ==>> Loop over standard rings.
+    for (int ir=0; ir<r->nr; ir++) {
+        if (verb) bar.update(ir+1);
+//      Get radius
+        double rtmp = r->radii[ir];
+//      Get number of clouds inside ring.
+        int nc = lround(cdens*pow(r->dens[ir],cmode)*twopi*rtmp*r->radsep/pixarea); 
+        if (nc==0) {
+            std::cerr << " GALMOD ERROR: No clouds used. Choose higher CDENS " << std::endl;
+            std::terminate();
+//          Do next ring, jump to end of loop for rings.
+            continue;
+        }
+//      Get values of ir-radius.            
+        double vrottmp = r->vrot[ir];
+        double vradtmp = r->vrad[ir];
+        double vverttmp= r->vvert[ir];
+        //  The VDISP should be such that VDISP^2 + chwidth^2 / 12 = sig_instr^2 + sig_v^2
+        //double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr-(chwidth*chwidth)/12.);
+        double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr);
+        double vsystmp = r->vsys[ir];
+        double z0tmp   = r->z0[ir];
+        double dvdztmp = r->dvdz[ir];
+        double zcyltmp = r->zcyl[ir];
+        double sinc    = sin(r->inc[ir]);
+        double cinc    = cos(r->inc[ir]);
+        double spa     = sin(r->phi[ir])*cos(crota2)+cos(r->phi[ir])*sin(crota2);
+        double cpa     = cos(r->phi[ir])*cos(crota2)-sin(r->phi[ir])*sin(crota2);
+        double nvtmp   = nv[ir];
+        float  fluxsc  = r->dens[ir]*twopi*rtmp*r->radsep/(nc*nvtmp);
+
+// ==>> Loop over clouds inside each ring.
+        for (int ic=0; ic<nc; ic++) {
+//          Get radius inside ring. The range includes the inner boundary,
+//          excludes the outer boundary. The probability of a radius inside
+//          a ring is proportional to the total radius and thus the 
+//          surface density of the clouds is constant over the area of the ring.
+            double ddum = fabs(fran());                        // STD library
+            //double ddum = double(iran(isd))/double(nran);       // Classic galmod
+            double R    = sqrt(pow((rtmp-0.5*r->radsep),2)+2*r->radsep*rtmp*ddum);
+//          Get azimuth and its sine and cosine.
+            double az   = twopi*fabs(fran());                 // STD library
+            //double az   = twopi*double(iran(isd))/double(nran); // Classic galmod
+            double saz  = sin(az); 
+            double caz  = cos(az); 
+//          Get height above the plane of the ring using a random deviate
+//          drawn from density profile of the layer.
+            double z    = fdev(isd)*z0tmp;
+//          Get position in the plane of the sky with respect to the major
+//          and minor axes of the spiral galaxy.
+            double x    = R*caz;
+            double y    = R*saz*cinc-z*sinc;                                                 
+//          Get grid of this position, check if it is inside area of box.
+            long grid[2] = {lround(r->xpos[ir]+(x*spa-y*cpa)/cdelt[0]),
+                            lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};             
+            if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
+            if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
+
+//          Get profile number of current pixel and check if position is in
+//          range of positions of profiles that are currently being done.
+//          If outside any of the ranges, jump to next cloud.
+            int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0];  
+
+            // PART FOR SMC
+            int np = grid[0]+grid[1]*bsize[0];
+                
+//          Getting vtc, vts and wts    
+            double mu_c = -mu_w*sin(r->phi[ir]) + mu_n*cos(r->phi[ir]);
+            double mu_s = -mu_w*cos(r->phi[ir]) - mu_n*sin(r->phi[ir]);
+            double vtc  = c1*D0*mu_c;    
+            double vts  = c1*D0*mu_s;
+            double wts  = vts + c2*D0*didt;
+            double rho  = rhos[np];
+            double phi  = phis[np];
+
+            double f = (cinc*cos(rho)-sinc*sin(rho)*sin(phi-r->phi[ir]))/sqrt(cinc*cinc*cos(phi-r->phi[ir])*cos(phi-r->phi[ir])+sin(phi-r->phi[ir])*sin(phi-r->phi[ir]));
+            
+//          Get systematic velocity of cloud.
+            double vsys  = vsystmp*cos(rho)+wts*sin(rho)*sin(phi-r->phi[ir])+(vtc*sin(rho)+f*vrottmp*sinc)*cos(phi-r->phi[ir]);
+            //double vsys2 = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
+            
+            for (int iv=0; iv<nvtmp; iv++) {
+                double vdev = gaussia(generator)*vdisptmp;        // STD library
+                //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
+                for (int nl=0; nl<nlines; nl++) {
+                    double v     = vsys+vdev+relvel[nl];
+                    int isubs = lround(velgrid(v)+crpix3-1);
+                    if (isubs<0 || isubs>=nsubs) continue;
+                    int idat  = iprof+isubs*nprof;
+                    datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
+                }
+            }
+        }
+    }
+    
+//  Write data to output Cube.      
+    for (int isubs=0; isubs<nsubs; isubs++) {
+        int pixstart=isubs*bsize[0]*bsize[1];
+        int idat=1+isubs*nprof;
+        for (int i=0; i<nprof; i++)
+            out->Array(pixstart+i)=datbuf[idat+i];
+    }
+    
+    if (verb) bar.fillSpace("OK.\n");
+    
+    delete [] datbuf;
+
+    modCalculated=true;
+    
+}
+template void Galmod<float>::galmod();
+template void Galmod<double>::galmod();
+*/
+
+
 
 template <class T>
 void Galmod<T>::NHItoRAD(){
@@ -1060,6 +1258,302 @@ double Galmod<T>::fdev(int &idum){
 template double Galmod<float>::fdev(int&);
 template double Galmod<double>::fdev(int&);
 
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// Members of Galmod_wind class
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+template <class T>
+void Galmod_wind<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Shells<T> *shells, 
+                      int NV, int LTYPE, int CMODE, float CDENS, int ISEED) {
+    
+    /// This function sets all parameters needed to use the Galmod Object. A description
+    /// of input is given in the Galmod class definition file (galmod.hh). 
+        
+    this->initialize(c, Boxup, Boxlow);
+    shellIO(shells);
+    this->setOptions(LTYPE, CMODE, CDENS, ISEED);
+    
+    int nvtmp = NV;
+    if (nvtmp<1) nvtmp=this->nsubs;
+    for (int i=0; i<s->ns; i++) {
+        if (s->vdisp[i]==0) this->nv.push_back(1);
+        else this->nv.push_back(nvtmp);
+    }   
+
+    this->NHItoRAD();
+    this->readytomod=true;
+    
+}
+template void Galmod_wind<float>::input(Cube<float>*,int*,int*,Shells<float>*,int,int,int,float,int);
+template void Galmod_wind<double>::input(Cube<double>*,int*,int*,Shells<double>*,int,int,int,float,int);
+
+
+template <class T>
+void Galmod_wind<T>::shellIO(Shells<T> *shells) {
+    
+    /// This function creates the set of shell to be used in the model.
+    /// - Velocities are given in km/s and then converted in m/s.
+    /// - Radii are given in arcsec and then converted in arcmin.
+    /// - Column densities are given in HI atoms/cm^2 and the converted 
+    ///   in units of 1E20 atoms/cm^2.
+    /// - Angles are given in grades and then converted in radians.
+    
+    s = new Shells<T>;
+
+    int nur = shells->ns;
+    T *uradii = new T[nur];
+    T *uvrot  = new T[nur];
+    T *uvdisp = new T[nur];
+    T *uvsph  = new T[nur];
+    T *udens  = new T[nur];
+    T *uinc   = new T[nur];
+    T *uphi   = new T[nur];
+    T *uxpos  = new T[nur];
+    T *uypos  = new T[nur];
+    T *uvsys  = new T[nur];
+    T *uvoan  = new T[nur];
+    
+    s->sep=0.75*min(this->pixsize[0],this->pixsize[1]);
+    uradii[0]=shells->radii[0]/60.;
+    for (int i=1; i<nur; i++) {
+        uradii[i]=shells->radii[i]/60.;
+        if (uradii[i-1]+s->sep>=uradii[i]) {
+            if (uradii[i-1]>uradii[i]) {
+                std::cout << "GALMOD error: Radii not in increasing order.\n";
+                std::terminate();
+            }
+            else {
+                std::cout << "GALMOD error: Radius separation too small.\n";
+                std::terminate();
+            }
+        }
+    }
+    
+    bool empty = true;
+
+    for (int i=0; i<nur; i++) {
+        uvrot[i]  = shells->vrot[i]*1000;   
+        uvsph[i]  = shells->vsph[i]*1000;   
+        uvdisp[i] = shells->vdisp[i]*1000;
+        if (uvdisp[i]<0) {
+            std::cout << "GALMOD error: Negative velocity dispersion not allowed.\n";
+            std::terminate();
+        }
+        
+        udens[i]=shells->dens[i]/1.0E20;
+
+        if (udens[i]<0) {
+            std::cout << "GALMOD error: Negative column-density not allowed.\n";
+            std::terminate(); 
+        }
+        
+        uinc[i]   = shells->inc[i]*M_PI/180.;
+        uphi[i]   = shells->pa[i]*M_PI/180.;
+        uvoan[i]  = shells->openang[i]*M_PI/180.;
+        uxpos[i]  = shells->xpos[i]+1;
+        uypos[i]  = shells->ypos[i]+1;
+        uvsys[i]  = shells->vsys[i]*1000;
+    }
+    
+    if (uradii[0]!=0 && empty) s->radii.push_back(uradii[0]+s->sep/2.0);
+    else {
+        s->radii.push_back(s->sep/2.0);
+        while (s->radii.back()<uradii[0]) {
+            s->vrot.push_back(uvrot[0]);
+            s->vsph.push_back(uvsph[0]);
+            s->vdisp.push_back(uvdisp[0]);
+            s->dens.push_back(udens[0]);
+            s->inc.push_back(uinc[0]);
+            s->pa.push_back(uphi[0]);
+            s->openang.push_back(uvoan[0]);
+            s->xpos.push_back(uxpos[0]);
+            s->ypos.push_back(uypos[0]);
+            s->vsys.push_back(uvsys[0]);
+            s->radii.push_back(s->radii.back()+s->sep);
+        }
+    }
+    
+    for (int i=1; i<nur; i++) {
+        T dur       = uradii[i]-uradii[i-1];
+        T dvrotdr   = (uvrot[i]-uvrot[i-1])/dur;
+        T dvsphdr   = (uvsph[i]-uvsph[i-1])/dur;
+        T dvdispdr  = (uvdisp[i]-uvdisp[i-1])/dur;
+        T ddensdr   = (udens[i]-udens[i-1])/dur;
+        T dincdr    = (uinc[i]-uinc[i-1])/dur;
+        T dphidr    = (uphi[i]-uphi[i-1])/dur;
+        T dopendr   = (uvoan[i]-uvoan[i-1])/dur;
+        T dxposdr   = (uxpos[i]-uxpos[i-1])/dur;
+        T dyposdr   = (uypos[i]-uypos[i-1])/dur;
+        T dvsysdr   = (uvsys[i]-uvsys[i-1])/dur;
+        while (s->radii.back()<uradii[i]) {
+            T dr = s->radii.back()-uradii[i-1];
+            s->vrot.push_back(uvrot[i-1]+dvrotdr*dr);
+            s->vsph.push_back(uvsph[i-1]+dvsphdr*dr);
+            s->vdisp.push_back(uvdisp[i-1]+dvdispdr*dr);
+            s->dens.push_back(udens[i-1]+ddensdr*dr);
+            s->inc.push_back(uinc[i-1]+dincdr*dr);
+            s->pa.push_back(uphi[i-1]+dphidr*dr);
+            s->openang.push_back(uvoan[i-1]+dopendr*dr);
+            s->xpos.push_back(uxpos[i-1]+dxposdr*dr);
+            s->ypos.push_back(uypos[i-1]+dyposdr*dr);
+            s->vsys.push_back(uvsys[i-1]+dvsysdr*dr);
+            s->radii.push_back(s->radii.back()+s->sep);
+        }
+    }
+    
+    s->radii.pop_back();
+    s->ns=s->radii.size();      
+    
+    shellDefined = true;
+        
+    delete [] uradii;
+    delete [] uvrot;
+    delete [] uvsph;
+    delete [] uvdisp;
+    delete [] udens;
+    delete [] uinc;
+    delete [] uphi;
+    delete [] uxpos;
+    delete [] uypos;
+    delete [] uvsys;
+    delete [] uvoan;
+}
+template void Galmod_wind<float>::shellIO(Shells<float>*);
+template void Galmod_wind<double>::shellIO(Shells<double>*);
+
+
+template <class T>
+bool Galmod_wind<T>::calculate() {
+    
+    /// Front end function to calculate the model.
+    
+    if (this->readytomod) galmod_wind();
+    else {
+        std::cout<< "GALMOD_WIND error: wrong or unknown input parameters.\n";
+        return false;
+    }
+    return true;
+}
+template bool Galmod_wind<float>::calculate();
+template bool Galmod_wind<double>::calculate();
+
+
+
+template <class T>
+void Galmod_wind<T>::galmod_wind() {
+
+    // GALMOD FOR SPHERICAL WIND
+    const int buflen=this->bsize[0]*this->bsize[1]*this->nsubs+1;
+    T *datbuf = new T [buflen];
+//  Initialize data buffer on zero.
+    for (int i=0; i<buflen; i++) datbuf[i]=0.0;
+    
+    int isd = this->iseed;
+//  Get number of velocity profiles that will be done.
+    int nprof = this->bsize[0]*this->bsize[1];
+//  Convenient random generator functions
+    auto fran = std::bind(this->uniform, this->generator);
+    bool verb = this->in->pars().isVerbose();
+
+    ProgressBar bar(" Modeling outflow... ",false);
+    bar.setShowbar(this->in->pars().getShowbar());
+
+    int nthreads = this->in->pars().getThreads();
+#pragma omp parallel num_threads(nthreads)
+{
+    if (verb) bar.init(s->ns);
+    
+#pragma omp for schedule (dynamic)
+    // ==>> Loop over standard spherical shells.
+    for (int ir=0; ir<s->ns; ir++) {
+        if (verb) bar.update(ir+1);
+//      Get radius
+        double rtmp = s->radii[ir];
+//      Get number of clouds inside ring.
+        int nc = lround(this->cdens*pow(s->dens[ir],this->cmode)*2*M_PI*rtmp*s->sep/this->pixarea); 
+        if (nc==0) {
+            std::cerr << " GALMOD ERROR: No clouds used. Choose higher CDENS " << std::endl;
+            std::terminate();
+        }
+//      Get values of ir-radius.            
+        double vrottmp = s->vrot[ir];
+        double vsphtmp = s->vsph[ir];
+        double opentmp = s->openang[ir]/2.;
+        double vdisptmp= sqrt(s->vdisp[ir]*s->vdisp[ir]+this->sig_instr*this->sig_instr);
+        double vsystmp = s->vsys[ir];
+        double sinc    = sin(s->inc[ir]);
+        double cinc    = cos(s->inc[ir]);
+        double spa     = sin(s->pa[ir])*cos(this->crota2)+cos(s->pa[ir])*sin(this->crota2);
+        double cpa     = cos(s->pa[ir])*cos(this->crota2)-sin(s->pa[ir])*sin(this->crota2);
+        double nvtmp   = this->nv[ir];
+        double fluxsc  = s->dens[ir]*2*M_PI*rtmp*s->sep/(nc*nvtmp);
+        
+// ==>> Loop over clouds inside each ring.
+        for (int ic=0; ic<nc; ic++) {
+//          Get radius inside shell. The range includes the inner boundary,
+//          excludes the outer boundary.
+            double ddum = fabs(fran());
+            double rad  = sqrt(pow((rtmp-0.5*s->sep),2)+2*s->sep*rtmp*ddum);
+//          Get azimuth and its sine and cosine.
+            double az   = 2*M_PI*fabs(fran());
+            double saz  = sin(az); 
+            double caz  = cos(az);
+            // Get polar angle
+            double phi  = opentmp*fabs(fran());
+            if (ic%2==0) phi = M_PI - phi;
+            double sphi = sin(phi);
+            double cphi = cos(phi);
+//          Get cylindrical coordinates
+            double R    = rad*sphi;
+            double z    = rad*cphi;
+//          Get position in the plane of the sky with respect to the major
+//          and minor axes of the spiral galaxy.
+            double x    = R*caz;
+            double y    = R*saz*cinc-z*sinc;                                                 
+//          Get grid of this position, check if it is inside area of box.
+            long grid[2] = {lround(s->xpos[ir]+(x*spa-y*cpa)/this->cdelt[0]),
+                            lround(s->ypos[ir]+(x*cpa+y*spa)/this->cdelt[1])};             
+            if (grid[0]<=this->blo[0] || grid[0]>this->bhi[0]) continue;
+            if (grid[1]<=this->blo[1] || grid[1]>this->bhi[1]) continue;
+  
+//          Get profile number of current pixel and check if position is in
+//          range of positions of profiles that are currently being done.
+            int iprof = (grid[1]-this->blo[1])*this->bsize[0]+grid[0]-this->blo[0]-this->bsize[0];
+//          Get LOS velocity of cloud.
+            double vsys = vsystmp+vsphtmp*(cphi*cinc+sphi*saz*sinc)+(vrottmp*caz*sinc);
+                
+            for (int iv=0; iv<nvtmp; iv++) {
+                double vdev = this->gaussia(this->generator)*vdisptmp;
+                for (int nl=0; nl<this->nlines; nl++) {
+                    double v  = vsys+vdev+this->relvel[nl];
+                    int isubs = lround(this->velgrid(v)+this->crpix3-1);
+                    if (isubs<0 || isubs>=this->nsubs) continue;
+                    int idat  = iprof+isubs*nprof;
+                    datbuf[idat] = datbuf[idat]+this->relint[nl]*fluxsc*this->cd2i[isubs];
+                }
+            }
+        }
+        
+    }
+}
+
+//  Write data to output Cube.      
+    for (int isubs=0; isubs<this->nsubs; isubs++) {
+        int pixstart=isubs*this->bsize[0]*this->bsize[1];
+        int idat=1+isubs*nprof;
+        for (int i=0; i<nprof; i++)
+            this->out->Array(pixstart+i)=datbuf[idat+i];
+    }
+    
+    if (verb) bar.fillSpace("OK.\n");
+    delete [] datbuf;
+    
+    this->modCalculated=true;
+
+}
+template void Galmod_wind<float>::galmod_wind();
+template void Galmod_wind<double>::galmod_wind();
 
 }
 

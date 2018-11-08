@@ -581,10 +581,12 @@ void Cube<T>::BlankMask (float *channel_noise){
         float factor = par.getFactor()==-1 ? 2 : par.getFactor();
         double nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
         double nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
-        double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
+        double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();   
+        //if (nbmaj/bmaj<1.1) nbmaj = factor*bmaj;
+        //if (nbmin/bmin<1.1) nbmin = factor*bmin;
         Beam oldbeam = {bmaj,bmin,bpa};
         Beam newbeam = {nbmaj,nbmin,nbpa};
-
+                
         Smooth3D<T> *sm = new Smooth3D<T>;
         sm->smooth(this, oldbeam, newbeam);
         bool *blanks = new bool[numPix];
@@ -961,3 +963,4 @@ template void Cube<int>::CheckChannels ();
 template void Cube<long>::CheckChannels ();
 template void Cube<float>::CheckChannels ();
 template void Cube<double>::CheckChannels ();
+

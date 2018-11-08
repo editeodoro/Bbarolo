@@ -47,10 +47,11 @@
 
 
 struct Beam {
-    double bmaj;                    //< Major axis of gaussian beam.
-    double bmin;                    //< Minor axis of gaussian beam.
-    double bpa;                 //< Position angle fo beam (N->E).
+    double bmaj;                    //< Major axis of gaussian beam FWHM.
+    double bmin;                    //< Minor axis of gaussian beam FWHM.
+    double bpa;                     //< Position angle fo beam (N->E).
 };
+
 
 
 template <class T>
@@ -107,17 +108,23 @@ private:
     double  scalefac;                   //< Scale factor.
     bool    usescalefac;
     float   crota;                      //< Rotation angle of maps.
-    double  cutoffratio;                    //< Cutoff for gaussian kernel.
-    int     maxconv;                    //< Max convolution size: 512*512.
+    double  cutoffratio;                //< Cutoff for gaussian kernel.
+    size_t  maxconv;                    //< Max convolution size: 512*512.
     bool    fft;                        //< Convolution with FFT.   
 
+    /// Pointer to the function to be convolved with (Gaussian or Moffat)
+    typedef bool (Smooth3D<T>::*funcPtr) (Beam, Beam);
+    funcPtr func_psf;
     
-    bool defineBeam(Beam Oldbeam, Beam Newbeam);
+    bool defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam);
+    bool defineBeam_Moffat(Beam Oldbeam, Beam Newbeam);
     bool calculate(T *OldArray, T *NewArray);   
     bool calculatefft(T *OldArray, T *NewArray);
     bool Convpars();                
     bool Fillgauss2d(Beam varbeam, float ampl, bool norm, int &NconX, 
                      int &NconY, double *cfie);
+    bool FillMoffat2d(Beam varbeam, float ampl, bool norm, int &NconX, 
+                                      int &NconY, double *cfie);
     int Convolve(double *cfie, int ncx, int ncy, T *dat1, 
                  T *dat2, int ndx, int ndy);
 

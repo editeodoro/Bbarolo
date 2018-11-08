@@ -45,6 +45,8 @@ void Smooth3D<T>::defaults() {
     usescalefac     = true;
     scalefac        = -1;
     fft             = true;
+    func_psf = &Smooth3D<T>::defineBeam_Gaussian;
+    //func_psf = &Smooth3D<T>::defineBeam_Moffat;
     
 }
 template void Smooth3D<short>::defaults();
@@ -257,8 +259,10 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
     
     crota = c->Head().Crota();
 
-    beamDefined = defineBeam(Oldbeam, Newbeam);
+    beamDefined = (this->*func_psf)(Oldbeam,Newbeam);
     if (!beamDefined) std::terminate();
+    
+    //FitsWrite_2D ("PSF.fits", confie, NconX, NconY);
     
     if (c->pars().isVerbose()) {
 
@@ -344,7 +348,7 @@ bool Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam, T *OldArray, T 
     
     crota = c->Head().Crota();
     
-    beamDefined = defineBeam(Oldbeam, Newbeam); 
+    beamDefined = (this->*func_psf)(Oldbeam, Newbeam); 
     if (!beamDefined) return false;
         
     blanks = new bool [NdatX*NdatY*NdatZ];
@@ -369,7 +373,7 @@ template bool Smooth3D<double>::smooth(Cube<double>*,Beam,Beam,double*,double*);
 
 
 template <class T>
-bool Smooth3D<T>::defineBeam(Beam Oldbeam, Beam Newbeam) {
+bool Smooth3D<T>::defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam) {
     
     /// A function that defines the convolution beam, the 
     /// convolution field and the scale factor for smoothing.
@@ -388,6 +392,8 @@ bool Smooth3D<T>::defineBeam(Beam Oldbeam, Beam Newbeam) {
  
     if (!agreed) {
         std::cout << "SMOOTH error: new beam smaller than old beam\n";
+        std::cout << "   old beam: " << oldbeam.bmaj << " x " << oldbeam.bmin << std::endl;
+        std::cout << "   new beam: " << newbeam.bmaj << " x " << newbeam.bmin << std::endl;
         return false;
     }
     if (newbeam.bmaj<newbeam.bmin) {
@@ -472,11 +478,54 @@ bool Smooth3D<T>::defineBeam(Beam Oldbeam, Beam Newbeam) {
     
     return true;
 }
-template bool Smooth3D<short>::defineBeam(Beam,Beam);
-template bool Smooth3D<int>::defineBeam(Beam,Beam);
-template bool Smooth3D<long>::defineBeam(Beam,Beam);
-template bool Smooth3D<float>::defineBeam(Beam,Beam);
-template bool Smooth3D<double>::defineBeam(Beam,Beam);
+template bool Smooth3D<short>::defineBeam_Gaussian(Beam,Beam);
+template bool Smooth3D<int>::defineBeam_Gaussian(Beam,Beam);
+template bool Smooth3D<long>::defineBeam_Gaussian(Beam,Beam);
+template bool Smooth3D<float>::defineBeam_Gaussian(Beam,Beam);
+template bool Smooth3D<double>::defineBeam_Gaussian(Beam,Beam);
+
+
+template <class T>
+bool Smooth3D<T>::defineBeam_Moffat(Beam Oldbeam, Beam Newbeam) {
+    
+    /// A function that defines the convolution beam, the 
+    /// convolution field and the scale factor for smoothing.
+        
+    oldbeam = Oldbeam;
+    newbeam = Newbeam;
+    conbeam = newbeam;
+    
+    if (newbeam.bmaj<oldbeam.bmaj) {
+        std::cout << "SMOOTH error: new beam smaller than old beam\n";
+        std::cout << "   old PSF FWHM: " << oldbeam.bmaj << std::endl;
+        std::cout << "   new PSF FWHM: " << newbeam.bmaj << std::endl;
+        return false;
+    }
+     
+    confie = new double[maxconv];
+    confieAllocated=true;
+        
+    if (!FillMoffat2d(conbeam, 1.0, true, NconX, NconY, confie)) {
+        std::cout << "SMOOTH error: Convolution region to big!\n";
+        return false;
+    }
+
+    int maxbufsize=dimAxes[0]*NconY;
+    if (maxbufsize>NdatX*NdatY) {
+        cout << maxbufsize << "  " << NdatX << "  " << NdatY << " " << newbeam.bmaj << " " << NdatX*NdatY << endl;
+        std::cout<<"SMOOTH: Convolution field too big or buffer too small.\n";
+        return false;
+    }
+
+    scalefac=1;
+    
+    return true;
+}
+template bool Smooth3D<short>::defineBeam_Moffat(Beam,Beam);
+template bool Smooth3D<int>::defineBeam_Moffat(Beam,Beam);
+template bool Smooth3D<long>::defineBeam_Moffat(Beam,Beam);
+template bool Smooth3D<float>::defineBeam_Moffat(Beam,Beam);
+template bool Smooth3D<double>::defineBeam_Moffat(Beam,Beam);
 
 
 template <class T>
@@ -848,6 +897,88 @@ template bool Smooth3D<int>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
 template bool Smooth3D<long>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
 template bool Smooth3D<float>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
 template bool Smooth3D<double>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
+
+
+
+template <class T>
+bool Smooth3D<T>::FillMoffat2d(Beam varbeam, float ampl, bool norm, int &nconx, int &ncony, double *cfie) {
+
+    /// Fill cfie with values of 2-d Moffat funtion. 
+    ///
+    /// -Beam varbeam(INPUT):   the Beam object of the 2d Moffat func.
+    /// -float ampl(INPUT):     the amplitude of 2d Moffat func. Used if norm=false.
+    /// -bool norm(INPUT):      the 2d has to be normalized?
+    /// -int nconx(OUTPUT):     X-dimension of the 2d Moffat func.
+    /// -int ncony(OUTPUT):     Y-dimension of the 2d Moffat func.
+    /// -float *cfie(OUTPUT):   An array containing 2d Moffat func.
+    ///
+    /// 
+    /// Returns true if all ok, otherwise false.
+     
+    
+    const double degtorad = atan(1.)/45.; 
+    double amplitude;
+   
+    if (norm) amplitude = 1.0; 
+    else amplitude = ampl;
+    // The FWHM is stored in varbeam.bmaj, the power index in the varbeam.bmin.
+    double fwhm = fabs(varbeam.bmaj);
+    double pidx = varbeam.bmin;
+
+    double r = 0.5*fwhm;
+
+    double extend = sqrt(-1.0*log(cutoffratio)/log(2.0));
+    r *= extend;
+    
+    double gridspac[2] = {fabs(gridspace[0]), fabs(gridspace[1])}; 
+   
+    int Xmax = round(r/gridspac[0]); 
+    int Ymax = round(r/gridspac[1]); 
+
+    int nconX = 2*Xmax+1;    
+    int nconY = 2*Ymax+1; 
+
+    if ((nconX*nconY)>maxconv) {
+        std::cout << "SMOOTH error: Convolution function too big for buffer.\n";
+        return false;
+    } else {
+        nconx = nconX;
+        ncony = nconY;
+    }
+    
+    double sigma = fwhm/(2*sqrt(pow(2,1/pidx)-1.));
+        
+    double totalarea = 0;
+    for (int j=-Ymax; j<=Ymax; j++) {
+        for (int i=-Xmax; i<=Xmax; i++) {
+            int pos = (j+Ymax)*nconX+(i+Xmax);    
+            double x = i*gridspac[0];
+            double y = j*gridspac[1];
+            double arg = 0;
+            if (fwhm!=0) arg = 1+(x*x+y*y)/(sigma*sigma);
+            double c = pow(arg,-pidx);
+            if (c>=cutoffratio) {
+                c *= amplitude;
+                cfie[pos] = c;
+                totalarea += c;
+            } 
+            else cfie[pos] = 0;
+        }
+    }
+   
+    if (norm) {
+        for (int i=0; i<(nconX*nconY); i++) {
+            cfie[i] = cfie[i]/totalarea;
+        }
+    }
+    
+    return true;   
+}
+template bool Smooth3D<short>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
+template bool Smooth3D<int>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
+template bool Smooth3D<long>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
+template bool Smooth3D<float>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
+template bool Smooth3D<double>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
 
 
 template <class T> 

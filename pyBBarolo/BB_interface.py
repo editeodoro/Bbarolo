@@ -46,7 +46,7 @@ libBB.Rings_set.restype = c_void_p
 libBB.Rings_set.argtypes = [c_void_p,c_int,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\
-                            array_1d_float,array_1d_float,array_1d_float,array_1d_int]
+                            array_1d_float,array_1d_float,array_1d_float]
 ########################################################################################
 
 

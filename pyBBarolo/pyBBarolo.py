@@ -92,7 +92,7 @@ class Rings(object):
         self._rings = libBB.Rings_new();
         self.rinDef = False
     
-    def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi,nv):
+    def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
         """ Define rings given the input parameters 
             
            \param radii: List or array
@@ -119,15 +119,14 @@ class Rings(object):
         z0    = np.array(z0,dtype=fl)    if isIterable(z0)    else np.full(self.nr,z0,dtype=fl)
         inc   = np.array(inc,dtype=fl)   if isIterable(inc)   else np.full(self.nr,inc,dtype=fl)
         phi   = np.array(phi,dtype=fl)   if isIterable(phi)   else np.full(self.nr,phi,dtype=fl)
-        nv    = np.array(nv,dtype=np.int) if isIterable(nv)   else np.full(self.nr,nv,dtype=np.int)
         
-        allr = (radii,xpos,ypos,vsys,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi,nv)
+        allr = (radii,xpos,ypos,vsys,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
         
         for i in allr:
             if len(i)!=self.nr: raise ValueError("All quantities must have size = %i"%self.nr)
         
         libBB.Rings_set(self._rings,self.nr,radii,xpos,ypos,vsys,vrot,\
-                        vdisp,vrad,vvert, dvdz,zcyl,dens,z0,inc,phi,nv)
+                        vdisp,vrad,vvert, dvdz,zcyl,dens,z0,inc,phi)
         
         self.rinDef = True
 
@@ -324,7 +323,7 @@ class GalMod(Model3D):
         
         if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
     
         
     def _compute(self,threads=1):
@@ -576,7 +575,7 @@ class FitMod3D(Model3D):
         # Now we can initialize rings
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi)
                   
 
     def _compute(self,threads=1):
@@ -777,7 +776,7 @@ class FitMod2D(Task):
         """
         if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi)
 
     
     def _compute(self,threads=1):
@@ -870,7 +869,7 @@ class Ellprof(Task):
         """
         if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi)
         
 
     def _compute(self,threads=1):

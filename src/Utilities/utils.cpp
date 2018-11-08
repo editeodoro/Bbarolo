@@ -1011,6 +1011,32 @@ template float* SimulateNoise(double,size_t);
 template double* SimulateNoise(double,size_t);
 
 
+template <class T>
+T* HanningSmoothing(T *inarray, size_t npts, size_t hanningSize) {
+    
+    T *newarray = new T[npts];
+    
+    if(hanningSize%2==0){ 
+      std::cerr << "Hanning: need an odd number for the size. "
+  	      << "Changing "<< hanningSize << " to " << hanningSize+1<<".\n";
+      hanningSize++;
+    }
+    
+    float scale = (hanningSize+1.)/2.;
+    for(int i=0; i<npts; i++){
+        newarray[i] = 0.;
+        for(int j=0; j<hanningSize; j++){
+            float x = i-(hanningSize-1)/2.;
+            double coeff = (0.5+0.5*cos(x*M_PI/scale))/scale;
+            if((i+x>0)&&(i+x<npts)) newarray[i] += coeff*inarray[i+int(x)];
+        }
+    }
+    return newarray;
+}
+template float* HanningSmoothing(float*,size_t,size_t);
+template double* HanningSmoothing(double*,size_t,size_t);
+
+
 template <> int selectBitpix<short>() {return SHORT_IMG;}
 template <> int selectBitpix<int>() {return SHORT_IMG;}
 template <> int selectBitpix<long>() {return LONG_IMG;}

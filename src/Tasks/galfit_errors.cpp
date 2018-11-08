@@ -23,7 +23,7 @@
 
 
 #include <iostream>
-//#include <random>
+#include <random>
 #include <Tasks/galfit.hh>
 #include <Tasks/galmod.hh>
 #include <Arrays/cube.hh>
@@ -222,6 +222,10 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
     uint cc=1;
     
     //default_random_engine generator;  
+    
+    static std::random_device rd;
+    std::mt19937 generator(rd());
+    
     for (int nf=nfree; nf--;) {
         for (int ii=0; ii<2; ii++) {
             dr->vrot[ii]=outr->vrot[ir];
@@ -371,7 +375,6 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
         
         //for (int ib=xx_bin.size(); ib--;) if (ww[ib]==1) errout << xx_bin[ib] <<  "    " << yy_bin[ib] << "    "  << endl;
         
-        
         for (int i=order+1; i--;) {
             coeff[i]=coefferr[i]=0;
             mp[i] = true;
@@ -382,7 +385,6 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
         int nrt = lsq.fit();
 
         //cout << setprecision(20) <<coeff[3] << "  " << coeff[2] << endl;
-        
         
         xx_bin.clear();
         yy_bin.clear(); 
@@ -462,9 +464,19 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
         err[1][nf] = upp_err;
     }
     
+    
+   
     for (int nf=nfree; nf--;) {
         if (err[0][nf]==0) err[0][nf] = findMean(err[0],nfree);
         if (err[1][nf]==0) err[1][nf] = findMean(err[1],nfree);
+        if (free_var[nf]==VDISP) {
+            float minerr_vd = DeltaVel<float>(in->Head())/(2*sqrt(2*log(2)));
+            uniform_real_distribution<float> distribution(0,1.); 
+            if (abs(err[0][nf])<minerr_vd/2.) err[0][nf] = -abs(minerr_vd/2.+distribution(generator));
+            if (abs(err[1][nf])<minerr_vd/2.) err[1][nf] = abs(minerr_vd/2.+distribution(generator)); 
+            
+        }
+        
     }
     
     //*/    

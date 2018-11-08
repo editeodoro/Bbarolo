@@ -67,7 +67,7 @@ public:
     double  getZphys (double z) {return (z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);};
     double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);};
     double  getYphys (double y) {return (y+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);};
-    double  getZgrid (double v) {return (v-head.Crval(2))/head.Cdelt(2)+head.Crpix(2)-1;};
+    double  getZgrid (double v) {return (v-head.Crval(2))/head.Cdelt(2)+head.Crpix(2)-1;};    
     
     void    setXsize (int i) {axisDim[0] = i;};
     void    setYsize (int i) {axisDim[1] = i;};

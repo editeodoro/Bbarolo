@@ -106,7 +106,7 @@ protected:
     Cube<Type>  *out;                       //< The Cube containing the model.
     bool    outDefined;
     double  crpix3, crval3;                 //< Header keywords.
-    double drval3, cdelt3;                  //<
+    double  drval3, cdelt3;                  //<
     double  cdelt[2];                       //<
     std::string cunit3, ctype3;         
     std::string ctype[2], cunit[2]; 
@@ -125,14 +125,15 @@ protected:
     short   nlines;                         //< Number of emission lines.
     std::vector<float> relvel;              //< Relative velocities of lines.
     std::vector<float> relint;              //< Relative velocities of lines.
-        
+    
     Rings<Type> *r;                         //< Set of rings.       
     bool    ringDefined;            
     
+    std::vector<int> nv;                    //< Number of subclouds
     int     ltype;                          //< Layer type.
-    int     cmode;                           
+    int     cmode;                          //< Cloud mode 
     float   cdens;                          //< Surf. dens. of clouds per area of a pixel.
-    int     iseed;  
+    int     iseed;                          //< Seed for random numbers
     float   arcmconv;                       //< Conversion to arcmin.
     bool    readytomod;
     bool    modCalculated;
@@ -145,16 +146,41 @@ protected:
     /// Private functions.
     
     void    initialize(Cube<Type> *c, int *Boxup, int *Boxlow);
-    void    ringIO(Rings<Type> *rings);
-    void    galmod();
-    void    NHItoRAD();
+    void    setOptions(int LTYPE, int CMODE, float CDENS, int ISEED);
     double  velgrid(double v);
     double  fdev(int &idum);
+    void    NHItoRAD();
+
+private:
+    void    ringIO(Rings<Type> *rings);
+    void    galmod();
     
 };
 
-}
+// A class to simulate outflows in spherical coordinates
+template <class Type>   
+class Galmod_wind : public Galmod<Type>
+{
+public:
+    Galmod_wind() {this->defaults();}
+    ~Galmod_wind() {if (shellDefined) delete s;}
+    
+    void input(Cube<Type> *c, int *Boxup, int *Boxlow, Shells<Type> *shells, 
+               int NV=-1, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);
+    
+    bool calculate();
+    
 
-//#include "galmod.cpp"
+protected:
+    Shells<Type> *s;
+    bool    shellDefined;
+    
+private:
+    void    shellIO(Shells<Type> *shells);
+    void    galmod_wind();
+};
+
+
+}
 
 #endif

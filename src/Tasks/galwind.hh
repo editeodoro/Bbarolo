@@ -33,9 +33,10 @@ class GalWind
 {
 // GalWind is derived from Federico Lelli's algorithm.
 // This class builds a bi-conical outflow model with given outflow velocity 
-// and velocity dispersion. The cone is build adding N cylinders with the same 
-// thickness and symmetry axis but increasing diameter. After adding the cylinders, 
-// the projected bi-cone is convoluted with the observed PSF (assumed to be Gaussian).
+// and velocity dispersion. The cone is build either by adding N cylinders with the same 
+// thickness and symmetry axis but increasing diameter or as spherical shells.
+// After adding the cylinders/shells, the projected bi-cone is convoluted with the observed PSF 
+// (assumed to be Gaussian).
 // IMPORTANT NOTE:
 // The conversion from column density to flux/beam does NOT depend on 
 // frequency or any other property. For Dens = 1.25e20 atoms/cm^-2 = 1 Msun/pc^2, it 
@@ -72,13 +73,17 @@ public:
     bool writeFITS (std::string fname="", bool fullHead=false);
     bool writeMomentMaps();
     bool writePV(std::string fname="");
-    
+    bool makePlots();
 
 private:
     Cube<T>     *in;                //< A pointer to the input cube.
     Cube<T>     *out;               //< The Cube containing the model.
     bool        outDefined = false; //< Whether the out Cube is defined
     GALWIND_PAR par;                //< Parameters of the task
+    
+    bool compute_cylindrical();
+    bool compute_spherical();
+    
 };
 
 #endif

@@ -337,9 +337,9 @@ int Param::readParams(std::string paramfile) {
             if(arg=="galwind")   parGW.flagGALWIND = readFlag(ss);
             if(arg=="spacepar")  flagSpace  = readFlag(ss);
             if(arg=="nradii")    parGM.NRADII = parGF.NRADII               = readIval(ss);
-            if(arg=="radii")     parGM.RADII  = parGF.RADII                = readFilename(ss);
+            if(arg=="radii")     parGM.RADII  = parGF.RADII = parGW.RADII  = readFilename(ss);
             if(arg=="radsep")    parGM.RADSEP = parGF.RADSEP               = readDval(ss);
-            if(arg=="vrot")      parGM.VROT   = parGF.VROT                 = readFilename(ss);
+            if(arg=="vrot")      parGM.VROT   = parGF.VROT = parGW.VROT    = readFilename(ss);
             if(arg=="vrad")      parGM.VRAD   = parGF.VRAD                 = readFilename(ss);
             if(arg=="z0")        parGM.Z0     = parGF.Z0                   = readFilename(ss);
             if(arg=="vvert")     parGM.VVERT  = parGF.VVERT                = readFilename(ss);
@@ -383,10 +383,11 @@ int Param::readParams(std::string paramfile) {
 
             // GALWIND ONLY PARAMETERS
             if(arg=="htot")      parGW.HTOT       = readFval(ss);
-            if(arg=="openang")   parGW.OPENANG    = readFval(ss);
+            if(arg=="openang")   parGW.OPENANG    = readFilename(ss);
             if(arg=="ntot")      parGW.NTOT       = readIval(ss);
             if(arg=="vwind")     parGW.VWIND      = readFilename(ss);
             if(arg=="denstype")  parGW.DENSTYPE   = readIval(ss);
+            if(arg=="wtype")     parGW.WTYPE      = readIval(ss);
  
             if(arg=="p1")        P1 = readFilename(ss);
             if(arg=="p1par")     readArray<float>(ss,P1p,3);
@@ -665,7 +666,7 @@ bool Param::checkPars() {
             std::cout << "GALWIND error: DENS" << str << std::endl;
             good = false;
         }
-        if (parGW.OPENANG==-1)   {
+        if (parGW.OPENANG=="-1")   {
             std::cout << "GALWIND error: OPENANG" << str << std::endl;
             good = false;
         }
@@ -1063,6 +1064,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
     recordParam(Str, "[GALWIND]", "Generating a 3D datacube with a wind model?", stringize(p.getParGW().flagGALWIND));
     if (p.getParGW().flagGALWIND || defaults) {
         recordParam(Str, "[VWIND]",   "   Radial velocity of the wind (km/s)", p.getParGW().VWIND);
+        recordParam(Str, "[VROT]",   "   Azimuthal velocity of the wind (km/s)", p.getParGW().VROT);
         recordParam(Str, "[OPENANG]", "   Wind opening angle (degrees)", p.getParGW().OPENANG);
         recordParam(Str, "[HTOT]",    "   Wind maximum distance (arcsec)", p.getParGW().HTOT);
         recordParam(Str, "[XPOS]",    "   X center of the galaxy (pixel)", p.getParGW().XPOS);
@@ -1074,9 +1076,10 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         recordParam(Str, "[DENS]",    "   Global column density of gas (atoms/cm2)", p.getParGW().DENS);
         recordParam(Str, "[NTOT]",    "   Number of layers/cylinder for each cone", p.getParGW().NTOT);
         recordParam(Str, "[DENSTYPE]","   How to distribute density in layers", p.getParGW().DENSTYPE);
+        recordParam(Str, "[WTYPE]","   Cylindrical or spherical model", p.getParGW().WTYPE);
+        recordParam(Str, "[SM]","   Whether to smooth the model", stringize(p.getParGF().SM));
+
     }
-    
-    
     
     
     // PARAMETERS FOR 2DFIT

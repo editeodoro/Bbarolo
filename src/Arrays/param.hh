@@ -87,7 +87,8 @@ struct GALFIT_PAR : GALMOD_PAR {
 struct GALWIND_PAR : GALMOD_PAR {
     bool   flagGALWIND =  false; ///< Enable task 
     string VWIND       = "-1";   ///< Outflow velocity (purely radial)
-    float  OPENANG     = -1;     ///< Wind opening angle
+    string VROT        = "0";    ///< Wind can also rotate (km/s).
+    string OPENANG     = "-1";   ///< Wind opening angle
     float  HTOT        = -1;     ///< Maximum height reached by the wind
     size_t NTOT        = 25;     ///< Number of layers/cylinders for each cone
     int    LTYPE       = 5;      ///< Layer type along z.    
@@ -95,6 +96,7 @@ struct GALWIND_PAR : GALMOD_PAR {
                                  //   0=constant mass in layers     (Dens decreases)
                                  //   1=constant density in layers  (Mass increases)
                                  //   2=hollow cone with constant density
+    short WTYPE        = 0;      //< Type of wind: 0=cylindrical, 1=spherical
 };
 
 
