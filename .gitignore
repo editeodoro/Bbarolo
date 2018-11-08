@@ -15,3 +15,10 @@ output/
 *.a
 updateall.sh
 BBarolo.tar.gz
+*~
+BBarolo-*
+BBarolo_MPI
+BBarolo_MPI-*
+*.so
+*.so.*
+*.egg-info
