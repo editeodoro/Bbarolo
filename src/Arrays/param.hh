@@ -216,6 +216,10 @@ public:
     void    setFactor (float f) {factor=f;}
     bool    getflagReduce() {return flagReduce;}
     string  getSmoothOut () {return smo_out;}
+    
+    bool    getflagHanning () {return flagHanning;}
+    size_t  getHanningWindow () {return hanning_window;}
+    
 
     bool    getFlagSlitfit () {return flagSlitfit;}
     string  getWavefile () {return wavefile;}
@@ -289,6 +293,9 @@ private:
     float           scalefactor;
     bool            flagReduce;
     string          smo_out;            ///< Output file.
+    
+    bool            flagHanning;        ///< Hanning smooth the datacube?
+    size_t          hanning_window;     ///< Size of hanning window
 
     bool            flagSlitfit;        ///< Fitting a 3D model to a slit observation.
     string          wavefile;           ///< Fitsfile containing the wavelegths.

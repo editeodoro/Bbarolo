@@ -77,6 +77,9 @@ void Param::defaultValues() {
     smo_out             = "NONE";
     for (int i=0; i<6; i++) BOX[i] = -1;
 
+    flagHanning         = false;
+    hanning_window      = 3;
+    
     flagSlitfit         = false;
     wavefile            = "NONE";
     ivarfile            = "NONE";
@@ -165,12 +168,14 @@ Param& Param::operator= (const Param& p) {
     this->flagReduce        = p.flagReduce;
     this->smo_out           = p.smo_out;
 
+    this->flagHanning       = p.flagHanning;
+    this->hanning_window    = p.hanning_window;
+    
     this->flagSlitfit       = p.flagSlitfit;
     this->wavefile          = p.wavefile;
     this->ivarfile          = p.ivarfile;
     this->linetofit         = p.linetofit;
 
-       
     this->flagPV            = p.flagPV;
     this->XPOS_PV           = p.XPOS_PV;
     this->YPOS_PV           = p.YPOS_PV;
@@ -408,6 +413,9 @@ int Param::readParams(std::string paramfile) {
             if(arg=="fft")       flagFFT = readFlag(ss);
             if(arg=="reduce")    flagReduce = readFlag(ss);
             if(arg=="smoothoutput") smo_out = readFilename(ss);
+
+            if(arg=="hanning")    flagHanning = readFlag(ss);
+            if(arg=="hanning_size") hanning_window = readIval(ss);
 
             if(arg=="slitfit")    flagSlitfit = readFlag(ss);
             if(arg=="wavefile")   wavefile = readFilename(ss);
@@ -698,6 +706,13 @@ bool Param::checkPars() {
         }
     }
 
+    if (flagHanning) {
+        if (hanning_window%2==0) {
+            std::cout << "HANNING error: Hanning window must be an odd number\n";
+            good = false;
+        }
+    }
+
     return good;
 }
 
@@ -959,6 +974,12 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         }
         recordParam(Str, "[FFT]", "   Using FFT for convolution?", stringize(p.getflagFFT()));
         recordParam(Str, "[REDUCE]", "   Reducing datacube?", stringize(p.getflagReduce()));
+    }
+    
+    // PARAMETERS FOR HANNING
+    recordParam(Str, "[HANNING]", "Hanning smoothing the datacube?", stringize(p.getflagHanning()));
+    if (p.getflagHanning() || defaults) {
+        recordParam(Str, "[HANNING_SIZE]", "   Size of hanning window (channels)", p.getHanningWindow());
     }
     
     // GALMOD & 3DFIT parameters

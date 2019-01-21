@@ -130,7 +130,32 @@ private:
 
 };
 
-//#include "smooth3D.cpp"
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// A class for Hanning smoothing a datacube
+/////////////////////////////////////////////////////////////////////////////////////
+template <class T>
+class Hanning3D 
+{
+public:
+    Hanning3D(size_t window_size) {window=window_size;} //< Default constructor.
+    virtual ~Hanning3D();                               //< Destructor.
+
+    /// Obvious inline functions
+    T&      Array (int i) {return array[i];};
+    T       *Array () {return array;};
+
+    void compute(Cube<T> *c);
+    void compute(T *inarray, size_t xsize, size_t ysize, size_t zsize);
+    void fitswrite(Cube<T> *templ);
+   
+
+private:
+    
+    T       *array;                     //< The smoothed array.
+    bool    arrayAllocated;             //< Have been array allocated?
+    size_t  window;                     //< Size of the Hanning window
+};
 
 #endif
     

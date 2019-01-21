@@ -334,6 +334,11 @@ T FluxtoJy (T in, Header &h) {
     else if (b.find("jy")!=f) {
         return fluxJY; 
     }
+    else if (b=="k") {
+        // Converting from Kelvin -> Jy/Beam -> Jy
+        fluxJY = in*(h.Bmaj()*3600.*h.Bmin()*3600.)/(1360.*21.106*21.106);
+        if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
+    }
     
     return fluxJY;
     
@@ -1014,6 +1019,8 @@ template double* SimulateNoise(double,size_t);
 template <class T>
 T* HanningSmoothing(T *inarray, size_t npts, size_t hanningSize) {
     
+    // Performs Hanning smoothing on a single 1D array
+    
     T *newarray = new T[npts];
     
     if(hanningSize%2==0){ 
@@ -1026,7 +1033,7 @@ T* HanningSmoothing(T *inarray, size_t npts, size_t hanningSize) {
     for(int i=0; i<npts; i++){
         newarray[i] = 0.;
         for(int j=0; j<hanningSize; j++){
-            float x = i-(hanningSize-1)/2.;
+            float x = j-(hanningSize-1)/2.;
             double coeff = (0.5+0.5*cos(x*M_PI/scale))/scale;
             if((i+x>0)&&(i+x<npts)) newarray[i] += coeff*inarray[i+int(x)];
         }
@@ -1035,6 +1042,7 @@ T* HanningSmoothing(T *inarray, size_t npts, size_t hanningSize) {
 }
 template float* HanningSmoothing(float*,size_t,size_t);
 template double* HanningSmoothing(double*,size_t,size_t);
+
 
 
 template <> int selectBitpix<short>() {return SHORT_IMG;}

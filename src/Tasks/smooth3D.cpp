@@ -1040,4 +1040,70 @@ template void Smooth3D<short>::fitswrite();
 template void Smooth3D<int>::fitswrite();
 template void Smooth3D<long>::fitswrite();
 template void Smooth3D<float>::fitswrite();
-template void Smooth3D<double>::fitswrite();    
+template void Smooth3D<double>::fitswrite();
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// A class for Hanning smoothing
+/////////////////////////////////////////////////////////////////////////////////////
+template <class T>
+Hanning3D<T>::~Hanning3D() {
+    
+    if (arrayAllocated) delete [] array;    
+}
+template Hanning3D<float>::~Hanning3D();
+template Hanning3D<double>::~Hanning3D();
+
+
+template <class T>
+void Hanning3D<T>::compute(Cube<T> *in) {
+    
+    // Performs Hanning smoothing on each spectrum of a datacube
+    if (in->pars().isVerbose()) std::cout << " Hanning smoothing..." << std::flush;
+    this->compute(in->Array(),in->DimX(),in->DimY(),in->DimZ());
+    if (in->pars().isVerbose()) std::cout << " Done!" << std::endl;
+    
+}
+template void Hanning3D<float>::compute(Cube<float>*);
+template void Hanning3D<double>::compute(Cube<double>*);
+
+
+template <class T>
+void Hanning3D<T>::compute(T *inarray, size_t xsize, size_t ysize, size_t zsize) {
+    
+    // Performs Hanning smoothing on each spectrum of a 3D array
+    array = new T[xsize*ysize*zsize];
+    arrayAllocated = true;
+    for (size_t x=0; x<xsize; x++) {
+        for (size_t y=0; y<ysize; y++) {
+            T *spec = new T[zsize];
+            for (size_t z=0; z<zsize; z++) spec[z] = inarray[x+y*xsize+z*ysize*xsize];
+            T* hann = HanningSmoothing<T>(spec,zsize,window);
+            for (size_t z=0; z<zsize; z++) array[x+y*xsize+z*ysize*xsize] = hann[z];
+            delete [] hann;
+            delete [] spec;
+        }
+    }
+}
+template void Hanning3D<float>::compute(float*,size_t,size_t,size_t);
+template void Hanning3D<double>::compute(double*,size_t,size_t,size_t);
+
+
+template <class T> 
+void Hanning3D<T>::fitswrite(Cube<T> *templ) {
+    
+    Cube<T> *out = new Cube<T>(*templ);
+    out->Head().Keys().push_back("HISTORY BBAROLO HANNING SMOOTHING: Hanning smoothed with window "+to_string(window)+" channels");
+    for (size_t i=0; i<out->NumPix(); i++) out->Array()[i] = array[i];
+    std::string outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(window)+".fits";
+    out->fitswrite_3d(outname.c_str(),true);
+    if (templ->pars().isVerbose()) std::cout << " Smoothed datacube written in " << outname;
+    
+
+}
+template void Hanning3D<float>::fitswrite(Cube<float>*);
+template void Hanning3D<double>::fitswrite(Cube<double>*);
+
+
+
+

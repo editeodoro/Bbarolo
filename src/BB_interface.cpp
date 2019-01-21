@@ -46,7 +46,7 @@ Galmod<float>* Galmod_new(Cube<float> *c, Rings<float> *r, int NV, int LTYPE, in
                           {Galmod<float> *g = new Galmod<float>; g->input(c,r,NV,LTYPE,CMODE,CDENS,ISEED); return g;}
 void Galmod_delete(Galmod<float> *g) {delete g;}
 float* Galmod_array(Galmod<float> *g) {return g->getArray();}
-bool Galmod_compute(Galmod<float> *g) {return g->calculate();}
+bool Galmod_compute(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->calculate();}
 bool Galmod_smooth(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->smooth();}
 
 ////////////////////////////////////////////////////////////////////////////////////////

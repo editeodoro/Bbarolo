@@ -75,6 +75,14 @@ bool BBcore (Param *par) {
     }
     // --------------------------------------------------------------
 
+    /// Hanning smoothing utility -----------------------------------
+    if (par->getflagHanning()) {
+        Hanning3D<float> *h = new Hanning3D<float>(par->getHanningWindow());
+        h->compute(c);
+        h->fitswrite(c);
+        delete h;
+    }
+    // --------------------------------------------------------------
 
     /// Source finding utility --------------------------------------
     if (par->getflagSearch()) {
