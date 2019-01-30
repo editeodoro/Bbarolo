@@ -63,3 +63,9 @@ Outputs
 
 The task writes the smoothed datacube in the FITS file *NAME_hN.fits*, where *NAME* is the name of the galaxy and *N* is the size of the Hanning window.
 
+Example
+========
+Below, a :download:`parameter <examples/n2403_hanning.par>` file to Hanning smooth the usual :download:`datacube <examples/ngc2403.fits>`.
+
+.. literalinclude:: examples/n2403_hanning.par
+   :language: c

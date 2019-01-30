@@ -103,7 +103,7 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **PLOTMASK** [false]. If true, the mask contour is overlayed on the channel maps and PVs plots.
 
-* **NOISERMS** [0]. Add some RMS noise to the model data cube.
+* **NOISERMS** [0]. Available only for v1.4.2+. Add some RMS noise to the model data cube.
 
 
 Additional parameters for high-z galaxies 
