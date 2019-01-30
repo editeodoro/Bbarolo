@@ -84,7 +84,8 @@ int Lsqfit<T>::fit () {
   
     int r;
     static int itc, found, nuse;
-    
+#pragma omp threadprivate(itc,found,nuse)
+
     itc = 0;                
     found = 0;              
     nfree = 0;              

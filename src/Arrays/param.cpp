@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.4.1"
+#define BBVERSION "1.4.2"
 
 
 Param::Param() {
@@ -59,7 +59,8 @@ void Param::defaultValues() {
     dispersionmap       = false;
     rmsmap              = false;
     blankCut            = 3;
-
+    maptype             = "MOMENT";
+    
     flagRing            = false;
 
     flagSmooth          = false;
@@ -136,6 +137,7 @@ Param& Param::operator= (const Param& p) {
     this->dispersionmap     = p.dispersionmap;
     this->rmsmap            = p.rmsmap;
     this->blankCut          = p.blankCut;
+    this->maptype           = p.maptype;
          
     this->flagRing          = p.flagRing;
  
@@ -331,6 +333,8 @@ int Param::readParams(std::string paramfile) {
             if(arg=="dispersionmap")    dispersionmap = readFlag(ss);
             if(arg=="rmsmap")           rmsmap = readFlag(ss);
             if(arg=="blankcut")         blankCut = readFval(ss);
+            if(arg=="maptype")          maptype  = makeupper(readFilename(ss));
+            
         
             if(arg=="2dfit")     flagRing = readFlag(ss);
             if (arg=="ellprof")  flagEllProf = readFlag(ss);
@@ -713,6 +717,11 @@ bool Param::checkPars() {
         }
     }
 
+    if (getMaps()) {
+        if (maptype!="GAUSSIAN" && maptype!="MOMENT")
+            std::cout << "MAP warning: MAPTYPE is either MOMENT or GAUSSIAN. Reverting to MOMENT.\n";
+    }
+    
     return good;
 }
 
@@ -1161,17 +1170,19 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
     if (p.getGlobProf() || defaults)
         recordParam(Str, "[globalProfile]", "Saving the global profile?", stringize(p.getGlobProf()));
     if (p.getTotalMap() || defaults)
-        recordParam(Str, "[totalMap]",      "Saving 0th moment map to FITS file?", stringize(p.getTotalMap()));
+        recordParam(Str, "[totalMap]",      "Saving integrated intensity map to FITS file?", stringize(p.getTotalMap()));
     if (p.getMassDensMap() || defaults)
         recordParam(Str, "[massdensMap]",   "Saving HI mass density map to FITS file?", stringize(p.getMassDensMap()));
     if (p.getVelMap() || defaults)
-        recordParam(Str, "[velocityMap]",   "Saving 1st moment map to FITS file?", stringize(p.getVelMap()));
+        recordParam(Str, "[velocityMap]",   "Saving velocity map to FITS file?", stringize(p.getVelMap()));
     if (p.getDispMap() || defaults)
-        recordParam(Str, "[dispersionMap]", "Saving 2th moment map to FITS file?", stringize(p.getDispMap()));
+        recordParam(Str, "[dispersionMap]", "Saving velocity dispersion map to FITS file?", stringize(p.getDispMap()));
     if (p.getRMSMap() || defaults)
-        recordParam(Str, "[rmsMap]", "Saving RMS map to FITS file?", stringize(p.getRMSMap()));
+        recordParam(Str, "[rmsMap]",        "Saving RMS map to FITS file?", stringize(p.getRMSMap()));
     if (p.getMaps() || defaults) 
         recordParam(Str, "[MASK]",          "   Mask used for maps and profile?", p.getMASK());
+    if (p.getTotalMap() || p.getVelMap() || p.getDispMap() || defaults)
+        recordParam(Str, "[MAPTYPE]",       "   How to extract the map (gaussian or moment)?", p.getMapType());
     
     Str  << std::endl <<"-----------------------------";
     Str  << "------------------------------\n\n";

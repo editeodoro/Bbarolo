@@ -173,6 +173,7 @@ public:
     bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap || massdensmap || rmsmap);};
     void    setBlankCut (float f) {blankCut=f;};
     float   getBlankCut() {return blankCut;};  
+    string  getMapType() {return maptype;};  
     
     bool    getFlagRing () {return flagRing;};
     void    setFlagRing (bool b) {flagRing = b;};
@@ -264,6 +265,7 @@ private:
     bool            dispersionmap;      ///< Whether the user wants the velocity dispersion field.
     bool            rmsmap;             ///< Whether the user wants the RMS map.
     float           blankCut;           ///< SNR clipping cut for blanked area.
+    string          maptype;            ///< How to extract kinematic map: GAUSSIAN OR MOMENT
 
     bool            flagRing;           ///< Do you want to fit a tilted ring model?
 

@@ -82,6 +82,7 @@ public:
     
     bool*   Mask    () {return mask;};
     bool    Mask    (long npix) {return mask[npix];};
+    bool    Mask    (size_t x,size_t y,size_t z) {return mask[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];};
     bool    MaskAll () {return maskAllocated;};
     
     T   printStats() {std::cout << stats << std::endl;}; 

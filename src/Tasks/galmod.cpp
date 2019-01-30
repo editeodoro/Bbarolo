@@ -36,6 +36,7 @@
 #include <Tasks/smooth3D.hh>
 #include <Tasks/moment.hh>
 #include <Utilities/utils.hh>
+#include <Utilities/progressbar.hh>
 
 #include <sys/socket.h>
 #include <math.h>

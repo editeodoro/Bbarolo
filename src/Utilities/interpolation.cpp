@@ -266,7 +266,7 @@ Type func_gauss (Type *x, Type *p, int numpar) {
     
     for (int i=0; i < numpar; i+=3) {
         arg = (*x-p[i+1])/p[i+2];
-        ex = exp (-arg*arg);
+        ex = exp (-arg*arg/2.);
         y += p[i]*ex;
     }   
     

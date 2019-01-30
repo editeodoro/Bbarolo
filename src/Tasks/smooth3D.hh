@@ -138,37 +138,21 @@ template <class T>
 class Hanning3D 
 {
 public:
-    Hanning3D(size_t window_size) {window=window_size;} //< Default constructor.
-    virtual ~Hanning3D();                               //< Destructor.
+    Hanning3D(size_t window_size) {window=window_size;}         //< Constructor.
+    virtual ~Hanning3D() {if (arrayAllocated) delete [] array;} //< Destructor.
 
     /// Obvious inline functions
-    T&      Array (int i) {return array[i];};
-    T       *Array () {return array;};
+    T&   Array (int i) {return array[i];};
+    T    *Array () {return array;};
 
     void compute(Cube<T> *c);
     void compute(T *inarray, size_t xsize, size_t ysize, size_t zsize);
     void fitswrite(Cube<T> *templ);
    
-
-private:
-    
+private: 
     T       *array;                     //< The smoothed array.
     bool    arrayAllocated;             //< Have been array allocated?
     size_t  window;                     //< Size of the Hanning window
 };
 
 #endif
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

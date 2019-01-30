@@ -1044,16 +1044,8 @@ template void Smooth3D<double>::fitswrite();
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-/// A class for Hanning smoothing
+/// Function defintion for Hanning smoothing class
 /////////////////////////////////////////////////////////////////////////////////////
-template <class T>
-Hanning3D<T>::~Hanning3D() {
-    
-    if (arrayAllocated) delete [] array;    
-}
-template Hanning3D<float>::~Hanning3D();
-template Hanning3D<double>::~Hanning3D();
-
 
 template <class T>
 void Hanning3D<T>::compute(Cube<T> *in) {
@@ -1097,9 +1089,8 @@ void Hanning3D<T>::fitswrite(Cube<T> *templ) {
     for (size_t i=0; i<out->NumPix(); i++) out->Array()[i] = array[i];
     std::string outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(window)+".fits";
     out->fitswrite_3d(outname.c_str(),true);
-    if (templ->pars().isVerbose()) std::cout << " Smoothed datacube written in " << outname;
+    if (templ->pars().isVerbose()) std::cout << " Smoothed datacube written in " << outname << std::endl;
     
-
 }
 template void Hanning3D<float>::fitswrite(Cube<float>*);
 template void Hanning3D<double>::fitswrite(Cube<double>*);

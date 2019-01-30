@@ -105,6 +105,7 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/utils.o\
 	 $(OBJDIR)/conv2D.o\
 	 $(OBJDIR)/smooth3D.o\
+	 $(OBJDIR)/moment.o\
 	 $(OBJDIR)/galmod.o\
 	 $(OBJDIR)/galwind.o\
 	 $(OBJDIR)/galfit.o\

@@ -295,7 +295,8 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             // Smoothing the noise
             Beam obeam = {0., 0., 0};    
             Beam nbeam = {in->Head().Bmaj()*arcconv,in->Head().Bmin()*arcconv,in->Head().Bpa()};
-            Smooth3D<T> *sm = new Smooth3D<T>;    
+            Smooth3D<T> *sm = new Smooth3D<T>;
+            sm->setUseBlanks(false);
             sm->smooth(in, obeam, nbeam, noise, noise);
             // Rescaling the noise to match the required rms
             T stdd = findStddev(noise,nPix);

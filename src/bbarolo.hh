@@ -166,15 +166,15 @@ bool BBcore (Param *par) {
             map.fitswrite_2d((s+"map_massdens.fits").c_str());
         }
         if (par->getTotalMap()) {
-            map.ZeroMoment(masking);
+            map.ZeroMoment(masking,par->getMapType());
             map.fitswrite_2d((s+"map_0th.fits").c_str());
         }
         if (par->getVelMap()) {
-            map.FirstMoment(masking);
+            map.FirstMoment(masking,par->getMapType());
             map.fitswrite_2d((s+"map_1st.fits").c_str());
         }
         if (par->getDispMap()) {
-            map.SecondMoment(masking);
+            map.SecondMoment(masking,par->getMapType());
             map.fitswrite_2d((s+"map_2nd.fits").c_str());
         }
         if (par->getRMSMap()) {
