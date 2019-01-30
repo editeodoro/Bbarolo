@@ -22,7 +22,7 @@ the underlying BBarolo C++ code, with some extra functionality.
 from __future__ import print_function, division
 import os,sys
 import numpy as np
-#from .BB_interface import libBB
+from .BB_interface import libBB
 from astropy.io import fits
 
 
@@ -38,6 +38,12 @@ def reshapePointer (p, shape):
     
     """
     return np.ctypeslib.as_array(p, shape=tuple(shape))
+
+
+def isIterable (p):
+    """Check if p is an iteratable (list,tuple or numpy array). """
+    return isinstance(p,(list,tuple,np.ndarray))
+    
 
 
 class FitsCube(object):
@@ -73,8 +79,9 @@ class FitsCube(object):
         
         """
         libBB.Cube_setBeam(self._cube,np.float32(bmaj),np.float32(bmin),np.float32(bpa))
-        
-    
+
+
+
 class Rings(object):
     """Wrapper class for C++ Rings structure (rings.hh)"""
     
@@ -85,45 +92,44 @@ class Rings(object):
         self._rings = libBB.Rings_new();
         self.rinDef = False
     
-    def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi,nv):
+    def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
         """ Define rings given the input parameters 
             
            \param radii: List or array
            \param other: float or array
         """
         
-        typs, fl = (list,tuple,np.ndarray), np.float32
+        fl = np.float32
         
         if not isinstance(self.nr,(int,float)): raise ValueError("nrings must be a number")
             
-        if isinstance(radii,typs): radii = np.array(radii,dtype=fl)
+        if isIterable(radii): radii = np.array(radii,dtype=fl)
         else: raise ValueError("radii must be an array")
         
-        xpos  = np.array(xpos,dtype=fl)  if isinstance(xpos,typs)  else np.full(self.nr,xpos,dtype=fl)
-        ypos  = np.array(ypos,dtype=fl)  if isinstance(ypos,typs)  else np.full(self.nr,ypos,dtype=fl)
-        vsys  = np.array(vsys,dtype=fl)  if isinstance(vsys,typs)  else np.full(self.nr,vsys,dtype=fl)
-        vrot  = np.array(vrot,dtype=fl)  if isinstance(vrot,typs)  else np.full(self.nr,vrot,dtype=fl)
-        vdisp = np.array(vdisp,dtype=fl) if isinstance(vdisp,typs) else np.full(self.nr,vdisp,dtype=fl)
-        vrad  = np.array(vrad,dtype=fl)  if isinstance(vrad,typs)  else np.full(self.nr,vrad,dtype=fl)
-        vvert = np.array(vvert,dtype=fl) if isinstance(vvert,typs) else np.full(self.nr,vvert,dtype=fl)
-        dvdz  = np.array(dvdz,dtype=fl)  if isinstance(dvdz,typs)  else np.full(self.nr,dvdz,dtype=fl)
-        zcyl  = np.array(zcyl,dtype=fl)  if isinstance(zcyl,typs)  else np.full(self.nr,zcyl,dtype=fl)
-        dens  = np.array(dens,dtype=fl)  if isinstance(dens,typs)  else np.full(self.nr,dens,dtype=fl)
-        z0    = np.array(z0,dtype=fl)    if isinstance(z0,typs)    else np.full(self.nr,z0,dtype=fl)
-        inc   = np.array(inc,dtype=fl)   if isinstance(inc,typs)   else np.full(self.nr,inc,dtype=fl)
-        phi   = np.array(phi,dtype=fl)   if isinstance(phi,typs)   else np.full(self.nr,phi,dtype=fl)
-        nv    = np.array(nv,dtype=np.int) if isinstance(nv,typs)   else np.full(self.nr,nv,dtype=np.int)
+        xpos  = np.array(xpos,dtype=fl)  if isIterable(xpos)  else np.full(self.nr,xpos,dtype=fl)
+        ypos  = np.array(ypos,dtype=fl)  if isIterable(ypos)  else np.full(self.nr,ypos,dtype=fl)
+        vsys  = np.array(vsys,dtype=fl)  if isIterable(vsys)  else np.full(self.nr,vsys,dtype=fl)
+        vrot  = np.array(vrot,dtype=fl)  if isIterable(vrot)  else np.full(self.nr,vrot,dtype=fl)
+        vdisp = np.array(vdisp,dtype=fl) if isIterable(vdisp) else np.full(self.nr,vdisp,dtype=fl)
+        vrad  = np.array(vrad,dtype=fl)  if isIterable(vrad)  else np.full(self.nr,vrad,dtype=fl)
+        vvert = np.array(vvert,dtype=fl) if isIterable(vvert) else np.full(self.nr,vvert,dtype=fl)
+        dvdz  = np.array(dvdz,dtype=fl)  if isIterable(dvdz)  else np.full(self.nr,dvdz,dtype=fl)
+        zcyl  = np.array(zcyl,dtype=fl)  if isIterable(zcyl)  else np.full(self.nr,zcyl,dtype=fl)
+        dens  = np.array(dens,dtype=fl)  if isIterable(dens)  else np.full(self.nr,dens,dtype=fl)
+        z0    = np.array(z0,dtype=fl)    if isIterable(z0)    else np.full(self.nr,z0,dtype=fl)
+        inc   = np.array(inc,dtype=fl)   if isIterable(inc)   else np.full(self.nr,inc,dtype=fl)
+        phi   = np.array(phi,dtype=fl)   if isIterable(phi)   else np.full(self.nr,phi,dtype=fl)
         
-        allr = (radii,xpos,ypos,vsys,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi,nv)
+        allr = (radii,xpos,ypos,vsys,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
         
         for i in allr:
             if len(i)!=self.nr: raise ValueError("All quantities must have size = %i"%self.nr)
         
-        libBB.Rings_set(self._rings,self.nr,radii,xpos,ypos,vsys,vrot,
-                        vdisp,vrad,vvert, dvdz,zcyl,dens,z0,inc,phi,nv)
+        libBB.Rings_set(self._rings,self.nr,radii,xpos,ypos,vsys,vrot,\
+                        vdisp,vrad,vvert, dvdz,zcyl,dens,z0,inc,phi)
         
         self.rinDef = True
-        
+
 
 
 class Task(object):
@@ -140,7 +146,7 @@ class Task(object):
         self.inp = FitsCube(fitsname)
         # Mandatory arguments of the task
         self._args = {}
-        # Option for the task
+        # Options for the task
         self._opts = {}
         
     
@@ -185,6 +191,8 @@ class Task(object):
     def show_arguments(self):
         """ Show needed arguments for the task """
         print ("\nArguments for %s task: %s "%(self.taskname,"-"*(49-len(self.taskname))))
+        if self.taskname=='3DFIT':
+            print ("If not set, BBarolo estimates the initial guesses (see documentation)\n")
         for key, value in list(self._args.items()):
             print (" %-8s # %s  "%(key,value[1]))
             
@@ -199,8 +207,8 @@ class Task(object):
         if not isinstance(threads,int):
             raise ValueError("%s ERROR: threads must and integer."%self.taskname)
         return self._compute(threads)
-        
-        
+
+
 
 class Model3D(Task):
     """Superclass for all 3D models, derived from Task
@@ -210,7 +218,6 @@ class Model3D(Task):
     
     """
     def __init__(self,fitsname):
-        super(Model3D,self).__init__(fitsname=fitsname)
         # A pointer to the C++ model
         self._mod = None
         self._modCalculated = False
@@ -218,6 +225,7 @@ class Model3D(Task):
         self._inri = None
         # The output model cube (astropy PrimaryHDU)
         self.outmodel = None
+        super(Model3D,self).__init__(fitsname=fitsname)
         self._opts.update ({'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
                             'nv'    : [-1, np.int, "Number of subclouds per profile"]})
         
@@ -261,7 +269,7 @@ class Model3D(Task):
         
         """
         self.inp.setBeam(bmaj/3600.,bmin/3600.,bpa)
-        
+
 
 
 class GalMod(Model3D):
@@ -315,7 +323,7 @@ class GalMod(Model3D):
         
         if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
     
         
     def _compute(self,threads=1):
@@ -464,8 +472,8 @@ class GalWind(Model3D):
                 raise ValueError("%s ERROR: %s can only be > 0."%(self.taskname,key))
             if key=='dtype' and op[key][0] not in range(0,3):
                 raise ValueError("%s ERROR: %s can only be 0, 1, 2"%(self.taskname,key))
-    
-    
+
+
 
 class FitMod3D(Model3D):
     """Fit a galaxy model to a 3D datacube 
@@ -501,7 +509,7 @@ class FitMod3D(Model3D):
                            'errors'  : [False, np.bool, "Whether estimating errors"],
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
-                           'restwave': [-1., np.float64, "Rest wavelenght of observed line"],
+                           'restwave': [-1., np.float64, "Rest wavelength of observed line"],
                            'outfolder' : ['./', str, "Directory for outputs" ]})
         self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None, 'X-center of the galaxy in pixels'],
@@ -518,10 +526,10 @@ class FitMod3D(Model3D):
         if self._mod: libBB.Galfit_delete(self._mod)
         
     
-    def _input(self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,z0,inc,phi):
+    def _input(self,radii=None,xpos=None,ypos=None,vsys=None,vrot=None,vdisp=8,vrad=0,z0=0,inc=None,phi=None):
         """ Initialize rings for the fit 
         
-        Set initial guesses for the fit and fixed parameters.
+        Set initial guesses for the fit and fixed parameters. Parameters not set are estimated.
         
         Args:
           radii (list):        Radii of the model in arcsec
@@ -536,9 +544,38 @@ class FitMod3D(Model3D):
           phi (float, list):   Position angle of the receding part of the major axis (N->W)
     
         """
-        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        # Check if any parameter needs to be estimated
+        allpars = [radii,xpos,ypos,vsys,vrot,inc,phi]
+        toEstimate = [True if (not isIterable(a) and not a) else False for a in allpars]
+                
+        if True in toEstimate:
+            print ("\n%s: estimating initial parameters for fit %s\n"%(self.taskname,"-"*25))
+            sys.stdout.flush()
+            xpos_s = '%s'%np.mean(xpos) if xpos else '-1'
+            ypos_s = '%s'%np.mean(ypos) if ypos else '-1'
+            inc_s  = '%s'%np.mean(inc)  if inc  else '-1'
+            phi_s  = '%s'%np.mean(phi)  if phi  else '-1'
+            guess  = libBB.Galfit_initialGuesses(self.inp._cube,xpos_s.encode('utf-8'),ypos_s.encode('utf-8'),inc_s.encode('utf-8'),phi_s.encode('utf-8'))
+            guess  = reshapePointer(guess,[8])
+
+            print (" Estimated parameters:")
+            keys = ['radii','xpos','ypos','vsys','vrot','inc','phi']
+            unit = ['arcsec','pix','pix','km/s','km/s','deg','deg']
+            
+            for i in range (len(toEstimate)):
+                if toEstimate[i]:
+                    if i==0: allpars[i] = np.linspace(guess[i+1]/2.,guess[i+1]*(guess[i]+0.5),guess[i])
+                    else:    allpars[i] = guess[i+1]
+                    print ("\n  %6s ="%keys[i], allpars[i], "%s"%unit[i])
+                    
+            radii,xpos,ypos,vsys,vrot,inc,phi = allpars
+            print ("%s\n"%("-"*70))
+        
+        
+        # Now we can initialize rings
+        if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi)
                   
 
     def _compute(self,threads=1):
@@ -624,7 +661,7 @@ class FitMod3D(Model3D):
     def __str__ (self):
         self.show_options()
         return ""
-            
+
 
 
 class Search(Task):
@@ -686,7 +723,7 @@ class Search(Task):
                 raise ValueError("%s ERROR: %s can only be < snrcut"%(self.taskname,key))
             if key=="growththresh" and op[key][0]>op['threshold'][0]:
                 raise ValueError("%s ERROR: %s can only be < threshold"%(self.taskname,key))
-                
+
 
 
 class FitMod2D(Task):
@@ -739,7 +776,7 @@ class FitMod2D(Task):
         """
         if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi)
 
     
     def _compute(self,threads=1):
@@ -832,7 +869,7 @@ class Ellprof(Task):
         """
         if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi,0)
+        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi)
         
 
     def _compute(self,threads=1):

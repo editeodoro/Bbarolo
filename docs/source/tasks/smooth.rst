@@ -44,3 +44,22 @@ Below, an example :download:`parameter <examples/n2403_smooth.par>` file to smoo
 
 .. literalinclude:: examples/n2403_smooth.par
    :language: c
+
+|
+
+|
+
+HANNING task (v1.4.2+)
+#######################
+This task convolves each spectrum in a datacube with a Hanning window. 
+
+Parameters
+==========
+* **HANNING** [false]. This flag enables the Hanning smoothing algorithm. Can be *true* or *false*.
+* **HANNING_SIZE** [3]. Size of the Hanning window in channels. The spectral resolution of the output data will be FWHM = HANNING_SIZE/:math:`\pi`.
+
+Outputs
+========
+
+The task writes the smoothed datacube in the FITS file *NAME_hN.fits*, where *NAME* is the name of the galaxy and *N* is the size of the Hanning window.
+

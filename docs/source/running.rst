@@ -15,7 +15,7 @@ Running BBarolo through the GUI should be quite straightforward: you do not have
 
 Command line
 ^^^^^^^^^^^^
-BBarolo is mainly meant to be run from the command line. For a very quick guide and to appreciate the biggest achievement of my PhD, type ``BBarolo`` in your terminal. 
+BBarolo is mainly meant to be run from the command line. For a very quick guide and to appreciate the biggest achievement of my PhD, just type ``BBarolo`` on your keyboard in a terminal window. 
 
 
 **Regular execution**: BBarolo takes input parameters specified through a parameter file, provided at the runtime. This is a text file containing a list of parameter names and values::
@@ -28,7 +28,7 @@ BBarolo is mainly meant to be run from the command line. For a very quick guide 
 All available parameters are described in the :ref:`task documentation <alltasks>`. In the input file, parameter names are not case-sensitive and lines starting with \# or \/\/ are not read in. The order in which parameters are listed is unimportant, but, if a parameter is listed more than once, only the last value is considered.
 
 Some parameters are mandatory, some others are optional and have default values which are assumed when not explicitly set. 
-A template parameter file can be obtained with the command ``> BBarolo -t``. Parameters with default values can be printed with ``> BBarolo -d``. An example of parameter file can be found `here <http://editeodoro.github.io/Bbarolo/resources/param.par>`_, full runnable instances can be downloaded from `this page <http://editeodoro.github.io/Bbarolo/downloads/examples>`_.
+A template parameter file can be obtained with the command ``> BBarolo -t``. A list of all parameters with their default values can be printed with ``> BBarolo -d``. An example of parameter file can be found `here <http://editeodoro.github.io/Bbarolo/resources/param.par>`_, full runnable instances can be downloaded from `this page <http://editeodoro.github.io/Bbarolo/downloads/examples>`_. The command ``> BBarolo -v`` will return information about the code version and compiler flags.
 
 After your parameter file is ready, BBarolo can be run with the following::
 

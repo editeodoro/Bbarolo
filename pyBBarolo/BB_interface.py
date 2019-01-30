@@ -46,7 +46,7 @@ libBB.Rings_set.restype = c_void_p
 libBB.Rings_set.argtypes = [c_void_p,c_int,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\
-                            array_1d_float,array_1d_float,array_1d_float,array_1d_int]
+                            array_1d_float,array_1d_float,array_1d_float]
 ########################################################################################
 
 
@@ -73,6 +73,8 @@ libBB.Galfit_new_all.argtypes = [c_void_p,c_void_p,c_float,c_float,c_int,c_int,c
                                  c_char_p,c_bool,c_bool,c_float,c_double,c_double,c_char_p,c_int]
 libBB.Galfit_delete.restype = None
 libBB.Galfit_delete.argtypes = [c_void_p]
+libBB.Galfit_initialGuesses.restype = POINTER(c_float)
+libBB.Galfit_initialGuesses.argtypes = [c_void_p,c_char_p,c_char_p,c_char_p,c_char_p]
 libBB.Galfit_galfit.restype = c_bool
 libBB.Galfit_galfit.argtypes = [c_void_p]
 libBB.Galfit_secondStage.restype = c_bool
