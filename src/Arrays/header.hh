@@ -44,76 +44,76 @@ public:
      
     /// Obvious inline functions
     
-    int     NumAx   () {return numAxes;};
-    int     Bitpix  () {return bitpix;};
-    long    *DimAx  () {return dimAxes;};   
-    long    DimAx (int i) {return dimAxes[i];};
-    double  *Crpix  () {return crpix;}; 
-    double  *Crval  () {return crval;};
-    double  *Cdelt  () {return cdelt;}; 
-    double  Bmin    () {return bmin;};
-    double  Bmaj    () {return bmaj;};
-    double  Bpa     () {return bpa;};
-    float   BeamArea() {return beamArea;};
-    float   Bzero   () {return bzero;};
-    float   Bscale  () {return bscale;};
-    float   Blank   () {return blank;};
-    float   Epoch   () {return epoch;};
-    double  Freq0   () {return freq0;};
-    double  Crota   () {return crota;};
-    double  DataMax () {return datamax;};
-    double  DataMin () {return datamin;};
-    double  Cdelt   (int i) {return cdelt[i];};
-    double  Crval   (int i) {return crval[i];};
-    double  Crpix   (int i) {return crpix[i];};
-    double  Drval3  () {return drval3;};
-    double  PixScale () {return (fabs(cdelt[0])+fabs(cdelt[1]))/2.;};
-    struct wcsprm *WCS () {return wcs;};
+    int     NumAx   () {return numAxes;}
+    int     Bitpix  () {return bitpix;}
+    long    *DimAx  () {return dimAxes;}
+    long    DimAx (int i) {return dimAxes[i];}
+    double  *Crpix  () {return crpix;}
+    double  *Crval  () {return crval;}
+    double  *Cdelt  () {return cdelt;}
+    double  Bmin    () {return bmin;}
+    double  Bmaj    () {return bmaj;}
+    double  Bpa     () {return bpa;}
+    float   BeamArea() {return beamArea;}
+    float   Bzero   () {return bzero;}
+    float   Bscale  () {return bscale;}
+    float   Blank   () {return blank;}
+    float   Epoch   () {return epoch;}
+    double  Freq0   () {return freq0;}
+    double  Crota   () {return crota;}
+    double  DataMax () {return datamax;}
+    double  DataMin () {return datamin;}
+    double  Cdelt   (int i) {return cdelt[i];}
+    double  Crval   (int i) {return crval[i];}
+    double  Crpix   (int i) {return crpix[i];}
+    double  Drval3  () {return drval3;}
+    double  PixScale () {return (fabs(cdelt[0])+fabs(cdelt[1]))/2.;}
+    struct wcsprm *WCS () {return wcs;}
     double Wave0 () {return wave0;}
     double Redshift () {return redshift;}
 
-    std::vector<std::string>& Keys () {std::vector<std::string> &k=keys; return k;};
-    std::string Name () {return object;};
-    std::string Bunit () {return bunit;};
-    std::string Btype () {return btype;};
-    std::string Ctype (int i) {return ctype[i];};
-    std::string* Ctype () {return ctype;};
-    std::string Cunit (int i) {return cunit[i];};
-    std::string Dunit3 () {return dunit3;};
-    std::string Obname () {return object;};
-    std::string Telesc () {return telescope;};
+    std::vector<std::string>& Keys () {std::vector<std::string> &k=keys; return k;}
+    std::string Name () {return object;}
+    std::string Bunit () {return bunit;}
+    std::string Btype () {return btype;}
+    std::string Ctype (int i) {return ctype[i];}
+    std::string* Ctype () {return ctype;}
+    std::string Cunit (int i) {return cunit[i];}
+    std::string Dunit3 () {return dunit3;}
+    std::string Obname () {return object;}
+    std::string Telesc () {return telescope;}
     
-    void setBitpix (int i) {bitpix = i;};
-    void setDimAx (int i, long val) {dimAxes[i] = val;};
-    void setCrpix (int i, float val) {crpix[i] = val;};
-    void setCrval (int i, float val) {crval[i] = val;};
-    void setCdelt (int i, float val) {cdelt[i] = val;};
-    void setDrval3 (double val) {drval3=val;};
-    void setDunit3 (std::string s) {dunit3=s;};
-    void setBmaj  (float val) {bmaj = val;};
-    void setBmin  (float val) {bmin = val;};
-    void setBpa   (float val) {bpa = val;};
+    void setBitpix (int i) {bitpix = i;}
+    void setDimAx (int i, long val) {dimAxes[i] = val;}
+    void setCrpix (int i, float val) {crpix[i] = val;}
+    void setCrval (int i, float val) {crval[i] = val;}
+    void setCdelt (int i, float val) {cdelt[i] = val;}
+    void setDrval3 (double val) {drval3=val;}
+    void setDunit3 (std::string s) {dunit3=s;}
+    void setBmaj  (float val) {bmaj = val;}
+    void setBmin  (float val) {bmin = val;}
+    void setBpa   (float val) {bpa = val;}
     void setBeam  (float a, float b, float c) {bmaj=a; bmin=b; bpa=c; calcArea();}
-    void setBzero (float val) {bzero = val;};
-    void setBscale(float val) {bscale = val;};
-    void setBlank (float val) {blank = val;};
-    void setEpoch (float val) {epoch = val;};
-    void setBunit (std::string ch) {bunit = ch;};
-    void setDataMax (double val) {datamax=val;};
-    void setDataMin (double val) {datamin=val;};
-    void setMinMax (double minn, double maxx) {datamin=minn;datamax=maxx;};
-    void setFreq0 (double val) {freq0=val;}; 
-    void setCtype (int i, std::string s) {ctype[i] = s;};
-    void setCunit (int i, std::string s) {cunit[i] = s;};
-    void setBtype (std::string s) {btype = s;};
-    void setName  (std::string s) {object = s;};
-    void setTelesc(std::string s) {telescope = s;};
-    void setPointAllocated (bool b) {pointAllocated=b;};
-    void setWarning (bool b) {warning=b;};
+    void setBzero (float val) {bzero = val;}
+    void setBscale(float val) {bscale = val;}
+    void setBlank (float val) {blank = val;}
+    void setEpoch (float val) {epoch = val;}
+    void setBunit (std::string ch) {bunit = ch;}
+    void setDataMax (double val) {datamax=val;}
+    void setDataMin (double val) {datamin=val;}
+    void setMinMax (double minn, double maxx) {datamin=minn;datamax=maxx;}
+    void setFreq0 (double val) {freq0=val;}
+    void setCtype (int i, std::string s) {ctype[i] = s;}
+    void setCunit (int i, std::string s) {cunit[i] = s;}
+    void setBtype (std::string s) {btype = s;}
+    void setName  (std::string s) {object = s;}
+    void setTelesc(std::string s) {telescope = s;}
+    void setPointAllocated (bool b) {pointAllocated=b;}
+    void setWarning (bool b) {warning=b;}
     void setWave0 (double w) {wave0=w;}
     void setRedshift (double r) {redshift=r;}
 
-    void    Warning(std::string s) {if (warning) std::cout << s << std::endl;};
+    void    Warning(std::string s) {if (warning) std::cout << s << std::endl;}
 
 
     /// Functions defined in header.cpp.
@@ -167,8 +167,5 @@ private:
 
     bool    warning;               ///< Write warning on std::cout.
 };
-
-
-//#include "header.cpp"
 
 #endif

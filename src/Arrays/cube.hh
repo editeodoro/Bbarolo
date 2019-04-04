@@ -50,59 +50,54 @@ public:
     inline T& operator() (size_t i) {return array[i];}
     inline T& operator[] (size_t i) {return array[i];}
     
-    /// Obvious inline functions to access a private member of class:   
-    
-    int     NumAx () {return numAxes;};
-    size_t  NumPix() {return numPix;};
-    int*    AxisDim () {return axisDim;};
-    int     AxesDim (int i) {return axisDim[i];};
-    int     DimX(){return axisDim[0];}; 
-    int     DimY(){return axisDim[1];};
-    int     DimZ(){return axisDim[2];};
-    long    nPix  (size_t x,size_t y,size_t z) {return x+y*axisDim[0]+z*axisDim[0]*axisDim[1];};
-    T*      Array () {return array;};
-    T&      Array (size_t npix) {return this->operator()(npix);};
-    T&      Array (size_t x,size_t y,size_t z) {return this->operator()(x,y,z);};
-    void    setArray (T *ar) {array = ar;};
-    double  getZphys (double z) {return (z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);};
-    double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);};
-    double  getYphys (double y) {return (y+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);};
-    double  getZgrid (double v) {return (v-head.Crval(2))/head.Cdelt(2)+head.Crpix(2)-1;};    
-    
-    void    setXsize (int i) {axisDim[0] = i;};
-    void    setYsize (int i) {axisDim[1] = i;};
-    void    setZsize (int i) {axisDim[2] = i;};
-    void    setDimAx (long *ax) {axisDim=ax;};
-    Header& Head     () {Header &h = head; return h;};
-    void    setHeadDef (bool b) {headDefined = b;};
-    bool    HeadDef (){return headDefined;};
-    void    saveHead (Header &h) {head = h; headDefined=true;};
+    /// Obvious inline functions to access a private member of class:
+    int     NumAx () {return numAxes;}
+    size_t  NumPix() {return numPix;}
+    int*    AxisDim () {return axisDim;}
+    int     AxesDim (int i) {return axisDim[i];}
+    int     DimX(){return axisDim[0];}
+    int     DimY(){return axisDim[1];}
+    int     DimZ(){return axisDim[2];}
+    size_t  nPix  (size_t x,size_t y,size_t z) {return x+y*axisDim[0]+z*axisDim[0]*axisDim[1];}
+    T*      Array () {return array;}
+    T&      Array (size_t npix) {return this->operator()(npix);}
+    T&      Array (size_t x,size_t y,size_t z) {return this->operator()(x,y,z);}
+    void    setArray (T *ar) {array = ar;}
+    double  getZphys (double z) {return (z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);}
+    double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);}
+    double  getYphys (double y) {return (y+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);}
+    double  getZgrid (double v) {return (v-head.Crval(2))/head.Cdelt(2)+head.Crpix(2)-1;}
+
+    Header& Head     () {Header &h = head; return h;}
+    void    setHeadDef (bool b) {headDefined = b;}
+    bool    HeadDef (){return headDefined;}
+    void    saveHead (Header &h) {head = h; headDefined=true;}
     void    setBeam  (float a, float b, float c) {head.setBeam(a,b,c);}
     float*  getBeam() {float *f=new float; f[0]=head.Bmaj(); f[1]=head.Bmin(),f[2]=head.Bpa(); return f;}
     
-    bool*   Mask    () {return mask;};
-    bool    Mask    (long npix) {return mask[npix];};
-    bool    Mask    (size_t x,size_t y,size_t z) {return mask[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];};
-    bool    MaskAll () {return maskAllocated;};
+    bool*   Mask    () {return mask;}
+    bool    Mask    (long npix) {return mask[npix];}
+    bool    Mask    (size_t x,size_t y,size_t z) {return mask[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];}
+    bool    MaskAll () {return maskAllocated;}
     
-    T   printStats() {std::cout << stats << std::endl;}; 
-    Stats<T>  getStats(){ return stats;};
-    Stats<T>& stat(){Stats<T> &rstats = stats; return rstats;};
-    void    saveStats(Stats<T> newStats){stats = newStats;};
-    bool    StatsDef () {return statsDefined;}; 
-    int     getopts(int argc, char **argv){return par.getopts(argc,argv);};
-    Param   getParam(){return par;}; 
-    Param&  pars(){ Param &rpar = par; return rpar;};
-    void    showParam(std::ostream &stream){stream << par;};
-    void    saveParam(Param &newpar){par = newpar;};
-    long    getNumObj(){return objectList->size();};
-    short*  DetectMap () {return detectMap;};
-    Detection<T>  getObject(long number){return objectList->at(number);};
-    Detection<T>* pObject(long number){return &(objectList->at(number));};
-    std::vector <Detection<T> >  getObjectList(){return *objectList;};
-    std::vector <Detection<T> >  *pObjectList(){return objectList;};
-    std::vector <Detection<T> >  &ObjectList(){std::vector<Detection<T> > &rlist=*objectList; return rlist;};
-    bool getIsSearched () {return isSearched;};
+    void    printStats() {std::cout << stats << std::endl;}
+    Stats<T>  getStats(){ return stats;}
+    Stats<T>& stat(){Stats<T> &rstats = stats; return rstats;}
+    void    saveStats(Stats<T> newStats){stats = newStats;}
+    bool    StatsDef () {return statsDefined;}
+    int     getopts(int argc, char **argv){return par.getopts(argc,argv);}
+    Param   getParam(){return par;}
+    Param&  pars(){ Param &rpar = par; return rpar;}
+    void    showParam(std::ostream &stream){stream << par;}
+    void    saveParam(Param &newpar){par = newpar;}
+    long    getNumObj(){return objectList->size();}
+    short*  DetectMap () {return detectMap;}
+    Detection<T>  getObject(long number){return objectList->at(number);}
+    Detection<T>* pObject(long number){return &(objectList->at(number));}
+    std::vector <Detection<T> >  getObjectList(){return *objectList;}
+    std::vector <Detection<T> >  *pObjectList(){return objectList;}
+    std::vector <Detection<T> >  &ObjectList(){std::vector<Detection<T> > &rlist=*objectList; return rlist;}
+    bool getIsSearched () {return isSearched;}
 
 
     
@@ -202,7 +197,7 @@ template <class T>
 class FoundObject           /// Keeps a track of a detection, as well as the start and finish
 {                           /// locations of the detection on the current row.
 public:
-    FoundObject(){start=NULLSTART; end=NULLSTART;};     
+    FoundObject(){start=NULLSTART; end=NULLSTART;}
     int start;              ///< Pixel on the current row where the detection starts.
     int end;                ///< Pixel on the current row where the detection finishes.
     Object2D<T> info;           ///< Collection of detected pixels.

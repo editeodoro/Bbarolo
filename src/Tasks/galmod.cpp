@@ -890,7 +890,7 @@ void Galmod<T>::galmod() {
 //                
 //            if (!use) continue;
                   
-            //////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
+//          //////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //              
 //          Get profile number of current pixel and check if position is in
 //          range of positions of profiles that are currently being done.
@@ -905,7 +905,7 @@ void Galmod<T>::galmod() {
             else vsys += vverttmp*cinc;     //// <--- Check this. In galmod is a +
                 
                     
-// ORIGINAL BUILDING PROFILES
+//          ORIGINAL GALMOD BUILDING PROFILES
 // ==>>     Build velocity profile.
 //            for (int iv=0; iv<nvtmp; iv++) {
 //              Get deviate drawn from gaussian velocity profile and add
@@ -922,7 +922,7 @@ void Galmod<T>::galmod() {
 //                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
 //            }
 
-//          PARTE PER I DOPPIETTI CHE SOSTITUISCE IL BUILDING PROFILES DI SOPRA
+//          MODIFIED BUILDING PROFILE FOR MULTIPLE LINES
             for (int iv=0; iv<nvtmp; iv++) {
                 double vdev = gaussia(generator)*vdisptmp;        // STD library
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
@@ -1208,7 +1208,7 @@ double Galmod<T>::velgrid(double v) {
         double l = C/f;
         velg = (l-crval3)/cdelt3;
     }
-    else if (axtyp==3) {                        //< Frequency axis.
+    else if (axtyp==3) {                //< Frequency axis.
         if (velsys==1) {                //< Optical definition of velocities.
             fdv  = (drval3-v)*crval3;
             velg = crval3*fdv/((freq0*C-fdv)*cdelt3);

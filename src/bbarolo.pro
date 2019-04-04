@@ -42,7 +42,8 @@ SOURCES +=     bbarolo.cpp \
     Tasks/galfit_out.cpp \
     Tasks/slitfit.cpp \
     Utilities/wcsUtils.cpp \
-    Tasks/ellprof.cpp
+    Tasks/ellprof.cpp \
+    Tasks/moment.cpp
 
 HEADERS += Arrays/cube.hh \
     Arrays/header.hh \

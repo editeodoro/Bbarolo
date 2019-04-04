@@ -131,7 +131,7 @@ public:
     Param();                                /// Default constructor.
     Param(const Param& p);                  /// Copy constructor.
     Param& operator= (const Param& p);      /// Assignement operator =.
-    virtual ~Param() {};                    /// Default destructor.
+    virtual ~Param() {}                     /// Default destructor.
     void  defaultValues();                  /// Default values for constructor.
     
     /// Inline functions to access private member:
@@ -152,37 +152,37 @@ public:
     bool    getFlagDebug() {return debug;}
     bool    getFlagPlots() {return plots;}
     
-    float   getBeamFWHM() {return beamFWHM;};
-    void    setBeamFWHM(float val) {beamFWHM=val;};
-    bool    getCheckCh () {return checkChannels;};
-    void    setCheckCh (bool flag) {checkChannels=flag;};
+    float   getBeamFWHM() {return beamFWHM;}
+    void    setBeamFWHM(float val) {beamFWHM=val;}
+    bool    getCheckCh () {return checkChannels;}
+    void    setCheckCh (bool flag) {checkChannels=flag;}
     
-    bool    getFlagRobustStats () {return flagRobustStats;};
-    void    setFlagRobustStats (bool flag) {flagRobustStats=flag;};
+    bool    getFlagRobustStats () {return flagRobustStats;}
+    void    setFlagRobustStats (bool flag) {flagRobustStats=flag;}
     
-    void    setGlobProf (bool flag) {globprof = flag;};
-    bool    getGlobProf () {return globprof;};
-    void    setTotalMap (bool flag) {totalmap = flag;};
-    bool    getTotalMap () {return totalmap;};
-    bool    getMassDensMap () {return massdensmap;};
-    void    setVelMap (bool flag) {velocitymap = flag;};
-    bool    getVelMap () {return velocitymap;};
-    void    setDispMap (bool flag) {dispersionmap = flag;};
-    bool    getDispMap () {return dispersionmap;};
+    void    setGlobProf (bool flag) {globprof = flag;}
+    bool    getGlobProf () {return globprof;}
+    void    setTotalMap (bool flag) {totalmap = flag;}
+    bool    getTotalMap () {return totalmap;}
+    bool    getMassDensMap () {return massdensmap;}
+    void    setVelMap (bool flag) {velocitymap = flag;}
+    bool    getVelMap () {return velocitymap;}
+    void    setDispMap (bool flag) {dispersionmap = flag;}
+    bool    getDispMap () {return dispersionmap;}
     bool    getRMSMap () {return rmsmap;}
-    bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap || massdensmap || rmsmap);};
-    void    setBlankCut (float f) {blankCut=f;};
-    float   getBlankCut() {return blankCut;};  
-    string  getMapType() {return maptype;};  
+    bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap || massdensmap || rmsmap);}
+    void    setBlankCut (float f) {blankCut=f;}
+    float   getBlankCut() {return blankCut;}
+    string  getMapType() {return maptype;}
     
-    bool    getFlagRing () {return flagRing;};
-    void    setFlagRing (bool b) {flagRing = b;};
+    bool    getFlagRing () {return flagRing;}
+    void    setFlagRing (bool b) {flagRing = b;}
 
-    int     getBOX  (int i) {return BOX[i];};
+    int     getBOX  (int i) {return BOX[i];}
 
-    bool    getflagSearch () {return parSE.flagSearch;};
-    bool    getflagGalFit () {return parGF.flagGALFIT;};
-    bool    getflagGalMod () {return parGM.flagGALMOD;};
+    bool    getflagSearch () {return parSE.flagSearch;}
+    bool    getflagGalFit () {return parGF.flagGALFIT;}
+    bool    getflagGalMod () {return parGM.flagGALMOD;}
     
     // This should go on a different param struct
     double  getRedshift() {return parGF.REDSHIFT;}

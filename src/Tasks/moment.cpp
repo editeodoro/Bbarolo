@@ -112,12 +112,13 @@ template void MomentMap<double>::SumMap(bool);
 template <class T>
 void MomentMap<T>::HIMassDensityMap (bool msk) {
 
-    // Write a Mass density map in Msun/pc2. BUNIT must be JY/beam
+    // Write a Mass density map in Msun/pc2. BUNIT must be JY/beam or Kelvin
     
-    // Check that input units are jy / beam
+    // Check that input units are jy / beam or Kelvin
     std::string bunit = makelower(in->Head().Bunit());
-    bool isOK = bunit.find("/b")!=std::string::npos;
-    if (isOK) {      
+    bool isJY = bunit.find("/b")!=std::string::npos;
+    bool isK  = bunit=="k" || bunit=="kelvin";
+    if (isJY || isK) {      
         if(msk && !in->MaskAll()) in->BlankMask();
         bool v = in->pars().isVerbose();
         in->pars().setVerbosity(false);
@@ -129,15 +130,17 @@ void MomentMap<T>::HIMassDensityMap (bool msk) {
         double bmaj = in->Head().Bmaj()*arcsconv(in->Head().Cunit(0));
         double bmin = in->Head().Bmin()*arcsconv(in->Head().Cunit(1));
         double dvel = fabs(DeltaVel<T>(in->Head()));
-        for (int i=0; i<this->numPix; i++)
-            this->array[i]=8794*this->array[i]*dvel/(bmaj*bmin);
-
+        for (int i=0; i<this->numPix; i++) {
+            T val = this->array[i];
+            if (isK) val /= 1360*21.106114*21.106114/(bmaj*bmin);
+            this->array[i]=8794*val*dvel/(bmaj*bmin);
+        }
         this->head.setBunit("Msun/pc2");
         this->head.setBtype("Mass_surfdens");
         
     }
     else {
-        std::cerr << "MOMENT MAPS ERROR: Input datacube must be in JY/BEAM.\n";
+        std::cerr << "MOMENT MAPS ERROR: Input datacube must be in JY/BEAM or K.\n";
         std::terminate();
     }
 }

@@ -38,7 +38,7 @@ Header::Header () {
     bitpix = FLOAT_IMG;
     numAxes = bmaj = bmin = bpa = beamArea = freq0 = 0.;
     wave0 = -1;
-    datamin = datamax = redshift = 0.;
+    datamin = datamax = redshift = crota = 0.;
     dunit3 = "";
     object = "NONE";
     pointAllocated = false;

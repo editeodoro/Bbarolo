@@ -46,7 +46,7 @@ public:                                 /// model.
     Ringmodel(int nrings, float *radii, float widths, float vsys, float vrot,
               float vexp, float posang, float incl, float xcenter, float ycenter);
     
-    ~Ringmodel() {};                    /// Default destructor.
+    ~Ringmodel() {}                     /// Default destructor.
     
     void defaults();                    /// Default values for some variable.
     
@@ -59,31 +59,31 @@ public:                                 /// model.
     void setfromCube (Cube<float> *c, Rings<float> *r);
     
     /// Inline functions to access private members:
-    float&   getRadius(int i) {return rads [i];};
-    float&   getWidth (int i) {return wids [i];};
-    float&   getVsysf (int i) {return vsysf[i];};
-    float&   getVrotf (int i) {return vrotf[i];};
-    float&   getVexpf (int i) {return vexpf[i];};
-    float&   getPosaf (int i) {return posaf[i];};
-    float&   getInclf (int i) {return inclf[i];};
-    float&   getXposf (int i) {return xposf[i];};
-    float&   getYposf (int i) {return yposf[i];};
+    float&   getRadius(int i) {return rads [i];}
+    float&   getWidth (int i) {return wids [i];}
+    float&   getVsysf (int i) {return vsysf[i];}
+    float&   getVrotf (int i) {return vrotf[i];}
+    float&   getVexpf (int i) {return vexpf[i];}
+    float&   getPosaf (int i) {return posaf[i];}
+    float&   getInclf (int i) {return inclf[i];}
+    float&   getXposf (int i) {return xposf[i];}
+    float&   getYposf (int i) {return yposf[i];}
     
-    float&   getVsyse (int i) {return vsyse[i];};
-    float&   getVrote (int i) {return vrote[i];};
-    float&   getVexpe (int i) {return vexpe[i];};
-    float&   getPosae (int i) {return posae[i];};
-    float&   getIncle (int i) {return incle[i];};
-    float&   getXpose (int i) {return xpose[i];};
-    float&   getYpose (int i) {return ypose[i];};
+    float&   getVsyse (int i) {return vsyse[i];}
+    float&   getVrote (int i) {return vrote[i];}
+    float&   getVexpe (int i) {return vexpe[i];}
+    float&   getPosae (int i) {return posae[i];}
+    float&   getIncle (int i) {return incle[i];}
+    float&   getXpose (int i) {return xpose[i];}
+    float&   getYpose (int i) {return ypose[i];}
     
     
-    float&   getChisq (int i) {return chis [i];};
-    int&     getNpts  (int i) {return npts [i];};
-    int     getNradii () {return nrad;};
+    float&   getChisq (int i) {return chis [i];}
+    int&     getNpts  (int i) {return npts [i];}
+    int     getNradii () {return nrad;}
     
-    float   getMatrix (int nring, int a) {return elp[nring][a];};
-    float   **getMatrix () {return elp;};
+    float   getMatrix (int nring, int a) {return elp[nring][a];}
+    float   **getMatrix () {return elp;}
         
     void    hold(const int i) {mask[i]=false;}            /// Hold a parameter fixed
     void    free(const int i) {mask[i]=true;}                              /// Release a fixed parameter

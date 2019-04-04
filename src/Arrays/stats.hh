@@ -51,34 +51,34 @@ namespace Statistics
     class Stats                         
     {
     public:
-        Stats() {useRobust=true; defined=false; useFDR=false;};                 /// Default constructor.
-        virtual ~Stats() {};                                                    /// Default destructor.         
-        Stats(const Stats<Type>& s);                                            /// Copy constructor.
-        Stats<Type>& operator= (const Stats<Type>& s);                          /// Assignement operator.
+        Stats() {useRobust=true; defined=false; useFDR=false;}                 /// Default constructor.
+        virtual ~Stats() {}                                                    /// Default destructor.
+        Stats(const Stats<Type>& s);                                           /// Copy constructor.
+        Stats<Type>& operator= (const Stats<Type>& s);                         /// Assignement operator.
         
         
         /// Obvious inline functions to access a private member of class.
         
-        Type  getMean(){return mean;};
-        void  setMean(Type f){mean=f;};
-        Type  getStddev(){return stddev;};
-        void  setStddev(Type f){stddev=f;};
-        Type  getMedian(){return median;};
-        void  setMedian(Type f){median=f;};
-        Type  getMadfm(){return madfm;};
-        void  setMadfm(Type f){madfm=f;};
-        Type  getMin(){return min_val;};
-        void  setMin(Type f){min_val=f;};
-        Type  getMax(){return max_val;};
-        void  setMax(Type f){max_val=f;};
-        Type  getThreshold(){return threshold;};
-        void  setThreshold(Type f){threshold=f;};
-        Type  getPThreshold(){return pThreshold;};
-        void  setPThreshold(Type f){pThreshold=f;};
-        bool  getRobust(){return useRobust;};
-        void  setRobust(bool b){useRobust=b;};
-        bool  getUseFDR(){return useFDR;};
-        void  setUseFDR(bool b){useFDR=b;};
+        Type  getMean(){return mean;}
+        void  setMean(Type f){mean=f;}
+        Type  getStddev(){return stddev;}
+        void  setStddev(Type f){stddev=f;}
+        Type  getMedian(){return median;}
+        void  setMedian(Type f){median=f;}
+        Type  getMadfm(){return madfm;}
+        void  setMadfm(Type f){madfm=f;}
+        Type  getMin(){return min_val;}
+        void  setMin(Type f){min_val=f;}
+        Type  getMax(){return max_val;}
+        void  setMax(Type f){max_val=f;}
+        Type  getThreshold(){return threshold;}
+        void  setThreshold(Type f){threshold=f;}
+        Type  getPThreshold(){return pThreshold;}
+        void  setPThreshold(Type f){pThreshold=f;}
+        bool  getRobust(){return useRobust;}
+        void  setRobust(bool b){useRobust=b;}
+        bool  getUseFDR(){return useFDR;}
+        void  setUseFDR(bool b){useFDR=b;}
 
         /// Specific functions.
         
@@ -120,7 +120,5 @@ namespace Statistics
     };
 
 }
-
-//#include "stats.cpp"
 
 #endif

@@ -43,39 +43,39 @@ public:
     Image2D& operator=(const Image2D &i);           /// Assignement operator.
     
     // Overloadad () operator for easy access the main array. Any control on the index.
-    inline Type& operator() (unsigned x, unsigned y) {return array[x+y*axisDim[0]];};
-    inline Type& operator() (unsigned i) {return array[i];};
-    inline Type& operator[] (unsigned i) {return array[i];};
+    inline Type& operator() (unsigned x, unsigned y) {return array[x+y*axisDim[0]];}
+    inline Type& operator() (unsigned i) {return array[i];}
+    inline Type& operator[] (unsigned i) {return array[i];}
 
     void defaults();
 
     /// Inline functions to access the data:
         
-    long    NumPix() {return numPix;};
-    int     DimX() {return axisDim[0];}; 
-    int     DimY() {return axisDim[1];};
-    long    nPix  (int x, int y) {return y*axisDim[0]+x;};
-    Type*   Array () {return array;};
-    Type&   Array (long npix) {return array[npix];};
-    Type&   Array (int x, int y) {return array[y*axisDim[0]+x];};
-    Header& Head     () {Header &h = head; return h;};
-    bool    HeadDef (){return headDefined;};
-    void    setXsize (int i) {axisDim[0] = i;};
-    void    setYsize (int i) {axisDim[1] = i;};
-    void    setHeadDef (bool b) {headDefined = b;};
-    void    saveHead (Header &h) {head = h; headDefined=true;};
-    Type    printStats() {std::cout << stats << std::endl;}; 
-    int     getopts(int argc, char **argv){return par.getopts(argc,argv);}; 
-    void    saveStats(Stats<Type> newStats){stats = newStats;};
-    bool    StatsDef () {return statsDefined;};
-    Param&  pars(){Param &rpar = par; return rpar;};
-    void    showParam(std::ostream &stream){stream << par;};
-    void    saveParam(Param &newpar){par = newpar;};
-    Stats<Type>  getStats() { return stats;};
-    Stats<Type>& stat() {Stats<Type> &rstats = stats; return rstats;};
-    void setMinSize(int i){minSize=i;};
-    double  getYphys (double y) {return (y+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);};
-    double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);};
+    long    NumPix() {return numPix;}
+    int     DimX() {return axisDim[0];}
+    int     DimY() {return axisDim[1];}
+    long    nPix  (int x, int y) {return y*axisDim[0]+x;}
+    Type*   Array () {return array;}
+    Type&   Array (long npix) {return array[npix];}
+    Type&   Array (int x, int y) {return array[y*axisDim[0]+x];}
+    Header& Head     () {Header &h = head; return h;}
+    bool    HeadDef (){return headDefined;}
+    void    setXsize (int i) {axisDim[0] = i;}
+    void    setYsize (int i) {axisDim[1] = i;}
+    void    setHeadDef (bool b) {headDefined = b;}
+    void    saveHead (Header &h) {head = h; headDefined=true;}
+    Type    printStats() {std::cout << stats << std::endl;}
+    int     getopts(int argc, char **argv){return par.getopts(argc,argv);}
+    void    saveStats(Stats<Type> newStats){stats = newStats;}
+    bool    StatsDef () {return statsDefined;}
+    Param&  pars(){Param &rpar = par; return rpar;}
+    void    showParam(std::ostream &stream){stream << par;}
+    void    saveParam(Param &newpar){par = newpar;}
+    Stats<Type>  getStats() { return stats;}
+    Stats<Type>& stat() {Stats<Type> &rstats = stats; return rstats;}
+    void setMinSize(int i){minSize=i;}
+    double  getYphys (double y) {return (y+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);}
+    double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);}
 
     /// I/O functions:
 
@@ -85,12 +85,12 @@ public:
     void setImageStats();
     bool fitswrite_2d (const char *outname="./output/image.fits"); 
 
-    void extractSpectrum(Type *Array, int *dim, long pixel);  /// Extract a spectrum from an array. 
-    void extractImage(Type *Array, int *dim, long channel); /// Extract an image from an array.                                                                 
-    void extractSpectrum(Cube<Type> &cube, long pixel);             /// Extract a spectrum from a cube.
-    void extractImage(Cube<Type> &cube, long channel);              /// Extract an image from a cube.
+    void extractSpectrum(Type *Array, int *dim, long pixel);    /// Extract a spectrum from an array.
+    void extractImage(Type *Array, int *dim, long channel);     /// Extract an image from an array.
+    void extractSpectrum(Cube<Type> &cube, long pixel);         /// Extract a spectrum from a cube.
+    void extractImage(Cube<Type> &cube, long channel);          /// Extract an image from a cube.
     void extractGlobalSpectrum(Cube<Type> *cube);
-    
+
     /// Detection-related functions:
     
     bool isDetection(long x, long y);                           /// A detection test for a pixel location. 
@@ -116,8 +116,5 @@ protected:
     bool fitsread_2d ();
 
 };
-
-//#include "image.cpp"
-
 
 #endif

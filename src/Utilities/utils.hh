@@ -41,6 +41,9 @@
 #define DEFAULT_MODE      S_IRWXU | S_IRGRP |  S_IXGRP | S_IROTH | S_IXOTH
 
 
+// Macro for debugging purposes
+#define watch(x) cout << (#x) << " is " << (x) << endl
+
 /// Functions to allocate or deallocate multidimensional arrays.
 /// Defined in "allocator.cpp".
 
