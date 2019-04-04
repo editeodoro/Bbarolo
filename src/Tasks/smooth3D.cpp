@@ -148,8 +148,7 @@ Smooth3D<T>& Smooth3D<T>::operator=(const Smooth3D<T> &s) {
     this->confieAllocated = s.confieAllocated;
     if (this->confieAllocated) {
         this->confie = new double[maxconv];
-        for (int i=0; i<maxconv; i++)
-            this->confie[i] = s.confie[i];
+        for (auto i=0; i--;) this->confie[i] = s.confie[i];
     }
     
     return *this;
@@ -817,13 +816,12 @@ bool Smooth3D<T>::Fillgauss2d(Beam varbeam, float ampl, bool norm, int &nconx, i
     /// Returns true if all ok, otherwise false.
      
     
-    const double degtorad = atan(1.)/45.; 
     double amplitude;
    
     if (norm) amplitude = 1.0; 
     else amplitude = ampl; 
 
-    double phi = varbeam.bpa*degtorad;        
+    double phi = varbeam.bpa*M_PI/180.;        
     double cs = cos(phi);
     double sn = sin(phi);  
     double beam[2] = {fabs(varbeam.bmaj), fabs(varbeam.bmin)};
@@ -916,7 +914,6 @@ bool Smooth3D<T>::FillMoffat2d(Beam varbeam, float ampl, bool norm, int &nconx, 
     /// Returns true if all ok, otherwise false.
      
     
-    const double degtorad = atan(1.)/45.; 
     double amplitude;
    
     if (norm) amplitude = 1.0; 

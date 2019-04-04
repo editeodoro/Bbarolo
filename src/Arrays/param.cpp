@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.4.2"
+#define BBVERSION "1.4.3"
 
 
 Param::Param() {

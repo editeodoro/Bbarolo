@@ -1071,11 +1071,10 @@ bool Galfit<T>::setCfield() {
         th1 = twoth1/2;          
     }
     
-    Beam Con = {2*a1, 2*b1, (th1*45./atan(1.))-90.};
-
+    Beam Con = {2*a1, 2*b1, (th1*180./M_PI)-90.};
 
     // Building the convolution field.
-    double phi = Con.bpa*atan(1.)/45.;        
+    double phi = Con.bpa*M_PI/180.;
     double cs = cos(phi);
     double sn = sin(phi);  
     double beam[2] = {Con.bmaj, Con.bmin};

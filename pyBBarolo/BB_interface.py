@@ -42,7 +42,7 @@ libBB.Cube_getBeam.argtypes = [c_void_p]
 # Struct Rings interface ###############################################################
 libBB.Rings_new.restype = c_void_p
 libBB.Rings_new.argtypes = [ ]
-libBB.Rings_set.restype = c_void_p
+libBB.Rings_set.restype = None
 libBB.Rings_set.argtypes = [c_void_p,c_int,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\

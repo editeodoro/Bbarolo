@@ -19,7 +19,7 @@ using namespace Tasks;
 // in function that have long execution time.
 void signalHandler(int signum) {std::cerr << "Killed by the user.\n"; exit(signum);}
 
-
+ 
 extern "C" {
 
 // Interface for the Cube class ///////////////////////////////////////////////////////

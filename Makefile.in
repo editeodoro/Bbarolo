@@ -166,6 +166,9 @@ install :
 
 $(OBJECTS) : $(HEADS)
 
+%.o: %.cpp
+	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
+    
 $(OBJDIR)/%.o: $(BASE)/%.cpp
 	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 

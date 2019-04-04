@@ -73,9 +73,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     // Calculate the total flux inside last ring in data
     T *ringreg = RingRegion(outr,in->Head());
     float totflux_data=0, totflux_model=0;
-    for (size_t i=0; i<in->DimX()*in->DimY(); i++) {
+    for (auto i=0; i<in->DimX()*in->DimY(); i++) {
         if (!isNaN(ringreg[i])) {
-            for (size_t z=0; z<in->DimZ(); z++) {
+            for (auto z=0; z<in->DimZ(); z++) {
                 size_t npix = i+z*in->DimY()*in->DimX();
                 totflux_data += in->Array(npix)*in->Mask()[npix];
             }
@@ -114,7 +114,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     
     if (normtype=="AZIM" || normtype=="BOTH") {
         double profmin=FLT_MAX;
-        for (size_t i=0; i<outr->nr; i++) {
+        for (auto i=0; i<outr->nr; i++) {
             double mean = ell.getMean(i);
             if (!isNaN(mean) && profmin>mean && mean>0) profmin = mean;
         }
@@ -127,7 +127,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             profmin /= 10;
             factor /= 10;
         }
-        for (size_t i=0; i<outr->nr; i++) {
+        for (auto i=0; i<outr->nr; i++) {
             outr->dens[i]=factor*fabs(ell.getMean(i))*1E20;
             if (outr->dens[i]==0) outr->dens[i]=profmin*1E20;
         }
@@ -147,9 +147,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         // thus just need to rescale the model to the total flux of data inside last ring.
 
         // Calculate total flux of model within last ring
-        for (size_t i=0; i<in->DimX()*in->DimY(); i++) {
+        for (auto i=0; i<in->DimX()*in->DimY(); i++) {
             if (!isNaN(ringreg[i])) {
-                for (size_t z=0; z<in->DimZ(); z++) 
+                for (auto z=0; z<in->DimZ(); z++) 
                     totflux_model += outarray[i+z*in->DimY()*in->DimX()]*in->Mask()[i+z*in->DimY()*in->DimX()];
             }
             else {
@@ -159,7 +159,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         }
 
         double factor = totflux_data/totflux_model;
-        for (int i=0; i<in->NumPix(); i++) outarray[i] *= factor;
+        for (auto i=in->NumPix(); i--;) outarray[i] *= factor;
         if (verb) std::cout << " Done." << std::endl;
 
         if (verb) std::cout << "    Writing " << randomAdjective(1) << " azimuthally-normalized model..." << std::flush;
@@ -233,9 +233,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     if (normtype=="NONE") {
         
         // Calculate total flux of model within last ring
-        for (size_t i=0; i<in->DimX()*in->DimY(); i++) {
+        for (int i=0; i<in->DimX()*in->DimY(); i++) {
             if (!isNaN(ringreg[i])) {
-                for (size_t z=0; z<in->DimZ(); z++)
+                for (int z=0; z<in->DimZ(); z++)
                     totflux_model += outarray[i+z*in->DimY()*in->DimX()];
             }
             else {
@@ -246,7 +246,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
         double factor = totflux_data/totflux_model;
         if (totflux_data==0) factor=1;
-        for (int i=0; i<in->NumPix(); i++) outarray[i] *= factor;
+        for (auto i=in->NumPix(); i--;) outarray[i] *= factor;
         if (verb) std::cout << " Done." << std::endl;
         
         if (verb) std::cout << "    Writing model..." << std::flush;
@@ -313,7 +313,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     }
 
     
-
     // Computing asymmetric drift correction
     if (par.flagADRIFT) {
         if (verb) std::cout << "    Computing asymmetric drift correction..." << std::flush;
@@ -925,11 +924,6 @@ int Galfit<T>::plotAll_Python() {
     int xmin=0, ymin=0, zmin=0, disp=0;
     int xmax=in->DimX()-1, ymax=in->DimY()-1, zmax=in->DimZ()-1;
     float vsys_av = findMedian(&outr->vsys[0],outr->nr);
-
-    int free[nfree];
-    for (int nm=0, k=0; nm<MAXPAR; nm++) {
-        if (mpar[nm]) free[k++]=nm;
-    }
 
     if (par.MASK=="SEARCH") {
         if (in->pars().getParSE().flagUserGrowthT) cont = in->pars().getParSE().growthThreshold;

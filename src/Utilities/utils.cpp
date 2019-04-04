@@ -850,7 +850,7 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     }
     
     // Setting number of rings and radsep
-    int nr        = par.NRADII;
+    size_t nr     = par.NRADII;
     double radsep = par.RADSEP;    
     nr = nr>0 && nr<max_size ? nr : max_size;
     if (radii_b) {
@@ -1030,9 +1030,9 @@ T* HanningSmoothing(T *inarray, size_t npts, size_t hanningSize) {
     }
     
     float scale = (hanningSize+1.)/2.;
-    for(int i=0; i<npts; i++){
+    for(size_t i=0; i<npts; i++){
         newarray[i] = 0.;
-        for(int j=0; j<hanningSize; j++){
+        for(size_t j=0; j<hanningSize; j++){
             float x = j-(hanningSize-1)/2.;
             double coeff = (0.5+0.5*cos(x*M_PI/scale))/scale;
             if((i+x>0)&&(i+x<npts)) newarray[i] += coeff*inarray[i+int(x)];
