@@ -45,14 +45,14 @@ GalWind<T>::GalWind(Cube<T> *c, T x0, T y0, T pa, T inc, T disp, T dens, T vsys,
     par.DENS    = to_string(dens);
     par.VSYS    = to_string(vsys);
     par.VWIND   = to_string(vw);
-    par.OPENANG = openang;
+    par.OPENANG = to_string(openang);
     par.HTOT    = htot;
     par.DENSTYPE= denstype;
     par.NTOT    = ntot;
     par.CDENS   = cdens;
     par.NV      = nv;
     in->pars().setThreads(nthreads);
-    
+
     in->checkBeam();
 }
 template GalWind<float>::GalWind(Cube<float>*,float,float,float,float,float,float,float,float,float,float,int,int,int,int,int);
@@ -189,7 +189,7 @@ bool GalWind<T>::compute_cylindrical() {
     float z0 = par.HTOT/(2*par.NTOT);  //half-height of each cylinder in arcsec
     float zpix = z0/PixSize;           //half-height of each cylinder in M_PIxels
     float width = (2*z0)*tan(OpA/2.*M_PI/180.); //width of each ring (Rout/k)
-        
+    
     // Fixed parameter
     float PA   = atof(par.PHI.c_str());  
     float inc  = atof(par.INC.c_str());   

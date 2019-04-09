@@ -278,14 +278,15 @@ std::string randomAdjective (int type) {
          "wonderful","phantasmagoric","phenomenal","excellent","exceptional","refulgent",
          "ambitious","exuberant","frank","witty","amiable","fearless","honest","ineffable",
          "arcadian","egregious","didactic","efficacious","judicious","propitious","sagacious",
-         "zealous","flamboyant"}; 
+         "zealous","flamboyant","sincere","exuberant","charming","communicative","enthusiastic",
+         "pioneering"}; 
     
     std::vector<std::string> bad = 
         {"flummoxed","cranky","pernicious","modest","shameful","wobbling","knackered","flippant",
          "wonky","bellicose","caustic","calamitous","crapulous","dowdy","execrable","fastidious",
          "guileless","hubristic","insidious","insolent","irksome","mendacious","meretricious",
          "noxious","obtuse","recalcitrant","risible","strident","wheedling","withering","pauciloquent",
-         "preposterous","brazenly"};
+         "preposterous","brazenly","aberrant","abortive","barbarous","bilious","brash","capricious"};
     
     static auto const seed = std::random_device()();
     static std::mt19937 generator(seed);
