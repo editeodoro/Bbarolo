@@ -68,7 +68,6 @@ struct GALFIT_PAR : GALMOD_PAR {
     int    FTYPE      = 2;        ///< Type of function to be minimized;
     int    WFUNC      = 2;        ///< Weighting function.
     double TOL        = 1E-03;    ///< Tolerance for minimization.
-    string MASK       = "SMOOTH"; ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE or NONE.
     string NORM       = "LOCAL";  ///< Normalization type: LOCAL, AZIM or NONE.
     string FREE       = "VROT VDISP INC PA"; ///< Free parameters.
     string SIDE       = "B";      ///< Approaching(A), Receding(R), Both(B), Single(S)
@@ -152,6 +151,10 @@ public:
     bool    getFlagDebug() {return debug;}
     bool    getFlagPlots() {return plots;}
     
+    bool    getMakeMask() {return makeMask;}
+    string  getMASK() {return MaskType;}
+    void    setMASK(string s) {MaskType=s;}
+        
     float   getBeamFWHM() {return beamFWHM;}
     void    setBeamFWHM(float val) {beamFWHM=val;}
     bool    getCheckCh () {return checkChannels;}
@@ -189,7 +192,7 @@ public:
     double  getRestwave() {return parGF.RESTWAVE[0];}
     double  getRestfreq() {return parGF.RESTFREQ[0];}
     double  getDistance () {return parGF.DISTANCE;}
-    string  getMASK() {return parGF.MASK;}
+    
     
     GALMOD_PAR&  getParGM() {return parGM;}
     GALFIT_PAR&  getParGF() {return parGF;}
@@ -257,6 +260,9 @@ private:
     float           beamFWHM;           ///< Beam to adopt if any information in header.
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     bool            plots;              ///< Whether producing output plots.
+    
+    bool            makeMask;           ///< Whether to write a mask.
+    string          MaskType;           ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE, SMOOTH&SEARCH or NONE.
     
     bool            globprof;           ///< Whether the user wants the global profile.
     bool            massdensmap;        ///< Whether the user wants the mass density HI map.

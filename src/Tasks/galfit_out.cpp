@@ -925,7 +925,7 @@ int Galfit<T>::plotAll_Python() {
     int xmax=in->DimX()-1, ymax=in->DimY()-1, zmax=in->DimZ()-1;
     float vsys_av = findMedian(&outr->vsys[0],outr->nr);
 
-    if (par.MASK=="SEARCH") {
+    if (in->pars().getMASK()=="SEARCH") {
         if (in->pars().getParSE().flagUserGrowthT) cont = in->pars().getParSE().growthThreshold;
         else if (in->pars().getParSE().UserThreshold) cont = in->pars().getParSE().threshold;
         else {
@@ -1366,6 +1366,9 @@ int Galfit<T>::plotAll_Python() {
             << "x = np.arange(0,xmax-xmin,0.1) \n"
             << "y = np.tan(np.radians(phi-90))*(x-xcen)+ycen \n"
             << "ext = [0,xmax-xmin,0, ymax-ymin] \n"
+            << "rad_pix = rad/cdeltsp \n"
+            << "x_pix = rad_pix*np.cos(np.radians(phi-90)) \n"
+            << "y_pix = rad_pix*np.sin(np.radians(phi-90)) \n"
             << std::endl
             << "for k in range (len(files_mod0)): \n"
             << "\tmom0_mod = fits.open(outfolder+'/maps/'+files_mod0[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
@@ -1404,7 +1407,11 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\taxis.plot(xcen,ycen,'x',color='#000000',markersize=7,mew=1.5) \n"
             << std::endl
             << "\t\t\tif i==0: axis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"
-            << "\t\t\telif i==1: axis.plot(x,y,color='#808080',linewidth=2) \n"
+            << "\t\t\telif i==1: \n"
+            << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
+            << "\t\t\t\tif len(x_pix)<10: \n"
+            << "\t\t\t\t\taxis.scatter(x_pix+xcen,y_pix+ycen,c='grey',s=12) \n"
+            << "\t\t\t\t\taxis.scatter(xcen-x_pix,ycen-y_pix,c='grey',s=12) \n"
             << "\t\t\tif j==0: axis.text(-0.1,0.5,mapname[i],va='center',rotation=90,transform=axis.transAxes,fontsize=15) \n"
             << std::endl
             << "\tif (typ[k]=='AZIM'): outfile = 'plot_maps_azim.pdf' \n"

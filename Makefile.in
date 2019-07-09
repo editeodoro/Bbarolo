@@ -1,11 +1,11 @@
-CFLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @CFLAGS@
-#CFLAGS = -O0 -g -fbounds-check -Wall -Wextra @CFLAGS@ 
-#CFLAGS = -fast -Wall @CFLAGS@ 
+FLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @OPENMP_CXXFLAGS@ @CFLAGS@  
+#FLAGS = -O0 -g -fbounds-check -Wall -Wextra @OPENMP_CXXFLAGS@ @CFLAGS@ 
+#FLAGS = -fast -Wall @OPENMP_CXXFLAGS@ @CFLAGS@ 
 
 OPS = @OP@
-CC  = @CC@ $(CFLAGS)
-CXX = @CXX@ $(CFLAGS)
-LINK= @CXX@ $(CFLAGS) -flto
+CC  = @CC@ $(CFLAGS) $(FLAGS)
+CXX = @CXX@ $(CFLAGS) $(FLAGS)
+LINK= @CXX@ $(CFLAGS) $(FLAGS) -flto
 
 BASE = @BASEDIR@
 
@@ -210,8 +210,8 @@ gui :
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \
 	cp BbaroloGUI.or BbaroloGUI.pro && \
 	echo "LIBS += $(LIBS) -static-libgcc -static-libstdc++" >> BbaroloGUI.pro && \
-	echo "QMAKE_CXXFLAGS += $(OPT) $(CINC)" >> BbaroloGUI.pro && \
-	echo "QMAKE_CXXFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
+	echo "QMAKE_FLAGS += $(OPT) $(CINC)" >> BbaroloGUI.pro && \
+	echo "QMAKE_FLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
 	echo "QMAKE_LFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
 	echo "QMAKE_CC = $(CC)" >> BbaroloGUI.pro &&\
 	echo "QMAKE_CXX = $(CXX)" >> BbaroloGUI.pro &&\
@@ -247,8 +247,8 @@ guistaticlinux :
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \
 	cp BbaroloGUI.or BbaroloGUI.pro && \
 	echo "LIBS += $(STATICLIBS) -static-libgcc -static-libstdc++ " >> BbaroloGUI.pro && \
-	echo "QMAKE_CXXFLAGS += $(OPT) $(CINC)" >> BbaroloGUI.pro && \
-	echo "QMAKE_CXXFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
+	echo "QMAKE_FLAGS += $(OPT) $(CINC)" >> BbaroloGUI.pro && \
+	echo "QMAKE_FLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
 	echo "QMAKE_LFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
 	echo "QMAKE_CC = $(CC)" >> BbaroloGUI.pro &&\
 	echo "QMAKE_CXX = $(CXX)" >> BbaroloGUI.pro &&\
@@ -261,7 +261,7 @@ guistaticlinux :
 	$(LINK) -o BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
 
 mpi: lib
-	mpicxx $(CFLAGS) -o BBarolo_MPI $(BASE)/bbarolo_mpi.cpp $(LIB) $(LIBS) $(OPT) $(CINC)
+	mpicxx $(FLAGS) -o BBarolo_MPI $(BASE)/bbarolo_mpi.cpp $(LIB) $(LIBS) $(OPT) $(CINC)
     
    
 pybb : lib

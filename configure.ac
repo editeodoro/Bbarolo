@@ -190,6 +190,9 @@ AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],
     fi
 ])
 
+# Setting CFLAGS and CXXFLAGS to user-defined variable for C++11
+CFLAGS="$CFLAGS"
+
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CPP
@@ -216,9 +219,8 @@ AC_HEADER_STDBOOL
 AC_C_CONST
 AC_C_INLINE
 
-#Check for openMP and set the flag
+#Check for openMP and set the flag in $OPENMP_CXXFLAGS variable
 AC_OPENMP
-CFLAGS=$OPENMP_CXXFLAGS
 
 BASEDIR=`pwd`/src
 AC_SUBST([BASEDIR])

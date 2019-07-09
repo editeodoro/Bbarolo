@@ -66,6 +66,12 @@ bool BBcore (Param *par) {
     
     if (par->getCheckCh()) c->CheckChannels();
     
+    
+    /// Mask making utility ----------------------------------------
+    if (par->getMakeMask()) c->BlankMask(NULL);
+    // --------------------------------------------------------------
+    
+    
     /// Smoothing utility ------------------------------------------
     if (par->getflagSmooth()) {
         Smooth3D<float> *sm = new Smooth3D<float>;
@@ -75,6 +81,7 @@ bool BBcore (Param *par) {
     }
     // --------------------------------------------------------------
 
+
     /// Hanning smoothing utility -----------------------------------
     if (par->getflagHanning()) {
         Hanning3D<float> *h = new Hanning3D<float>(par->getHanningWindow());
@@ -83,6 +90,7 @@ bool BBcore (Param *par) {
         delete h;
     }
     // --------------------------------------------------------------
+
 
     /// Source finding utility --------------------------------------
     if (par->getflagSearch()) {
@@ -126,7 +134,7 @@ bool BBcore (Param *par) {
     //----------------------------------------------------------------
 
 
-    // GalWind task --------------------------------------
+    // GalWind task --------------------------------------------------
     if (par->getParGW().flagGALWIND) {
         GalWind<float> *w = new GalWind<float>(c);   
         w->compute();
@@ -138,7 +146,7 @@ bool BBcore (Param *par) {
         delete w;
     }
     //----------------------------------------------------------------
-        
+
 
     // 2D tilted-ring fitting task -----------------------------------
     if (par->getFlagRing()) {
@@ -191,7 +199,7 @@ bool BBcore (Param *par) {
         }
     }
     //-----------------------------------------------------------------
-        
+
 
     // PVs extraction task --------------------------------------------
     if (par->getFlagPV()) {
@@ -204,8 +212,8 @@ bool BBcore (Param *par) {
         delete pv;
     }
     //-----------------------------------------------------------------
-        
-        
+
+
     // Repixeling task ------------------------------------------------
     if (par->getflagReduce() && !par->getflagSmooth()) {
         std::string name = c->pars().getOutfolder()+c->Head().Name()+"_red.fits";
@@ -248,7 +256,6 @@ bool BBcore (Param *par) {
 
     return true;
 }
-
 
 
 #endif

@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.4.3"
+#define BBVERSION "1.4.4"
 
 
 Param::Param() {
@@ -52,6 +52,9 @@ void Param::defaultValues() {
     checkChannels       = false;
     flagRobustStats     = true;
 
+    makeMask            = false;
+    MaskType            = "SMOOTH";
+    
     globprof            = false;
     massdensmap         = false;
     totalmap            = false;
@@ -65,7 +68,7 @@ void Param::defaultValues() {
 
     flagSmooth          = false;
     flagFFT             = true;
-    bmaj                = -1;                       
+    bmaj                = -1;
     bmin                = -1;
     bpa                 = 0;
     obmaj               = -1;
@@ -130,6 +133,9 @@ Param& Param::operator= (const Param& p) {
     this->plots             = p.plots;
     this->flagRobustStats   = p.flagRobustStats;
 
+    this->makeMask          = p.makeMask;
+    this->MaskType          = p.MaskType;
+    
     this->globprof          = p.globprof;
     this->velocitymap       = p.velocitymap;
     this->totalmap          = p.totalmap;
@@ -290,15 +296,18 @@ int Param::readParams(std::string paramfile) {
             arg = makelower(arg);
             if(arg=="fitsfile")         imageFile = readFilename(ss);
             if(arg=="fitslist")         imageList = readFilename(ss);
-            if(arg=="verbose")          verbose = readFlag(ss);
+            if(arg=="verbose")          verbose   = readFlag(ss);
             if(arg=="outfolder")        outFolder = readFilename(ss);
-            if(arg=="threads")          threads = readIval(ss);
-            if(arg=="debug")            debug = readFlag(ss);
-            if(arg=="showbar")          showbar = readFlag(ss);
-            if(arg=="plots")            plots = readFlag(ss);
-            if(arg=="beamfwhm")         beamFWHM = readFval(ss);
+            if(arg=="threads")          threads   = readIval(ss);
+            if(arg=="debug")            debug     = readFlag(ss);
+            if(arg=="showbar")          showbar   = readFlag(ss);
+            if(arg=="plots")            plots     = readFlag(ss);
+            if(arg=="beamfwhm")         beamFWHM  = readFval(ss);
             if(arg=="checkchannels")    checkChannels = readFlag(ss);
-                
+            
+            if(arg=="makemask")         makeMask  = readFlag(ss);
+            if(arg=="mask")             MaskType  = readFilename(ss);
+            
             if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss); 
             
             if(arg=="snrcut")           parSE.snrCut = readFval(ss); 
@@ -379,7 +388,6 @@ int Param::readParams(std::string paramfile) {
             if(arg=="tol")       parGF.TOL        = readDval(ss);
             if(arg=="free")      parGF.FREE       = readFilename(ss);
             if(arg=="side")      parGF.SIDE       = readFilename(ss);
-            if(arg=="mask")      parGF.MASK       = readFilename(ss);
             if(arg=="bweight")   parGF.BWEIGHT    = readIval(ss);
             if(arg=="twostage")  parGF.TWOSTAGE   = readFlag(ss);
             if(arg=="flagerrors")parGF.flagERRORS = readFlag(ss);
@@ -476,21 +484,21 @@ bool Param::checkPars() {
 #endif
 
     // Checking MASK parameter
-    std::string maskstr = makeupper(parGF.MASK);
+    std::string maskstr = makeupper(MaskType);
     if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" ||
         maskstr=="THRESHOLD" || maskstr=="NEGATIVE" ||  maskstr=="SMOOTH&SEARCH") {
-        parGF.MASK = maskstr;
+        MaskType = maskstr;
     }
     else if (maskstr.find("FILE(")!=std::string::npos) {
         size_t first = maskstr.find_first_of("(");
         std::string sub1 = maskstr.substr(0,first);
-        std::string sub2 = parGF.MASK.substr(first);
-        parGF.MASK = sub1+sub2;
+        std::string sub2 = MaskType.substr(first);
+        MaskType = sub1+sub2;
     }
     else {
-        std::cout << "\n ERROR: Unknown type of mask: " << parGF.MASK << std::endl;
+        std::cout << "\n ERROR: Unknown type of mask: " << MaskType << std::endl;
         std::cout << " Setting to SMOOTH" << std::endl;
-        parGF.MASK = "SMOOTH";
+        MaskType = "SMOOTH";
     }
 
 
@@ -822,7 +830,7 @@ void Param::createTemplate() {
     parf << "// OPTIONAL: Tolerance for the minimization (default is " << parGF.TOL << "):\n";
     parf << setw(m) << left << "TOL" << setw(m) << left << "1E-03\n"<< endl;
 
-    parf << "// OPTIONAL: Using a mask for the minimization (default is " << parGF.MASK << "):\n";
+    parf << "// OPTIONAL: Using a mask for the minimization (default is " << MaskType << "):\n";
     parf << setw(m) << left << "MASK" << setw(m) << left << "SMOOTH\n"<< endl;
     
     parf << "// OPTIONAL: Normalization type (default is " << parGF.NORM << "):\n";
@@ -909,6 +917,10 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
     recordParam(Str, "[flagRobustStats]", "Using Robust statistics?", stringize(p.getFlagRobustStats()));
     if (p.getParGF().DISTANCE!=-1 || defaults)
         recordParam(Str, "[DISTANCE]", "Distance of the galaxy (Mpc)?", p.getParGF().DISTANCE);
+  
+    // PARAMETERS FOR MAKEMASK TASK
+    recordParam(Str, "[MAKEMASK]", "Writing the mask to a fitsfile", stringize(p.getMakeMask()));
+    if (p.getMakeMask() || defaults) recordParam(Str, "[MASK]", "   Type of mask", p.getMASK());
   
     // PARAMETERS FOR SEARCH TASK
     recordParam(Str, "[SEARCH]", "Searching for sources in cube?", stringize(p.getParSE().flagSearch));
@@ -1019,7 +1031,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         recordParam(Str, "[Z0]", "   Scale height of the disk (arcsec)", p.getParGF().Z0);
         recordParam(Str, "[DENS]", "   Global column density of gas (atoms/cm2)", p.getParGF().DENS);
         recordParam(Str, "[FREE]", "   Parameters to be minimized", p.getParGF().FREE);
-        recordParam(Str, "[MASK]", "   Type of mask", p.getParGF().MASK);
+        recordParam(Str, "[MASK]", "   Type of mask", p.getMASK());
         recordParam(Str, "[SIDE]", "   Side of the galaxy to be used", (p.getParGF().SIDE)); 
         recordParam(Str, "[NORM]", "   Type of normalization", (p.getParGF().NORM));
 
@@ -1137,7 +1149,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         recordParam(Str, "[INC]",  "   Inclination angle (degrees)", p.getParGF().INC);
         recordParam(Str, "[PA]",   "   Position angle (degrees)", p.getParGF().PHI);
         recordParam(Str, "[FREE]", "   Parameters to be fit", p.getParGF().FREE);
-        recordParam(Str, "[MASK]", "   Type of mask for velocity map", p.getParGF().MASK);
+        recordParam(Str, "[MASK]", "   Type of mask for velocity map", p.getMASK());
         recordParam(Str, "[SIDE]", "   Side of the galaxy to be used", p.getParGF().SIDE); 
     }
     
@@ -1162,7 +1174,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         recordParam(Str, "[YPOS]", "   Y center of the galaxy (pixel)", p.getParGF().YPOS);
         recordParam(Str, "[INC]",  "   Inclination angle (degrees)", p.getParGF().INC);
         recordParam(Str, "[PA]",   "   Position angle (degrees)", p.getParGF().PHI);
-        recordParam(Str, "[MASK]", "   Type of mask for intensity map", p.getParGF().MASK);
+        recordParam(Str, "[MASK]", "   Type of mask for intensity map", p.getMASK());
         recordParam(Str, "[SIDE]", "   Side of the galaxy to be used", p.getParGF().SIDE); 
     }
     

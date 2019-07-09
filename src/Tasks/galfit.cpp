@@ -318,7 +318,6 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     par.TOL      = TOL;
     par.CDENS    = CDENS;
     par.STARTRAD = STARTRAD;
-    par.MASK     = MASK;
     par.NORM     = NORM;
     par.FREE     = FREE;
     par.SIDE     = SIDE;
@@ -336,6 +335,8 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     checkHome(OUTFOLD);    
     c->pars().setOutfolder(OUTFOLD);
     c->pars().setThreads(NTHREADS);
+    c->pars().setMASK(MASK);
+    
     mkdirp(OUTFOLD.c_str());
     
     setup(c,inrings,&par);

@@ -277,17 +277,20 @@ std::string randomAdjective (int type) {
          "marvelous","ungodly","incredible","wondrous","magnificent","glorious","splendiferous",
          "wonderful","phantasmagoric","phenomenal","excellent","exceptional","refulgent",
          "ambitious","exuberant","frank","witty","amiable","fearless","honest","ineffable",
-         "arcadian","egregious","didactic","efficacious","judicious","propitious","sagacious",
+         "arcadian","didactic","efficacious","judicious","propitious","sagacious",
          "zealous","flamboyant","sincere","exuberant","charming","communicative","enthusiastic",
-         "pioneering"}; 
+         "pioneering","astonishing","enlightnening","edifying","illuminating","homiletic"}; 
     
     std::vector<std::string> bad = 
         {"flummoxed","cranky","pernicious","modest","shameful","wobbling","knackered","flippant",
          "wonky","bellicose","caustic","calamitous","crapulous","dowdy","execrable","fastidious",
          "guileless","hubristic","insidious","insolent","irksome","mendacious","meretricious",
          "noxious","obtuse","recalcitrant","risible","strident","wheedling","withering","pauciloquent",
-         "preposterous","brazenly","aberrant","abortive","barbarous","bilious","brash","capricious"};
-    
+         "preposterous","brazen","aberrant","abortive","barbarous","bilious","brash","capricious",
+         "ridiculous","pointless","ludicrous","impudent","acrimonious","outmoded","inelegant","frowzy",
+         "egregious","discourteous","malapert","scornful","bamboozled","disastrous","ruinous","woeful",
+         "deplorable","grevious","flagitious","deleterious","detrimental","insalubrious"};
+         
     static auto const seed = std::random_device()();
     static std::mt19937 generator(seed);
     
