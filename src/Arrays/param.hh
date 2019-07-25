@@ -334,6 +334,7 @@ void recordParameters(ostream& theStream, string paramName, string paramDesc, st
 // Some utility functions
 void helpscreen(ostream& Str=cout);
 void versionInfo(ostream& Str, char ** argv);
+void welcomeMessage(std::ostream& ostr=std::cout);
 void printParams (ostream& Str, Param &p, bool defaults=false);
 
 #endif

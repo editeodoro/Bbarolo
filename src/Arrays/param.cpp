@@ -34,7 +34,6 @@
 
 #define BBVERSION "1.4.4"
 
-
 Param::Param() {
     
     defaultValues();
@@ -1324,4 +1323,22 @@ void versionInfo(std::ostream& ostr, char **argv) {
     ostr << compiler << flags << std::endl << std::endl;  
 }
 
+
+void welcomeMessage(std::ostream& ostr) {
+
+    std::string adj = randomAdjective(1);
+    std::string welcomemsg = " Welcome to BBarolo v"+std::string(BBVERSION);
+    
+    int size = 70;
+    int sizel = (size-10+welcomemsg.size())/2.;
+    int sizer = size-sizel;
+        
+    ostr << "\n" << setfill('=') << setw(size) << right << "\n"
+         << "====="  << setfill(' ') << setw(size-5) << "=====\n"
+         << "=====" << setfill(' ') << setw(sizel) << right << welcomemsg << setw(sizer-5) << "=====\n"
+         << "====="  << setfill(' ') << setw(size-5) << "=====\n"
+         << setfill('=') << setw(size) << right << "\n"
+         << setfill(' ') << endl << left;
+    
+}
 

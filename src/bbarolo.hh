@@ -68,7 +68,7 @@ bool BBcore (Param *par) {
     
     
     /// Mask making utility ----------------------------------------
-    if (par->getMakeMask()) c->BlankMask(NULL);
+    if (par->getMakeMask()) c->BlankMask(NULL,false);
     // --------------------------------------------------------------
     
     

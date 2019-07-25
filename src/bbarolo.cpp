@@ -51,6 +51,7 @@ int main (int argc, char *argv[]) {
 
     Param *par = new Param;
     if (!par->getopts(argc, argv)) return EXIT_FAILURE;
+    welcomeMessage();
     std::cout << *par;
 
     for (int im=0; im<par->getListSize(); im++) {

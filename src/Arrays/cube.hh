@@ -140,7 +140,7 @@ public:
     /// Blanking and Maps functions.
     
     void    BlankCube (T *Array, size_t size);            /// Blank a input array using Cube::mask.
-    void    BlankMask(float *channel_noise=NULL);       /// Define Cube::mask;
+    void    BlankMask(float *channel_noise=NULL,bool onlyLargest=true);       /// Define Cube::mask;
 
     //void  WriteFITSMap (T *Array, int T);          /// Write a map in a FITS file.
     

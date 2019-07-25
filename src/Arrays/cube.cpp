@@ -478,7 +478,7 @@ template void Cube<double>::BlankCube (double*, size_t);
 
 
 template <class T>
-void Cube<T>::BlankMask (float *channel_noise){
+void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     
      /*/////////////////////////////////////////////////////////////////////////////////
      * This function builds a mask for the cube. The type of mask depends on the
@@ -514,17 +514,33 @@ void Cube<T>::BlankMask (float *channel_noise){
     st->setRobust(par.getFlagRobustStats());
 
     if (par.getMASK()=="SEARCH") {
-        // Masking using the search algorithm and mask the largest of object.
+        // Masking using the search algorithm.
         if (!isSearched) Search();
-        Detection<T> *larg = LargestDetection();
-        if (larg==NULL) {
-            std::cout << "3DFIT error: No sources detected in the datacube. Cannot build mask!!! \n";
+        
+        uint numObj = getNumObj();
+        if (numObj==0) {
+            std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
             std::terminate();
         }
-        std::vector<Voxel<T> > voxlist = larg->getPixelSet();
-        typename std::vector<Voxel<T> >::iterator vox;
-        for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-            mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+        
+        if (onlyLargest || numObj==1) {
+            Detection<T> *larg = LargestDetection();
+            std::vector<Voxel<T> > voxlist = larg->getPixelSet();
+            typename std::vector<Voxel<T> >::iterator vox;
+            for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+            }
+        }
+        else {
+            for (auto i=0; i<numObj; i++) {
+                Detection<T> *obj = pObject(i);
+                std::vector<Voxel<T> > voxlist = obj->getPixelSet();
+                typename std::vector<Voxel<T> >::iterator vox;
+                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+                }
+            }
+            
         }
     }
     else if (par.getMASK()=="SMOOTH&SEARCH") {
@@ -552,17 +568,31 @@ void Cube<T>::BlankMask (float *channel_noise){
         smoothed->Head().calcArea();
         smoothed->setCubeStats();
         smoothed->Search();
-        Detection<T> *larg = smoothed->LargestDetection();
-        if (larg==NULL) {
-            std::cout << "3DFIT error: No sources detected in the datacube. Cannot build mask!!! \n";
+        uint numObj = smoothed->getNumObj();
+        if (numObj==0) {
+            std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
             std::terminate();
         }
-        std::vector<Voxel<T> > voxlist = larg->getPixelSet();
-        typename std::vector<Voxel<T> >::iterator vox;
-        for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-            mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
-        }
         
+        if (onlyLargest || numObj==1) {
+            Detection<T> *larg = smoothed->LargestDetection();
+            std::vector<Voxel<T> > voxlist = larg->getPixelSet();
+            typename std::vector<Voxel<T> >::iterator vox;
+            for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+            }
+        }
+        else {
+            for (auto i=0; i<numObj; i++) {
+                Detection<T> *obj = smoothed->pObject(i);
+                std::vector<Voxel<T> > voxlist = obj->getPixelSet();
+                typename std::vector<Voxel<T> >::iterator vox;
+                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+                }
+            }
+            
+        }
         delete smoothed;
         delete sm;
     }
@@ -652,7 +682,7 @@ void Cube<T>::BlankMask (float *channel_noise){
             std::terminate();
         }
         std::string filename = str.substr (first+1,last-first-1);
-        Cube<short> *ma = new Cube<short>;
+        Cube<float> *ma = new Cube<float>;
 
         if (!fexists(filename) || !ma->readCube(filename)) {
             std::cerr << "\n ERROR: Mask " << filename
@@ -697,11 +727,11 @@ void Cube<T>::BlankMask (float *channel_noise){
     maskAllocated = true;
     
 }
-template void Cube<short>::BlankMask (float*);
-template void Cube<int>::BlankMask (float*);
-template void Cube<long>::BlankMask (float*);
-template void Cube<float>::BlankMask (float*);
-template void Cube<double>::BlankMask (float*);
+template void Cube<short>::BlankMask (float*,bool);
+template void Cube<int>::BlankMask (float*,bool);
+template void Cube<long>::BlankMask (float*,bool);
+template void Cube<float>::BlankMask (float*,bool);
+template void Cube<double>::BlankMask (float*,bool);
 
 
 /**=====================================================================================*/ 

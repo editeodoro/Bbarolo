@@ -396,7 +396,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     else func_norm = &Model::Galfit<T>::norm_local;
 
     // Creating mask if does not exist and write it in a fitsfile.
-    if (!in->MaskAll()) in->BlankMask(chan_noise);
+    if (!in->MaskAll() || in->pars().getMASK()=="NEGATIVE") in->BlankMask(chan_noise);
     mask = in->Mask();
     
     // Setting limits for fitting parameters
@@ -547,7 +547,6 @@ void Galfit<T>::galfit() {
     double toKpc = KpcPerArc(distance);
     int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
     
-    
     int nthreads = in->pars().getThreads();
     
 #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
@@ -567,13 +566,17 @@ void Galfit<T>::galfit() {
         dring->id = ir;
         
         float width1=0, width2=0;
-        if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
-        else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
+        // Handling the case of a single ring
+        if (inr->nr==1) width1 = width2 = inr->radii[0];
         else {
-            width1 = (inr->radii[ir]-inr->radii[ir-1])/2.;
-            width2 = (inr->radii[ir+1]-inr->radii[ir])/2.;
+            if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
+            else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
+            else {
+                width1 = (inr->radii[ir]-inr->radii[ir-1])/2.;
+                width2 = (inr->radii[ir+1]-inr->radii[ir])/2.;
+            }
         }
-
+        
         dring->radii.push_back(max(double(inr->radii[ir]-width1),0.));
         dring->radii.push_back(max(double(inr->radii[ir]+width2),0.));
 
