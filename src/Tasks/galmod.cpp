@@ -663,7 +663,8 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         }
     }
     
-    bool empty = false;
+    // This is better as true when 3DFIT (otherwise it lowers the VROT and increase VDISP)
+    bool empty = true;
     /*
     if (uradii[0]!=0) {
         std::cout << "Leave innerpart of first ring empty? [Y,N]";
@@ -972,27 +973,29 @@ void Galmod<T>::galmod() {
     
     double *ras  = new double[in->DimX()*in->DimY()];
     double *decs = new double[in->DimX()*in->DimY()];
-    double *phis = new double[in->DimX()*in->DimY()];
-    double *rhos = new double[in->DimX()*in->DimY()];    
+    double *cosphi = new double[in->DimX()*in->DimY()];
+    double *cosrho = new double[in->DimX()*in->DimY()];
+    double *sinphi = new double[in->DimX()*in->DimY()];
+    double *sinrho = new double[in->DimX()*in->DimY()];  
     
     double pc[3] = {double(r->xpos[0]),double(r->ypos[0]),0}; 
     double *wc = new double[3]; 
     pixToWCSSingle(in->Head().WCS(),pc,wc);
-    double xcc = wc[0]*M_PI/180.; 
-    double ycc = wc[1]*M_PI/180.;
+    double xcc = wc[0]*M_PI/180.;       // RA of galaxy centre 
+    double ycc = wc[1]*M_PI/180.;       // DEC of galaxy centre
     
     for (auto x=0; x<in->DimX(); x++) {
         for (auto y=0; y<in->DimY(); y++) {
             double p[3] = {double(x),double(y),0}; 
             double *w = new double[3]; 
             pixToWCSSingle(in->Head().WCS(),p,w);
-            size_t a = x+y*in->DimX();
-            ras[a] = w[0]*M_PI/180.;
-            decs[a] = w[1]*M_PI/180.;
-            rhos[a] = acos(cos(decs[a])*cos(ycc)*cos(ras[a]-xcc)+sin(decs[a])*sin(ycc));
-            phis[a] = asin((sin(decs[a])*cos(ycc)-cos(decs[a])*sin(ycc)*cos(ras[a]-xcc))/sin(rhos[a]))-M_PI_2;
-            if (x<r->xpos[0]) phis[a] = abs(phis[a]);
-            else phis[a] = (phis[a]+2*M_PI);
+            size_t a  = x+y*in->DimX();
+            ras[a]    = w[0]*M_PI/180.;
+            decs[a]   = w[1]*M_PI/180.;
+            cosrho[a] = cos(decs[a])*cos(ycc)*cos(ras[a]-xcc)+sin(decs[a])*sin(ycc);
+            sinrho[a] = sin(acos(cosrho[a]));
+            cosphi[a] = -cos(decs[a])*sin(ras[a]-xcc)/sinrho[a];
+            sinphi[a] = (sin(decs[a])*cos(ycc)-cos(decs[a])*sin(ycc)*cos(ras[a]-xcc))/sinrho[a];
         }
     }
     
@@ -1004,9 +1007,13 @@ void Galmod<T>::galmod() {
     const double mu_n = -1.117;
     const double D0   = 63.;
     const double didt = -281;
+    const double dthdt= 0.;
     const double c1   = 3.08568E19/3.15576E07/3.6E06*M_PI/180.; // Conversion kpc * mas/yr  -> m/s
     const double c2   = 3.08568E19/3.15576E16*M_PI/180.;        // Conversion kpc * deg/Gyr -> m/s 
     
+    // Transverse velocity and direction
+    const double V_t     = c1*D0*sqrt(mu_w*mu_w+mu_n*mu_n);
+    const double Theta_t = -atan2(mu_w,mu_n);
     
     int isd = iseed;
 //  Get number of velocity profiles that will be done.
@@ -1018,6 +1025,8 @@ void Galmod<T>::galmod() {
     
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
+        //std::cout << "WORKING ON RING #" << ir+1 <<  "/" << r->nr << std::endl;
+        
         if (verb) bar.update(ir+1);
 //      Get radius
         double rtmp = r->radii[ir];
@@ -1083,25 +1092,62 @@ void Galmod<T>::galmod() {
             int np = grid[0]+grid[1]*bsize[0];
                 
 //          Getting vtc, vts and wts    
-            double mu_c = -mu_w*sin(r->phi[ir]) + mu_n*cos(r->phi[ir]);
-            double mu_s = -mu_w*cos(r->phi[ir]) - mu_n*sin(r->phi[ir]);
+            double mu_c = -mu_w*spa + mu_n*cpa;
+            double mu_s = -mu_w*cpa - mu_n*spa;
             double vtc  = c1*D0*mu_c;    
             double vts  = c1*D0*mu_s;
             double wts  = vts + c2*D0*didt;
-            double rho  = rhos[np];
-            double phi  = phis[np];
+            double theta   = r->phi[ir] + M_PI_2;
+            double theta_t = Theta_t + M_PI_2;
+            double cospt  = cosphi[np]*cos(theta)+sinphi[np]*sin(theta); // = cos(phi-theta)
+            double sinpt  = sinphi[np]*cos(theta)-cosphi[np]*sin(theta); // = sin(phi-theta)
+            double cosptt = cosphi[np]*cos(theta_t)+sinphi[np]*sin(theta_t); // = cos(phi-theta_t)
+            double sinptt = sinphi[np]*cos(theta_t)-cosphi[np]*sin(theta_t); // = sin(phi-theta)
 
-            double f = (cinc*cos(rho)-sinc*sin(rho)*sin(phi-r->phi[ir]))/sqrt(cinc*cinc*cos(phi-r->phi[ir])*cos(phi-r->phi[ir])+sin(phi-r->phi[ir])*sin(phi-r->phi[ir]));
-            
+            //##############################################################
+            // # Center of mass velocity components (eq. 13 vdM+2002)
+            //##############################################################
+            double v1_CM =  V_t*sinrho[np]*cosptt + vsystmp*cosrho[np];
+            double v2_CM =  V_t*cosrho[np]*cosptt - vsystmp*sinrho[np];
+            double v3_CM = -V_t           *sinptt;
+
+            //##############################################################
+            //# Precession/nutation velocity components (eq. 16 vdM+2002)
+            //##############################################################
+            //# Constant factor 
+            double fac   = c2*D0*sinrho[np]/(cinc*cosrho[np] + sinc*sinrho[np]*sinpt);
+            //# Components
+            double v1_PN = fac*(didt*sinpt*( cinc*cosrho[np] + sinc*sinrho[np]*sinpt));
+            double v2_PN = fac*(didt*sinpt*(-cinc*sinrho[np] + sinc*cosrho[np]*sinpt));
+            double v3_PN = fac*(didt*sinpt*(                 + sinc           *cospt) + dthdt*cinc);
+
+            //##############################################################
+            //# Internal motion velocity components (eq. 21 vdM+2002)
+            //##############################################################
+            //# Spin factor (Negative if PA is defined from the receding side)
+            double s     = 1.;
+            //# Constant factor 
+            double fac2   = s*vrottmp/sqrt(cinc*cinc*cospt*cospt+sinpt*sinpt);
+            //# Components
+            double v1_IN = fac2*( sinc*cospt*(cinc*cosrho[np] + sinc*sinrho[np]*sinpt));
+            double v2_IN = fac2*(-sinc*cospt*(cinc*sinrho[np] - sinc*cosrho[np]*sinpt));
+            double v3_IN = fac2*(-(cinc*cinc*cospt*cospt+sinpt*sinpt));
+
+            //##############################################################
+            //# Observed velocity components (eq. 11 vdM+2002)
+            //##############################################################
+            double v1 = v1_CM + v1_PN + v1_IN;
+            double v2 = v2_CM + v2_PN + v2_IN;
+            double v3 = v3_CM + v3_PN + v3_IN;
+
 //          Get systematic velocity of cloud.
-            double vsys  = vsystmp*cos(rho)+wts*sin(rho)*sin(phi-r->phi[ir])+(vtc*sin(rho)+f*vrottmp*sinc)*cos(phi-r->phi[ir]);
-            //double vsys2 = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
+            double vlos  = v1;
             
             for (int iv=0; iv<nvtmp; iv++) {
                 double vdev = gaussia(generator)*vdisptmp;        // STD library
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                 for (int nl=0; nl<nlines; nl++) {
-                    double v     = vsys+vdev+relvel[nl];
+                    double v     = vlos+vdev+relvel[nl];
                     int isubs = lround(velgrid(v)+crpix3-1);
                     if (isubs<0 || isubs>=nsubs) continue;
                     int idat  = iprof+isubs*nprof;
@@ -1122,6 +1168,12 @@ void Galmod<T>::galmod() {
     if (verb) bar.fillSpace("OK.\n");
     
     delete [] datbuf;
+    delete [] ras;
+    delete [] decs;
+    delete [] cosphi;
+    delete [] cosrho;
+    delete [] sinphi;
+    delete [] sinrho;  
 
     modCalculated=true;
     

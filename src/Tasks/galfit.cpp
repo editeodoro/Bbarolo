@@ -552,6 +552,9 @@ void Galfit<T>::galfit() {
 #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
     for (int ir=start_rad; ir<inr->nr; ir++) {
         
+        T minimum=0;
+        T pmin[nfree];
+        
         if (verb && nthreads==1) {
             time_t t = time(NULL);
             char Time[11] = "          ";
@@ -562,7 +565,6 @@ void Galfit<T>::galfit() {
         }
 
         Rings<T> *dring = new Rings<T>;
-        dring->nr = 2;
         dring->id = ir;
         
         float width1=0, width2=0;
@@ -577,31 +579,52 @@ void Galfit<T>::galfit() {
             }
         }
         
-        dring->radii.push_back(max(double(inr->radii[ir]-width1),0.));
-        dring->radii.push_back(max(double(inr->radii[ir]+width2),0.));
+        T drads[2] = {T(max(double(inr->radii[ir]-width1),0.)), T(max(double(inr->radii[ir]+width2),0.))};
 
-        for (int i=0; i<dring->nr; i++) {
-            dring->vrot.push_back(inr->vrot[ir]);
-            dring->vdisp.push_back(inr->vdisp[ir]);
-            dring->dens.push_back(inr->dens[ir]);
-            dring->z0.push_back(inr->z0[ir]);
-            dring->inc.push_back(inr->inc[ir]);
-            dring->phi.push_back(inr->phi[ir]);
-            dring->xpos.push_back(inr->xpos[ir]);
-            dring->ypos.push_back(inr->ypos[ir]);
-            dring->vsys.push_back(inr->vsys[ir]);
-            dring->vrad.push_back(inr->vrad[ir]);
-            dring->vvert.push_back(inr->vvert[ir]);
-            dring->dvdz.push_back(inr->dvdz[ir]);
-            dring->zcyl.push_back(inr->zcyl[ir]);
+        dring->addRings(2,drads,inr->xpos[ir],inr->ypos[ir],inr->vsys[ir],inr->vrot[ir],inr->vdisp[ir],inr->vrad[ir],
+                        inr->vvert[ir],inr->dvdz[ir],inr->zcyl[ir],inr->dens[ir],inr->z0[ir],inr->inc[ir],inr->phi[ir]);
+        
+            
+        bool cumulative = false;
+        if (cumulative && dring->radii[0]!=0) {
+            ///////////////////////////////////////////////////////
+            // The following is for taking into account rings fitted so far
+            // Does not work in parallel 
+            ///////////////////////////////////////////////////////
+            
+            // Creating a new set of rings fitted so far
+            Rings<T> *dring2 = new Rings<T>;
+            dring2->id = dring->id+1;
+            // Adding a first ring at rad=0 with vrot=0 and other pars as the 1st fitted ring
+            dring2->addRing(0,inr->xpos[0],inr->ypos[0],inr->vsys[0],0,inr->vdisp[0],inr->vrad[0],inr->vvert[0],
+                            inr->dvdz[0],inr->zcyl[0],inr->dens[0],inr->z0[0],inr->inc[0],inr->phi[0]);
+            // Adding previously fitted rings
+            dring2->addRings(dring->id,&outr->radii[0],&outr->xpos[0],&outr->ypos[0],&outr->vsys[0],&outr->vrot[0],&outr->vdisp[0],&outr->vrad[0],
+                             &outr->vvert[0],&outr->dvdz[0],&outr->zcyl[0],&outr->dens[0],&outr->z0[0],&outr->inc[0],&outr->phi[0]);
+                        
+            // Adding a last ring up to the next radius to be fitted
+                             //dring2->addRing(dring->radii[0],outr->xpos[ir-1],outr->ypos[ir-1],outr->vsys[ir-1],outr->vrot[ir-1],outr->vdisp[ir-1],outr->vrad[ir-1],outr->vvert[ir-1],outr->dvdz[ir-1],outr->zcyl[ir-1],outr->dens[ir-1],outr->z0[ir-1],outr->inc[ir-1],outr->phi[ir-1]);
+            
+            // Calculating the model so far
+            int blo[2], bhi[2], bsize[2];
+            getModelSize(dring,blo,bhi,bsize);
+            int nv = par.NV<0 ? nv=in->DimZ() : par.NV;
+            Model::Galmod<T> *modsoFar = new Model::Galmod<T>;
+            modsoFar->input(in,bhi,blo,dring2,nv,par.LTYPE,1,par.CDENS);
+            modsoFar->calculate();
+            
+            fitok[ir] = minimize(dring, minimum, pmin, modsoFar);
+
+            delete dring2;
+            delete modsoFar;
         }
-
-        T minimum=0;
-        T pmin[nfree];
-
-        fitok[ir] = minimize(dring, minimum, pmin);
+        else
+            fitok[ir] = minimize(dring, minimum, pmin, NULL);
+        
+        
         if (!fitok[ir]) continue;
-
+        
+        
         int k=0;
         if (mpar[VROT])  outr->vrot[ir]=pmin[k++];
         if (mpar[VDISP]) outr->vdisp[ir]=pmin[k++];
@@ -624,9 +647,9 @@ void Galfit<T>::galfit() {
             
             int m=8, n=11;
             cout << "  Best parameters for ring #" << ir+1
-                 << " (fmin = " << setprecision(6) << minimum << "):\n";
+                 << " (fmin = " << scientific << setprecision(3) << minimum << "):\n";
 
-            cout << setprecision(2);
+            cout << fixed << setprecision(2);
 
             string s;
             s = "    Vrot";

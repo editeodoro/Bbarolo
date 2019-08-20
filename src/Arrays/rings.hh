@@ -1,5 +1,5 @@
 //---------------------------------------------------------------
-// rings.hh: Definitions of ring containers.
+// rings.hh: Definitions of ring/rings/shell containers.
 //---------------------------------------------------------------
 
 /*-----------------------------------------------------------------------
@@ -26,6 +26,9 @@
 
 #include <iostream>
 #include <vector>
+#include <iomanip>
+
+using namespace std;
 
 template <class T>
 struct Ring {
@@ -54,7 +57,9 @@ struct Ring {
 
 
 template <class T>
-struct Rings {
+class Rings 
+{
+public:
     int     nr;                 //< Number of rings.
     double radsep;              //< Separation between rings.
     std::vector<T> radii;
@@ -74,6 +79,8 @@ struct Rings {
     std::vector<T> pa;
     int id;                     // ID of the ring (for 3dFIT)
     
+    Rings() {nr=radsep=0;};
+    ~Rings() {ClearAll();};
     
     void ClearAll () {
         xpos.clear(); ypos.clear(); vsys.clear(); radii.clear(); vrot.clear(); vdisp.clear();
@@ -81,54 +88,138 @@ struct Rings {
         inc.clear(); phi.clear(); pa.clear();
     } 
     
+    
+    void addRing (T radii, T xpos, T ypos, T vsys, T vrot, T vdisp, T vrad, 
+                  T vvert, T dvdz, T zcyl, T dens, T z0, T inc, T phi) {
+        
+        this->radii.push_back(radii);
+        this->xpos.push_back(xpos);
+        this->ypos.push_back(ypos);
+        this->vsys.push_back(vsys);
+        this->vrot.push_back(vrot);
+        this->vdisp.push_back(vdisp);
+        this->vrad.push_back(vrad);
+        this->vvert.push_back(vvert);
+        this->dvdz.push_back(dvdz);
+        this->zcyl.push_back(zcyl);
+        this->dens.push_back(dens);
+        this->z0.push_back(z0);
+        this->inc.push_back(inc);
+        this->phi.push_back(phi);
+        this->pa.push_back(0);
+        
+        this->nr = this->radii.size();
+    }
+        
+        
+    void addRings(int size, T *radii, T *xpos, T *ypos, T *vsys, T *vrot, T *vdisp, 
+                  T *vrad, T *vvert, T *dvdz, T *zcyl, T *dens, T *z0, T *inc, T *phi) {
+        for (int i=0; i<size; i++) {
+            this->addRing(radii[i],xpos[i],ypos[i],vsys[i],vrot[i],vdisp[i],vrad[i],
+                          vvert[i],dvdz[i],zcyl[i],dens[i],z0[i],inc[i],phi[i]);
+        }
+    }
+    
+    
+    void addRings(int size, T *radii, T xpos, T ypos, T vsys, T vrot, T vdisp, 
+                      T vrad, T vvert, T dvdz, T zcyl, T dens, T z0, T inc, T phi) {
+            for (int i=0; i<size; i++) {
+                this->addRing(radii[i],xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi);
+            }
+        }
+    
+    
     void setRings (int size, T* radii, T* xpos, T* ypos, T* vsys, T* vrot, T* vdisp, T* vrad, 
                    T* vvert, T* dvdz, T* zcyl, T* dens, T* z0, T* inc, T* phi) {
-        this->nr = size;
-        for (int i=0; i<nr; i++) {
-            this->radii.push_back(radii[i]);            
-            this->xpos.push_back(xpos[i]);
-            this->ypos.push_back(ypos[i]);
-            this->vsys.push_back(vsys[i]);
-            this->vrot.push_back(vrot[i]);
-            this->vdisp.push_back(vdisp[i]);
-            this->vrad.push_back(vrad[i]);
-            this->vvert.push_back(vvert[i]);
-            this->dvdz.push_back(dvdz[i]);
-            this->zcyl.push_back(zcyl[i]);
-            this->dens.push_back(dens[i]);
-            this->z0.push_back(z0[i]);
-            this->inc.push_back(inc[i]);
-            this->phi.push_back(phi[i]);
-            this->pa.push_back(0);
-        }
-        this->radsep = 0;
-        if (nr>1) this->radsep = radii[1]-radii[0];
+        this->addRings(size,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi);
+        this->radsep = this->nr>1 ? (this->radii[1]-this->radii[0]) : 0;
     }
+    
     
     void setRings (T minrad, T maxrad, T radsep, T xpos, T ypos, T vsys, T vrot, T vdisp, 
                    T vrad, T vvert, T dvdz, T zcyl, T dens, T z0, T inc, T phi) {
         
-        this->nr = (maxrad-minrad)/radsep + 1;
-        this->radsep = radsep;    
-        for (int i=0; i<this->nr; i++) {
-            this->radii.push_back(minrad+i*radsep);            
-            this->xpos.push_back(xpos);
-            this->ypos.push_back(ypos);
-            this->vsys.push_back(vsys);
-            this->vrot.push_back(vrot);
-            this->vdisp.push_back(vdisp);
-            this->vrad.push_back(vrad);
-            this->vvert.push_back(vvert);
-            this->dvdz.push_back(dvdz);
-            this->zcyl.push_back(zcyl);
-            this->dens.push_back(dens);
-            this->z0.push_back(z0);
-            this->inc.push_back(inc);
-            this->phi.push_back(phi);
-            this->pa.push_back(0);
+        int size = (maxrad-minrad)/radsep + 1;
+        for (int i=0; i<size; i++) {
+            this->addRing(minrad+i*radsep,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi);
         }
+        this->radsep = radsep;    
     }
+
+    
+    void printRing(int nring, ostream& theStream = cout) {
+        
+        int m=8, n=11;
+        
+        theStream << "\n Ring #" << nring+1 << " (idx=" << nring <<") at radius " << this->radii[nring] << " arcsec \n";
+        theStream << fixed << setprecision(2);
+        
+        string s;
+        s = "    Vrot";
+        theStream << setw(n) << left << s << setw(3) << right << "= "
+                  << setw(m) << this->vrot[nring] << left << setw(m) << "  km/s";
+
+        s = "        Disp";
+        theStream << setw(n+4) << left << s << setw(3) << right << "= "
+                  << setw(m-1) << this->vdisp[nring]
+                  << left << setw(m) << "  km/s" << endl;
+
+        s = "    Vrad";
+        theStream << setw(n) << left << s << setw(3) << right << "= "
+                  << setw(m) << this->vrad[nring] << left << setw(m) << "  km/s";
+        
+        s = "        Vsys";
+        theStream << setw(n+4) << left << s << setw(3) << right << "= "
+                  << setw(m-1) << this->vsys[nring] << left << setw(m) << "  km/s" << endl;
+            
+        s = "    Inc";
+        theStream << setw(n) << left << s << setw(3) << right << "= "
+                  << setw(m) << this->inc[nring] << left << setw(m) << "  deg";
+
+        s = "        PA";
+        theStream << setw(n+4) << left << s << setw(3) << right << "= "
+                  << setw(m-1) << this->phi[nring] << left << setw(m) << "  deg" << endl;
+
+        s = "    Xpos";
+        theStream << setw(n) << left << s << setw(3) << right << "= "
+                  << setw(m) << this->xpos[nring] << left << setw(m) << "  pix";
+
+        s = "        Ypos";
+        theStream << setw(n+4) << left << s << setw(3) << right << "= "
+                  << setw(m-1) << this->ypos[nring] << left << setw(m) << "  pix" << endl;
+            
+        s = "    Z0";
+        theStream << setw(n) << left << s << setw(3) << right << "= "
+                  << setw(m) << this->z0[nring] << left << setw(m) << "  arcs";
+        
+        s = "        Dens";
+        theStream << setw(n+4) << left << s << setw(3) << right << "= "
+                  << setw(m-1) << this->dens[nring]/1E20 << left << setw(m) << " 1E20 1/cm2" << endl;
+        
+        s = "    VVERT";
+        theStream << setw(n) << left << s << setw(3) << right << "= "
+                  << setw(m) << this->vvert[nring] << left << setw(m) << "  km/s";
+        
+        s = "        ZCYL";
+        theStream << setw(n+4) << left << s << setw(3) << right << "= "
+                  << setw(m-1) << this->zcyl[nring] << left << setw(m) << " arcs" << endl;
+        
+        s = "    DVDZ";
+        theStream << setw(n) << left << s << setw(3) << right << "= "
+                  << setw(m) << this->dvdz[nring] << left << setw(m) << "  km/s/arcs";
+        
+        theStream << endl;
+    }
+    
+    void printRings(ostream& theStream = cout){for (int i=0; i<this->nr; i++) this->printRing(i,theStream);}
+    
+    template <class M>
+    friend std::ostream& operator<< (ostream& theStream, Rings<M>& r);
+
 };
+
+template <class M>
+ostream& operator<< (ostream& theStream, Rings<M>& r) {r.printRings(theStream); return theStream;}
 
 
 template <class T>

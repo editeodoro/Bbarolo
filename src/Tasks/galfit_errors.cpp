@@ -170,7 +170,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
                                         
         }
                                 
-        var_func[nm] = model(dr);
+        var_func[nm] = getFuncValue(dr);
         
         if (var_func[nm]<minimum) cout << dr->vrot[0] << "  " << dr->vdisp[0] << "  " << dr->inc[0] 
                                        << "  " << dr->phi[0] << "   " << (var_func[nm]-minimum)/minimum << endl;
@@ -326,7 +326,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
             if (var_val[nm]>maxval[nf]) maxval[nf] = var_val[nm];
             if (var_val[nm]<minval[nf]) minval[nf] = var_val[nm];
                     
-            var_func[nm] = model(dr);
+            var_func[nm] = getFuncValue(dr);
                 
             //if (var_func[nm]<minimum) cout << dr->vrot[0] << "  " << dr->vdisp[0] << "  " << dr->inc[0] 
                 //                     << "  " << dr->phi[0] << "   " << (var_func[nm]-minimum)/minimum << endl;

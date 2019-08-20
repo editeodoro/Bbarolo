@@ -958,6 +958,8 @@ int Galfit<T>::plotAll_Python() {
         zmin = z_vsys-2*disp_v>0 ? z_vsys-2*disp_v : 0;
         zmax = z_vsys+2*disp_v<in->DimZ() ? z_vsys+2*disp_v : in->DimZ()-1;
     }
+    
+    
 
     xmin = xpos-disp>=0 ? xpos-disp : 0;
     xmax = xpos+disp<in->DimX() ? xpos+disp : in->DimX()-1;
@@ -1018,7 +1020,7 @@ int Galfit<T>::plotAll_Python() {
 
     for (int i=0; i<MAXPAR; i++) {
         if ((i==0 || i==1 || i==9) && (nc[i]>0)) {
-            int ff = i==9 ? 4 : 0;
+            int ff = i==9 ? 6 : 0;
             py_file << "\terr2_l[" << i << "], err2_h[" << i << "] = np.genfromtxt(file2,skip_header=1,usecols=("
                     << nc[i]-ff << "," << nc[i]+1-ff << "),unpack=True) \n";
         }

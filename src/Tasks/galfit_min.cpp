@@ -34,7 +34,7 @@
 namespace Model {
 
 template <class T>
-bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
+bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoFar) {
 	
 	/// This function uses the Downhill Simplex Method 
 	/// in multidimensions due to Nelder and Mead.
@@ -141,7 +141,7 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 	
 	for (int i=0; i<mpts; i++) {
         for (int j=0; j<ndim; j++) x[j]=p[i][j];
-        y[i]=func3D(dring,x);
+        y[i]=func3D(dring,x,modsoFar);
 	}
 	
 	int nfunc=0;
@@ -198,18 +198,18 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 		// Try a new iteration. Try extrapolate by a factor -1 through
 		// the simplex face across from the high point, i.e. reflect the
 		// simplex from the high point.
-        T ytry=mtry(dring, p,y,psum,ihi,-1.0);
+        T ytry=mtry(dring, p,y,psum,ihi,-1.0,modsoFar);
 		if (ytry<=y[ilo]) {
 			// If it gives a value better than the best point, try an 
 			// additional extrapolation by a factor 2.
-            ytry=mtry(dring, p,y,psum,ihi,2.0);
+            ytry=mtry(dring, p,y,psum,ihi,2.0,modsoFar);
 		}
 		else if (ytry>=y[inhi]) {
 			// Otherwise, if the reflected point is worse than the second
 			// highest, look for an intermediate lower point, i.e. do a 
 			// on dimensional contraction.
 			T ysave=y[ihi];
-            ytry=mtry(dring, p,y,psum,ihi,0.5);
+            ytry=mtry(dring, p,y,psum,ihi,0.5,modsoFar);
 			if (ytry>=ysave) { 		
 				// Can't seem to get rid of that high point. Better contract
 				// around the lowest (best) point.
@@ -217,7 +217,7 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 					if (i!=ilo) {
 						for (int j=0; j<ndim; j++)
 							p[i][j]=psum[j]=0.5*(p[i][j]+p[ilo][j]);
-                        y[i]=func3D(dring,psum);
+                        y[i]=func3D(dring,psum,modsoFar);
 					}
 				}
 				
@@ -234,12 +234,12 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin) {
 	} 
 	
 }	
-template bool Galfit<float>::minimize(Rings<float>*,float&,float*);
-template bool Galfit<double>::minimize(Rings<double>*,double&,double*);
+template bool Galfit<float>::minimize(Rings<float>*,float&,float*,Galmod<float> *);
+template bool Galfit<double>::minimize(Rings<double>*,double&,double*,Galmod<double> *);
 	
 	
 template <class T>
-T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac) {
+T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar) {
 	
 	// Extrapolates by a factor fac through the face of the simplex across from
 	// the high point, tries it, and replaces the high point if the new point is better.
@@ -253,7 +253,7 @@ T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const do
 		ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
 	
 	// Evaluate the function at the trial point.
-    T ytry=func3D(dring, ptry);
+    T ytry=func3D(dring, ptry, modsoFar);
 	if (ytry<y[ihi]) { 	
 		// If it is better than the highest, then replace the highest.			 
 		y[ihi]=ytry;
@@ -264,12 +264,12 @@ T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const do
 	}
 	return ytry;
 }
-template float Galfit<float>::mtry(Rings<float>*,float**,float*,float*,const int,const double);
-template double Galfit<double>::mtry(Rings<double>*,double**,double*,double*,const int,const double);
+template float Galfit<float>::mtry(Rings<float>*,float**,float*,float*,const int,const double,Galmod<float> *);
+template double Galfit<double>::mtry(Rings<double>*,double**,double*,double*,const int,const double,Galmod<double> *);
 
 
 template <class T>
-T Galfit<T>::func3D(Rings<T> *dring, T *zpar) {
+T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
 
 //    T vrot  = dring->vrot.front();
@@ -473,55 +473,48 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar) {
         dring->vrad[i]	= vrad[j];
 	}
 
-    return model(dring);
+    return getFuncValue(dring,modsoFar);
 
 }
-template float Galfit<float>::func3D(Rings<float>*,float*);
-template double Galfit<double>::func3D(Rings<double>*,double*);
+template float Galfit<float>::func3D(Rings<float>*,float*,Galmod<float> *);
+template double Galfit<double>::func3D(Rings<double>*,double*,Galmod<double> *);
 
 
 template <class T>
-T Galfit<T>::model(Rings<T> *dring) {
+T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
 
-    
+    // Getting the sizes of model cube based on last ring
+    int blo[2], bhi[2], bsize[2];
+    getModelSize(dring,blo,bhi,bsize);
+
+    int nv = par.NV<0 ? nv=in->DimZ() : par.NV;
+
+    // Calculating the model
     Model::Galmod<T> *mod = new Model::Galmod<T>;
+    mod->input(in,bhi,blo,dring,nv,par.LTYPE,1,par.CDENS);
+    mod->calculate();
 
-	int xdis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(0))*arcconv));
-	int ydis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(1))*arcconv));
-	int xpos = ceil(dring->xpos.back());
-	int ypos = ceil(dring->ypos.back());
-    int blo[2] = {xpos-xdis, ypos-ydis};
-    int bhi[2] = {xpos+xdis, ypos+ydis};
-	if (blo[0]<0) blo[0] = 0;	
-	if (blo[1]<0) blo[1] = 0;	
-	if (bhi[0]>in->DimX()) bhi[0] = in->DimX();	
-	if (bhi[1]>in->DimY()) bhi[1] = in->DimY();
-	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
-	
-	int nv = par.NV;
-	if (nv==-1) nv=in->DimZ();
+    // Adding up the "sofar" model, if requested
+    T *modp = mod->Out()->Array();
+    if (modsoFar!=NULL && dring->id!=0) {
+        for (auto i=mod->Out()->NumPix(); i--;) modp[i] += modsoFar->Out()->Array()[i];
+    }
+    
+    //<<<<< Convolution....
+    if (par.SM) {
+        if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
+        else Convolve(modp, bsize);
+    }
 
-	mod->input(in,bhi,blo,dring,nv,par.LTYPE,1,par.CDENS);
-
-	mod->calculate();
-	
-	T *modp = mod->Out()->Array();
-	
-	//<<<<< Convolution....
-	if (par.SM) {
-		if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
-		else Convolve(modp, bsize);
-	}
-
-	//<<<<< Normalizing & calculating the residuals....
+    //<<<<< Normalizing & calculating the residuals....
     double minfunc = (this->*func_norm)(dring,modp,bhi,blo);
-	
-	delete mod;
+
+    delete mod;
     
 	return minfunc; 
 }
-template float Galfit<float>::model(Rings<float>*);
-template double Galfit<double>::model(Rings<double>*);
+template float Galfit<float>::getFuncValue(Rings<float>*,Galmod<float> *);
+template double Galfit<double>::getFuncValue(Rings<double>*, Galmod<double> *);
 
 
 template <class T>
@@ -850,6 +843,30 @@ template double Galfit<float>::norm_none(Rings<float>*,float*,int*,int*);
 template double Galfit<double>::norm_none(Rings<double>*,double*,int*,int*);
 
 
+template <class T>
+void Galfit<T>::getModelSize(Rings<T> *dring, int *blo, int *bhi,int* bsize) {
+    
+    // Calculating sizes of model cube (only extends to the last ring)
+    int xdis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(0))*arcconv));
+    int ydis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(1))*arcconv));
+    int xpos = ceil(dring->xpos.back());
+    int ypos = ceil(dring->ypos.back());
+    blo[0] = xpos-xdis;
+    blo[1] = ypos-ydis;
+    bhi[0] = xpos+xdis;
+    bhi[1] = ypos+ydis;
+    if (blo[0]<0) blo[0] = 0;	
+    if (blo[1]<0) blo[1] = 0;	
+    if (bhi[0]>in->DimX()) bhi[0] = in->DimX();	
+    if (bhi[1]>in->DimY()) bhi[1] = in->DimY();
+    bsize[0] = bhi[0]-blo[0];
+    bsize[1] = bhi[1]-blo[1];	
+
+}
+template void Galfit<float>::getModelSize(Rings<float>*,int*,int*,int*);
+template void Galfit<double>::getModelSize(Rings<double>*,int*,int*,int*);
+
+
 template <class T> 
 inline bool Galfit<T>::IsIn (int x, int y, int *blo, Rings<T> *dr, double &th) {
 	
@@ -857,20 +874,19 @@ inline bool Galfit<T>::IsIn (int x, int y, int *blo, Rings<T> *dr, double &th) {
 	// Return also the value of azimutal angle th of (x,y) coordinates.
 	
 	double F = M_PI/180.;
-	double pixScale = ((fabs(in->Head().Cdelt(0))*arcconv)+
-					   (fabs(in->Head().Cdelt(1))*arcconv))/2.;
+	double pixScale = ((fabs(in->Head().Cdelt(0))*arcconv)+(fabs(in->Head().Cdelt(1))*arcconv))/2.;
 	T inc = dr->inc.back();
 	T phi = dr->phi.back();
 	double r1 = dr->radii.front()/pixScale;
 	double r2 = dr->radii.back()/pixScale;
 	double x0 = dr->xpos.back()-blo[0];
 	double y0 = dr->ypos.back()-blo[1];
-	double xr =  -(x-x0)*sin(F*phi)+(y-y0)*cos(F*phi);			
+	double xr =  -(x-x0)*sin(F*phi)+(y-y0)*cos(F*phi);
 	double yr = (-(x-x0)*cos(F*phi)-(y-y0)*sin(F*phi))/cos(F*inc);
 	double r = sqrt(xr*xr+yr*yr);
 	if (r<0.1) th = 0.0;
-	else th = atan2(yr, xr)/F;	
-	return r>=r1 && r<=r2;			
+	else th = atan2(yr, xr)/F;
+	return r>=r1 && r<=r2;
 	
 }
 template bool Galfit<float>::IsIn(int,int,int*,Rings<float>*,double&);

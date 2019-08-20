@@ -120,15 +120,16 @@ protected:
     void setFree();
 
     /// Functions defined in galfit_min.cpp
-    bool   minimize(Rings<T> *dring, T &minimum, T *pmin);
-    T      mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac);
-    T      func3D(Rings<T> *dring, T *zpar);
-    T      model(Rings<T> *dring);
+    bool   minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoFar=NULL);
+    T      mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar=NULL);
+    T      func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar=NULL);
+    T      getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar=NULL);
     void   Convolve(T *array, int *bsize);
     void   Convolve_fft(T *array, int *bsize);
     double norm_local(Rings<T> *dring, T *array, int *bhi, int *blo);
     double norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo);
     double norm_none (Rings<T> *dring, T *array, int *bhi, int *blo);
+    void   getModelSize(Rings<T> *dring, int *blo, int *bhi, int *bsize);
 
     double slitfunc  (Rings<T> *dring, T *array, int *bhi, int *blo);
     inline bool IsIn (int x, int y, int *blo, Rings<T> *dr, double &th);
