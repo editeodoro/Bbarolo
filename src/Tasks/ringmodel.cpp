@@ -177,7 +177,7 @@ void Ringmodel::setfromCube (Cube<float> *c, Rings<float> *r)  {
     // Calculating 1st moment map
     MomentMap<float> map;
     map.input(c);
-    if (c->Head().NumAx()>2) map.FirstMoment(true);
+    if (c->Head().NumAx()>2 && c->DimZ()>1) map.FirstMoment(true);
     else {
         for (int i=0; i<c->NumPix(); i++) map.Array(i) = c->Array(i);
         map.setHead(1);
