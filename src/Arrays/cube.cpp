@@ -92,20 +92,8 @@ template <class T>
 Cube<T>::Cube(std::string fname) {
     
     defaults();
-    
     par.setImageFile(fname);
-    numAxes = 3;
-    
-    head.header_read(par.getImageFile());
-    headDefined = true;
-    axisDim = new int [numAxes];
-    axisDimAllocated = true; 
-    for (int i=0; i<numAxes; i++) axisDim[i] = head.DimAx(i);
-    numPix = axisDim[0]*axisDim[1]*axisDim[2];
-    fitsread_3d();  
-    detectMap = new short [axisDim[0]*axisDim[1]];
-    mapAllocated = true;
-
+    this->readCube(fname);
 }
 template Cube<short>::Cube(std::string);
 template Cube<int>::Cube(std::string);
