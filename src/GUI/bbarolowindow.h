@@ -58,6 +58,7 @@ private slots:
     void on_VsyscheckBox_stateChanged();
     void on_VrotcheckBox_stateChanged();
     void on_VdispcheckBox_stateChanged();
+    void on_VradcheckBox_stateChanged();
     void on_InccheckBox_stateChanged();
     void on_PacheckBox_stateChanged();
     void on_Z0checkBox_stateChanged();
@@ -76,6 +77,8 @@ private slots:
     void on_VrotFilelineEdit_editingFinished();
     void on_VdisppushButton_clicked();
     void on_VdispFilelineEdit_editingFinished();
+    void on_VradpushButton_clicked();
+    void on_VradFilelineEdit_editingFinished();
     void on_IncpushButton_clicked();
     void on_IncFilelineEdit_editingFinished();
     void on_PapushButton_clicked();
@@ -107,6 +110,7 @@ private slots:
     void on_SmoothOutpushButton_clicked();
     void on_FactordoubleSpinBox_valueChanged(double arg1);
     void on_ReducecheckBox_clicked(bool checked);
+    void on_HanningspinBox_valueChanged(int arg1);
 
     // Menu bar slots
     void on_actionOpen_FITS_file_triggered(){on_FitspushButton_clicked();}

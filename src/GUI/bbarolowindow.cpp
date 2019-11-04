@@ -19,6 +19,7 @@
 
 #include "bbarolowindow.h"
 #include "ui_bbarolowindow.h"
+#include <thread>
 #include <QtGui>
 #include <QListWidgetItem>
 // For redirecting stdout
@@ -76,6 +77,25 @@ BBaroloWindow::BBaroloWindow(QWidget *parent) :
     log_font.setPointSize(10);
 #endif
     ui->LogtextEdit->setFont(log_font);
+    
+    // Resizing the main window to a minimum size
+    for (int i=0; i<5; i++)
+        // The minimum size is not computed until some events are processed in the event loop. 
+        // Just process the event loop for some iterations and then resize to minimum.
+        QCoreApplication::processEvents();
+    QWidget::resize(QWidget::minimumSizeHint());
+
+    // Setting number of threads
+    ui->ThreadspinBox->setValue(1);
+#ifdef _OPENMP
+    int threads = std::thread::hardware_concurrency();
+    if (threads==0) threads = 1;
+    ui->ThreadspinBox->setValue(threads);
+#endif
+    
+    ui->restlineEdit->setValidator(new QRegExpValidator( QRegExp("[0-9]+.[0-9]+e[0-9]+")));
+    ui->redshiftlineEdit->setValidator(new QRegExpValidator( QRegExp("[0-9]+.[0-9]+")));
+    
 
 }
 
@@ -89,6 +109,7 @@ void BBaroloWindow::resetGUI() {
     ui->ParamlineEdit->clear();
     ui->FitslineEdit->clear();
     ui->OutfolderlineEdit->clear();
+    ui->ThreadspinBox->setValue(1);
 
     ui->BoxcheckBox->setChecked(false);
     ui->XminspinBox->setValue(0);
@@ -97,7 +118,7 @@ void BBaroloWindow::resetGUI() {
     ui->YmaxspinBox->setValue(0);
     ui->ZminspinBox->setValue(0);
     ui->ZmaxspinBox->setValue(0);
-
+    
     set3DFitFlag(Qt::Unchecked);
     ui->NringscheckBox->setChecked(false);
     ui->NringsspinBox->setValue(0);
@@ -115,6 +136,8 @@ void BBaroloWindow::resetGUI() {
     ui->VrotSpinBox->setValue(0.00);
     ui->VdispcheckBox->setChecked(false);
     ui->VdispSpinBox->setValue(0.00);
+    ui->VradcheckBox->setChecked(false);
+    ui->VradSpinBox->setValue(0.00);
     ui->InccheckBox->setChecked(false);
     ui->IncSpinBox->setValue(0.00);
     ui->IncDSpinBox->setValue(10.00);
@@ -122,6 +145,7 @@ void BBaroloWindow::resetGUI() {
     ui->PaSpinBox->setValue(0.00);
     ui->PaDSpinBox->setValue(15.00);
     ui->Z0checkBox->setChecked(false);
+    ui->Z0SpinBox->setValue(0.00);
     ui->Z0SpinBox->setValue(0.00);
     Hide_All_3DFit_file(true);
 
@@ -134,7 +158,13 @@ void BBaroloWindow::resetGUI() {
     ui->yposcheckBox->setChecked(false);
     ui->vsyscheckBox->setChecked(false);
     ui->z0checkBox->setChecked(false);
+    ui->vradcheckBox->setChecked(false);
 
+    ui->Restframe->setDisabled(true);
+    ui->redshiftlineEdit->setText("0");
+    ui->restcomboBox->setCurrentIndex(0);
+    ui->restlineEdit->setText("0");
+        
     ui->AdvancedgroupBox->setDisabled(true);
     ui->LtypecomboBox->setCurrentIndex(0);
     ui->CdensSpinBox->setValue(10);
@@ -199,6 +229,7 @@ void BBaroloWindow::enable_All() {
     ui->ParamlineEdit->setEnabled(true);
     ui->FitslineEdit->setEnabled(true);
     ui->ParampushButton->setEnabled(true);
+    ui->ThreadspinBox->setEnabled(true);
     ui->FitspushButton->setEnabled(true);
     ui->ResetpushButton->setEnabled(true);
     ui->BoxcheckBox->setEnabled(true);
@@ -209,6 +240,7 @@ void BBaroloWindow::enable_All() {
         ui->GalfitgroupBox->setEnabled(true);
         ui->FreeParametersframe->setEnabled(true);
         ui->AdvancedgroupBox->setEnabled(true);
+        ui->Restframe->setEnabled(true);
     }
     if (getSmoothFlag()) ui->SmoothgroupBox->setEnabled(true);
     if (getSearchFlag()) {
@@ -224,6 +256,7 @@ void BBaroloWindow::disable_All() {
     ui->FitslineEdit->setDisabled(true);
     ui->ParampushButton->setDisabled(true);
     ui->ResetpushButton->setDisabled(true);
+    ui->ThreadspinBox->setDisabled(true);
     ui->OutfolderpushButton->setDisabled(true);
     ui->OutfolderlineEdit->setDisabled(true);
     ui->ParamlineEdit->setDisabled(true);
@@ -232,6 +265,7 @@ void BBaroloWindow::disable_All() {
     ui->GalfitgroupBox->setDisabled(true);
     ui->AdvancedgroupBox->setDisabled(true);
     ui->FreeParametersframe->setDisabled(true);
+    ui->Restframe->setDisabled(true);
     ui->SmoothgroupBox->setDisabled(true);
     ui->SearchgroupBox->setDisabled(true);
     ui->SearchAdvgroupBox->setDisabled(true);
@@ -349,6 +383,12 @@ void BBaroloWindow::on_VdispcheckBox_stateChanged()
     else ui->VdispSpinBox->setEnabled(true);
 }
 
+void BBaroloWindow::on_VradcheckBox_stateChanged()
+{
+    if (ui->VradcheckBox->isChecked()) ui->VradSpinBox->setDisabled(true);
+    else ui->VradSpinBox->setEnabled(true);
+}
+
 void BBaroloWindow::on_InccheckBox_stateChanged()
 {
     if (ui->InccheckBox->isChecked()) {
@@ -398,6 +438,11 @@ void BBaroloWindow::on_MasktoolButton_clicked()
         ui->listWidget->setCurrentRow(3);
         ui->SearchgroupBox->setEnabled(true);
     }
+    else if (ui->MaskcomboBox->currentIndex()==2) {
+        ui->listWidget->setCurrentRow(5);
+        ui->SearchgroupBox->setEnabled(true);
+        ui->MaskgroupBox->setChecked(true);
+    }
 
 }
 
@@ -428,6 +473,7 @@ void BBaroloWindow::on_YpospushButton_clicked(){Selected_3DFit_file(ui->YposFile
 void BBaroloWindow::on_VsyspushButton_clicked(){Selected_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox);}
 void BBaroloWindow::on_VrotpushButton_clicked(){Selected_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox);}
 void BBaroloWindow::on_VdisppushButton_clicked(){Selected_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox);}
+void BBaroloWindow::on_VradpushButton_clicked(){Selected_3DFit_file(ui->VradFilelineEdit,ui->VradFilespinBox,ui->VradSpinBox);}
 void BBaroloWindow::on_IncpushButton_clicked(){Selected_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox);}
 void BBaroloWindow::on_PapushButton_clicked(){Selected_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox);}
 void BBaroloWindow::on_Z0pushButton_clicked(){Selected_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox);}
@@ -439,6 +485,7 @@ void BBaroloWindow::on_YposFilelineEdit_editingFinished(){Hide_3DFit_file(ui->Yp
 void BBaroloWindow::on_VsysFilelineEdit_editingFinished(){Hide_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox,ui->VsysFilelineEdit->text().isEmpty());}
 void BBaroloWindow::on_VrotFilelineEdit_editingFinished() {Hide_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox,ui->VrotFilelineEdit->text().isEmpty());}
 void BBaroloWindow::on_VdispFilelineEdit_editingFinished(){Hide_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox,ui->VdispFilelineEdit->text().isEmpty());}
+void BBaroloWindow::on_VradFilelineEdit_editingFinished(){Hide_3DFit_file(ui->VradFilelineEdit,ui->VradFilespinBox,ui->VradSpinBox,ui->VradFilelineEdit->text().isEmpty());}
 void BBaroloWindow::on_IncFilelineEdit_editingFinished(){Hide_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox,ui->IncFilelineEdit->text().isEmpty());}
 void BBaroloWindow::on_PaFilelineEdit_editingFinished(){Hide_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox,ui->PaFilelineEdit->text().isEmpty());}
 void BBaroloWindow::on_Z0FilelineEdit_editingFinished(){Hide_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox,ui->Z0FilelineEdit->text().isEmpty());}
@@ -460,6 +507,7 @@ void BBaroloWindow::Hide_All_3DFit_file(bool Hide) {
     Hide_3DFit_file(ui->VsysFilelineEdit,ui->VsysFilespinBox,ui->VsysSpinBox,Hide);
     Hide_3DFit_file(ui->VrotFilelineEdit,ui->VrotFilespinBox,ui->VrotSpinBox,Hide);
     Hide_3DFit_file(ui->VdispFilelineEdit,ui->VdispFilespinBox,ui->VdispSpinBox,Hide);
+    Hide_3DFit_file(ui->VradFilelineEdit,ui->VradFilespinBox,ui->VradSpinBox,Hide);
     Hide_3DFit_file(ui->IncFilelineEdit,ui->IncFilespinBox,ui->IncSpinBox,Hide);
     Hide_3DFit_file(ui->PaFilelineEdit,ui->PaFilespinBox,ui->PaSpinBox,Hide);
     Hide_3DFit_file(ui->Z0FilelineEdit,ui->Z0FilespinBox,ui->Z0SpinBox,Hide);
@@ -568,6 +616,16 @@ void BBaroloWindow::on_NbmajSpinBox_valueChanged(double arg1)
     }
 }
 
+void BBaroloWindow::on_HanningspinBox_valueChanged(int arg1){
+    if (arg1%2==0) {
+        QMessageBox b;
+        b.setText("Only odd values allowed!");
+        b.exec();
+        ui->HanningspinBox->setValue(arg1+1);
+    }
+
+}
+
 void BBaroloWindow::on_SmoothOutpushButton_clicked()
 {
     QString filename = QFileDialog::getSaveFileName(this,tr("Save FITS file"),QDir::currentPath(),tr("FITS files (*.fits *.FITS *.fit *.FIT)"));
@@ -656,12 +714,14 @@ void BBaroloWindow::on_listWidget_itemChanged(QListWidgetItem *item)
             set3DFitFlag(item->checkState());
             ui->GalfitgroupBox->setEnabled(item->checkState());
             ui->FreeParametersframe->setEnabled(item->checkState());
+            ui->Restframe->setEnabled(item->checkState());
             ui->AdvancedgroupBox->setEnabled(item->checkState());
             break;
         case 2:
             set3DModelFlag(item->checkState());
             ui->GalfitgroupBox->setEnabled(item->checkState());
             ui->AdvancedgroupBox->setEnabled(item->checkState());
+            ui->Restframe->setEnabled(item->checkState());
             break;
         case 3:
             ui->SearchgroupBox->setEnabled(item->checkState());

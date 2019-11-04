@@ -10,12 +10,12 @@ MAKEFILE      = Makefile
 
 ####### Compiler, tools and options
 
-CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11
-CXX           = clang++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11
-DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
+CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 
+CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 
+DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
 CFLAGS        = -pipe -O2 -Wall -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -I/Users/edt/Dropbox/Codex/BBarolo/src -I/usr/local/include -I/usr/local/include -I/usr/local/include -O2 -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I. -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers/ -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
+CXXFLAGS      = -pipe -O2 -Wall -W -fPIC $(DEFINES)
+INCPATH       = -I. -I../ -I/usr/local/include -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers/ -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
 QMAKE         = /Users/edt/Programs/QT/5.7/clang_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -34,9 +34,9 @@ TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = BBaroloGUI1.0.0
 DISTDIR = /Users/edt/Dropbox/Codex/BBarolo/src/Build/BBaroloGUI1.0.0
-LINK          = clang++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11
+LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp $(DEFINES)
 LFLAGS        = -headerpad_max_install_names -Wl,-rpath,/Users/edt/Programs/QT/5.7/clang_64/lib
-LIBS          = $(SUBLIBS) -F/Users/edt/Programs/QT/5.7/clang_64/lib -L/usr/local/lib -lfftw3 -lcfitsio -lwcs -lm -framework QtPrintSupport -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL 
+LIBS          = $(SUBLIBS) -F/Users/edt/Programs/QT/5.7/clang_64/lib -L/usr/local/lib -lfftw3 -lcfitsio -lwcs -lm -static-libgcc -static-libstdc++ -framework QtPrintSupport -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL 
 AR            = ar cq
 RANLIB        = ranlib -s
 SED           = sed
@@ -621,7 +621,8 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ../Build/bbarolowindow.o: bbarolowindow.cpp bbarolowindow.h \
 		../Arrays/param.hh \
-		ui_bbarolowindow.h
+		ui_bbarolowindow.h \
+		qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/bbarolowindow.o bbarolowindow.cpp
 
 ../Build/bbarolowindow_run.o: bbarolowindow_run.cpp bbarolowindow.h \

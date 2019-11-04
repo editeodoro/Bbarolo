@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.4.4"
+#define BBVERSION "1.5"
 
 Param::Param() {
     
@@ -396,6 +396,7 @@ int Param::readParams(std::string paramfile) {
             if(arg=="distance")  parGF.DISTANCE   = readFval(ss);
             if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
             if(arg=="plotmask")  parGF.PLOTMASK   = readFlag(ss);
+            if(arg=="cumulative")parGF.CUMULATIVE = readFlag(ss);
 
             // GALWIND ONLY PARAMETERS
             if(arg=="htot")      parGW.HTOT       = readFval(ss);
@@ -1084,6 +1085,7 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));
         recordParam(Str, "[PLOTMASK]", "   Overlaying mask to output plots?", stringize(p.getParGF().PLOTMASK));
         recordParam(Str, "[NOISERMS]", "   RMS noise to add to the model", stringize(p.getParGF().NOISERMS));
+        recordParam(Str, "[CUMULATIVE]", "   Using cumulative rings during the fit?", stringize(p.getParGF().CUMULATIVE));
     
         // PARAMETERS FOR SPACEPAR
         recordParam(Str, "[SPACEPAR]", "Full parameter space for a pair of parameters", stringize(p.getflagSpace()));    

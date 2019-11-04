@@ -547,7 +547,8 @@ void Galfit<T>::galfit() {
     double toKpc = KpcPerArc(distance);
     int start_rad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
     
-    int nthreads = in->pars().getThreads();
+    bool cumulative = par.CUMULATIVE;
+    int nthreads = cumulative ? 1 : in->pars().getThreads();
     
 #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
     for (int ir=start_rad; ir<inr->nr; ir++) {
@@ -585,7 +586,6 @@ void Galfit<T>::galfit() {
                         inr->vvert[ir],inr->dvdz[ir],inr->zcyl[ir],inr->dens[ir],inr->z0[ir],inr->inc[ir],inr->phi[ir]);
         
             
-        bool cumulative = false;
         if (cumulative && dring->radii[0]!=0) {
             ///////////////////////////////////////////////////////
             // The following is for taking into account rings fitted so far

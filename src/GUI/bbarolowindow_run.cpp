@@ -229,6 +229,7 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
     bool isBox = filename.contains("[") && filename.contains("]");
     ui->FitslineEdit->setText("");
     on_FitslineEdit_editingFinished();
+    ui->ThreadspinBox->setValue(par->getThreads());
     if (isBox) {
         ui->BoxcheckBox->setChecked(true);
         int firstp = filename.indexOf("[");
@@ -295,6 +296,9 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         found = free.find("z0");
         if (found>=0) ui->z0checkBox->setChecked(true);
         else ui->z0checkBox->setChecked(false);
+        found = free.find("vrad");
+        if (found>=0) ui->vradcheckBox->setChecked(true);
+        else ui->vradcheckBox->setChecked(false);
 
         ui->FtypecomboBox->setCurrentIndex(p.FTYPE-1);
         ui->WfunccomboBox->setCurrentIndex(p.WFUNC);
@@ -366,9 +370,10 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         ui->TwostagemergingcheckBox->setChecked(p.TwoStageMerging);
     }
 
-    if (par->getflagSmooth()) setSmoothFlag(Qt::Checked);
-    else setSmoothFlag(Qt::Unchecked);
-    if (getSmoothFlag()) {
+    setSmoothFlag(Qt::Unchecked);
+    if (par->getflagSmooth()) {
+        setSmoothFlag(Qt::Checked);
+        ui->SpatialSmoothgroupBox->setChecked(true);
         if (par->getFactor()!=-1) {
             ui->FactorcheckBox->setChecked(true);
             ui->FactordoubleSpinBox->setValue(par->getFactor());
@@ -384,14 +389,24 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         }
         ui->FFTcheckBox->setChecked(par->getflagFFT());
         ui->ReducecheckBox->setChecked(par->getflagReduce());
+    } 
+    if (par->getflagHanning()) {
+        setSmoothFlag(Qt::Checked);
+        ui->HanninggroupBox->setChecked(true);
+        size_t hanning_window = par->getHanningWindow();
+        if (hanning_window%2==0) hanning_window+=1;
+        ui->HanningspinBox->setValue(hanning_window);
     }
-
+     
     ui->MomentmapsgroupBox->setChecked(par->getMaps());
     if (ui->MomentmapsgroupBox->isChecked()) {
         ui->ProfilecheckBox->setChecked(par->getGlobProf());
         ui->TotalmapcheckBox->setChecked(par->getTotalMap());
         ui->VfieldcheckBox->setChecked(par->getVelMap());
         ui->DispmapcheckBox->setChecked(par->getDispMap());
+        ui->rmsmapcheckBox->setChecked(par->getRMSMap());
+        if (makelower(par->getMapType())=="gaussian") ui->MaptypecomboBox->setCurrentIndex(1);
+        else ui->MaptypecomboBox->setCurrentIndex(0);
     }
 
     ui->PVgroupBox->setChecked(par->getFlagPV());
@@ -427,9 +442,10 @@ void BBaroloWindow::writeParamFile(QString file) {
 
     QString outdir = ui->OutfolderlineEdit->text().trimmed();
     if (!outdir.isNull()) out << setw(n) << "OUTFOLDER" << outdir.toStdString() << endl;
-
+    out << setw(n) << "THREADS" << ui->ThreadspinBox->value() << endl;
+    
     if (get3DFitFlag()) {
-        out << setw(n) << "GALFIT" << "true" << endl;
+        out << setw(n) << "3DFIT" << "true" << endl;
         writeModelParam(out);
 
         string FREE = "";
@@ -440,6 +456,8 @@ void BBaroloWindow::writeParamFile(QString file) {
         if (ui->xposcheckBox->isChecked()) FREE += "XPOS ";
         if (ui->yposcheckBox->isChecked()) FREE += "YPOS ";
         if (ui->vsyscheckBox->isChecked()) FREE += "VSYS ";
+        if (ui->z0checkBox->isChecked()) FREE += "Z0 ";
+        if (ui->vradcheckBox->isChecked()) FREE += "VRAD ";
         out << setw(n) << "FREE" << FREE << endl;
 
         if (ui->AdvancedgroupBox->isChecked()) {
@@ -459,7 +477,7 @@ void BBaroloWindow::writeParamFile(QString file) {
         }
     }
     else {
-        out << setw(n) << "Galfit" << "false" << endl;
+        out << setw(n) << "3DFIT" << "false" << endl;
         if (get3DModelFlag()) {
             out << setw(n) << "GALMOD" << "true" << endl;
             writeModelParam(out);
@@ -467,7 +485,7 @@ void BBaroloWindow::writeParamFile(QString file) {
     }
 
     if (getSearchFlag()) {
-        out << setw(n) << "flagSearch" << "true" << endl;
+        out << setw(n) << "SEARCH" << "true" << endl;
         out << setw(n) << "searchType";
         if (ui->SearchtypecomboBox->currentIndex()==0) out << "spectral" << endl;
         else out << "spatial" << endl;
@@ -509,31 +527,39 @@ void BBaroloWindow::writeParamFile(QString file) {
             out << setw(n) << "TwoStageMerging" << "true" << endl;
         else out << setw(n) << "TwoStageMerging" << "false" << endl;
     }
-    else out << setw(n) << "flagSearch" << "false" << endl;
+    else out << setw(n) << "SEARCH" << "false" << endl;
 
     if (getSmoothFlag()) {
-        out << setw(n) << "Smooth" << "true" << endl;
-        if (ui->FactorcheckBox->isChecked()) {
-            out << setw(n) << "Factor" << ui->FactordoubleSpinBox->value() << endl;
-            if (ui->ReducecheckBox->isChecked())
-                out << setw(n) << "Reduce" << "true" << endl;
-            else out << setw(n) << "Reduce" << "false" << endl;
+        if (ui->SpatialSmoothgroupBox->isChecked()) {
+            out << setw(n) << "SMOOTH" << "true" << endl;
+            if (ui->FactorcheckBox->isChecked()) {
+                out << setw(n) << "Factor" << ui->FactordoubleSpinBox->value() << endl;
+                if (ui->ReducecheckBox->isChecked())
+                    out << setw(n) << "Reduce" << "true" << endl;
+                else out << setw(n) << "Reduce" << "false" << endl;
+            }
+            else {
+                out << setw(n) << "BMAJ" << ui->NbmajSpinBox->value() << endl
+                    << setw(n) << "BMIN" << ui->NbminSpinBox->value() << endl
+                    << setw(n) << "BPA"  << ui->NbpaSpinBox->value() << endl
+                    << setw(n) << "OBMAJ"<< ui->ObmajSpinBox->value() << endl
+                    << setw(n) << "OBMIN"<< ui->ObminSpinBox->value() << endl
+                    << setw(n) << "OBPA" << ui->ObpaSpinBox->value() << endl;
+            }
+            if (ui->FFTcheckBox->isChecked())
+                out << setw(n) << "FFT" << "true" << endl;
+            else out << setw(n) << "FFT" << "false" << endl;
+            if (ui->SmoothOutlineEdit->text()!="")
+                out << setw(n) << "SmoothOutput" << ui->SmoothOutlineEdit->text().toStdString() << endl;
+            }
+        else out << setw(n) << "SMOOTH" << "false" << endl;
+        
+        if (ui->HanninggroupBox->isChecked()) {
+            out << setw(n) << "HANNING" << "true" << endl;
+            out << setw(n) << "HANNING_SIZE" << ui->HanningspinBox->value();
         }
-        else {
-            out << setw(n) << "BMAJ" << ui->NbmajSpinBox->value() << endl
-                << setw(n) << "BMIN" << ui->NbminSpinBox->value() << endl
-                << setw(n) << "BPA"  << ui->NbpaSpinBox->value() << endl
-                << setw(n) << "OBMAJ"<< ui->ObmajSpinBox->value() << endl
-                << setw(n) << "OBMIN"<< ui->ObminSpinBox->value() << endl
-                << setw(n) << "OBPA" << ui->ObpaSpinBox->value() << endl;
-        }
-        if (ui->FFTcheckBox->isChecked())
-           out << setw(n) << "FFT" << "true" << endl;
-        else out << setw(n) << "FFT" << "false" << endl;
-        if (ui->SmoothOutlineEdit->text()!="")
-            out << setw(n) << "SmoothOutput" << ui->SmoothOutlineEdit->text().toStdString() << endl;
+        else out << setw(n) << "HANNING" << "false" << endl;
     }
-    else out << setw(n) << "Smooth" << "false" << endl;
 
 
     if (ui->MomentmapsgroupBox->isChecked()) {
@@ -545,6 +571,8 @@ void BBaroloWindow::writeParamFile(QString file) {
             out << setw(n) << "velocityMap" << "true" << endl;
        if (ui->DispmapcheckBox->isChecked())
             out << setw(n) << "dispersionMap" << "true" << endl;
+       if (ui->rmsmapcheckBox->isChecked())
+            out << setw(n) << "rmsMap" << "true" << endl;
     }
 
     if (ui->PVgroupBox->isChecked()) {
@@ -681,6 +709,18 @@ void BBaroloWindow::readModelParam(Param *p) {
         }
         else ui->VdispSpinBox->setValue(atof(par.VDISP.c_str()));
     }
+    if (par.VRAD=="-1") ui->VradcheckBox->setChecked(true);
+    else {
+        ui->VradcheckBox->setChecked(false);
+        s = QString::fromStdString(par.VRAD);
+        col = readFileString(s);
+        if (col != -1) {
+            Hide_3DFit_file(ui->VradFilelineEdit,ui->VradFilespinBox,ui->VradSpinBox,false);
+            ui->VradFilelineEdit->setText(s);
+            ui->VradFilespinBox->setValue(col);
+        }
+        else ui->VradSpinBox->setValue(atof(par.VRAD.c_str()));
+    }
     if (par.INC=="-1") ui->InccheckBox->setChecked(true);
     else {
         ui->InccheckBox->setChecked(false);
@@ -729,27 +769,43 @@ void BBaroloWindow::readModelParam(Param *p) {
         }
         else ui->DensSpinBox->setValue(atof(par.DENS.c_str()));
     }
+    
+    ui->Restframe->setEnabled(true);
+    if (par.REDSHIFT!=0) ui->redshiftlineEdit->setText(QString::number(par.REDSHIFT));
+    if (par.RESTWAVE[0]!=-1) {
+        ui->restcomboBox->setCurrentIndex(0);
+        ui->restlineEdit->setText(QString::number(par.RESTWAVE[0]));
+    }
+    else if (par.RESTFREQ[0]!=-1) {
+        ui->restcomboBox->setCurrentIndex(1);
+        ui->restlineEdit->setText(QString::number(par.RESTFREQ[0]));
+    }
+    
     ui->AdvancedgroupBox->setChecked(true);
     ui->AdvancedgroupBox->setEnabled(true);
     ui->LtypecomboBox->setCurrentIndex(par.LTYPE-1);
     ui->CdensSpinBox->setValue(par.CDENS);
     ui->NVspinBox->setValue(par.NV);
-    if (par.MASK=="SMOOTH") {
+    if (p->getMASK()=="SMOOTH") {
         ui->MaskcomboBox->setCurrentIndex(0);
         ui->MaskgroupBox->setChecked(true);
         ui->BlankfactordoubleSpinBox->setValue(p->getFactor());
         ui->BlankcutSpinBox->setValue(p->getParSE().snrCut);
     }
-    else if (par.MASK=="SEARCH") ui->MaskcomboBox->setCurrentIndex(1);
-    else if (par.MASK=="THRESHOLD") {
-        ui->MaskcomboBox->setCurrentIndex(2);
+    else if (p->getMASK()=="SEARCH") ui->MaskcomboBox->setCurrentIndex(1);
+    else if (p->getMASK()=="SMOOTH&SEARCH") ui->MaskcomboBox->setCurrentIndex(2);
+    else if (p->getMASK()=="THRESHOLD") {
+        ui->MaskcomboBox->setCurrentIndex(3);
         ui->MaskThreshSpinBox->setValue(p->getParSE().threshold);
     }
-    else ui->MaskcomboBox->setCurrentIndex(3);
+    else if (p->getMASK()=="NEGATIVE") ui->MaskcomboBox->setCurrentIndex(4);
+    else ui->MaskcomboBox->setCurrentIndex(5);
 
     if (par.NORM=="LOCAL") ui->NormcomboBox->setCurrentIndex(0);
     else if (par.NORM=="AZIM") ui->NormcomboBox->setCurrentIndex(1);
     else ui->NormcomboBox->setCurrentIndex(2);
+    
+    if (par.flagADRIFT) ui->AdriftcheckBox->setChecked(true);
 }
 
 void BBaroloWindow::writeModelParam(std::ofstream &out) {
@@ -800,6 +856,12 @@ void BBaroloWindow::writeModelParam(std::ofstream &out) {
         else out << ui->VdispSpinBox->value();
         out << endl;
     }
+    if (!ui->VradcheckBox->isChecked()) {
+        out << setw(n) << "VRAD";
+        if (!ui->VradFilelineEdit->isHidden()) out << getFileString(ui->VradFilelineEdit,ui->VradFilespinBox);
+        else out << ui->VradSpinBox->value();
+        out << endl;
+    }
     if (!ui->InccheckBox->isChecked()) {
         out << setw(n) << "INC";
         if (!ui->IncFilelineEdit->isHidden()) out << getFileString(ui->IncFilelineEdit,ui->IncFilespinBox);
@@ -829,6 +891,15 @@ void BBaroloWindow::writeModelParam(std::ofstream &out) {
         out << endl;
     }
 
+    if (ui->redshiftlineEdit->text().toFloat()!=0) 
+        out << setw(n) << "REDSHIFT" << ui->redshiftlineEdit->text().toStdString() << endl;
+    
+    if (ui->restlineEdit->text().toFloat()!=0) {
+        if (ui->restcomboBox->currentIndex()==0) out << setw(n) << "RESTWAVE" << ui->restlineEdit->text().toStdString() << endl;
+        if (ui->restcomboBox->currentIndex()==1) out << setw(n) << "RESTFREQ" << ui->restlineEdit->text().toStdString() << endl;
+    } 
+    
+
     if (ui->AdvancedgroupBox->isChecked()) {
         out << setw(n) << "LTYPE" << ui->LtypecomboBox->currentIndex()+1 << endl
             << setw(n) << "CDENS" << ui->CdensSpinBox->value() << endl;
@@ -838,10 +909,12 @@ void BBaroloWindow::writeModelParam(std::ofstream &out) {
         out << setw(n) << "MASK";
         if (ui->MaskcomboBox->currentIndex()==0) out << "SMOOTH" << endl;
         else if (ui->MaskcomboBox->currentIndex()==1) out << "SEARCH" << endl;
-        else if (ui->MaskcomboBox->currentIndex()==2) {
+        else if (ui->MaskcomboBox->currentIndex()==2) out << "SMOOTH&SEARCH" << endl;
+        else if (ui->MaskcomboBox->currentIndex()==3) {
             out << "THRESHOLD" << endl;
             out << setw(n) << "threshold" << ui->MaskThreshSpinBox->value() << endl;
         }
+        else if (ui->MaskcomboBox->currentIndex()==4) out << "NEGATIVE" << endl;
         else out << "NONE" << endl;
 
         out << setw(n) << "NORM";
@@ -851,6 +924,7 @@ void BBaroloWindow::writeModelParam(std::ofstream &out) {
         out << endl;
     }
 
+    if (ui->AdriftcheckBox->isChecked()) out << setw(n) << "ADRIFT" << "true";
 }
 
 void BBaroloWindow::plotParameters(){
