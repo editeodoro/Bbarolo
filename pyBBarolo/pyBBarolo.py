@@ -124,9 +124,9 @@ class Rings(object):
         
         for i in allr:
             if len(i)!=self.nr: raise ValueError("All quantities must have size = %i"%self.nr)
-        
+
         libBB.Rings_set(self._rings,self.nr,radii,xpos,ypos,vsys,vrot,\
-                        vdisp,vrad,vvert, dvdz,zcyl,dens,z0,inc,phi)
+                        vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
         
         self.rinDef = True
 
@@ -300,6 +300,10 @@ class GalMod(Model3D):
                       'inc'  : [None,'Inclination angle in degrees'],
                       'phi'  : [None,'Position angle of the receding part of the major axis (N->W)']}
 
+    def __del__(self):
+        if self._mod: libBB.Galmod_delete(self._mod)
+        
+        
     def _input(self,radii,xpos,ypos,vsys,z0,inc,phi,vrot,vdisp,dens=1,vrad=0,vvert=0,dvdz=0,zcyl=0):
         """ Initialize rings for the model
         

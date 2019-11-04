@@ -223,7 +223,7 @@ To obtain a good fit with very low resolution data, I usually follow some basic 
 
 Fitting several galaxies at the same time
 =========================================
-An experimental function of BBarolo 1.4 allow the user to fit several galaxies at the same time. This can be useful, for example, when a large sample needs to be analysed on a supercluster. BBarolo launches a number of MPI processes and each process takes care of a galaxy at a time. 
+An experimental function of BBarolo 1.5 allow the user to fit several galaxies at the same time. This can be useful, for example, when a large sample needs to be analysed on a supercluster. BBarolo launches a number of MPI processes and each process takes care of a galaxy at a time. 
 
 To use this function, you need to compile BBarolo with MPI::
 

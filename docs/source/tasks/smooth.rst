@@ -49,7 +49,7 @@ Below, an example :download:`parameter <examples/n2403_smooth.par>` file to smoo
 
 |
 
-HANNING task (v1.4.2+)
+HANNING task
 #######################
 This task convolves each spectrum in a datacube with a Hanning window. 
 
