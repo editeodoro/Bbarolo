@@ -1407,7 +1407,7 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\taxis.tick_params(labelbottom='off',labelleft='off',right='on',top='on') \n"
             << "\t\t\taxis.set_xlim(ext[0],ext[1]) \n"
             << "\t\t\taxis.set_ylim(ext[2],ext[3]) \n"
-            << "\t\t\taxis.imshow(to_plot[j][i],origin='lower',cmap=cmaps[i],norm=norm,aspect='auto',extent=ext) \n"
+            << "\t\t\taxis.imshow(to_plot[j][i],origin='lower',cmap=cmaps[i],norm=norm,aspect='auto',extent=ext,interpolation='nearest') \n"
             << "\t\t\taxis.plot(xcen,ycen,'x',color='#000000',markersize=7,mew=1.5) \n"
             << std::endl
             << "\t\t\tif i==0: axis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"

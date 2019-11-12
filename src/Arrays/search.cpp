@@ -1035,9 +1035,7 @@ void Cube<T>::plotDetections() {
 
     for (int i=0; i<numObj; i++)
         remove((par.getOutfolder()+"spectrum"+to_string(i)+".dat").c_str());
-    
-    
-    
+
 }
 template void Cube<short>::plotDetections();
 template void Cube<int>::plotDetections();
