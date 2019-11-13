@@ -151,8 +151,8 @@ public:
    
 private: 
     T       *array;                     //< The smoothed array.
-    bool    arrayAllocated;             //< Have been array allocated?
-    size_t  window;                     //< Size of the Hanning window
+    bool    arrayAllocated = false;     //< Have been array allocated?
+    size_t  window = 3;                 //< Size of the Hanning window
 };
 
 #endif

@@ -84,10 +84,10 @@ bool BBcore (Param *par) {
 
     /// Hanning smoothing utility -----------------------------------
     if (par->getflagHanning()) {
-        Hanning3D<float> *h = new Hanning3D<float>(par->getHanningWindow());
-        h->compute(c);
-        h->fitswrite(c);
-        delete h;
+        Hanning3D<float> *han = new Hanning3D<float>(par->getHanningWindow());
+        han->compute(c);
+        han->fitswrite(c);
+        delete han;
     }
     // --------------------------------------------------------------
 

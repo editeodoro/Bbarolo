@@ -144,6 +144,7 @@ template Cube<double>::Cube(int*);
 template <class T>
 Cube<T>::Cube(const Cube<T> &c) {
   
+    defaults();
     this->operator=(c);
 
 }

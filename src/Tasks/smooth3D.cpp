@@ -1087,7 +1087,7 @@ void Hanning3D<T>::fitswrite(Cube<T> *templ) {
     std::string outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(window)+".fits";
     out->fitswrite_3d(outname.c_str(),true);
     if (templ->pars().isVerbose()) std::cout << " Smoothed datacube written in " << outname << std::endl;
-    
+    delete out;
 }
 template void Hanning3D<float>::fitswrite(Cube<float>*);
 template void Hanning3D<double>::fitswrite(Cube<double>*);
