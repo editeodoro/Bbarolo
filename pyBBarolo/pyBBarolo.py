@@ -22,7 +22,7 @@ the underlying BBarolo C++ code, with some extra functionality.
 from __future__ import print_function, division
 import os,sys
 import numpy as np
-#from .BB_interface import libBB
+from .BB_interface import libBB
 from astropy.io import fits
 
 

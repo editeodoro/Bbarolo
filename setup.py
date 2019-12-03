@@ -5,7 +5,7 @@ from distutils.core import setup
 from distutils.dir_util import remove_tree, mkpath
 import multiprocessing as mpr
 #from pyBBarolo import __version__ as version
-version = "1.0.7"
+version = "1.1.0"
 logfile = "setup.log"
 try: os.remove(logfile)
 except: pass
@@ -36,8 +36,8 @@ def compileBB():
     
       
 # First: check if dependencies are available
-modules = ['numpy','astropy']
-for m in modules: checkModule(m)
+#modules = ['numpy','astropy']
+#for m in modules: checkModule(m)
     
 
 # If installing, the additional data are the compiled libraries
