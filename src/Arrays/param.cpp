@@ -382,6 +382,7 @@ int Param::readParams(std::string paramfile) {
             // GALFIT ONLY PARAMETERS
             if(arg=="deltainc")  parGF.DELTAINC   = readFval(ss);
             if(arg=="deltapa")   parGF.DELTAPHI   = readFval(ss);
+            if(arg=="deltavrot") parGF.DELTAVROT  = readFval(ss);
             if(arg=="ftype")     parGF.FTYPE      = readIval(ss);
             if(arg=="wfunc")     parGF.WFUNC      = readIval(ss);
             if(arg=="tol")       parGF.TOL        = readDval(ss);
@@ -1024,10 +1025,13 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
         recordParam(Str, "[YPOS]", "   Y center of the galaxy (pixel)", p.getParGF().YPOS);
         recordParam(Str, "[VSYS]", "   Systemic velocity of the galaxy (km/s)", p.getParGF().VSYS);
         recordParam(Str, "[VROT]", "   Initial global rotation velocity (km/s)", p.getParGF().VROT);
+        recordParam(Str, "[DELTAVROT]", "   Max rot. velocity variation from VROT (km/s)", p.getParGF().DELTAVROT);
         recordParam(Str, "[VRAD]", "   Initial global radial velocity (km/s)", p.getParGF().VRAD);
         recordParam(Str, "[VDISP]", "   Initial global velocity dispersion (km/s)", p.getParGF().VDISP);
         recordParam(Str, "[INC]", "   Initial global inclination (degrees)", p.getParGF().INC);
+        recordParam(Str, "[DELTAINC]", "   Max inclination variation from INC (degrees)", p.getParGF().DELTAINC);
         recordParam(Str, "[PA]", "   Initial global position angle (degrees)", p.getParGF().PHI);
+        recordParam(Str, "[DELTAPA]", "   Max position angle variation from PA (degrees)", p.getParGF().DELTAPHI);
         recordParam(Str, "[Z0]", "   Scale height of the disk (arcsec)", p.getParGF().Z0);
         recordParam(Str, "[DENS]", "   Global column density of gas (atoms/cm2)", p.getParGF().DENS);
         recordParam(Str, "[FREE]", "   Parameters to be minimized", p.getParGF().FREE);

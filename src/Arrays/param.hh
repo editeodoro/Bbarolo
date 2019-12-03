@@ -65,6 +65,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   flagGALFIT = false;    ///< Enable task 
     float  DELTAINC   = 5;        ///< Inclination angle variation (degrees).
     float  DELTAPHI   = 15;       ///< Position angle variation (degrees).
+    float  DELTAVROT  = 1000;     ///< Rotation velocity variation (degrees).
     int    FTYPE      = 2;        ///< Type of function to be minimized;
     int    WFUNC      = 2;        ///< Weighting function.
     double TOL        = 1E-03;    ///< Tolerance for minimization.
@@ -92,10 +93,10 @@ struct GALWIND_PAR : GALMOD_PAR {
     size_t NTOT        = 25;     ///< Number of layers/cylinders for each cone
     int    LTYPE       = 5;      ///< Layer type along z.    
     size_t DENSTYPE    = 1;      ///< Integer. How to distribute density in layers.
-                                 //   0=constant mass in layers     (Dens decreases)
-                                 //   1=constant density in layers  (Mass increases)
-                                 //   2=hollow cone with constant density
-    short WTYPE        = 0;      //< Type of wind: 0=cylindrical, 1=spherical
+                                 ///   0=constant mass in layers     (Dens decreases)
+                                 ///   1=constant density in layers  (Mass increases)
+                                 ///   2=hollow cone with constant density
+    short WTYPE        = 0;      ///< Type of wind: 0=cylindrical, 1=spherical
 };
 
 

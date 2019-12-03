@@ -35,10 +35,10 @@ namespace Model {
 
 template <class T>
 bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoFar) {
-	
-	/// This function uses the Downhill Simplex Method 
-	/// in multidimensions due to Nelder and Mead.
-	
+
+    /// This function uses the Downhill Simplex Method
+    /// in multidimensions due to Nelder and Mead.
+
     const double TINY = 1.0e-10;
     const double tol  = par.TOL;
     
@@ -47,11 +47,11 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
 
     const int NMAX=200*ndim;
 
-	int mpts=ndim+1;
-	T **p = allocate_2D<T>(mpts,ndim);
-	
+    int mpts=ndim+1;
+    T **p = allocate_2D<T>(mpts,ndim);
+
     T *point = new T[ndim];
-	T *dels  = new T[ndim];
+    T *dels  = new T[ndim];
 
     /*
     int k=0;
@@ -67,39 +67,39 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     if (mpar[VRAD])  point[k++]=dring->vrad.front();
 
     /// Determine the initial simplex.
-	for (int i=0; i<ndim; i++) {
-		dels[i]  = 0.2*point[i]; 
-		point[i] = point[i]-0.1*point[i];					///-<<<<<<<<<<<< Totalmente arbitrario. pensaci su.
-	}
+    for (int i=0; i<ndim; i++) {
+        dels[i]  = 0.2*point[i];
+        point[i] = point[i]-0.1*point[i];					///-<<<<<<<<<<<< Totalmente arbitrario. pensaci su.
+    }
     */
 
     /// Determine the initial simplex (new way).
-//    if (global) {
-//        int n=dring->nr, k=0;
-//        if (mpar[VROT])  for (int j=0;j<n;j++) {dels[k]=30.; point[k++]=dring->vrot[j];}
-//        if (mpar[VDISP]) for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->vdisp[j];}
-//        if (mpar[DENS])  for (int j=0;j<n;j++) {dels[k]=0.2*dring->dens.front(); point[k++]=dring->dens[j];}
-//        if (mpar[Z0])    for (int j=0;j<n;j++) {dels[k]=0.2*dring->z0.front(); point[k++]=dring->z0[j];}
-//        if (mpar[INC])   for (int j=0;j<n;j++) {dels[k]=5.; point[k++]=dring->vexp[j];}
-//        if (mpar[PA])    for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->phi[j];}
-//        if (mpar[XPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[XPOS]-mins[XPOS])/4.; point[k++]=dring->xpos[j];}
-//        if (mpar[YPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[YPOS]-mins[YPOS])/4.; point[k++]=dring->ypos[j];}
-//        if (mpar[VSYS])  for (int j=0;j<n;j++) {dels[k]=(maxs[VSYS]-mins[VSYS])/4.; point[k++]=dring->vsys[j];}
+    //    if (global) {
+    //        int n=dring->nr, k=0;
+    //        if (mpar[VROT])  for (int j=0;j<n;j++) {dels[k]=30.; point[k++]=dring->vrot[j];}
+    //        if (mpar[VDISP]) for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->vdisp[j];}
+    //        if (mpar[DENS])  for (int j=0;j<n;j++) {dels[k]=0.2*dring->dens.front(); point[k++]=dring->dens[j];}
+    //        if (mpar[Z0])    for (int j=0;j<n;j++) {dels[k]=0.2*dring->z0.front(); point[k++]=dring->z0[j];}
+    //        if (mpar[INC])   for (int j=0;j<n;j++) {dels[k]=5.; point[k++]=dring->vexp[j];}
+    //        if (mpar[PA])    for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->phi[j];}
+    //        if (mpar[XPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[XPOS]-mins[XPOS])/4.; point[k++]=dring->xpos[j];}
+    //        if (mpar[YPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[YPOS]-mins[YPOS])/4.; point[k++]=dring->ypos[j];}
+    //        if (mpar[VSYS])  for (int j=0;j<n;j++) {dels[k]=(maxs[VSYS]-mins[VSYS])/4.; point[k++]=dring->vsys[j];}
     //        if (mpar[VRAD])  for (int j=0;j<n;j++) {dels[k]=(maxs[VRAD]-mins[VRAD])/4.; point[k++]=dring->vrad[j];}
-//    }
-//    else {
-//        int k=0;
-//        if (mpar[VROT])  {dels[k]=30.; point[k++]=dring->vrot.front();}
-//        if (mpar[VDISP]) {dels[k]=10.; point[k++]= dring->vdisp.front();}
-//        if (mpar[DENS])  {dels[k]=0.2*dring->dens.front(); point[k++]= dring->dens.front();}
-//        if (mpar[Z0])    {dels[k]=0.2*dring->z0.front(); point[k++]= dring->z0.front();}
-//        if (mpar[INC])   {dels[k]=5.; point[k++]= dring->inc.front();}
-//        if (mpar[PA])    {dels[k]=10.;point[k++]= dring->phi.front();}
-//        if (mpar[XPOS])  {dels[k]=(maxs[XPOS]-mins[XPOS])/4.;point[k++]= dring->xpos.front();}
-//        if (mpar[YPOS])  {dels[k]=(maxs[YPOS]-mins[YPOS])/4.;point[k++]= dring->ypos.front();}
-//        if (mpar[VSYS])  {dels[k]=(maxs[VSYS]-mins[VSYS])/4.;point[k++]= dring->vsys.front();}
-//        if (mpar[VRAD])  {dels[k]=(maxs[VRAD]-mins[VRAD])/4.;point[k++]= dring->vrad.front();}
-//    }
+    //    }
+    //    else {
+    //        int k=0;
+    //        if (mpar[VROT])  {dels[k]=30.; point[k++]=dring->vrot.front();}
+    //        if (mpar[VDISP]) {dels[k]=10.; point[k++]= dring->vdisp.front();}
+    //        if (mpar[DENS])  {dels[k]=0.2*dring->dens.front(); point[k++]= dring->dens.front();}
+    //        if (mpar[Z0])    {dels[k]=0.2*dring->z0.front(); point[k++]= dring->z0.front();}
+    //        if (mpar[INC])   {dels[k]=5.; point[k++]= dring->inc.front();}
+    //        if (mpar[PA])    {dels[k]=10.;point[k++]= dring->phi.front();}
+    //        if (mpar[XPOS])  {dels[k]=(maxs[XPOS]-mins[XPOS])/4.;point[k++]= dring->xpos.front();}
+    //        if (mpar[YPOS])  {dels[k]=(maxs[YPOS]-mins[YPOS])/4.;point[k++]= dring->ypos.front();}
+    //        if (mpar[VSYS])  {dels[k]=(maxs[VSYS]-mins[VSYS])/4.;point[k++]= dring->vsys.front();}
+    //        if (mpar[VRAD])  {dels[k]=(maxs[VRAD]-mins[VRAD])/4.;point[k++]= dring->vrad.front();}
+    //    }
     int n=1, k=0;
     if (global) n=dring->nr;
     if (mpar[VROT]) {
@@ -127,112 +127,112 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     if (mpar[VRAD])  for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->vrad[j];}
 
     // Build the initial matrix.
-	for (int i=0; i<mpts; i++) {
-			for (int j=0; j<ndim; j++) p[i][j]=point[j];
-		if (i!=0) p[i][i-1] += dels[i-1];
-	}
+    for (int i=0; i<mpts; i++) {
+        for (int j=0; j<ndim; j++) p[i][j]=point[j];
+        if (i!=0) p[i][i-1] += dels[i-1];
+    }
 
-	delete [] point;
-	delete [] dels;
-	
-	
-	T psum[ndim], x[ndim];
-	T *y = new T[mpts];
-	
-	for (int i=0; i<mpts; i++) {
+    delete [] point;
+    delete [] dels;
+
+
+    T psum[ndim], x[ndim];
+    T *y = new T[mpts];
+
+    for (int i=0; i<mpts; i++) {
         for (int j=0; j<ndim; j++) x[j]=p[i][j];
         y[i]=func3D(dring,x,modsoFar);
-	}
-	
-	int nfunc=0;
-	for (int j=0; j<ndim; j++) {
-		T sum=0.0;
-		for (int i=0; i<mpts; i++) sum += p[i][j];
-		psum[j]=sum;
-	}
-	
-	// Main cycle begins here.
-	for (;;) {
-		int ihi, inhi;
-		int ilo=0;
-		// First determine the highest point (worst) and the 
-		// lowest (best).
-		ihi = y[0]>y[1] ? (inhi=1,0) : (inhi=0,1);
-		for (int i=0; i<mpts; i++) {
-			if (y[i]<=y[ilo]) ilo=i;
-			if (y[i]>y[ihi]) {
-				inhi=ihi;
-				ihi=i;
-			} 
-			else if (y[i]>y[inhi] && i!=ihi) inhi=i;
-		}
-		
-		// Compute the fractional range from highest to lowest.
-		double rtol=2.0*fabs(y[ihi]-y[ilo])/(fabs(y[ihi])+fabs(y[ilo])+TINY);
-		
-		// If it is satisfactory, put best point and value in slot 0;
-		if (rtol<tol) { 	
-			std::swap(y[0],y[ilo]);
-			for (int i=0; i<ndim; i++) {
-				std::swap(p[0][i],p[ilo][i]);
-				pmin[i]=p[0][i];
-			}
-			minimum=y[0];
-			deallocate_2D(p,ndim+1);
-			delete [] y;
-			return true;
-		}
-		
-		if (nfunc>=NMAX) {
+    }
+
+    int nfunc=0;
+    for (int j=0; j<ndim; j++) {
+        T sum=0.0;
+        for (int i=0; i<mpts; i++) sum += p[i][j];
+        psum[j]=sum;
+    }
+
+    // Main cycle begins here.
+    for (;;) {
+        int ihi, inhi;
+        int ilo=0;
+        // First determine the highest point (worst) and the
+        // lowest (best).
+        ihi = y[0]>y[1] ? (inhi=1,0) : (inhi=0,1);
+        for (int i=0; i<mpts; i++) {
+            if (y[i]<=y[ilo]) ilo=i;
+            if (y[i]>y[ihi]) {
+                inhi=ihi;
+                ihi=i;
+            }
+            else if (y[i]>y[inhi] && i!=ihi) inhi=i;
+        }
+
+        // Compute the fractional range from highest to lowest.
+        double rtol=2.0*fabs(y[ihi]-y[ilo])/(fabs(y[ihi])+fabs(y[ilo])+TINY);
+
+        // If it is satisfactory, put best point and value in slot 0;
+        if (rtol<tol) {
+            std::swap(y[0],y[ilo]);
+            for (int i=0; i<ndim; i++) {
+                std::swap(p[0][i],p[ilo][i]);
+                pmin[i]=p[0][i];
+            }
+            minimum=y[0];
+            deallocate_2D(p,ndim+1);
+            delete [] y;
+            return true;
+        }
+
+        if (nfunc>=NMAX) {
             std::cout <<"\n ========================== 3DFIT ERROR ==========================\n"
-					  << " Can not achieve convergence in this ring. I'll keep going on, but \n" 
-					  << " parameters for this ring are wrong! Please, try to change initial \n"
-					  << " conditions and/or the function to minimize.\n"
-					  << " =================================================================\n\n";
-			deallocate_2D(p,ndim+1);
-			delete [] y;
-			return false;
-		}
-		nfunc += 2;
-		
-		// Try a new iteration. Try extrapolate by a factor -1 through
-		// the simplex face across from the high point, i.e. reflect the
-		// simplex from the high point.
+                     << " Can not achieve convergence in this ring. I'll keep going on, but \n"
+                     << " parameters for this ring are wrong! Please, try to change initial \n"
+                     << " conditions and/or the function to minimize.\n"
+                     << " =================================================================\n\n";
+            deallocate_2D(p,ndim+1);
+            delete [] y;
+            return false;
+        }
+        nfunc += 2;
+
+        // Try a new iteration. Try extrapolate by a factor -1 through
+        // the simplex face across from the high point, i.e. reflect the
+        // simplex from the high point.
         T ytry=mtry(dring, p,y,psum,ihi,-1.0,modsoFar);
-		if (ytry<=y[ilo]) {
-			// If it gives a value better than the best point, try an 
-			// additional extrapolation by a factor 2.
+        if (ytry<=y[ilo]) {
+            // If it gives a value better than the best point, try an
+            // additional extrapolation by a factor 2.
             ytry=mtry(dring, p,y,psum,ihi,2.0,modsoFar);
-		}
-		else if (ytry>=y[inhi]) {
-			// Otherwise, if the reflected point is worse than the second
-			// highest, look for an intermediate lower point, i.e. do a 
-			// on dimensional contraction.
-			T ysave=y[ihi];
+        }
+        else if (ytry>=y[inhi]) {
+            // Otherwise, if the reflected point is worse than the second
+            // highest, look for an intermediate lower point, i.e. do a
+            // on dimensional contraction.
+            T ysave=y[ihi];
             ytry=mtry(dring, p,y,psum,ihi,0.5,modsoFar);
-			if (ytry>=ysave) { 		
-				// Can't seem to get rid of that high point. Better contract
-				// around the lowest (best) point.
-				for (int i=0; i<mpts; i++) {
-					if (i!=ilo) {
-						for (int j=0; j<ndim; j++)
-							p[i][j]=psum[j]=0.5*(p[i][j]+p[ilo][j]);
+            if (ytry>=ysave) {
+                // Can't seem to get rid of that high point. Better contract
+                // around the lowest (best) point.
+                for (int i=0; i<mpts; i++) {
+                    if (i!=ilo) {
+                        for (int j=0; j<ndim; j++)
+                            p[i][j]=psum[j]=0.5*(p[i][j]+p[ilo][j]);
                         y[i]=func3D(dring,psum,modsoFar);
-					}
-				}
-				
-				nfunc += ndim; 	
-				
-				for (int j=0;j<ndim;j++) {
-					T sum=0.0;
-					for (int i=0; i<mpts; i++) sum += p[i][j];
-					psum[j]=sum;
-				}
-			}
-		} 
-		else --nfunc; 
-	} 
-	
+                    }
+                }
+
+                nfunc += ndim;
+
+                for (int j=0;j<ndim;j++) {
+                    T sum=0.0;
+                    for (int i=0; i<mpts; i++) sum += p[i][j];
+                    psum[j]=sum;
+                }
+            }
+        }
+        else --nfunc;
+    }
+
 }	
 template bool Galfit<float>::minimize(Rings<float>*,float&,float*,Galmod<float> *);
 template bool Galfit<double>::minimize(Rings<double>*,double&,double*,Galmod<double> *);
@@ -240,29 +240,29 @@ template bool Galfit<double>::minimize(Rings<double>*,double&,double*,Galmod<dou
 	
 template <class T>
 T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar) {
-	
-	// Extrapolates by a factor fac through the face of the simplex across from
-	// the high point, tries it, and replaces the high point if the new point is better.
-	
-	int ndim = nfree;
-	T ptry[ndim];
-	double fac1=(1.0-fac)/ndim;
-	double fac2=fac1-fac;
-	
-	for (int j=0; j<ndim; j++)
-		ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
-	
-	// Evaluate the function at the trial point.
+
+    // Extrapolates by a factor fac through the face of the simplex across from
+    // the high point, tries it, and replaces the high point if the new point is better.
+
+    int ndim = nfree;
+    T ptry[ndim];
+    double fac1=(1.0-fac)/ndim;
+    double fac2=fac1-fac;
+
+    for (int j=0; j<ndim; j++)
+        ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
+
+    // Evaluate the function at the trial point.
     T ytry=func3D(dring, ptry, modsoFar);
-	if (ytry<y[ihi]) { 	
-		// If it is better than the highest, then replace the highest.			 
-		y[ihi]=ytry;
-		for (int j=0; j<ndim; j++) {
-			psum[j] += ptry[j]-p[ihi][j];
-			p[ihi][j]=ptry[j];
-		}
-	}
-	return ytry;
+    if (ytry<y[ihi]) {
+        // If it is better than the highest, then replace the highest.
+        y[ihi]=ytry;
+        for (int j=0; j<ndim; j++) {
+            psum[j] += ptry[j]-p[ihi][j];
+            p[ihi][j]=ptry[j];
+        }
+    }
+    return ytry;
 }
 template float Galfit<float>::mtry(Rings<float>*,float**,float*,float*,const int,const double,Galmod<float> *);
 template double Galfit<double>::mtry(Rings<double>*,double**,double*,double*,const int,const double,Galmod<double> *);
@@ -307,7 +307,9 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
             switch(i) {
             case VROT:
                 for (int j=0; j<n; j++) {
-                    vrot[j] = (zpar[np]<mins[VROT] || zpar[np]>maxs[VROT]) ? inr->vrot[w_r] : zpar[np];
+                    float minv = (inr->vrot[w_r]-par.DELTAVROT)>=mins[VROT] ? inr->vrot[w_r]-par.DELTAVROT : mins[VROT];
+                    float maxv = (inr->vrot[w_r]+par.DELTAVROT)>=maxs[VROT] ? inr->vrot[w_r]+par.DELTAVROT : mins[VROT];
+                    vrot[j] = (zpar[np]<minv || zpar[np]>maxv) ? inr->vrot[w_r] : zpar[np];
                     zpar[np++] = vrot[j];
                 }
                 break;
@@ -334,14 +336,18 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
             case INC:
                 for (int j=0; j<n; j++) {
-                    inc[j] = (zpar[np]<mins[INC] || zpar[np]>maxs[INC]) ? inr->inc[w_r] : zpar[np];
+                    float mini = (inr->inc[w_r]-par.DELTAINC)>=mins[INC] ? inr->inc[w_r]-par.DELTAINC : mins[INC];
+                    float maxi = (inr->inc[w_r]+par.DELTAINC)>=maxs[INC] ? inr->inc[w_r]+par.DELTAINC : mins[INC];
+                    inc[j] = (zpar[np]<mini || zpar[np]>maxi) ? inr->inc[w_r] : zpar[np];
                     zpar[np++] = inc[j];
                 }
                 break;
 
             case PA:
                 for (int j=0; j<n; j++) {
-                    phi[j] = (zpar[np]<mins[PA] || zpar[np]>maxs[PA]) ?  inr->phi[w_r] : zpar[np];
+                    float minp = (inr->phi[w_r]-par.DELTAPHI)>=mins[PA] ? inr->phi[w_r]-par.DELTAPHI : mins[PA];
+                    float maxp = (inr->phi[w_r]+par.DELTAPHI)>=maxs[PA] ? inr->phi[w_r]+par.DELTAPHI : mins[PA];
+                    phi[j] = (zpar[np]<minp || zpar[np]>maxp) ?  inr->phi[w_r] : zpar[np];
                     zpar[np++] = phi[j];
                 }
                 break;
@@ -519,56 +525,56 @@ template double Galfit<double>::getFuncValue(Rings<double>*, Galmod<double> *);
 
 template <class T>
 void Galfit<T>::Convolve(T *array, int *bsize) {
-	
-	if (cfieldAllocated) {
-		int ndx = (bsize[0]+NconX-1);
-		int ndy = (bsize[1]+NconY-1);
-		T *beforeCON = new T[ndx*ndy];
-		T *afterCON  = new T[ndx*ndy];
-		for (int z=0; z<in->DimZ(); z++) {
-			for (int x=0; x<ndx; x++) {
-				for (int y=0; y<ndy; y++) {
-					long nPix = x+y*ndx;
-					int mXpos = x-(NconX-1)/2;
-					int mYpos = y-(NconY-1)/2;
-					long mPix = mXpos+mYpos*bsize[0]+z*bsize[0]*bsize[1];
-					afterCON[nPix] = beforeCON[nPix] = 0;
-					if (x>=(NconX-1)/2 && x<=(bsize[0]+(NconX-1)/2) && 
-						y>=(NconY-1)/2 && y<=(bsize[1]+(NconY-1)/2)) {
-						beforeCON[nPix] = array[mPix];	
-					}
-				}
-			}
-			
-			for (int yc=0; yc<NconY; yc++) {
-				for (int xc=0; xc<NconX; xc++) {
-					T cf = cfield[NconX-xc-1+(NconY-yc-1)*NconX];
-					if (cf!=0.0) {
-						for (int y=0; y<bsize[1]; y++) {
-							T *v1 = &beforeCON[(yc+y)*ndx+xc];
-							T *v2 = &afterCON[(NconY/2+y)*ndx+NconX/2];
-							for (int x=0; x<bsize[0]; x++) v2[x] = v2[x]+cf*v1[x];
-						}
-					}
-				}
-			}		
-			
-			for (int x=(NconX-1)/2; x<(bsize[0]+(NconX-1)/2); x++) {
-				for (int y=(NconY-1)/2; y<(bsize[1]+(NconY-1)/2); y++) {
-					long nPix = x+y*(bsize[0]+NconX-1);
-					long mPix = (x-(NconX-1)/2)+(y-(NconY-1)/2)*bsize[0]+z*bsize[0]*bsize[1];	
-					//if (IsIn(x-(NconX-1)/2,y-(NconY-1)/2,blo,dring)) 
-						array[mPix] = afterCON[nPix];
-					//else modp[mPix] = 0;
-				}
-			}	
-		
-		}
-				
-		delete [] beforeCON;
-		delete [] afterCON;	
-	}
-	
+
+    if (cfieldAllocated) {
+        int ndx = (bsize[0]+NconX-1);
+        int ndy = (bsize[1]+NconY-1);
+        T *beforeCON = new T[ndx*ndy];
+        T *afterCON  = new T[ndx*ndy];
+        for (int z=0; z<in->DimZ(); z++) {
+            for (int x=0; x<ndx; x++) {
+                for (int y=0; y<ndy; y++) {
+                    long nPix = x+y*ndx;
+                    int mXpos = x-(NconX-1)/2;
+                    int mYpos = y-(NconY-1)/2;
+                    long mPix = mXpos+mYpos*bsize[0]+z*bsize[0]*bsize[1];
+                    afterCON[nPix] = beforeCON[nPix] = 0;
+                    if (x>=(NconX-1)/2 && x<=(bsize[0]+(NconX-1)/2) &&
+                            y>=(NconY-1)/2 && y<=(bsize[1]+(NconY-1)/2)) {
+                        beforeCON[nPix] = array[mPix];
+                    }
+                }
+            }
+
+            for (int yc=0; yc<NconY; yc++) {
+                for (int xc=0; xc<NconX; xc++) {
+                    T cf = cfield[NconX-xc-1+(NconY-yc-1)*NconX];
+                    if (cf!=0.0) {
+                        for (int y=0; y<bsize[1]; y++) {
+                            T *v1 = &beforeCON[(yc+y)*ndx+xc];
+                            T *v2 = &afterCON[(NconY/2+y)*ndx+NconX/2];
+                            for (int x=0; x<bsize[0]; x++) v2[x] = v2[x]+cf*v1[x];
+                        }
+                    }
+                }
+            }
+
+            for (int x=(NconX-1)/2; x<(bsize[0]+(NconX-1)/2); x++) {
+                for (int y=(NconY-1)/2; y<(bsize[1]+(NconY-1)/2); y++) {
+                    long nPix = x+y*(bsize[0]+NconX-1);
+                    long mPix = (x-(NconX-1)/2)+(y-(NconY-1)/2)*bsize[0]+z*bsize[0]*bsize[1];
+                    //if (IsIn(x-(NconX-1)/2,y-(NconY-1)/2,blo,dring))
+                    array[mPix] = afterCON[nPix];
+                    //else modp[mPix] = 0;
+                }
+            }
+
+        }
+
+        delete [] beforeCON;
+        delete [] afterCON;
+    }
+
 }
 template void Galfit<float>::Convolve(float*,int*);
 template void Galfit<double>::Convolve(double*,int*);
@@ -576,24 +582,24 @@ template void Galfit<double>::Convolve(double*,int*);
 
 template <class T>
 void Galfit<T>::Convolve_fft(T *array, int *bsize) {
-	
-	if (cfieldAllocated) {
-		long size = bsize[0]*bsize[1];
-		double *beforeCON = new double[size];
-		Conv2D cfft;
-        init_Conv2D(cfft,LINEAR_SAME, bsize[0], bsize[1], NconX, NconY);	
+
+    if (cfieldAllocated) {
+        long size = bsize[0]*bsize[1];
+        double *beforeCON = new double[size];
+        Conv2D cfft;
+        init_Conv2D(cfft,LINEAR_SAME, bsize[0], bsize[1], NconX, NconY);
         
-		for (uint z=in->DimZ(); z--;) {
-			T *ptr = &array[z*size];
-			for (uint i=size; i--;) beforeCON[i] = isNaN(ptr[i]) ? 0 : ptr[i];
-			convolve (cfft,beforeCON, cfield);			
-			for (uint i=size; i--;) 
-				ptr[i] = (cfft.dst[i]<1.E-12) ? 0. : cfft.dst[i];	//<<<< Un po' arbitrario, non mi piace.
-		}
-		
+        for (uint z=in->DimZ(); z--;) {
+            T *ptr = &array[z*size];
+            for (uint i=size; i--;) beforeCON[i] = isNaN(ptr[i]) ? 0 : ptr[i];
+            convolve (cfft,beforeCON, cfield);
+            for (uint i=size; i--;)
+                ptr[i] = (cfft.dst[i]<1.E-12) ? 0. : cfft.dst[i];	//<<<< Un po' arbitrario, non mi piace.
+        }
+
         clear_Conv2D(cfft);
         delete [] beforeCON;
-	}
+    }
 
 }
 template void Galfit<float>::Convolve_fft(float*,int*);
@@ -604,58 +610,58 @@ template void Galfit<double>::Convolve_fft(double*,int*);
 template <class T>
 double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
-	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
+    int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
-	if (!in->StatsDef()) in->setCubeStats();
-	
-	int numPix_ring=0, numBlanks=0, numPix_tot=0;
-	double minfunc = 0;
+    if (!in->StatsDef()) in->setCubeStats();
+
+    int numPix_ring=0, numBlanks=0, numPix_tot=0;
+    double minfunc = 0;
     //int bweight = second ? 0 : par.BWEIGHT;
     int bweight = par.BWEIGHT;
-		
-	for (uint y=bsize[1]; y--;) {
-		for (uint x=bsize[0]; x--;) {
-			double theta;			
-			if (!IsIn(x,y,blo,dring,theta)) continue;
+
+    for (uint y=bsize[1]; y--;) {
+        for (uint x=bsize[0]; x--;) {
+            double theta;
+            if (!IsIn(x,y,blo,dring,theta)) continue;
             if (!getSide(theta)) continue;
-			numPix_ring++;
-			
-			//< Factor for normalization.
+            numPix_ring++;
+
+            //< Factor for normalization.
             T modSum=0, obsSum = 0, factor=0;
-			for (uint z=in->DimZ(); z--;) {
-				long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-				long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-				modSum += array[modPix];
-				if (in->Array(obsPix)>0) obsSum += in->Array(obsPix)*mask[obsPix];
-			}
-			if (modSum!=0) factor = obsSum/modSum;
-			else factor=0;										
-			
-			double costh = fabs(cos(theta*M_PI/180.));
-			double wi = std::pow(costh, double(wpow));
-			
-			// Normalizing and residuals.
-			for (uint z=in->DimZ(); z--;) {
-				long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-				long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-				array[modPix] *= factor;	
-				T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();  
-				T mod = array[modPix];
-				
+            for (uint z=in->DimZ(); z--;) {
+                long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
+                long obsPix = in->nPix(x+blo[0],y+blo[1],z);
+                modSum += array[modPix];
+                if (in->Array(obsPix)>0) obsSum += in->Array(obsPix)*mask[obsPix];
+            }
+            if (modSum!=0) factor = obsSum/modSum;
+            else factor=0;
+
+            double costh = fabs(cos(theta*M_PI/180.));
+            double wi = std::pow(costh, double(wpow));
+
+            // Normalizing and residuals.
+            for (uint z=in->DimZ(); z--;) {
+                long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
+                long obsPix = in->nPix(x+blo[0],y+blo[1],z);
+                array[modPix] *= factor;
+                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+                T mod = array[modPix];
+
                 if (mask[obsPix]==0) {
                     if (mod==0) continue;
                     else numBlanks++;
-				}
-				
-				numPix_tot++;
+                }
+
+                numPix_tot++;
                 minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
-			}
-		}
-	}	
-	//numPix_ring=1;
+            }
+        }
+    }
+    //numPix_ring=1;
     //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
     return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
-	
+
 }
 template double Galfit<float>::norm_local(Rings<float>*,float*,int*,int*);
 template double Galfit<double>::norm_local(Rings<double>*,double*,int*,int*);
@@ -666,60 +672,60 @@ template double Galfit<double>::norm_local(Rings<double>*,double*,int*,int*);
 template <class T>
 double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
-	int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};	
+    int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
-	if (!in->StatsDef()) in->setCubeStats();
-	
-	std::vector<Pixel<T> > *anulus = getRingRegion(dring, bhi, blo);
-	
-	int numPix_ring=0, numBlanks=0, numPix_tot=0;
-	double minfunc = 0;
+    if (!in->StatsDef()) in->setCubeStats();
+
+    std::vector<Pixel<T> > *anulus = getRingRegion(dring, bhi, blo);
+
+    int numPix_ring=0, numBlanks=0, numPix_tot=0;
+    double minfunc = 0;
     //int bweight = second ? 0 : par.BWEIGHT;
     int bweight = par.BWEIGHT;
 
-	typename std::vector<Pixel<T> >::iterator pix;
-	for(pix=anulus->begin();pix<anulus->end();pix++) {
-		numPix_ring++;
-		long x = pix->getX();
-		long y = pix->getY();
-		T theta = pix->getF();
+    typename std::vector<Pixel<T> >::iterator pix;
+    for(pix=anulus->begin();pix<anulus->end();pix++) {
+        numPix_ring++;
+        long x = pix->getX();
+        long y = pix->getY();
+        T theta = pix->getF();
         if (!getSide(theta)) continue;
 
-		//< Factor for normalization.
+        //< Factor for normalization.
         T modSum=0, obsSum = 0, factor=0;
-		for (uint z=in->DimZ(); z--;) {
-			long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-			long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-			modSum += array[modPix];
-			if (in->Array(obsPix)>0) obsSum += in->Array(obsPix)*mask[obsPix];
-		}
-		if (modSum!=0) factor = obsSum/modSum;
-		else factor=0;
-		
-		double costh = fabs(cos(theta*M_PI/180.));
-		double wi = std::pow(costh, double(wpow));
+        for (uint z=in->DimZ(); z--;) {
+            long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
+            long obsPix = in->nPix(x+blo[0],y+blo[1],z);
+            modSum += array[modPix];
+            if (in->Array(obsPix)>0) obsSum += in->Array(obsPix)*mask[obsPix];
+        }
+        if (modSum!=0) factor = obsSum/modSum;
+        else factor=0;
 
-		// Normalizing and residuals.
-		for (uint z=in->DimZ(); z--;) {
-			long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
-			long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-			array[modPix] *= factor;	
-			T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();  
-			T mod = array[modPix];
-			
-			if (mask[obsPix]==0 && mod==0) continue;
-			else if (mask[obsPix]==0 && mod!=0) {
-				numBlanks++;
-				obs = in->stat().getSpread();
-			}
+        double costh = fabs(cos(theta*M_PI/180.));
+        double wi = std::pow(costh, double(wpow));
 
-			numPix_tot++;
+        // Normalizing and residuals.
+        for (uint z=in->DimZ(); z--;) {
+            long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
+            long obsPix = in->nPix(x+blo[0],y+blo[1],z);
+            array[modPix] *= factor;
+            T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+            T mod = array[modPix];
+
+            if (mask[obsPix]==0 && mod==0) continue;
+            else if (mask[obsPix]==0 && mod!=0) {
+                numBlanks++;
+                obs = in->stat().getSpread();
+            }
+
+            numPix_tot++;
             minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
 
-		}	
-	}
-	
-	//numPix_ring=1;
+        }
+    }
+
+    //numPix_ring=1;
     //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
     return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
 
@@ -869,25 +875,25 @@ template void Galfit<double>::getModelSize(Rings<double>*,int*,int*,int*);
 
 template <class T> 
 inline bool Galfit<T>::IsIn (int x, int y, int *blo, Rings<T> *dr, double &th) {
-	
-	// This function verifies that we are inside the rings.
-	// Return also the value of azimutal angle th of (x,y) coordinates.
-	
-	double F = M_PI/180.;
-	double pixScale = ((fabs(in->Head().Cdelt(0))*arcconv)+(fabs(in->Head().Cdelt(1))*arcconv))/2.;
-	T inc = dr->inc.back();
-	T phi = dr->phi.back();
-	double r1 = dr->radii.front()/pixScale;
-	double r2 = dr->radii.back()/pixScale;
-	double x0 = dr->xpos.back()-blo[0];
-	double y0 = dr->ypos.back()-blo[1];
-	double xr =  -(x-x0)*sin(F*phi)+(y-y0)*cos(F*phi);
-	double yr = (-(x-x0)*cos(F*phi)-(y-y0)*sin(F*phi))/cos(F*inc);
-	double r = sqrt(xr*xr+yr*yr);
-	if (r<0.1) th = 0.0;
-	else th = atan2(yr, xr)/F;
-	return r>=r1 && r<=r2;
-	
+
+    // This function verifies that we are inside the rings.
+    // Return also the value of azimutal angle th of (x,y) coordinates.
+
+    double F = M_PI/180.;
+    double pixScale = ((fabs(in->Head().Cdelt(0))*arcconv)+(fabs(in->Head().Cdelt(1))*arcconv))/2.;
+    T inc = dr->inc.back();
+    T phi = dr->phi.back();
+    double r1 = dr->radii.front()/pixScale;
+    double r2 = dr->radii.back()/pixScale;
+    double x0 = dr->xpos.back()-blo[0];
+    double y0 = dr->ypos.back()-blo[1];
+    double xr =  -(x-x0)*sin(F*phi)+(y-y0)*cos(F*phi);
+    double yr = (-(x-x0)*cos(F*phi)-(y-y0)*sin(F*phi))/cos(F*inc);
+    double r = sqrt(xr*xr+yr*yr);
+    if (r<0.1) th = 0.0;
+    else th = atan2(yr, xr)/F;
+    return r>=r1 && r<=r2;
+
 }
 template bool Galfit<float>::IsIn(int,int,int*,Rings<float>*,double&);
 template bool Galfit<double>::IsIn(int,int,int*,Rings<double>*,double&);
@@ -934,59 +940,58 @@ template double Galfit<double>::getFuncValue(double,double,double,double);
 
 template <class T>
 std::vector<Pixel<T> >* Galfit<T>::getRingRegion (Rings<T> *dring, int *bhi, int *blo) {
-	
 
-	std::vector<Pixel<T> > *anulus= new std::vector<Pixel<T> >;
-	long bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
-	bool *an = new bool[bsize[0]*bsize[1]];
-	for (int i=0;i<bsize[0]*bsize[1];i++) an[i]=false;	
-	
-	T R1  = dring->radii.front()/(in->Head().PixScale()*arcconv);
-	T R2  = dring->radii.back()/(in->Head().PixScale()*arcconv);
-	T phi = dring->phi.back();
-	T inc = dring->inc.back();
-	T psi = 0.;
-	T z0  = dring->z0.back()/(in->Head().PixScale()*arcconv); ///prima prendevo 3*dring->....
-	T x0  = dring->xpos.back()-blo[0]-1;
-	T y0  = dring->ypos.back()-blo[1]-1;
-	
-	double **matrices = RotMatrices(inc,psi,-phi-90);
-	int size[2] = {3,3};
-	double *rotmatrix = MatrixProduct(&matrices[2][0], size, &matrices[0][0],size);
-	
-	int xyrange = lround(R2);
-	int zrange = lround(z0);
-	int sizecoord[2] = {3,1};	
-	for (int z=-zrange; z<=zrange; z++) {
-		 for (int y=-xyrange; y<=xyrange; y++) {
-			for(int x=-xyrange; x<=xyrange; x++) {
-				double r = sqrt(x*x+y*y);
-				if (r<=R2 && r>=R1) {
-					double coord[3]={double(x),double(y),double(z)};
-					double *coordrot = MatrixProduct(rotmatrix,size,coord,sizecoord);
-					int xrot = lround(coordrot[0]+x0);
-					int yrot = lround(coordrot[1]+y0);
-					if (xrot>=0 && xrot<bsize[0] &&
-						yrot>=0 && yrot<bsize[1]) {
-						double theta;						
-						if (r<0.1) theta = 0.0;
-						else theta = atan2(y, x)/M_PI*180.;	
-						if(!an[xrot+yrot*bsize[0]]) {
-							an[xrot+yrot*bsize[0]] = true;
-							Pixel<T> pix(xrot,yrot,theta);
-							anulus->push_back(pix);
-						}
-					}
-				}
-			}
-		}
-	}
+    std::vector<Pixel<T> > *anulus= new std::vector<Pixel<T> >;
+    long bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
+    bool *an = new bool[bsize[0]*bsize[1]];
+    for (int i=0;i<bsize[0]*bsize[1];i++) an[i]=false;
 
-	delete [] an;
-	deallocate_2D<double>(matrices,3);
-	delete [] rotmatrix;
-	return anulus;
-	
+    T R1  = dring->radii.front()/(in->Head().PixScale()*arcconv);
+    T R2  = dring->radii.back()/(in->Head().PixScale()*arcconv);
+    T phi = dring->phi.back();
+    T inc = dring->inc.back();
+    T psi = 0.;
+    T z0  = dring->z0.back()/(in->Head().PixScale()*arcconv); ///prima prendevo 3*dring->....
+    T x0  = dring->xpos.back()-blo[0]-1;
+    T y0  = dring->ypos.back()-blo[1]-1;
+
+    double **matrices = RotMatrices(inc,psi,-phi-90);
+    int size[2] = {3,3};
+    double *rotmatrix = MatrixProduct(&matrices[2][0], size, &matrices[0][0],size);
+
+    int xyrange = lround(R2);
+    int zrange = lround(z0);
+    int sizecoord[2] = {3,1};
+    for (int z=-zrange; z<=zrange; z++) {
+        for (int y=-xyrange; y<=xyrange; y++) {
+            for(int x=-xyrange; x<=xyrange; x++) {
+                double r = sqrt(x*x+y*y);
+                if (r<=R2 && r>=R1) {
+                    double coord[3]={double(x),double(y),double(z)};
+                    double *coordrot = MatrixProduct(rotmatrix,size,coord,sizecoord);
+                    int xrot = lround(coordrot[0]+x0);
+                    int yrot = lround(coordrot[1]+y0);
+                    if (xrot>=0 && xrot<bsize[0] &&
+                            yrot>=0 && yrot<bsize[1]) {
+                        double theta;
+                        if (r<0.1) theta = 0.0;
+                        else theta = atan2(y, x)/M_PI*180.;
+                        if(!an[xrot+yrot*bsize[0]]) {
+                            an[xrot+yrot*bsize[0]] = true;
+                            Pixel<T> pix(xrot,yrot,theta);
+                            anulus->push_back(pix);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    delete [] an;
+    deallocate_2D<double>(matrices,3);
+    delete [] rotmatrix;
+    return anulus;
+
 }
 template std::vector<Pixel<float> >* Galfit<float>::getRingRegion (Rings<float>*,int*,int*);
 template std::vector<Pixel<double> >* Galfit<double>::getRingRegion (Rings<double>*,int*,int*);

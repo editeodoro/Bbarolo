@@ -66,15 +66,15 @@ public:
 
     
     /// Obvious inline functions
-    T       Array (int i) {return array[i];};
-    T       *Array () {return array;};
-    T       *Confie() {return confie;};                 
-    Beam    Oldbeam() {return oldbeam;};                    
-    Beam    Newbeam() {return newbeam;};                    
-    Beam    Conbeam() {return conbeam;};                    
-    double  Scalefac(){return scalefac;};
-    void    setUseScalefac (bool ff) {usescalefac=ff;};
-    void    setUseBlanks(bool b) {useBlanks=b;};
+    T       Array (int i) {return array[i];}
+    T       *Array () {return array;}
+    T       *Confie() {return confie;}
+    Beam    Oldbeam() {return oldbeam;}
+    Beam    Newbeam() {return newbeam;}
+    Beam    Conbeam() {return conbeam;}
+    double  Scalefac(){return scalefac;}
+    void    setUseScalefac (bool ff) {usescalefac=ff;}
+    void    setUseBlanks(bool b) {useBlanks=b;}
     
     void cubesmooth(Cube<T> *c);
     void smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam);
@@ -104,9 +104,9 @@ private:
     Beam    oldbeam;                    //< Input beam.
     Beam    newbeam;                    //< Output beam.
     Beam    conbeam;                    //< Convolution beam.
-    bool    beamDefined;                
+    bool    beamDefined;                //< Has been the beam defined?
     double  scalefac;                   //< Scale factor.
-    bool    usescalefac;
+    bool    usescalefac;                //< Whether to use the scale factor.
     float   crota;                      //< Rotation angle of maps.
     double  cutoffratio;                //< Cutoff for gaussian kernel.
     size_t  maxconv;                    //< Max convolution size: 512*512.
@@ -142,8 +142,8 @@ public:
     virtual ~Hanning3D() {if (arrayAllocated) delete [] array;} //< Destructor.
 
     /// Obvious inline functions
-    T&   Array (int i) {return array[i];};
-    T    *Array () {return array;};
+    T&   Array (int i) {return array[i];}
+    T    *Array () {return array;}
 
     void compute(Cube<T> *c);
     void compute(T *inarray, size_t xsize, size_t ysize, size_t zsize);

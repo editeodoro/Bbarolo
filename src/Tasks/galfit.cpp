@@ -111,8 +111,8 @@ Galfit<T>& Galfit<T>::operator=(const Galfit &g) {
     
     this->par       = g.par;
     this->nfree     = g.nfree;
-    this->arcconv   = g.arcconv;                            
-    this->distance  = g.distance;   
+    this->arcconv   = g.arcconv;
+    this->distance  = g.distance;
     this->NconX     = g.NconX;
     this->NconY     = g.NconY;
     this->wpow      = g.wpow;
@@ -401,8 +401,8 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     
     // Setting limits for fitting parameters
     double kpcperarc = KpcPerArc(distance);
-    maxs[VROT]  = 1000;
-    mins[VROT]  = 0;
+    maxs[VROT]  = *max_element(inr->vrot.begin(),inr->vrot.end())+par.DELTAVROT;
+    mins[VROT]  = *min_element(inr->vrot.begin(),inr->vrot.end())-par.DELTAVROT;
     maxs[VDISP] = 500;
     mins[VDISP] = 0.01;
     maxs[Z0] = 5/kpcperarc;         // Max scaleheight allowed is 5 Kpc.  
@@ -411,6 +411,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     mins[INC] = *min_element(inr->inc.begin(),inr->inc.end())-par.DELTAINC;
     maxs[PA]  = *max_element(inr->phi.begin(),inr->phi.end())+par.DELTAPHI;
     mins[PA]  = *min_element(inr->phi.begin(),inr->phi.end())-par.DELTAPHI; 
+    if (mins[VROT]<0)  mins[VROT] = 0;
     if (maxs[INC]>90) maxs[INC] = 90;
     if (mins[INC]<0)  mins[INC] = 0;
     if (maxs[PA]>360) maxs[PA]  = 360;

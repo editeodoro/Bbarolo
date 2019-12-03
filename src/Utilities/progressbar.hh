@@ -36,11 +36,11 @@ class ProgressBar           /// A class that prints out a progress
 public:
     ProgressBar();                                      ///< Basic constructor
     ProgressBar(std::string Title, bool Time=false, int nlength=20, std::string ss="#");
-    virtual ~ProgressBar() {};                          ///< Destructor.
+    virtual ~ProgressBar() {}                           ///< Destructor.
     enum POS {BEG=0,END};                               ///< So that we can record where we are.
 
-    void setTitle (std::string t) {title=t;};
-    void setShowbar (bool b) {showbar=b;};
+    void setTitle (std::string t) {title=t;}
+    void setShowbar (bool b) {showbar=b;}
 
     void init(int size);                                ///< Prints empty bar, defines increment.
     void update(int num);                               ///< Prints correct number of hashes
@@ -65,9 +65,9 @@ private:
     
     void defaults ();
     std::string getTimeLeft (clock_t stop);             ///< Estimating the time of the loop.
-    void printBackSpaces(int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<<'\b';}; 
-    void printSpaces    (int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<<' ';};
-    void printString    (int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<< s;};
+    void printBackSpaces(int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<<'\b';}
+    void printSpaces    (int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<<' ';}
+    void printString    (int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<< s;}
 
 };
 

@@ -27,7 +27,7 @@
 enum Unit {
     ANG, NM, MUM, MM, CM, M, KM,                        // Linear units  
     UA, PC, KPC, MPC,                                   // Linear astronomical units
-    S, H, D, YR, KYR, MYR, GYR,                     // Time units
+    S, H, D, YR, KYR, MYR, GYR,                         // Time units
     GR, KG, MSUN,                                       // Mass units
     HZ, KHZ, MHZ, GHZ,                                  // Frequency units
     DEG, AMIN, ASEC, RAD,                               // Angle units

@@ -326,11 +326,8 @@ void Image2D<Type>::setImageStats() {
         std::cout << " Calculating statistics for the image... "<<std::flush;
     
     stats.setRobust(par.getFlagRobustStats()); 
-
     stats.calculate(array,numPix);
-    
     stats.setUseFDR(false);
-
     stats.setThresholdSNR(par.getParSE().snrCut);
       
     if(par.isVerbose()) {
@@ -421,6 +418,7 @@ template void Image2D<long>::extractSpectrum(Cube<long>&,long);
 template void Image2D<float>::extractSpectrum(Cube<float>&,long);
 template void Image2D<double>::extractSpectrum(Cube<double>&,long);
 
+
 template <class Type>
 void Image2D<Type>::extractGlobalSpectrum(Cube<Type> *cube)  {
     
@@ -448,6 +446,7 @@ template void Image2D<int>::extractGlobalSpectrum(Cube<int>*);
 template void Image2D<long>::extractGlobalSpectrum(Cube<long>*);
 template void Image2D<float>::extractGlobalSpectrum(Cube<float>*);
 template void Image2D<double>::extractGlobalSpectrum(Cube<double>*);
+
 
 template <class Type>
 void Image2D<Type>::extractImage(Type *Array, int *dim, long channel) {
@@ -526,9 +525,9 @@ template <class Type>
 std::vector<PixelInfo::Scan<Type> > Image2D<Type>::findSources1D() {
     
     std::vector<bool> thresholdedArray(axisDim[0]);
-        for(int posX=0;posX<axisDim[0];posX++){
-            thresholdedArray[posX] = isDetection(posX,0);
-        }
+    for(int posX=0;posX<axisDim[0];posX++){
+        thresholdedArray[posX] = isDetection(posX,0);
+    }
     return spectrumDetect(thresholdedArray);
 }
 template std::vector<PixelInfo::Scan<short> > Image2D<short>::findSources1D();
@@ -545,7 +544,7 @@ std::vector<Object2D<Type> > Image2D<Type>::findSources2D() {
     for(int posY=0;posY<axisDim[1];posY++) {
         for(int posX=0;posX<axisDim[0];posX++) {
             int loc = posX + axisDim[0]*posY;
-                thresholdedArray[loc] = isDetection(posX,posY);
+            thresholdedArray[loc] = isDetection(posX,posY);
         }
     }
     return imageDetect(thresholdedArray);
@@ -636,9 +635,7 @@ std::vector<Object2D<Type> > Image2D<Type>::imageDetect(std::vector<bool> &array
     ///  detected in each row are compared to objects in subsequent rows,
     ///  and combined if they are connected (in an 8-fold sense).
     /// 
-    
-    
-    
+        
     long xdim = axisDim[0];
     long ydim = axisDim[1];
     std::vector<Object2D<Type> > outputlist;
@@ -649,7 +646,6 @@ std::vector<Object2D<Type> > Image2D<Type>::imageDetect(std::vector<bool> &array
     std::vector<FoundObject<Type> > oS;
     std::vector<STATUS>      psS;
     
-
     Pixel<Type> pix;
     size_t loc=0;
 
