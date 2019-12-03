@@ -29,7 +29,7 @@
 #include <Tasks/galfit.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/conv2D.hh>
-
+#include <functional>
 
 namespace Model {
 
@@ -271,7 +271,10 @@ template double Galfit<double>::mtry(Rings<double>*,double**,double*,double*,con
 template <class T>
 T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
-
+    static std::uniform_real_distribution<float> uniform = std::uniform_real_distribution<float>(0.,1.);
+    static std::mt19937 generator(-1);
+    static auto fran = std::bind(uniform, generator);
+    
 //    T vrot  = dring->vrot.front();
 //    T vdisp = dring->vdisp.front();
 //    T dens  = dring->dens.front();
@@ -307,9 +310,11 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
             switch(i) {
             case VROT:
                 for (int j=0; j<n; j++) {
-                    float minv = (inr->vrot[w_r]-par.DELTAVROT)>=mins[VROT] ? inr->vrot[w_r]-par.DELTAVROT : mins[VROT];
-                    float maxv = (inr->vrot[w_r]+par.DELTAVROT)>=maxs[VROT] ? inr->vrot[w_r]+par.DELTAVROT : mins[VROT];
-                    vrot[j] = (zpar[np]<minv || zpar[np]>maxv) ? inr->vrot[w_r] : zpar[np];
+                    double minv = (inr->vrot[w_r]-par.DELTAVROT)>mins[VROT] ? inr->vrot[w_r]-par.DELTAVROT : mins[VROT];
+                    double maxv = (inr->vrot[w_r]+par.DELTAVROT)<maxs[VROT] ? inr->vrot[w_r]+par.DELTAVROT : maxs[VROT];
+                    if (zpar[j]>maxv) vrot[j]= maxv - fran()*par.DELTAVROT;
+                    else if (zpar[j]<minv) vrot[j]= minv + fran()*par.DELTAVROT;
+                    else vrot[j] = zpar[np];
                     zpar[np++] = vrot[j];
                 }
                 break;
@@ -336,18 +341,22 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
             case INC:
                 for (int j=0; j<n; j++) {
-                    float mini = (inr->inc[w_r]-par.DELTAINC)>=mins[INC] ? inr->inc[w_r]-par.DELTAINC : mins[INC];
-                    float maxi = (inr->inc[w_r]+par.DELTAINC)>=maxs[INC] ? inr->inc[w_r]+par.DELTAINC : mins[INC];
-                    inc[j] = (zpar[np]<mini || zpar[np]>maxi) ? inr->inc[w_r] : zpar[np];
+                    float mini = (inr->inc[w_r]-par.DELTAINC)>mins[INC] ? inr->inc[w_r]-par.DELTAINC : mins[INC];
+                    float maxi = (inr->inc[w_r]+par.DELTAINC)<maxs[INC] ? inr->inc[w_r]+par.DELTAINC : maxs[INC];
+                    if (zpar[j]>maxi) inc[j]= maxi - fran()*par.DELTAINC;
+                    else if (zpar[j]<mini) inc[j]= mini + fran()*par.DELTAINC;
+                    else inc[j] = zpar[np];
                     zpar[np++] = inc[j];
                 }
                 break;
 
             case PA:
                 for (int j=0; j<n; j++) {
-                    float minp = (inr->phi[w_r]-par.DELTAPHI)>=mins[PA] ? inr->phi[w_r]-par.DELTAPHI : mins[PA];
-                    float maxp = (inr->phi[w_r]+par.DELTAPHI)>=maxs[PA] ? inr->phi[w_r]+par.DELTAPHI : mins[PA];
-                    phi[j] = (zpar[np]<minp || zpar[np]>maxp) ?  inr->phi[w_r] : zpar[np];
+                    float minp = (inr->phi[w_r]-par.DELTAPHI)>mins[PA] ? inr->phi[w_r]-par.DELTAPHI : mins[PA];
+                    float maxp = (inr->phi[w_r]+par.DELTAPHI)<maxs[PA] ? inr->phi[w_r]+par.DELTAPHI : maxs[PA];
+                    if (zpar[j]>maxp) phi[j]= maxp - fran()*par.DELTAPHI;
+                    else if (zpar[j]<minp) phi[j]= minp + fran()*par.DELTAPHI;
+                    else phi[j] = zpar[np];                    
                     zpar[np++] = phi[j];
                 }
                 break;
