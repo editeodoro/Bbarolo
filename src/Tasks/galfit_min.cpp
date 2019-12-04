@@ -24,12 +24,12 @@
 #include <iostream>
 #include <cfloat>
 #include <cmath>
+#include <functional>
 #include <Arrays/cube.hh>
 #include <Tasks/galmod.hh>
 #include <Tasks/galfit.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/conv2D.hh>
-#include <functional>
 
 namespace Model {
 
@@ -312,8 +312,8 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
                 for (int j=0; j<n; j++) {
                     double minv = (inr->vrot[w_r]-par.DELTAVROT)>mins[VROT] ? inr->vrot[w_r]-par.DELTAVROT : mins[VROT];
                     double maxv = (inr->vrot[w_r]+par.DELTAVROT)<maxs[VROT] ? inr->vrot[w_r]+par.DELTAVROT : maxs[VROT];
-                    if (zpar[j]>maxv) vrot[j]= maxv - fran()*par.DELTAVROT;
-                    else if (zpar[j]<minv) vrot[j]= minv + fran()*par.DELTAVROT;
+                    if (zpar[np]>maxv) vrot[j]= maxv - fran()*par.DELTAVROT;
+                    else if (zpar[np]<minv) vrot[j]= minv + fran()*par.DELTAVROT;
                     else vrot[j] = zpar[np];
                     zpar[np++] = vrot[j];
                 }
@@ -341,10 +341,10 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
             case INC:
                 for (int j=0; j<n; j++) {
-                    float mini = (inr->inc[w_r]-par.DELTAINC)>mins[INC] ? inr->inc[w_r]-par.DELTAINC : mins[INC];
-                    float maxi = (inr->inc[w_r]+par.DELTAINC)<maxs[INC] ? inr->inc[w_r]+par.DELTAINC : maxs[INC];
-                    if (zpar[j]>maxi) inc[j]= maxi - fran()*par.DELTAINC;
-                    else if (zpar[j]<mini) inc[j]= mini + fran()*par.DELTAINC;
+                    double mini = (inr->inc[w_r]-par.DELTAINC)>mins[INC] ? inr->inc[w_r]-par.DELTAINC : mins[INC];
+                    double maxi = (inr->inc[w_r]+par.DELTAINC)<maxs[INC] ? inr->inc[w_r]+par.DELTAINC : maxs[INC];
+                    if (zpar[np]>maxi) inc[j]= maxi;//- fran()*par.DELTAINC;
+                    else if (zpar[np]<mini) inc[j]= mini;// + fran()*par.DELTAINC;
                     else inc[j] = zpar[np];
                     zpar[np++] = inc[j];
                 }
@@ -352,10 +352,10 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
             case PA:
                 for (int j=0; j<n; j++) {
-                    float minp = (inr->phi[w_r]-par.DELTAPHI)>mins[PA] ? inr->phi[w_r]-par.DELTAPHI : mins[PA];
-                    float maxp = (inr->phi[w_r]+par.DELTAPHI)<maxs[PA] ? inr->phi[w_r]+par.DELTAPHI : maxs[PA];
-                    if (zpar[j]>maxp) phi[j]= maxp - fran()*par.DELTAPHI;
-                    else if (zpar[j]<minp) phi[j]= minp + fran()*par.DELTAPHI;
+                    double minp = (inr->phi[w_r]-par.DELTAPHI)>mins[PA] ? inr->phi[w_r]-par.DELTAPHI : mins[PA];
+                    double maxp = (inr->phi[w_r]+par.DELTAPHI)<maxs[PA] ? inr->phi[w_r]+par.DELTAPHI : maxs[PA];
+                    if (zpar[np]>maxp) phi[j]= maxp;//- fran()*par.DELTAPHI;
+                    else if (zpar[np]<minp) phi[j]= minp;//+ fran()*par.DELTAPHI;
                     else phi[j] = zpar[np];                    
                     zpar[np++] = phi[j];
                 }
