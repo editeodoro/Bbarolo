@@ -38,21 +38,21 @@ if sys.argv[1]=='sdist':
     # If we are creating the sdist package, make a tar with BB source
     try: remove_tree("pyBBarolo/BBarolo")
     except: pass
-    try: remove_tree("pyBBarolo/BBarolo.tar.gz")
+    try: os.remove("pyBBarolo/BBarolo.tar.gz")
     except: pass
-    mkpath("pyBBarolo/BBarolo")    
+    mkpath("pyBBarolo/BBarolo")
     subprocess.call("cp -r src/ pyBBarolo/BBarolo/src", shell=True,stdout=f)
     subprocess.call("cp -r config/ pyBBarolo/BBarolo/config", shell=True,stdout=f)
     subprocess.call("cp -r configure pyBBarolo/BBarolo/", shell=True,stdout=f)
     subprocess.call("cp -r Makefile.in pyBBarolo/BBarolo/", shell=True,stdout=f)
     subprocess.call("cp -r Makefile.in pyBBarolo/BBarolo/", shell=True,stdout=f)
     subprocess.call("rm -rf pyBBarolo/BBarolo/src/Build", shell=True,stdout=f)
-    subprocess.call("cd pyBBarolo && tar -czvf BBarolo.tar.gz BBarolo", shell=True,stdout=f)
-    remove_tree("pyBBarolo/BBarolo")
-    
+    subprocess.call("tar -czf ./pyBBarolo/BBarolo.tar.gz -C ./pyBBarolo BBarolo", shell=True,stdout=f)
+    remove_tree("pyBBarolo/BBarolo/")
+
     # If we creating the dist, additional file is the tar just created
     package_data = {'pyBBarolo': ['*.tar.gz']}
-    
+
 else:
     print ("------ Installing pyBBarolo v%s ------"%version)
     

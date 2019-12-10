@@ -543,6 +543,17 @@ void Galfit<T>::galfit() {
 //    }
 //    else {
     
+
+    // Normalizing input data cube such that the maximum value is =10.
+    // This helps the convergence of the algorithm and 
+    // avoid problems with small flux values. 
+    double scaling = 1;
+    if (par.NORMALCUBE) {
+        if (!in->StatsDef()) in->setCubeStats();
+        scaling = 10./in->stat().getMax();
+        for (auto i=in->NumPix(); i--;) in->Array(i) *= scaling;
+    }
+    
     T ***errors = allocate_3D<T>(inr->nr,2,nfree);
     bool fitok[inr->nr];
     double toKpc = KpcPerArc(distance);
@@ -550,7 +561,7 @@ void Galfit<T>::galfit() {
     
     bool cumulative = par.CUMULATIVE;
     int nthreads = cumulative ? 1 : in->pars().getThreads();
-    
+
 #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
     for (int ir=start_rad; ir<inr->nr; ir++) {
         
@@ -808,6 +819,9 @@ void Galfit<T>::galfit() {
         cout << fixed << setprecision(2) << setfill(' ');
         in->pars().setVerbosity(true);
     }
+    
+    // Scaling back to original values
+    if (par.NORMALCUBE) for (auto i=in->NumPix(); i--;) in->Array(i) /= scaling;
     
 }
 template void Galfit<float>::galfit();
