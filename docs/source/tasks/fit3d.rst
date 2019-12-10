@@ -57,6 +57,8 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **DELTAPA** [15]. This parameter fixes the boundaries of parameter space at [PA-DELTAINC, PA+DELTAPA]. It is not advisable to let the position angle varying over the whole range [0,360].
 
+* **DELTAVROT** [inf] (BBarolo v1.5.1+). This parameter fixes the boundaries of parameter space at [VROT-DELTAVROT, VROT+DELTAVROT]. Default is not to limit rotation velocity.
+
 * **FREE** [VROT VDISP INC PA]. The list of parameters to fit. Can be any combination of VROT, VDISP, VRAD, VSYS, INC, PA, Z0, XPOS, YPOS.
 
 * **FTYPE** [2]. Function to be minimized. Accepted values are: 1 = chi-squared, 2 = \|mod-obs\|, (default) and 3 = \|mod-obs\|/(mod+obs)).
@@ -103,7 +105,7 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **PLOTMASK** [false]. If true, the mask contour is overlayed on the channel maps and PVs plots.
 
-* **NOISERMS** [0]. Available only for v1.4.2+. Add some RMS noise to the model data cube.
+* **NORMALCUBE** [true] (BBarolo v1.5.1+). If true, the input cube is normalized before the fit. This usually helps convergence and avoids issues with very small flux values.
 
 
 Additional parameters for high-z galaxies 
