@@ -633,7 +633,6 @@ void Galfit<T>::galfit() {
         else
             fitok[ir] = minimize(dring, minimum, pmin, NULL);
         
-        
         if (!fitok[ir]) continue;
         
         

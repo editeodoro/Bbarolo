@@ -23,9 +23,11 @@
 
 #include <iostream>
 #include <cstring>
+#include <sstream>
 #include <cmath>
 #include <cctype>
 #include <vector>
+#include <algorithm>
 #include <fitsio.h>
 #include <wcslib/wcs.h>
 #include <wcslib/wcsunits.h>
@@ -258,7 +260,7 @@ bool Header::header_read (std::string fname) {
         Warning("HEADER ERROR: CRPIXs keywords not found.");
         return false;
     }
-    
+        
     status=0;
     fits_read_keys_dbl (fptr, "CRVAL", 1, numAxes, crval, &nfound, &status);
     if (nfound==0) {

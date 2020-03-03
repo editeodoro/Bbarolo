@@ -212,18 +212,17 @@ void Cube<T>::checkBeam() {
     
     // If beam size is not defined in the header
     if (head.BeamArea()==0) {
-        // Try if BMAJ, BMIN, BPA parameters are defined
-        float arcconv = arcsconv(head.Cunit(0));
-        float bmaj = par.getBmaj()/arcconv;
-        float bmin = par.getBmin()/arcconv;
+        // Try if BMAJ, BMIN, BPA parameters are defined (in arcs)
+        float bmaj = par.getBmaj()/3600.;
+        float bmin = par.getBmin()/3600.;
         float bpa  = par.getBpa();
         
         if (bmaj>0 && bmin>0);
         else if (bmaj>0 && bmin<0) bmin = bmaj;
-        else bmaj = bmin = par.getBeamFWHM();   // Try BEAMFWHM
+        else bmaj = bmin = par.getBeamFWHM();   // Try BEAMFWHM (is already in deg)
         
         std::cout << "\n WARNING: Beam not available in the header: using a "
-                  << bmaj*arcconv << "x" << bmin*arcconv << " arcsec (BPA=" << bpa 
+                  << bmaj*3600. << "x" << bmin*3600. << " arcsec (BPA=" << bpa 
                   << "). You can set the beam with BMAJ/BMIN/BPA or BeamFWHM params (in arcsec).\n\n";
         head.setBmaj(bmaj);
         head.setBmin(bmin);
@@ -287,7 +286,7 @@ bool Cube<T>::readCube (std::string fname) {
     if (head.NumAx()<3) axisDim[2] = 1;
     if (head.NumAx()<2) axisDim[1] = 1;
     numPix = axisDim[0]*axisDim[1]*axisDim[2];
-    if (!fitsread_3d()) return false;   
+    if (!fitsread_3d()) return false;
     objectList = new std::vector<Detection<T> >; 
     detectMap = new short [axisDim[0]*axisDim[1]];
     mapAllocated = true;
@@ -337,10 +336,10 @@ bool Cube<T>::fitsread_3d() {
         fits_report_error(stderr, status);
     }
 
-    ///////// I need to solve the problem with NANs in a better way ////////////////////////////
+    ///////// I need to solve the problem with NANs in a better way ///////////////
     for (size_t i=numPix; i--;)
         if (isNaN(array[i])) array[i] = 0;
-    ////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
 
     if (par.isVerbose()) std::cout << "Done.\n" << std::endl;
 
@@ -502,7 +501,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     Statistics::Stats<T> *st = new Statistics::Stats<T>;
     st->setRobust(par.getFlagRobustStats());
 
-    if (par.getMASK()=="SEARCH") {
+    if (par.getMASK().find("SEARCH")!=std::string::npos) {
         // Masking using the search algorithm.
         if (!isSearched) Search();
         
@@ -532,7 +531,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             
         }
     }
-    else if (par.getMASK()=="SMOOTH&SEARCH") {
+    else if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
         // Smoothing first and searching for the largest object
         double bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
         double bmin  = head.Bmin()*arcsconv(head.Cunit(0));

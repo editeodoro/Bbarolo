@@ -530,29 +530,9 @@ void Detection<T>::calcWCSparams(Header &head) {
  
     haveParams = true;
 
-    std::string cunit = head.Cunit(0);  
-    double arcsconv, degconv;
-    if (cunit=="DEGREE" || cunit=="DEGREES" || cunit=="DEG" ||
-        cunit=="degree" || cunit=="degrees" || cunit=="deg") {
-        degconv  = 1;
-        arcsconv = 3600;
-    }
-    else if (cunit=="ARCSEC" || cunit=="ARCS" ||
-             cunit=="arcsec" || cunit=="arcs") {
-        degconv  = 1/3600.;
-        arcsconv = 1;
-    }
-    else if (cunit=="ARCMIN" || cunit=="ARCM" ||
-             cunit=="arcmin" || cunit=="arcm") {
-        degconv  = 1/60.;
-        arcsconv = 60;
-    }
-    else {
-        std::cout << "Error (unknown CUNIT for RA-DEC): ";
-        std::cout << "cannot convert to ARCSEC.\n";
-        std::cout << cunit;
-        std::terminate();
-    }
+    std::string cunit = head.Cunit(1);
+    double arcconv = arcsconv(cunit);
+    double degconv = arcconv/3600.;
     
     lngtype = head.Ctype(0);
     lattype = head.Ctype(1);
@@ -573,12 +553,12 @@ void Detection<T>::calcWCSparams(Header &head) {
     raMax *= degconv;
     deMin *= degconv;
     deMax *= degconv;
-    raWidth   = angularSeparation(raMin,dec,raMax,dec)*arcsconv;
-    decWidth  = angularSeparation(ra,deMin,ra,deMax)*arcsconv;
+    raWidth   = angularSeparation(raMin,dec,raMax,dec)*arcconv;
+    decWidth  = angularSeparation(ra,deMin,ra,deMax)*arcconv;
 
     Object2D<T> spatMap = this->getSpatialMap();
     std::pair<double,double> axes = spatMap.getPrincipleAxes();
-    float PixScale = ((fabs(head.Cdelt(0))+fabs(head.Cdelt(1)))/2.)*arcsconv;
+    float PixScale = ((fabs(head.Cdelt(0))+fabs(head.Cdelt(1)))/2.)*arcconv;
     majorAxis = std::max(axes.first,axes.second)*PixScale;
     minorAxis = std::min(axes.first,axes.second)*PixScale;
     posang = spatMap.getPositionAngle()*180./M_PI;
@@ -592,7 +572,6 @@ void Detection<T>::calcWCSparams(Header &head) {
     velWidth = fabs(velMax-velMin);
 
     flagWCS = true;
-    
 
 }
   //--------------------------------------------------------------------

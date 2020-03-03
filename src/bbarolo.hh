@@ -68,7 +68,10 @@ bool BBcore (Param *par) {
     
     
     /// Mask making utility ----------------------------------------
-    if (par->getMakeMask()) c->BlankMask(NULL,false);
+    if (par->getMakeMask()) {
+        if (par->getMASK().find("LARGEST")!=std::string::npos) c->BlankMask(NULL,true);
+        else c->BlankMask(NULL,false);
+    }
     // --------------------------------------------------------------
     
     
@@ -228,12 +231,12 @@ bool BBcore (Param *par) {
     if (par->getFlagSlitfit()) {
         Model::Galfit<float> *sfit = new Model::Galfit<float>;
         sfit->slit_init(c);
-        sfit->galfit();
-        if (par->getParGF().TWOSTAGE) {
-            sfit->SecondStage();
-            sfit->writeModel_slit();
-        }
-        else sfit->writeModel_slit();
+        //sfit->galfit();
+        //if (par->getParGF().TWOSTAGE) {
+        //    sfit->SecondStage();
+        //    sfit->writeModel_slit();
+        //}
+        //else sfit->writeModel_slit();
     }
     //-----------------------------------------------------------------
 

@@ -40,9 +40,13 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     Param *p = &c->pars();
     par = p->getParGF();
     
+    
+    
     p->getParSE().minChannels = 1;
     p->getParSE().minPix = in->DimX();
     in->Search();
+        
+    
     int numObj = in->getObjectList().size();
     if (numObj==0)  {
         std::cout << "SLITFIT error: No lines detected in the datacube. Cannot fit!!! \n";
@@ -55,7 +59,8 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         for (int i=0; i<numObj; i++)
             if (i!=n) in->pObjectList()->erase(in->pObjectList()->begin()+i);
     }
-
+    
+    
     // Setting wavelegths
     Image2D<float> *Wave = new Image2D<float>;
     Wave->Head().setWarning(false);

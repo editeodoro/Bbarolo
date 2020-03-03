@@ -587,7 +587,7 @@ void Cube<T>::rejectObjects(std::vector<Detection<T> > &objList) {
     }
 
     int maxchan = par.getParSE().maxChannels;
-    float maxsize = par.getParSE().maxAngSize/(head.PixScale()*arcsconv(head.Cunit(0))/60.);
+    float maxsize = par.getParSE().maxAngSize/(head.PixScale()*arcsconv(head.Cunit(1))/60.);
 
     std::vector<Detection<T> > newlist;
 
@@ -888,7 +888,6 @@ void Cube<T>::plotDetections() {
     det->Head().setMinMax(0,0);
     det->fitswrite_3d((par.getOutfolder()+"detections.fits").c_str());
     delete det;
-
 
     for (int y=0; y<axisDim[1]; y++) {
         if (par.isVerbose()) bar.update(y+1);

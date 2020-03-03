@@ -435,7 +435,7 @@ int Param::readParams(std::string paramfile) {
             if(arg=="wavefile")   wavefile = readFilename(ss);
             if(arg=="ivarfile")   ivarfile = readFilename(ss);
             if(arg=="linetofit")  linetofit = readFilename(ss);
-
+            
             if (arg=="flagpv")    flagPV = readFlag(ss);
             if (arg=="xpos_pv")   XPOS_PV = readFval(ss);
             if (arg=="ypos_pv")   YPOS_PV = readFval(ss);
@@ -487,8 +487,9 @@ bool Param::checkPars() {
 
     // Checking MASK parameter
     std::string maskstr = makeupper(MaskType);
-    if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" ||
-        maskstr=="THRESHOLD" || maskstr=="NEGATIVE" ||  maskstr=="SMOOTH&SEARCH") {
+    if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" || maskstr=="SEARCHLARGEST" ||
+        maskstr=="THRESHOLD" || maskstr=="NEGATIVE" ||  maskstr=="SMOOTH&SEARCH"  || 
+        maskstr=="SMOOTH&SEARCHLARGEST") {
         MaskType = maskstr;
     }
     else if (maskstr.find("FILE(")!=std::string::npos) {
@@ -635,7 +636,7 @@ bool Param::checkPars() {
          //   std::terminate();
         //}
         
-        if (flagSlitfit) {
+        if (flagSlitfit & parGF.flagGALFIT) {
             checkHome(wavefile);
             checkHome(ivarfile);
             std::cout<< "3DFIT WARNING: Galfit and Slitfit cannot be run at the same time. "
@@ -1006,9 +1007,10 @@ void printParams (std::ostream& Str, Param &p, bool defaults) {
     }
     
     // GALMOD & 3DFIT parameters
+    recordParam(Str, "[SLITFIT]", "Fitting a model to slitdata?", stringize(p.getFlagSlitfit()));
     recordParam(Str, "[GALMOD]", "Writing a 3D model?", stringize(p.getflagGalMod()));    
     recordParam(Str, "[3DFIT]", "Fitting a 3D model to the datacube?", stringize(p.getflagGalFit()));
-    if (p.getflagGalFit() || p.getflagGalMod() || p.getflagSpace() || defaults) {
+    if (p.getflagGalFit() || p.getflagGalMod() || p.getflagSpace() || p.getFlagSlitfit() || defaults) {
         if (defaults) {
             recordParam(Str, "[RADII]", "   Radii for rings", p.getParGF().RADII);
             recordParam(Str, "[NRADII]", "   Number of radii", p.getParGF().NRADII);

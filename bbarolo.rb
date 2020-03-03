@@ -20,7 +20,7 @@ class Bbarolo < Formula
   depends_on "fftw"
   depends_on "wcslib"
   depends_on "gnuplot" => :optional
-
+  
   def install
     # BBarolo requires a c++11 compiler
     ENV.cxx11
