@@ -187,7 +187,7 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
 
     // Reading input rings from parameter file
     Rings<T> *inR = readRings<T>(c->pars().getParGF(), c->Head());
-    setFromCube(c,inR);
+    setFromCube(c,inR);    
     delete inR;
 
 }
@@ -244,7 +244,7 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
         segments[3]=-90;
     }
     if (meanPA>180) std::swap(segments[2], segments[3]);
-
+    
     // Extracting moment map
     im = new MomentMap<T>;
     im->input(c);
@@ -253,7 +253,7 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
     else {
         bool v = c->pars().isVerbose();
         c->pars().setVerbosity(false);
-        im->SumMap(false);
+        im->SumMap(true);
         c->pars().setVerbosity(v);
     }
     

@@ -500,38 +500,8 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
 
     Statistics::Stats<T> *st = new Statistics::Stats<T>;
     st->setRobust(par.getFlagRobustStats());
-
-    if (par.getMASK().find("SEARCH")!=std::string::npos) {
-        // Masking using the search algorithm.
-        if (!isSearched) Search();
-        
-        uint numObj = getNumObj();
-        if (numObj==0) {
-            std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
-            std::terminate();
-        }
-        
-        if (onlyLargest || numObj==1) {
-            Detection<T> *larg = LargestDetection();
-            std::vector<Voxel<T> > voxlist = larg->getPixelSet();
-            typename std::vector<Voxel<T> >::iterator vox;
-            for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-                mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
-            }
-        }
-        else {
-            for (auto i=0; i<numObj; i++) {
-                Detection<T> *obj = pObject(i);
-                std::vector<Voxel<T> > voxlist = obj->getPixelSet();
-                typename std::vector<Voxel<T> >::iterator vox;
-                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
-                }
-            }
-            
-        }
-    }
-    else if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
+    
+    if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
         // Smoothing first and searching for the largest object
         double bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
         double bmin  = head.Bmin()*arcsconv(head.Cunit(0));
@@ -542,7 +512,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
         Beam oldbeam = {bmaj,bmin,bpa};
         Beam newbeam = {nbmaj,nbmin,nbpa};
-
+        
         Smooth3D<T> *sm = new Smooth3D<T>;
         sm->smooth(this, oldbeam, newbeam);
         
@@ -550,8 +520,8 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         smoothed->setCube(sm->Array(),axisDim);
         smoothed->saveHead(head);
         smoothed->saveParam(par);
-        smoothed->Head().setBmaj(nbmaj);
-        smoothed->Head().setBmin(nbmin);
+        smoothed->Head().setBmaj(nbmaj/3600.);
+        smoothed->Head().setBmin(nbmin/3600.);
         smoothed->Head().setBpa(nbpa);
         smoothed->Head().calcArea();
         smoothed->setCubeStats();
@@ -584,11 +554,34 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         delete smoothed;
         delete sm;
     }
-    else if (par.getMASK()=="THRESHOLD") {
-        // Simple cut
-        float thresh = par.getParSE().threshold;
-        for (uint i=numPix; i--;) {
-            if (array[i]>thresh) mask[i] = 1;
+    else if (par.getMASK().find("SEARCH")!=std::string::npos) {
+        // Masking using the search algorithm.
+        if (!isSearched) Search();
+        
+        uint numObj = getNumObj();
+        if (numObj==0) {
+            std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
+            std::terminate();
+        }
+        
+        if (onlyLargest || numObj==1) {
+            Detection<T> *larg = LargestDetection();
+            std::vector<Voxel<T> > voxlist = larg->getPixelSet();
+            typename std::vector<Voxel<T> >::iterator vox;
+            for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+            }
+        }
+        else {
+            for (auto i=0; i<numObj; i++) {
+                Detection<T> *obj = pObject(i);
+                std::vector<Voxel<T> > voxlist = obj->getPixelSet();
+                typename std::vector<Voxel<T> >::iterator vox;
+                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+                }
+            }
+            
         }
     }
     else if (par.getMASK()=="SMOOTH") {
@@ -643,6 +636,13 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         delete sm;
         delete [] blanks;
     }
+    else if (par.getMASK()=="THRESHOLD") {
+        // Simple cut
+        float thresh = par.getParSE().threshold;
+        for (uint i=numPix; i--;) {
+            if (array[i]>thresh) mask[i] = 1;
+        }
+    }
     else if (par.getMASK()=="NEGATIVE") {
         for (int z=0; z<DimZ(); z++) {
             std::vector<T> onlyneg;
@@ -692,7 +692,8 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     }
     else if (par.getMASK()=="NONE") {
         for (uint i=numPix; i--;) {
-            if (array[i]>0) mask[i] = 1;
+            //if (array[i]>0) 
+                mask[i] = 1;
         }
     }
 

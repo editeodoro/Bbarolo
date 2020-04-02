@@ -318,6 +318,13 @@ void Spacepar<T>::plotAll_Python() {
     std::string outfold = Galfit<T>::in->pars().getOutfolder();
     std::string object  = Galfit<T>::in->Head().Name();
     std::string fname   = outfold+"spacepar_"+object+".fits";
+    
+    // Writing parameter space as variation from minimum
+    size_t ms = parspace->DimX()*parspace->DimY();
+    for (int z=0; z<parspace->DimZ(); z++) {
+        float minval = *min_element(&parspace->Array()[z*ms], &parspace->Array()[z*ms]+ms);
+        for (int i=0; i<ms; i++) parspace->Array(z*ms+i) = fabs(parspace->Array(z*ms+i)-minval)/minval;
+    }
     parspace->fitswrite_3d(fname.c_str());
     
     // Writing python script for output plots
@@ -329,7 +336,9 @@ void Spacepar<T>::plotAll_Python() {
             << "import numpy as np\n" 
             << "import matplotlib\n"
             << "import matplotlib.pyplot as plt\n"
-            << "from astropy.io import fits\n" 
+            << "from astropy.io import fits\n"
+            << "from astropy.convolution import convolve,Gaussian2DKernel\n"
+                
             << "matplotlib.rc('xtick',direction='in')\n" 
             << "matplotlib.rc('ytick',direction='in')\n" 
             << "matplotlib.rc('font',family='sans-serif',serif='Helvetica',size=10)\n\n"
@@ -365,13 +374,16 @@ void Spacepar<T>::plotAll_Python() {
             << "for i in range (nrad):\n"
             << "\tnr = int(i/ncols) + 1\n"
             << "\tnc = i - (nr-1)*ncols + 1\n"   
-            << "\ttoplot = d[i]\n"
+            << "\ttoplot = 100*d[i]\n"
+            << "\ttoplot_sm = convolve(toplot,Gaussian2DKernel(x_stddev=1),boundary='extend')\n"
             << "\ta = np.unravel_index(np.argmin(toplot),toplot.shape)\n"
             << "\tp1min, p2min = p1ran[a[1]], p2ran[a[0]]\n"
             << "\tax = axis[i]\n"
             << "\tax.set_xlim(ext[0],ext[1])\n"
             << "\tax.set_ylim(ext[2],ext[3])\n"
             << "\tax.imshow(toplot,origin='lower',extent=ext,aspect='auto',cmap=cmap)\n"
+            << "\tcs = ax.contour(toplot_sm,levels=[2,5,10,30],colors='w',origin='lower',extent=ext)\n"
+            << "\tax.clabel(cs, cs.levels, inline=True, fmt='%.0f', fontsize=9)\n"
             << "\tax.plot(p1min,p2min,'x',mew=2,ms=8,c='w')\n"
             << "\tradstr = 'R = %.2f %s'%(rings[i],ru)\n"
             << "\tminstr = 'min = (%.1f %s, %.1f %s)'%(p1min,p1u,p2min,p2u)\n"
