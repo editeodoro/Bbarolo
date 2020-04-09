@@ -316,6 +316,9 @@ bool Header::header_read (std::string fname) {
     else {
         for (int i=0; i<numAxes; i++) {
             cunit[i] = Cunit[i];
+            // Fixing "s-1" problem in CUNIT3
+            if (cunit[i].find("km s-1")!=std::string::npos) cunit[i] = "km/s";
+            if (cunit[i].find("m s-1")!=std::string::npos) cunit[i] = "m/s";
         }
     }
 
@@ -341,6 +344,9 @@ bool Header::header_read (std::string fname) {
         bunit = "NONE";
     }
     else bunit = Bunit;
+    if (bunit.find("beam-1 Jy")!=std::string::npos ||
+        bunit.find("Jy beam-1")!=std::string::npos) 
+            bunit = "JY/BEAM";
     
     status=0;
     if (fits_read_key_str (fptr, "BTYPE", Btype, comment, &status)) {
@@ -406,7 +412,6 @@ bool Header::header_read (std::string fname) {
         }
     }
 
-
     status=0;
     if (fits_read_key_dbl (fptr, "CROTA", &crota, comment, &status)) {
         crota = 0;
@@ -424,7 +429,7 @@ bool Header::header_read (std::string fname) {
         if (object[i]=='/' || object[i]=='\\') object.replace(i,1, "-");
         if (object[i]=='(' || object[i]==')')  object.replace(i,1, "-");
         if (isspace(object[i])) object.replace(i,1, "_");
-    }
+    }    
 
     status = 0;
     if (fits_read_key_str (fptr, "TELESCOP", Tel, comment, &status)) {
@@ -503,7 +508,7 @@ bool Header::header_read (std::string fname) {
                       << "  BPA = "  << bpa  << " DEGREE\n";
             std::cout << " It is heartly recommended to check these values before going on!!\n\n";
         }
-    }
+    }    
     
     char bm[30];
     status=0;
@@ -524,7 +529,6 @@ bool Header::header_read (std::string fname) {
     
     if (clbmaj!=0) bmaj = clbmaj/3600.;
     if (clbmin!=0) bmin = clbmin/3600.;
-
 
 
     int noComments = 1;     // fits_hdr2str will ignore COMMENT, HISTORY etc
@@ -555,11 +559,10 @@ bool Header::header_read (std::string fname) {
     // Re-do the corrections to account for things like NCP projections
     status = wcsfix(1, (const int*)dimAxes, wcs, stat);
 
-   char stype[5],scode[5],sname[22],units[8],ptype,xtype;
-   int restreq;
+    char stype[5],scode[5],sname[22],units[8],ptype,xtype;
+    int restreq;
 
-   status = spctyp(wcs->ctype[wcs->spec],stype,scode,sname,units,&ptype,&xtype,&restreq);
-
+    status = spctyp(wcs->ctype[wcs->spec],stype,scode,sname,units,&ptype,&xtype,&restreq);
 
     // Close the FITS File
     status=0;

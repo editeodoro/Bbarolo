@@ -537,7 +537,12 @@ bool Param::checkPars() {
     // Checking parameters for 3DFIT and GALMOD
     if (parGF.flagGALFIT || flagSpace || parGM.flagGALMOD || flagSlitfit) {
         std::string str =" is not an optional parameter. Please specify it in the input file or set flagSearch=true";
-
+        
+        if (parGF.flagGALFIT && parGM.flagGALMOD) {
+            std::cout << "3DFIT warning: 3DFIT and GALMOD can not be run at the same time. Turning off GALMOD.";
+            parGM.flagGALMOD = false;
+        }
+        
         if (parGF.NRADII==-1 && parGF.RADII=="-1")  {
             std::cout << "3DFIT error: NRADII or RADII" << str << std::endl;
             good = false;
