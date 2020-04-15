@@ -1367,6 +1367,10 @@ int Galfit<T>::plotAll_Python() {
             << "titles = ['DATA', 'MODEL','RESIDUAL'] \n"
             << "mapname = ['INTENSITY', 'VELOCITY', 'DISPERSION'] \n"
             << std::endl
+            << "maskmap = np.nansum(image_mas[0].data,axis=0).astype(np.float)[ymin:ymax+1,xmin:xmax+1]\n"
+            << "maskmap[maskmap>0]  = 1\n"
+            << "maskmap[maskmap==0] = np.nan\n"
+            << std::endl
             << "x = np.arange(0,xmax-xmin,0.1) \n"
             << "y = np.tan(np.radians(phi-90))*(x-xcen)+ycen \n"
             << "ext = [0,xmax-xmin,0, ymax-ymin] \n"
@@ -1407,7 +1411,7 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\taxis.tick_params(labelbottom='off',labelleft='off',right='on',top='on') \n"
             << "\t\t\taxis.set_xlim(ext[0],ext[1]) \n"
             << "\t\t\taxis.set_ylim(ext[2],ext[3]) \n"
-            << "\t\t\taxis.imshow(to_plot[j][i],origin='lower',cmap=cmaps[i],norm=norm,aspect='auto',extent=ext,interpolation='nearest') \n"
+            << "\t\t\taxis.imshow(to_plot[j][i]*maskmap,origin='lower',cmap=cmaps[i],norm=norm,aspect='auto',extent=ext,interpolation='nearest') \n"
             << "\t\t\taxis.plot(xcen,ycen,'x',color='#000000',markersize=7,mew=1.5) \n"
             << std::endl
             << "\t\t\tif i==0: axis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"
