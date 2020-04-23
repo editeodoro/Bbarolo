@@ -254,7 +254,7 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
     # Covers Linux and Solaris at least.
     AC_MSG_NOTICE([ Using alternative (linux) build option])
     SHRLIB="libBBarolo.so.$PACKAGE_VERSION"
-    SHRLD="$SHRLD -shared -Wl,-soname,$SHRLIB"
+    SHRLD="$SHRLD -shared -Wl,-soname,$SHRLIB -Wl,--no-as-needed"
     SHRLN="libBBarolo.so"
     ;;
   esac

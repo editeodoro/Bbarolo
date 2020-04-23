@@ -1401,7 +1401,8 @@ int Galfit<T>::plotAll_Python() {
             << std::endl
             << "\tfor i in range (nrows): \n"
             << "\t\tcmaps[i].set_bad('w',1.) \n"
-            << "\t\tvmin, vmax = interval.get_limits(to_plot[0][i]) \n"
+            << "\t\tvmin, vmax = interval.get_limits(to_plot[1][i]) \n"
+            << "\t\tvmin, vmax = (-1.1*np.nanmax(vmax),1.1*np.nanmax(vmax)) if i==1 else (vmin,vmax) \n"
             << "\t\tnorm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax) \n"
             << "\t\tcb = ColorbarBase(ax_cb[i], orientation='vertical', cmap=cmaps[i], norm=norm) \n"
             << "\t\tcb.solids.set_edgecolor('face') \n"
@@ -1414,7 +1415,9 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\taxis.imshow(to_plot[j][i]*maskmap,origin='lower',cmap=cmaps[i],norm=norm,aspect='auto',extent=ext,interpolation='nearest') \n"
             << "\t\t\taxis.plot(xcen,ycen,'x',color='#000000',markersize=7,mew=1.5) \n"
             << std::endl
-            << "\t\t\tif i==0: axis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"
+            << "\t\t\tif i==0: \n"
+            << "\t\t\t\taxis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"
+            << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"    
             << "\t\t\telif i==1: \n"
             << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
             << "\t\t\t\tif len(x_pix)<10: \n"

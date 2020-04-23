@@ -4934,7 +4934,7 @@ $as_echo "$as_me:  Using darwin build option with powerpc subcase" >&6;}
     { $as_echo "$as_me:${as_lineno-$LINENO}:  Using alternative (linux) build option" >&5
 $as_echo "$as_me:  Using alternative (linux) build option" >&6;}
     SHRLIB="libBBarolo.so.$PACKAGE_VERSION"
-    SHRLD="$SHRLD -shared -Wl,-soname,$SHRLIB"
+    SHRLD="$SHRLD -shared -Wl,-soname,$SHRLIB -Wl,--no-as-needed"
     SHRLN="libBBarolo.so"
     ;;
   esac
@@ -6025,7 +6025,8 @@ done
 test -n "$PYTHON_CONFIG" || PYTHON_CONFIG="no"
 
     if test "$PYTHON_CONFIG" = no; then :
-  as_fn_error $? "cannot find python-config for $PYTHON." "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find python-config for $PYTHON." >&5
+$as_echo "$as_me: WARNING: cannot find python-config for $PYTHON." >&2;}
 fi
 
 fi
