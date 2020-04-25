@@ -1,6 +1,6 @@
-FLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @OPENMP_CXXFLAGS@ @CFLAGS@  
-#FLAGS = -O0 -g -fbounds-check -Wall -Wextra @OPENMP_CXXFLAGS@ @CFLAGS@ 
-#FLAGS = -fast -Wall @OPENMP_CXXFLAGS@ @CFLAGS@ 
+FLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @OPENMP_CXXFLAGS@ @CFLAGS@
+#FLAGS = -O0 -g -fbounds-check -Wall -Wextra @OPENMP_CXXFLAGS@ @CFLAGS@
+#FLAGS = -fast -Wall @OPENMP_CXXFLAGS@ @CFLAGS@
 
 OPS = @OP@
 CC  = @CC@ $(CFLAGS) $(FLAGS)

@@ -970,7 +970,7 @@ int Galfit<T>::plotAll_Python() {
 
     py_file << "import numpy as np \n"
             << "import os \n"
-            << "import matplotlib \n"
+            << "import matplotlib as mpl \n"
             << "import matplotlib.pyplot as plt \n"
             << "import matplotlib.gridspec as gridspec \n"
             << "from matplotlib.colorbar import ColorbarBase \n"
@@ -978,9 +978,12 @@ int Galfit<T>::plotAll_Python() {
             << "from astropy.visualization import LinearStretch, PowerStretch \n"
             << "from astropy.visualization.mpl_normalize import ImageNormalize \n"
             << "from astropy.visualization import PercentileInterval \n"
-            << "matplotlib.rc('xtick',direction='in') \n"
-            << "matplotlib.rc('ytick',direction='in') \n\n";
-
+            << "mpl.rc('xtick',direction='in') \n"
+            << "mpl.rc('ytick',direction='in') \n"
+            << "mpl.rcParams['contour.negative_linestyle'] = 'solid' \n"
+            << "plt.rc('font',family='sans-serif',serif='Helvetica',size=10)  \n"
+            << "params = {'text.usetex': False, 'mathtext.fontset': 'cm', 'mathtext.default': 'regular', 'errorbar.capsize': 0} \n"
+            << "plt.rcParams.update(params) \n\n";
 
     py_file << "# PARAMETERS: plotting the fit parameters \n"
             << "gname = '" << in->Head().Name() <<"' \n"
@@ -1033,12 +1036,10 @@ int Galfit<T>::plotAll_Python() {
             << "f0 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_0mom.fits') \n"
             << "f1 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_1mom.fits') \n"
             << "f2 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_2mom.fits') \n"
-            << "bunit = f0[0].header['BUNIT'] \n\n";
+            << "bunit = f0[0].header['BUNIT'] \n"
+            << "bunit = bunit.replace(' ', '').lower() \n\n";
 
     py_file << "\nfig1=plt.figure(figsize=(11.69,8.27), dpi=150)  \n"
-            << "plt.rc('font',family='sans-serif',serif='Helvetica',size=10)  \n"
-            << "params = {'text.usetex': False, 'mathtext.fontset': 'cm', 'mathtext.default': 'regular', 'errorbar.capsize': 0} \n"
-            << "plt.rcParams.update(params) \n"
             << "fig_ratio = 11.69/8.27 \n"
             << "nrows, ncols = 3,3 \n"
             << "x_axis_length, y_axis_length = 0.27, 0.13 \n"
@@ -1055,7 +1056,7 @@ int Galfit<T>::plotAll_Python() {
 
     py_file << std::endl
             << "axis=ax[0][0]  \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')  \n"
+            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True)  \n"
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylim(0,1.2*max_vrot)  \n"
             << "axis.set_ylabel('v$_\\mathrm{rot}$ (km/s)', fontsize=14)  \n"
@@ -1066,7 +1067,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis=ax[1][0]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylabel('i (deg)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
+            << "axis.tick_params(axis='both',which='both',bottom=False,top=True,labelbottom=False,labelleft=True) \n"
             << "axis.errorbar(rad,inc, yerr=[err1_l[4],-err1_h[4]],fmt='o', color=color)  \n"
             << "if twostage: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o-', color=color2) \n";
 
@@ -1075,7 +1076,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylabel('$\\phi$ (deg)', fontsize=14)  \n"
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
+            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=True,labelleft=True)  \n"
             << "axis.errorbar(rad,pa, yerr=[err1_l[5],-err1_h[5]],fmt='o', color=color)  \n"
             << "if twostage: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o-', color=color2)  \n";
 
@@ -1084,7 +1085,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylim(0,1.2*max_vdisp)  \n"
             << "axis.set_ylabel('$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on') \n"
+            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True) \n"
             << "axis.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color)  \n"
             << "if twostage: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o', color=color2)  \n"   ;
     
@@ -1092,7 +1093,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis=ax[1][1]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylabel('x$_0$ (pix)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')   \n"
+            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True)   \n"
             << "axis.errorbar(rad,xpos, yerr=[err1_l[6],-err1_h[6]],fmt='o', color=color)  \n"
             << "if twostage: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o-', color=color2)  \n";
 
@@ -1101,7 +1102,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylabel('y$_0$ (pix)', fontsize=14)  \n"
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
+            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=True,labelleft=True)  \n"
             << "axis.errorbar(rad,ypos, yerr=[err1_l[7],-err1_h[7]],fmt='o', color=color)  \n"
             << "if twostage: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o-', color=color2) \n";
 
@@ -1109,14 +1110,14 @@ int Galfit<T>::plotAll_Python() {
             << "axis=ax[0][2]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylabel('$\\Sigma}$ ('+bunit+')', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='on')  \n"
+            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True)  \n"
             << "axis.errorbar(rad_sd,surfdens, yerr=sd_err,fmt='o', color=color2)  \n";
     /*
     py_file << std::endl
             << "axis=ax[1][2]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylabel('z$_0$ (arcs)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom='off',top='on',labelbottom='off',labelleft='on')  \n"
+            << "axis.tick_params(axis='both',which='both',bottom=False,top=True,labelbottom=False,labelleft=True)  \n"
             << "axis.errorbar(rad,z0, yerr=[err1_l[3],-err1_h[3]],fmt='o', color=color)  \n"
             << "if twostage==True: axis.errorbar(rad2,z02,yerr=[err2_l[3],-err2_h[3]],fmt='o-', color=color2)  \n";
     */
@@ -1124,7 +1125,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis=ax[1][2]  \n"
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylabel('V$_\\mathrm{rad}$ (km/s)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom='off',top='on',labelbottom='off',labelleft='on')  \n"
+            << "axis.tick_params(axis='both',which='both',bottom=False,top=True,labelbottom=False,labelleft=True)  \n"
             << "axis.errorbar(rad,vrad, yerr=[err1_l[9],-err1_h[9]],fmt='o', color=color)  \n"
             << "if twostage==True: axis.errorbar(rad2,vrad2,yerr=[err2_l[9],-err2_h[9]],fmt='o', color=color2)  \n";
 
@@ -1134,7 +1135,7 @@ int Galfit<T>::plotAll_Python() {
             << "axis.set_xlim(0,max_rad) \n"
             << "axis.set_ylabel('v$_\\mathrm{sys}$ (km/s)', fontsize=14) \n"
             << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
-            << "axis.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='on',labelleft='on')  \n"
+            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=True,labelleft=True)  \n"
             << "axis.errorbar(rad,vsys, yerr=[err1_l[8],-err1_h[8]],fmt='o', color=color)  \n"
             << "if twostage==True: axis.errorbar(rad2,vsys2,yerr=[err2_l[8],-err2_h[8]],fmt='o', color=color2) \n";
 
@@ -1187,7 +1188,6 @@ int Galfit<T>::plotAll_Python() {
             << "\tgrid[0].update(top=0.90, bottom=0.645, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
             << "\tgrid[1].update(top=0.60, bottom=0.345, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
             << "\tgrid[2].update(top=0.30, bottom=0.045, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
-            << "\tmatplotlib.rcParams['contour.negative_linestyle'] = 'solid' \n"
             << std::endl
             << "\tnum = 0 \n"
             << "\tfor j in range (0,3): \n"
@@ -1200,9 +1200,9 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
             << "\t\t\tvelo = ' v = ' + str(int(velo_kms)) + ' km/s' \n"
             << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
-            << "\t\t\tax.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
+            << "\t\t\tax.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=False) \n"
             << "\t\t\tax.set_title(velo, fontsize=10,loc='left') \n"
-            << "\t\t\tax.imshow(z,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
+            << "\t\t\tax.imshow(z,origin='lower',cmap = mpl.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
             << "\t\t\tax.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
             << "\t\t\tax.contour(z,v_neg,origin='lower',linewidths=0.1,colors='gray') \n"
             << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
@@ -1216,12 +1216,12 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\t\tax.annotate('', xy=(4.5, 1.4), xycoords='axes fraction', xytext=(5, 1.4),arrowprops=dict(arrowstyle='<->', color='k'))\n"
             << "\t\t\t\tax.text(4.75,1.50,ltex,transform=ax.transAxes,fontsize=11, ha='center')\n"
             << "\t\t\t\tbmaj, bmin, bpa = " << bmaj << "/float(xmax-xmin), " << bmin << "/float(ymax-ymin)," << bpa << std::endl
-            << "\t\t\t\tbeam = matplotlib.patches.Ellipse((3.5, 1.4), bmaj, bmin, bpa, color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
+            << "\t\t\t\tbeam = mpl.patches.Ellipse((3.5, 1.4), bmaj, bmin, bpa, color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
             << "\t\t\t\tax.add_artist(beam) \n"
             << "\t\t\t\tax.text(3.6+bmaj/1.8,1.4,'Beam',transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
             << "\t\t\tax = plt.subplot(grid[j][1,i]) \n"
-            << "\t\t\tax.tick_params(axis='both',which='both',bottom='on',top='on',labelbottom='off',labelleft='off') \n"
-            << "\t\t\tax.imshow(z_mod,origin='lower',cmap = matplotlib.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
+            << "\t\t\tax.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=False) \n"
+            << "\t\t\tax.imshow(z_mod,origin='lower',cmap = mpl.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
             << "\t\t\tax.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
             << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
             << "\t\t\tif (i==0 and j==2): \n"
@@ -1322,7 +1322,7 @@ int Galfit<T>::plotAll_Python() {
             << "\t\taxis2.set_ylim([ext[i][2]+vsysmean,ext[i][3]+vsysmean]) \n"
             << "\t\taxis2.tick_params(which='major',length=8, labelsize=labsize) \n"
             << "\t\taxis2.set_ylabel('$\\mathrm{V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
-            << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = matplotlib.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
+            << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = mpl.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
             << "\t\taxis.contour(toplot[0][i],v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[i]) \n"
             << "\t\taxis.contour(toplot[0][i],v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[i]) \n"
             << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=1,colors='#B22222',extent=ext[i]) \n"
@@ -1362,8 +1362,9 @@ int Galfit<T>::plotAll_Python() {
             << "\tif 'local_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
             << "\tif 'local_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
             << std::endl
-            << "cmaps = [matplotlib.cm.jet,plt.get_cmap('Spectral_r',25),plt.get_cmap('viridis')] \n"
+            << "cmaps = [plt.get_cmap('Spectral_r'),plt.get_cmap('RdBu_r',25),plt.get_cmap('PuOr_r')] \n"
             << "barlab = ['Intensity ('+bunit+')', 'V$_\\mathrm{LOS}$ (km/s)', '$\\sigma$ (km/s)'] \n"
+            << "barlab2 = ['I$_\\mathrm{res}$ ('+bunit+')', 'V$_\\mathrm{res}$ (km/s)', '$\\sigma_\\mathrm{res}$ (km/s)'] \n"
             << "titles = ['DATA', 'MODEL','RESIDUAL'] \n"
             << "mapname = ['INTENSITY', 'VELOCITY', 'DISPERSION'] \n"
             << std::endl
@@ -1384,34 +1385,32 @@ int Galfit<T>::plotAll_Python() {
             << "\tmom2_mod = fits.open(outfolder+'/maps/'+files_mod2[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
             << "\tto_plot = [[mom0,mom1-vsysmean,mom2],[mom0_mod,mom1_mod-vsysmean,mom2_mod],[mom0-mom0_mod,mom1-mom1_mod,mom2-mom2_mod]] \n"
             << std::endl
-            << "\tfig=plt.figure(figsize=(11.69,8.27), dpi=150) \n"
-            << "\tfig_ratio = 11.69/8.27 \n"
+            << "\tfig=plt.figure(figsize=(10,10), dpi=150) \n"
             << "\tnrows, ncols = 3, 3 \n"
             << "\tx_len, y_len = 0.2, 0.2 \n"
-            << "\tx_sep, y_sep = 0.00,0.02 \n"
-            << "\tax, ax_cb, bottom_corner = [], [], [0.1,0.7] \n"
+            << "\tx_sep, y_sep = 0.00,0.08 \n"
+            << "\tax, bottom_corner = [], [0.1,0.7] \n"
             << "\tfor i in range (nrows): \n"
             << "\t\tbottom_corner[0], axcol = 0.1, [] \n"
             << "\t\tfor j in range (ncols): \n"
-            << "\t\t\taxcol.append(fig.add_axes([bottom_corner[0],bottom_corner[1],x_len,y_len*fig_ratio])) \n"
+            << "\t\t\taxcol.append(fig.add_axes([bottom_corner[0],bottom_corner[1],x_len,y_len])) \n"
             << "\t\t\tbottom_corner[0]+=x_len+x_sep \n"
             << "\t\tax.append(axcol) \n"
-            << "\t\tax_cb.append(fig.add_axes([bottom_corner[0]+0.01,bottom_corner[1],0.02,y_len*fig_ratio])) \n"
-            << "\t\tbottom_corner[1]-=(y_len+y_sep)*fig_ratio \n"
+            << "\t\tbottom_corner[1]-=(y_len+y_sep) \n"
             << std::endl
             << "\tfor i in range (nrows): \n"
             << "\t\tcmaps[i].set_bad('w',1.) \n"
             << "\t\tvmin, vmax = interval.get_limits(to_plot[1][i]) \n"
             << "\t\tvmin, vmax = (-1.1*np.nanmax(vmax),1.1*np.nanmax(vmax)) if i==1 else (vmin,vmax) \n"
-            << "\t\tnorm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax) \n"
-            << "\t\tcb = ColorbarBase(ax_cb[i], orientation='vertical', cmap=cmaps[i], norm=norm) \n"
-            << "\t\tcb.solids.set_edgecolor('face') \n"
-            << "\t\tcb.set_label(barlab[i],fontsize=13) \n"
+            << "\t\tnorm = mpl.colors.Normalize(vmin=vmin, vmax=vmax) \n"
             << "\t\tfor j in range (ncols): \n"
             << "\t\t\taxis = ax[i][j] \n"
-            << "\t\t\taxis.tick_params(labelbottom='off',labelleft='off',right='on',top='on') \n"
+            << "\t\t\taxis.tick_params(labelbottom=False,labelleft=False,right=True,top=True) \n"
             << "\t\t\taxis.set_xlim(ext[0],ext[1]) \n"
             << "\t\t\taxis.set_ylim(ext[2],ext[3]) \n"
+            << "\t\t\tif j==2: \n"
+            << "\t\t\t\tvmax = np.nanmax(interval.get_limits(to_plot[j][i])) \n"
+            << "\t\t\t\tnorm = mpl.colors.Normalize(vmin=-vmax, vmax=vmax) \n"
             << "\t\t\taxis.imshow(to_plot[j][i]*maskmap,origin='lower',cmap=cmaps[i],norm=norm,aspect='auto',extent=ext,interpolation='nearest') \n"
             << "\t\t\taxis.plot(xcen,ycen,'x',color='#000000',markersize=7,mew=1.5) \n"
             << std::endl
@@ -1423,8 +1422,18 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\t\tif len(x_pix)<10: \n"
             << "\t\t\t\t\taxis.scatter(x_pix+xcen,y_pix+ycen,c='grey',s=12) \n"
             << "\t\t\t\t\taxis.scatter(xcen-x_pix,ycen-y_pix,c='grey',s=12) \n"
-            << "\t\t\tif j==0: axis.text(-0.1,0.5,mapname[i],va='center',rotation=90,transform=axis.transAxes,fontsize=15) \n"
-            << std::endl
+            << "\t\t\tif j==0: axis.text(-0.12,0.5,mapname[i],va='center',rotation=90,transform=axis.transAxes,fontsize=15) \n\n"
+            << "\t\tcbax = fig.add_axes([ax[i][0].get_position().x0,ax[i][0].get_position().y0-0.025,2*x_len-0.003,0.02]) \n"
+            << "\t\tcb1 = ColorbarBase(cbax, orientation='horizontal', cmap=cmaps[i], norm=norm) \n"
+            << "\t\tcb1.set_label(barlab[i],fontsize=13) \n"
+            << "\t\tcbax = fig.add_axes([ax[i][2].get_position().x0+0.003,ax[i][2].get_position().y0-0.025,x_len-0.003,0.02]) \n"
+            << "\t\tcb2 = ColorbarBase(cbax, orientation='horizontal', cmap=cmaps[i], norm=norm) \n"
+            << "\t\tcb2.set_label(barlab2[i],fontsize=13) \n"
+            << "\t\tcb2.ax.locator_params(nbins=3) \n"
+            << "\t\tfor c in [cb1,cb2]: \n"
+            << "\t\t\tc.solids.set_edgecolor('face') \n"
+            << "\t\t\tc.outline.set_linewidth(0) \n"
+            << std::endl 
             << "\tif (typ[k]=='AZIM'): outfile = 'plot_maps_azim.pdf' \n"
             << "\tif (typ[k]=='LOCAL'): outfile = 'plot_maps_local.pdf' \n"
             << "\tplt.savefig(outfolder+outfile, bbox_inches = 'tight') \n";

@@ -368,7 +368,7 @@ else
                      STATICLIBS+="$LIBDIR/libcfitsio.a "; break 2])
      done
   done
-  CFITSIOLIB="$CFITSIOLIBFRONT $CFITSIOLIB"
+  CFITSIOLIB="$CFITSIOLIBFRONT$CFITSIOLIB"
 fi
 
 AC_SUBST([CFITSIOINC])
@@ -462,7 +462,7 @@ else
              [FFTW3LIBFRONT="-L$LIBDIR"; STATICLIBS+="$LIBDIR/libfftw3.a "; break 2])
      done
   done
-  FFTW3LIB="$FFTW3LIBFRONT $FFTW3LIB"
+  FFTW3LIB="$FFTW3LIBFRONT$FFTW3LIB"
 fi
 
 
@@ -552,7 +552,7 @@ else
              [WCSLIBFRONT="-L$LIBDIR"; STATICLIBS+="$LIBDIR/libwcs.a "; break 2])
     done
   done
-  WCSLIB="$WCSLIBFRONT $WCSLIB"
+  WCSLIB="$WCSLIBFRONT$WCSLIB"
 fi
 
 AC_SUBST([WCSINC])

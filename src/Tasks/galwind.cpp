@@ -453,7 +453,7 @@ bool GalWind<T>::makePlots(){
         << "\ta = ax[k] \n"
         << "\tchan = int(k*(d.shape[0])/nc) \n"           
         << "\ttopl = d[chan]\n"     
-        << "\ta.tick_params(top='off',right='off',bottom='off',left='off',labelbottom='off',labelleft='off') \n"
+        << "\ta.tick_params(top=False,right=False,bottom=False,left=False,labelbottom=False,labelleft=False) \n"
         << "\tif np.all(topl<cont[0]): topl[:,:] = 0 \n"
         << "\ta.imshow(topl,origin='lower',cmap=cmap,norm=norm) \n"
         << "\ta.contour(topl,levels=cont,colors='#009999') \n"
@@ -481,24 +481,26 @@ bool GalWind<T>::makePlots(){
         << "labs  = ['Normalized $I$', r'$V_\\mathrm{LOS}$ (km/s)', r'$\\sigma$ (km/s)', 'Offset (arbitrary units)']\n"
         << "for k in range(len(topl)):\n"
         << "\ta = ax[k]\n"
-        << "\ta.tick_params(top='off',right='off',bottom='off',left='off',labelbottom='off',labelleft='off')\n"
+        << "\ta.tick_params(top=False,right=False,bottom=False,left=False,labelbottom=False,labelleft=False)\n"
         << "\ta.text(0.5,1.1,titls[k],transform=a.transAxes,ha='center',va='center')\n"
-        << "\tif k==1:\n"
+        << "\tif k==1:\n"            
         << "\t\txcen, ycen, phi = "<< x0 << "," << y0 << "," << PA << std::endl
-        << "\t\txx = np.arange(d.shape[-1])\n"
-        << "\t\tyy = np.tan(np.radians(phi))*(xx-xcen)+ycen \n"
-        << "\t\ta.plot(xx,yy,c='k',ls='--',alpha=0.7)\n\n"
+        << "\t\tif phi==90: a.axvline(xcen,c='k',ls='--',alpha=0.7) \n"
+        << "\t\telse: \n"
+        << "\t\t\txx = np.arange(d.shape[-1])\n"
+        << "\t\t\tyy = np.tan(np.radians(phi))*(xx-xcen)+ycen \n"
+        << "\t\t\ta.plot(xx,yy,c='k',ls='--',alpha=0.7)\n\n"
         
         << "\tif k==3: \n"
         << "\t\text = [-0.99,0.99 ,velos[0],velos[-1]]\n"
         << "\t\ta.set_ylim(ext[2]-2*abs(cdelt3_kms),ext[3]+2*abs(cdelt3_kms))\n"
-        << "\t\ta.tick_params(top='on',left='on',bottom='on',right='on',labelright='on')\n"
+        << "\t\ta.tick_params(top=True,left=True,bottom=True,right=True,labelright='on')\n"
         << "\t\ta.tick_params(axis='x', pad=7)\n"
         << "\t\ta.imshow(topl[k],origin='lower',cmap=cmaps[k],aspect='auto',extent=ext)\n"
         << "\t\ta.contour(topl[k],levels=cont,colors='#769BCB',extent=ext)\n"
         << "\t\ta.axhline(" << Vsys << ",c='k',ls='-',alpha=0.5)\n"
         << "\t\ta.axvline(0,c='k',ls='-',alpha=0.5)\n"
-        << "\t\ta.tick_params(labelbottom='on') \n"
+        << "\t\ta.tick_params(labelbottom=True) \n"
         << "\t\ta.text(1.25, 0.5,r'$V_\\mathrm{LOS}$ (km/s)',transform=a.transAxes,ha='center',va='center',rotation=90) \n"
         << "\telse:\n"
         << "\t\tm = a.imshow(topl[k],origin='lower',cmap=cmaps[k],aspect='auto',norm=norms[k]) \n"
@@ -514,11 +516,18 @@ bool GalWind<T>::makePlots(){
     pyf.close();
 
 #ifdef HAVE_PYTHON
+    // Now plotting everything
+    if (in->pars().isVerbose()) std::cout << " Producing " << randomAdjective(1) << " plots..." << std::flush;
     std::string cmd = "python "+in->pars().getOutfolder()+scriptname+" > /dev/null 2>&1";
-    return system(cmd.c_str());
+    int ret = system(cmd.c_str());
+    if (in->pars().isVerbose()) {
+        if (ret==0) std::cout << " Done." << std::endl;
+        else std::cout << " Something went wrong! Check pyscript.py in the output folder." << std::endl;
+    }
+    
 #endif
 
-    return false;
+    return true;
 }
 template bool GalWind<float>::makePlots();
 template bool GalWind<double>::makePlots();
