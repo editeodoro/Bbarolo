@@ -242,12 +242,13 @@ public:
     
     /// Utility functions:
     
-    bool    getopts(int argc, char **argv);     /// Parse the command line parameters correctly. 
-    int     readParams(string paramfile);   /// Read in parameters from a disk file.
-    bool    checkPars();                        /// Check the parameter list for inconsistencies. 
-    void    printDefaults (ostream& theStream=cout);    /// Print on screen the defaults values.
-    void    createTemplate();                   /// Create a template input file for Galfit.
-    
+    bool    getopts(int argc, char **argv);          /// Parse the command line parameters correctly. 
+    int     readParams(string paramfile);            /// Read in parameters from a disk file.
+    void    setParam(stringstream &ss);               /// Set a parameter value.
+    bool    checkPars();                             /// Check the parameter list for inconsistencies. 
+    void    printDefaults (ostream& theStream=cout, string wtask="ALL"); /// Print on screen the defaults values.
+    void    createTemplate();                        /// Create a template file for 3DFIT.
+    void    overrideParameter(std::string parstr);         /// Override a parameter in parameter file.
     friend ostream& operator<< (ostream& theStream, Param& par);
     
     friend class Image;
@@ -335,9 +336,11 @@ void recordParameters(ostream& theStream, string paramName, string paramDesc, st
     } while(0)
 
 // Some utility functions
+void listTasks (std::ostream& Str=cout);
 void helpscreen(ostream& Str=cout);
 void versionInfo(ostream& Str, char ** argv);
 void welcomeMessage(std::ostream& ostr=std::cout);
-void printParams (ostream& Str, Param &p, bool defaults=false);
+void printParams (ostream& Str, Param &p, bool defaults=false, string whichtask="ALL");
+
 
 #endif
