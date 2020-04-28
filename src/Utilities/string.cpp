@@ -269,37 +269,101 @@ void checkHome(std::string &s) {
 
 std::string randomAdjective (int type) {
     
-    // Return a random good (type=1) or bad (type=2) adjective
+    // Return a random good (type=1) a bad (type=2) adjective, or a wise man (type 3)
+        
+    std::vector<std::string> good = {
+        "trustful","awesome","stunning","creative","flabbergasting","fabulous","gorgeous",
+        "unbelievable","extraordinary","breathtaking","astonishing","stonking","brilliant",
+        "marvelous","ungodly","incredible","wondrous","magnificent","glorious","splendiferous",
+        "wonderful","phantasmagoric","phenomenal","excellent","exceptional","refulgent",
+        "ambitious","exuberant","frank","witty","amiable","fearless","honest","ineffable",
+        "arcadian","didactic","efficacious","judicious","propitious","sagacious",
+        "zealous","flamboyant","sincere","exuberant","charming","communicative","enthusiastic",
+        "pioneering","astonishing","enlightnening","edifying","illuminating","homiletic"
+    }; 
     
-    std::vector<std::string> good = 
-        {"trustful","awesome","stunning","creative","flabbergasting","fabulous","gorgeous",
-         "unbelievable","extraordinary","breathtaking","astonishing","stonking","brilliant",
-         "marvelous","ungodly","incredible","wondrous","magnificent","glorious","splendiferous",
-         "wonderful","phantasmagoric","phenomenal","excellent","exceptional","refulgent",
-         "ambitious","exuberant","frank","witty","amiable","fearless","honest","ineffable",
-         "arcadian","didactic","efficacious","judicious","propitious","sagacious",
-         "zealous","flamboyant","sincere","exuberant","charming","communicative","enthusiastic",
-         "pioneering","astonishing","enlightnening","edifying","illuminating","homiletic"}; 
+    std::vector<std::string> bad = {
+        "flummoxed","cranky","pernicious","modest","shameful","wobbling","knackered","flippant",
+        "wonky","bellicose","caustic","calamitous","crapulous","dowdy","execrable","fastidious",
+        "guileless","hubristic","insidious","insolent","irksome","mendacious","meretricious",
+        "noxious","obtuse","recalcitrant","risible","strident","wheedling","withering","pauciloquent",
+        "preposterous","brazen","aberrant","abortive","barbarous","bilious","brash","capricious",
+        "ridiculous","pointless","ludicrous","impudent","acrimonious","outmoded","inelegant","frowzy",
+        "egregious","discourteous","malapert","scornful","bamboozled","disastrous","ruinous","woeful",
+        "deplorable","grevious","flagitious","deleterious","detrimental","insalubrious"
+    };
     
-    std::vector<std::string> bad = 
-        {"flummoxed","cranky","pernicious","modest","shameful","wobbling","knackered","flippant",
-         "wonky","bellicose","caustic","calamitous","crapulous","dowdy","execrable","fastidious",
-         "guileless","hubristic","insidious","insolent","irksome","mendacious","meretricious",
-         "noxious","obtuse","recalcitrant","risible","strident","wheedling","withering","pauciloquent",
-         "preposterous","brazen","aberrant","abortive","barbarous","bilious","brash","capricious",
-         "ridiculous","pointless","ludicrous","impudent","acrimonious","outmoded","inelegant","frowzy",
-         "egregious","discourteous","malapert","scornful","bamboozled","disastrous","ruinous","woeful",
-         "deplorable","grevious","flagitious","deleterious","detrimental","insalubrious"};
-         
+
+    
     static auto const seed = std::random_device()();
     static std::mt19937 generator(seed);
     
+    std::string returnvalue;
+    
     if (type==1) {
         std::uniform_int_distribution<int> distr(0,good.size()-1);
-        return good[distr(generator)];
+        returnvalue = good[distr(generator)];
     }
-    else {
+    else if (type==2) {
         std::uniform_int_distribution<int> distr(0,bad.size()-1);
-        return bad[distr(generator)];
+        returnvalue = bad[distr(generator)];
     }
+    
+    return returnvalue;
 }
+
+
+std::string randomQuoting () {
+    
+    std::vector<std::string> quote =
+        {"BBarolo is such a "+randomAdjective(1)+" code","Why watching TV when you can use BBarolo?",
+         "BBarolo is certainly the best code I have ever used","We all must be thankful for having BBarolo",
+         "BBarolo, a better and "+randomAdjective(1)+" alternative to galaxy kinematics",
+         "I literally spend entire nights playing with BBarolo, a "+randomAdjective(1)+" software",
+         "Before knowing BBarolo, my life was just "+randomAdjective(2),"Try BBarolo, you will not regret it!",
+         "The best software experience I ever had","If you feel down, BBarolo will cheer you up",
+         "I was amazed when I discovered I could actually fit 3D kinematic models with BBarolo",
+         "You won't believe what BBarolo can do before you see it","BBarolo is addictive, be aware!",
+         "Nothing better than spending a Saturday night with BBarolo","If I only had discovered BBarolo earlier!",
+         "If you like Barolo, you will love BBarolo","It is simply the best code you will ever use",
+         "Yesterday my wife caught me again while I was fitting galaxies with BBarolo",
+         "Just one word can describe BBarolo: "+randomAdjective(2)+"!","BBarolo can't be beaten!",
+         "BBarolo is kinematic modelling at its finest level","I can't believe life existed before BBarolo",
+         "Nothing makes me happier than a well attained fit with BBarolo","BBarolo is a whole new world",
+         "Did you know BBarolo is fully written in C++? Amazing...","If you don't know how, BBarolo is the answer",
+         "BBarolo takes you into a magical, undiscovered world","Can't think of anything better than BBarolo!",
+         "Astronomy will be a better science thanks to BBarolo","Simply "+randomAdjective(1)+"!",
+         "And now we have pyBBarolo too!","Don't waste your time with 2D models, go straight to 3D with BBarolo",
+         "I was so anxious because of beam smearing, BBarolo changed my life","BBarolo is a dream come true",
+         "Luckily BBarolo is free, because it would be priceless","BBarolo, not a regular code",
+         "Emission-line data have no secrets for BBarolo!","BBarolo should be installed on any modern computer",
+         "3D modelling is the new 2D","If you feel flat, try 3D-Barolo","BBarolo, not for softhearted!",
+    };
+    
+    std::vector<std::string> wise = 
+        {"Leonardo da Vinci","Isaac Newton","Socrates","Galileo Galilei","Aristotle","Albert Einstein",
+         "Nikola Tesla","Archimedes","Steve Vai","Michael Schumacher","Plato","Marie Curie","Pythagoras",
+         "Johann Sebastian Bach","Charles Darwin","Alan Turing","Hippocrates","Friedrich Nietzsche","Euclid",
+         "Immanuel Kant","Confucius","Homer","Blaise Pascal","Sun Tzu","Voltaire","Leo Tolstoy","Enrico Fermi",
+         "Dante Alighieri","Louis Pasteur","Niccolo Machiavelli","Isaac Asimov","Democritus","Sophocles",
+         "Buddha","Epicurus","Ptolemy","Arthur Schopenhauer","Reinhold Messner", "Bertrand Russell","Augustus",
+         "Frederic Chopin","Hypathia","Marcus Tullius Cicero","Henry Ford","Guglielmo Marconi","Aeschylus",
+         "Maria De Filippi","Rosseau","Carl Linnaeus","Giordano Bruno","Giacomo Leopardi","Marco Polo",
+         "Napoleon","Lao Tsu","Franz Schubert","Franz Liszt","Caravaggio","Franz Kafka","Plutarch","Popeye",
+         "Aristarchus of Samos","Kakaroth","Amerigo Vespucci","Donald Duck","Charlie Brown","Cleopatra",
+         "Enrico Di Teodoro","Santa Claus","Easter Bunny","Mohammed Ali","Averroes","Louis Cauchy",
+         "Leonhard Euler","Carl Friedrich Gauss"
+    };
+    
+    static auto const seed = std::random_device()();
+    static std::mt19937 generator(seed);
+    
+    std::uniform_int_distribution<int> distr1(0,quote.size()-1);
+    std::uniform_int_distribution<int> distr2(0,wise.size()-1);
+
+    std::string returnvalue = "\""+quote[distr1(generator)]+"\"";
+    returnvalue += " (cit. "+wise[distr2(generator)]+")";
+    
+    return returnvalue;
+}
+

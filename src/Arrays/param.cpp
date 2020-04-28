@@ -28,6 +28,7 @@
 #include <string>
 #include <cmath>
 #include <thread>
+#include <cstdlib>
 #include <unistd.h>
 #include <getopt.h>
 #include <Arrays/param.hh>
@@ -245,7 +246,7 @@ bool Param::getopts(int argc, char ** argv) {
         defaultValues();
         
         // List of short and long options
-        const char* const short_opts = "p:f:d:vlth";
+        const char* const short_opts = "p:f:d:qvlth";
         const option long_opts[] = {
                 {"paramfile", required_argument, nullptr, 'p'},
                 {"fitsfile",  required_argument, nullptr, 'f'},
@@ -254,6 +255,7 @@ bool Param::getopts(int argc, char ** argv) {
                 {"version",   no_argument,       nullptr, 'v'},
                 {"template",  no_argument,       nullptr, 't'},
                 {"help",      no_argument,       nullptr, 'h'},
+                {"quote",     no_argument,       nullptr, 'q'},
                 {0, 0, 0, 0}
         };
         
@@ -303,6 +305,12 @@ bool Param::getopts(int argc, char ** argv) {
                 versionInfo(cout, argv);
                 break;
             
+            case 'q':                    // Random citation
+                //cout << " \"BBarolo is such a " << randomAdjective(1)
+                //     << " code!\" (cit. " << randomAdjective(3) << ")\n";
+                cout << endl << " " << randomQuoting() << endl << endl;
+                break;
+                
             case '?':                     // Unrecognized option
                 // If d is provided with no argument, print all defaults
                 if (optopt == 'd') printDefaults(cout);
@@ -1338,12 +1346,21 @@ void printParams (std::ostream& Str, Param &p, bool defaults, string whichtask) 
 
 void listTasks (std::ostream& Str) {
     Str.setf(std::ios::left);
-    Str << "\n------------------------ Available tasks ------------------------\n\n";
+    
+    Str << "     _ _                                                            \n"
+        << ".-. | B |                                               .--.        \n"
+        << "|A|_| A |                                         .-===-|==|---.    \n"
+        << "|S| | R.|<\\            Available tasks            | C++ |  |___|-. \n"
+        << "|T| | O | \\\\                                      |     |GR|---|=|\n"
+        << "|R| | L |  \\\\                                     |     |  |___| |\n"
+        << "|O| | O |   \\>                                    |-----|==|---|=| \n"
+        << setfill('"') << setw(68) << right << "\n\n";
+
     for (auto i=0;i<tasks.size();i++) {
         Str << tasks[i] << ": " << endl;
         Str << "   "  << taskdescr[i] << endl << endl;
     }
-    Str << "-----------------------------------------------------------------\n\n";
+    Str << setfill('"') << setw(68) << right << "\n\n";
 
 }
 
@@ -1351,9 +1368,9 @@ void listTasks (std::ostream& Str) {
 void helpscreen(std::ostream& Str) {
     
     using std::endl;
-    int m=26;
+    int m=20;
 
-    Str << endl << endl
+    Str << endl
         << "             ____                                _____        __           \n"
         << "   /\\      .'    /\\                             /.---.\\      (==)       \n"
         << "  |K -----;     |  |                           | ````` |     |~~|          \n"
@@ -1369,61 +1386,55 @@ void helpscreen(std::ostream& Str) {
         << "      (_(_(_)                                    ||  \\\\   | \\____/ |    \n"
         << "       (_)_)                                     ||__//   |        |       \n"
         << "        (_)                                               \\_.-\"\"-._/    \n "
-        << "                                                          `\"\"\"\"\"\"`   \n\n\n\n "
-        << "  Usage:                 BBarolo option [arg] \n\n\n"
+        << "                                                          `\"\"\"\"\"\"`   \n\n\n "
+        << "  Usage:           BBarolo <option> [arg] \n\n"
         << " Options: \n\n"
-        << setw(m) << left << "        -f, --fitsfile" 
-        << "BBarolo runs the 3DFIT task in automatic \n"
+        << setw(m) << left << "   -f, --fitsfile" 
+        << "BBarolo runs the 3DFIT task in automatic mode \n"
         << setw(m) << left << " " 
-        << "mode using default parameters.           \n"
+        << "using default parameters. [arg] is required   \n"
         << setw(m) << left << " " 
-        << "[arg] is required and represents a FITS  \n"
+        << "and represents a FITS file to be analysed.    \n"
         << setw(m) << left << " " 
-        << "file to be analysed. BBarolo looks for   \n"
+        << "BBarolo looks for sources, estimates initial  \n"
         << setw(m) << left << " " 
-        << "sources, estimates initial parameters    \n" 
-        << setw(m) << left << " " 
-        << "and fits a 3D tilted-ring model.       \n\n"
+        << "parameters and fits a 3D tilted-ring model. \n\n" 
         << setw(m) << left << " "  
-        << "Example:      BBarolo -f myfitsfile.fits\n"
+        << "Example:      BBarolo -f myfitsfile.fits      \n"
         << endl << endl
-        << setw(m) << left << "        -p, --paramfile" 
-        << "BBarolo runs with a parameter file.      \n"
+        << setw(m) << left << "   -p, --paramfile" 
+        << "BBarolo runs with a parameter file. [arg] is \n"
         << setw(m) << left << " " 
-        << "[arg] is required and it is the name of  \n"
+        << "required and is a text file with a list of   \n"
         << setw(m) << left << " " 
-        << "the file where all parameters have been  \n" 
+        << "parameters. We recommend to run BBarolo this \n" 
         << setw(m) << left << " " 
-        << "listed. We recommend to run BBarolo this \n"
-        << setw(m) << left << " " 
-        << "way to achieve the best results.\n\n"
+        << "this way to achieve best results. \n\n"
         << setw(m) << left << " " 
         << "Example:      BBarolo -p param.par       \n"
         << endl << endl
-        << setw(m) << left << "        -d, --defaults" 
-        << "Print on the screen a list all available \n"
+        << setw(m) << left << "   -d, --defaults" 
+        << "Print on the screen a list all available par-\n"
         << setw(m) << left << " " 
-        << "parameters and their default values.     \n"
+        << "ameters and their default values. A task name\n"
         << setw(m) << left << " " 
-        << "A task name [arg] can optionally be      \n"
+        << "[arg] can optionally be given to print only  \n"
         << setw(m) << left << " " 
-        << "given to print only parameters relevant  \n"
-        << setw(m) << left << " " 
-        << "for that particular task. \n\n"
+        << "parameters relevant for that task. \n\n"
         << setw(m) << left << " " 
         << "Example:      BBarolo -d 3DFIT       \n"
         << endl << endl
-        << setw(m) << left << "        -l, --list" 
+        << setw(m) << left << "   -l, --list" 
         << "Print a list of available tasks.       \n"
         << endl << endl
-        << setw(m) << left << "        -t, --template" 
-        << "Create a template input parameter file    \n"
+        << setw(m) << left << "   -t, --template" 
+        << "Create a template input parameter file named \n"
         << setw(m) << left << " " 
-        << "named param.par for the 3DFIT task.        \n"
+        << "param.par for the 3DFIT task.        \n"
         << endl << endl
-        << setw(m) << left << "        -v, --version" 
+        << setw(m) << left << "   -v, --version" 
         << "Version info    \n"
-        << endl << endl;
+        << endl;
 }
     
 

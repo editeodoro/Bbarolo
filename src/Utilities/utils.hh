@@ -99,6 +99,7 @@ void printHash(std::ostream &stream, int num);
 void printHash(int num);
 void checkHome(std::string &s); 
 std::string randomAdjective (int type);
+std::string randomQuoting ();
     
 /// Fuctions to interpolation and fit.
 /// Defined in interpolation.cpp
