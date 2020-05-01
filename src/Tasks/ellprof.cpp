@@ -264,7 +264,7 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
     if (dist<0) dist = 0.01;
     float totflux = 0;
     T *ringreg = RingRegion(inR, c->Head());
-    for (size_t i=0; i<im->NumPix(); i++) {
+    for (long i=0; i<im->NumPix(); i++) {
         if (!isNaN(ringreg[i]) && !isNaN(im->Array(i))) totflux += FluxtoJy(im->Array(i),im->Head());
     }
     // totflux should be already in Jy * km/s

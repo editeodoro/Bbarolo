@@ -319,6 +319,13 @@ bool Header::header_read (std::string fname) {
             // Fixing "s-1" problem in CUNIT3
             if (cunit[i].find("km s-1")!=std::string::npos) cunit[i] = "km/s";
             if (cunit[i].find("m s-1")!=std::string::npos) cunit[i] = "m/s";
+            if (cunit[i]=="") {
+                cunit[i] = i==2 ? "km/s" : "DEGREE";
+                std::stringstream toprint;
+                toprint << "HEADER WARNING: CUNIT" << i+1 << " keywords not found. Assuming " << cunit[i]; 
+                Warning(toprint.str());
+            }
+            
         }
     }
 

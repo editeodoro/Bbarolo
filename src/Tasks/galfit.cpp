@@ -620,7 +620,7 @@ void Galfit<T>::galfit() {
             // Calculating the model so far
             int blo[2], bhi[2], bsize[2];
             getModelSize(dring,blo,bhi,bsize);
-            int nv = par.NV<0 ? nv=in->DimZ() : par.NV;
+            int nv = par.NV<0 ? in->DimZ() : par.NV;
             Model::Galmod<T> *modsoFar = new Model::Galmod<T>;
             modsoFar->input(in,bhi,blo,dring2,nv,par.LTYPE,1,par.CDENS);
             modsoFar->calculate();

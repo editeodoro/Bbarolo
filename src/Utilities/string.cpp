@@ -327,7 +327,7 @@ std::string randomQuoting () {
          "Nothing better than spending a Saturday night with BBarolo","If I only had discovered BBarolo earlier!",
          "If you like Barolo, you will love BBarolo","It is simply the best code you will ever use",
          "Yesterday my wife caught me again while I was fitting galaxies with BBarolo",
-         "Just one word can describe BBarolo: "+randomAdjective(2)+"!","BBarolo can't be beaten!",
+         "Just one word can describe BBarolo: "+randomAdjective(1)+"!","BBarolo can't be beaten!",
          "BBarolo is kinematic modelling at its finest level","I can't believe life existed before BBarolo",
          "Nothing makes me happier than a well attained fit with BBarolo","BBarolo is a whole new world",
          "Did you know BBarolo is fully written in C++? Amazing...","If you don't know how, BBarolo is the answer",
@@ -337,7 +337,7 @@ std::string randomQuoting () {
          "I was so anxious because of beam smearing, BBarolo changed my life","BBarolo is a dream come true",
          "Luckily BBarolo is free, because it would be priceless","BBarolo, not a regular code",
          "Emission-line data have no secrets for BBarolo!","BBarolo should be installed on any modern computer",
-         "3D modelling is the new 2D","If you feel flat, try 3D-Barolo","BBarolo, not for softhearted!",
+         "3D modelling is the new 2D","If you feel flat, try 3D-Barolo","BBarolo is not for the faint-hearted!",
     };
     
     std::vector<std::string> wise = 
@@ -352,7 +352,7 @@ std::string randomQuoting () {
          "Napoleon","Lao Tsu","Franz Schubert","Franz Liszt","Caravaggio","Franz Kafka","Plutarch","Popeye",
          "Aristarchus of Samos","Kakaroth","Amerigo Vespucci","Donald Duck","Charlie Brown","Cleopatra",
          "Enrico Di Teodoro","Santa Claus","Easter Bunny","Mohammed Ali","Averroes","Louis Cauchy",
-         "Leonhard Euler","Carl Friedrich Gauss"
+         "Leonhard Euler","Carl Friedrich Gauss","Don Matteo",
     };
     
     static auto const seed = std::random_device()();

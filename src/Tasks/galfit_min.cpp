@@ -502,7 +502,7 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
     int blo[2], bhi[2], bsize[2];
     getModelSize(dring,blo,bhi,bsize);
 
-    int nv = par.NV<0 ? nv=in->DimZ() : par.NV;
+    int nv = par.NV<0 ? in->DimZ() : par.NV;
 
     // Calculating the model
     Model::Galmod<T> *mod = new Model::Galmod<T>;

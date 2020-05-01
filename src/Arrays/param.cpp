@@ -28,7 +28,6 @@
 #include <string>
 #include <cmath>
 #include <thread>
-#include <cstdlib>
 #include <unistd.h>
 #include <getopt.h>
 #include <Arrays/param.hh>
@@ -306,8 +305,6 @@ bool Param::getopts(int argc, char ** argv) {
                 break;
             
             case 'q':                    // Random citation
-                //cout << " \"BBarolo is such a " << randomAdjective(1)
-                //     << " code!\" (cit. " << randomAdjective(3) << ")\n";
                 cout << endl << " " << randomQuoting() << endl << endl;
                 break;
                 
@@ -821,7 +818,7 @@ bool Param::checkPars() {
 void Param::overrideParameter(std::string parstr){
     // Override a parameter in the parameter file from the commandline:
     // Example: BBarolo -p param.par INC=60
-    int found = parstr.find("=");
+    size_t found = parstr.find("=");
     if (found!=std::string::npos) {
         std::stringstream ss(parstr.replace(found,1," "));
         setParam(ss);
@@ -836,7 +833,7 @@ void Param::printDefaults (std::ostream& theStream, string wtask) {
     string whichtask = wtask;
     // Check that whichtask is ok
     bool isOK = false;
-    for (auto i=0;i<tasks.size();i++) {
+    for (size_t i=0;i<tasks.size();i++) {
         isOK = whichtask==tasks[i];
         if (isOK) break;
     }
@@ -1356,7 +1353,7 @@ void listTasks (std::ostream& Str) {
         << "|O| | O |   \\>                                    |-----|==|---|=| \n"
         << setfill('"') << setw(68) << right << "\n\n";
 
-    for (auto i=0;i<tasks.size();i++) {
+    for (size_t i=0;i<tasks.size();i++) {
         Str << tasks[i] << ": " << endl;
         Str << "   "  << taskdescr[i] << endl << endl;
     }

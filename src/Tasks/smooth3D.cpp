@@ -845,8 +845,8 @@ bool Smooth3D<T>::Fillgauss2d(Beam varbeam, float ampl, bool norm, int &nconx, i
     int Xmax = round(x/gridspac[0]); 
     int Ymax = round(y/gridspac[1]); 
 
-    int nconX = 2*Xmax+1;    
-    int nconY = 2*Ymax+1; 
+    size_t nconX = 2*Xmax+1;    
+    size_t nconY = 2*Ymax+1; 
 
     if ((nconX*nconY)>maxconv) {
         std::cout << "SMOOTH error: Convolution function too big for buffer.\n";
@@ -883,7 +883,7 @@ bool Smooth3D<T>::Fillgauss2d(Beam varbeam, float ampl, bool norm, int &nconx, i
    
 
     if (norm) {
-        for (int i=0; i<(nconX*nconY); i++) {
+        for (size_t i=0; i<(nconX*nconY); i++) {
             cfie[i] = cfie[i]/totalarea;
         }
     }
@@ -932,8 +932,8 @@ bool Smooth3D<T>::FillMoffat2d(Beam varbeam, float ampl, bool norm, int &nconx, 
     int Xmax = round(r/gridspac[0]); 
     int Ymax = round(r/gridspac[1]); 
 
-    int nconX = 2*Xmax+1;    
-    int nconY = 2*Ymax+1; 
+    size_t nconX = 2*Xmax+1;    
+    size_t nconY = 2*Ymax+1; 
 
     if ((nconX*nconY)>maxconv) {
         std::cout << "SMOOTH error: Convolution function too big for buffer.\n";
@@ -942,7 +942,7 @@ bool Smooth3D<T>::FillMoffat2d(Beam varbeam, float ampl, bool norm, int &nconx, 
         nconx = nconX;
         ncony = nconY;
     }
-    
+
     double sigma = fwhm/(2*sqrt(pow(2,1/pidx)-1.));
         
     double totalarea = 0;
@@ -964,7 +964,7 @@ bool Smooth3D<T>::FillMoffat2d(Beam varbeam, float ampl, bool norm, int &nconx, 
     }
    
     if (norm) {
-        for (int i=0; i<(nconX*nconY); i++) {
+        for (size_t i=0; i<(nconX*nconY); i++) {
             cfie[i] = cfie[i]/totalarea;
         }
     }

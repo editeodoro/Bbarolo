@@ -526,7 +526,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         smoothed->Head().calcArea();
         smoothed->setCubeStats();
         smoothed->Search();
-        uint numObj = smoothed->getNumObj();
+        size_t numObj = smoothed->getNumObj();
         if (numObj==0) {
             std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
             std::terminate();
@@ -541,7 +541,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             }
         }
         else {
-            for (auto i=0; i<numObj; i++) {
+            for (size_t i=0; i<numObj; i++) {
                 Detection<T> *obj = smoothed->pObject(i);
                 std::vector<Voxel<T> > voxlist = obj->getPixelSet();
                 typename std::vector<Voxel<T> >::iterator vox;
@@ -573,7 +573,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             }
         }
         else {
-            for (auto i=0; i<numObj; i++) {
+            for (size_t i=0; i<numObj; i++) {
                 Detection<T> *obj = pObject(i);
                 std::vector<Voxel<T> > voxlist = obj->getPixelSet();
                 typename std::vector<Voxel<T> >::iterator vox;

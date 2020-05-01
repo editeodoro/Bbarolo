@@ -553,7 +553,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         cdelt3=cdelt3*hzconv;  
         
         /// Information about frequency/velocity axis and conversions.
-        freq0 = c->Head().Freq0()/(1+c->Head().Redshift());      
+        freq0 = c->Head().Freq0()/(1+c->Head().Redshift());
         if (freq0==0) {
             freq0 = 0.1420405751786E10;
             std::cout << "Header item FREQ0 not found. Assuming " << freq0;

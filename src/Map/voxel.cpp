@@ -58,7 +58,7 @@ namespace PixelInfo
     this->itsF=v.itsF;
     return *this;
   }
- 
+  
  
   template <class T>
   std::ostream& operator<< (std::ostream& theStream, Voxel<T>& vox) {
@@ -127,7 +127,7 @@ namespace PixelInfo
   
   
   template <class T>
-  Pixel<T>::Pixel(const Pixel<T>& p) {
+  Pixel<T>::Pixel(const Pixel<T>& p) : Voxel<T>(p) {
    
     operator=(p);
   }
