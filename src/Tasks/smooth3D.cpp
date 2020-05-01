@@ -1020,7 +1020,7 @@ void Smooth3D<T>::fitswrite() {
     
     int factor = floor(in->pars().getFactor());
     if (in->pars().getflagReduce() && factor>1) {
-        Cube<T> *red = out->Reduce(factor); 
+        Cube<T> *red = out->Reduce(factor,"spatial"); 
         red->fitswrite_3d(name.c_str(),true);
         delete red;
     }
@@ -1079,18 +1079,35 @@ template void Hanning3D<double>::compute(double*,size_t,size_t,size_t);
 
 
 template <class T> 
-void Hanning3D<T>::fitswrite(Cube<T> *templ) {
+void Hanning3D<T>::fitswrite(Cube<T> *templ, std::string outname) {
     
     Cube<T> *out = new Cube<T>(*templ);
     out->Head().Keys().push_back("HISTORY BBAROLO HANNING SMOOTHING: Hanning smoothed with window "+to_string(window)+" channels");
     for (size_t i=0; i<out->NumPix(); i++) out->Array()[i] = array[i];
-    std::string outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(window)+".fits";
-    out->fitswrite_3d(outname.c_str(),true);
-    if (templ->pars().isVerbose()) std::cout << " Smoothed datacube written in " << outname << std::endl;
+    if (outname=="") {
+        outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(window);
+        if (templ->pars().getflagReduce()) outname += "_red";
+        outname += ".fits";
+    }
+
+    if (templ->pars().getflagReduce() && window>1) {
+        Cube<T> *red = out->Reduce(window,"spectral"); 
+        red->fitswrite_3d(outname.c_str(),true);
+        delete red;
+    }
+    else {
+        T minn,maxx;
+        findMinMax<T>(out->Array(), out->NumPix(), minn, maxx);
+        out->Head().setDataMax(double(maxx));
+        out->Head().setDataMin(double(minn));
+        out->fitswrite_3d(outname.c_str(),true);
+    }
+
+    if (templ->pars().isVerbose()) std::cout << " Hanning-smoothed datacube written in " << outname << std::endl;
     delete out;
 }
-template void Hanning3D<float>::fitswrite(Cube<float>*);
-template void Hanning3D<double>::fitswrite(Cube<double>*);
+template void Hanning3D<float>::fitswrite(Cube<float>*,std::string);
+template void Hanning3D<double>::fitswrite(Cube<double>*,std::string);
 
 
 

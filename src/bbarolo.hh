@@ -218,7 +218,7 @@ bool BBcore (Param *par) {
 
 
     // Repixeling task ------------------------------------------------
-    if (par->getflagReduce() && !par->getflagSmooth()) {
+    if (par->getflagReduce() && !(par->getflagSmooth() || par->getflagHanning())) {
         std::string name = c->pars().getOutfolder()+c->Head().Name()+"_red.fits";
         Cube<float> *red = c->Reduce(floor(c->pars().getFactor()));
         red->fitswrite_3d(name.c_str(),true);

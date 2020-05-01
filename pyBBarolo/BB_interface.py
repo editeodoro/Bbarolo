@@ -135,3 +135,16 @@ libBB.Ellprof_compute.argtypes = [c_void_p]
 libBB.Ellprof_write.restype = None
 libBB.Ellprof_write.argtypes = [c_void_p,c_char_p]
 ########################################################################################
+
+# Class Hanning interface ############################################################
+libBB.Hanning_new.restype = c_void_p
+libBB.Hanning_new.argtypes = [c_size_t]
+libBB.Hanning_delete.restype = None
+libBB.Hanning_delete.argtypes = [c_void_p]
+libBB.Hanning_compute.restype = None
+libBB.Hanning_compute.argtypes = [c_void_p,c_void_p]
+libBB.Hanning_write.restype = None
+libBB.Hanning_write.argtypes = [c_void_p,c_void_p,c_char_p,c_bool]
+libBB.Hanning_array.restype = POINTER(c_float)
+libBB.Hanning_array.argtypes = [c_void_p]
+########################################################################################

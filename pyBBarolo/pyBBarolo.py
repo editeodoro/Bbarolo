@@ -919,3 +919,44 @@ class Ellprof(Task):
         if self._inri is None or self._mod is None: 
             raise ValueError("%s ERROR: you need to compute the profiles with compute() before calling writeto()."%self.taskname)
         libBB.Ellprof_write(self._mod,filename.encode('utf-8'))
+
+
+
+class Hanning(Task):
+    """Find statistics over rings
+    
+    Args:
+      fitsname (str): FITS file to fit with a 2D tilted-ring model
+    """
+    def __init__(self,fitsname):
+        super(Hanning,self).__init__(fitsname=fitsname)
+        self.taskname = 'HANNING'
+        # Pointer to the C++ Hanning class
+        self._ptr = None  
+    
+    
+    def __del__(self):
+        if self._ptr: libBB.Hanning_delete(self._ptr)
+        
+
+    def smooth(self,window_size=3):
+        """ Compute an Hanning-smoothed 3D array 
+
+        Returns:
+        a 3D Hanning-smoothed array 
+        """
+        self.__del__()
+        if window_size % 2 == 0:
+            raise ValueError("%s ERROR: window size must be an odd number."%self.taskname)
+        # Initializing Hanning smooth class
+        self._ptr = libBB.Hanning_new(int(window_size))
+        # Performing Hanning smoothing class
+        libBB.Hanning_compute(self._ptr,self.inp._cube)
+        return reshapePointer(libBB.Hanning_array(self._ptr),self.inp.dim[::-1])
+        
+        
+    def writeto(self,filename="",average=False):
+        """ Write the Hanning-smoothed 3D array to FITS cube """
+        if self._ptr is None: 
+            raise ValueError("%s ERROR: you need to Hanning smooth the data with compute() before calling writeto()."%self.taskname)
+        libBB.Hanning_write(self._ptr,self.inp._cube,filename.encode('utf-8'),average)

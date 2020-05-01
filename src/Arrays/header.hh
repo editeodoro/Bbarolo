@@ -114,6 +114,7 @@ public:
     void setRedshift (double r) {redshift=r;}
 
     void    Warning(std::string s) {if (warning) std::cout << s << std::endl;}
+    void    addKey(std::string s) {keys.push_back(s);}
 
 
     /// Functions defined in header.cpp.

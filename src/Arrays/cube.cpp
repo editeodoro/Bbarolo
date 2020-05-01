@@ -728,62 +728,92 @@ template void Cube<double>::BlankMask (float*,bool);
 
 
 template <class T>
-Cube<T>* Cube<T>::Reduce (int fac) {
+Cube<T>* Cube<T>::Reduce (int fac, std::string rtype) {
     
-    int dim[3] = {axisDim[0]/fac,axisDim[1]/fac,axisDim[2]};
-    
+    /// This function reduces the size of a cube by averaging pixels/channels
+    ///
+    /// \param fac      Reduction factor. 
+    /// \param rtype    "spectral" or "spatial" averaging
     
     if (par.isVerbose()) std::cout << " Reducing..." << std::flush;
+    
+    // Defining dimensions of the output cube
+    int dim[3];
+    if (rtype=="spectral") {
+        dim[0] = axisDim[0];
+        dim[1] = axisDim[1];
+        dim[2] = axisDim[2]/fac;
+    }
+    else {
+        dim[0] = axisDim[0]/fac;
+        dim[1] = axisDim[1]/fac;
+        dim[2] = axisDim[2];
+    }
 
+    // Initializing the new datacube 
     Cube<T> *reduced = new Cube<T>(dim);
     reduced->saveParam(par);
     reduced->saveHead(head);
-    reduced->Head().setCdelt(0, fac*head.Cdelt(0));
-    reduced->Head().setCdelt(1, fac*head.Cdelt(1));
-    reduced->Head().setCrpix(0, lround(head.Crpix(0)/double(fac)));
-    reduced->Head().setCrpix(1, lround(head.Crpix(1)/double(fac)));
-    reduced->Head().calcArea();
     
-    T *Array = reduced->Array();
-    
-    std::string obeamsize = "  Old beam size: "+to_string(Head().BeamArea())+" pixels";
-    std::string nbeamsize = "  New beam size: "+to_string(reduced->Head().BeamArea())+" pixels";
-    
-    int xx, yy;
-    for (int z=0; z<dim[2]; z++) {
-        xx = yy = 0;
-        for (int y=0; y<dim[1]; y++) {
-            for (int x=0; x<dim[0]; x++) {
-                long Arraypix = x+y*dim[0]+z*dim[0]*dim[1];
+    if (rtype=="spectral") {                // Spectral reduction
+        for (int i=0; i<dim[0]*dim[1]; i++) {
+            for (int z=0; z<dim[2]; z++) {
                 T sum = 0;
-                for (yy=fac*y; yy<fac*y+fac; yy++) {
-                    for (xx=fac*x; xx<fac*x+fac; xx++) {
-                        long arraypix = xx+yy*axisDim[0]+z*axisDim[0]*axisDim[1];
-                        sum += array[arraypix];
-                    }
-                }
-                Array[Arraypix] = sum/double(fac*fac);
+                for (int zz=fac*z; zz<fac*z+fac; zz++)
+                    sum += array[i+zz*axisDim[0]*axisDim[1]];
+                reduced->Array(i+z*dim[0]*dim[1]) = sum/double(fac);
             }
         }
-    }
         
-    if (par.isVerbose()) std::cout << "OK\n" << obeamsize << std::endl << nbeamsize << std::endl;
+        reduced->Head().setCdelt(2, fac*head.Cdelt(2));
+        reduced->Head().setCrpix(2, lround(head.Crpix(2)/double(fac)));
+        
+        std::string ochsize = "  Old channel width: "+to_string(Head().Cdelt(2))+" "+Head().Cunit(2);
+        std::string nchsize = "  New channel width: "+to_string(reduced->Head().Cdelt(2))+" "+Head().Cunit(2);
+        reduced->Head().addKey("HISTORY BBAROLO SPECTRAL AVERAGING: "+nchsize);
+        reduced->Head().addKey("HISTORY BBAROLO SPECTRAL AVERAGING: "+ochsize);
+        if (par.isVerbose()) std::cout << "OK\n" << ochsize << std::endl << nchsize << std::endl;
+        
+    }
+    else {                                  // Spatial reduction
+        for (int z=0; z<dim[2]; z++) {
+            for (int y=0; y<dim[1]; y++) {
+                for (int x=0; x<dim[0]; x++) {
+                    T sum = 0;
+                    for (int yy=fac*y; yy<fac*y+fac; yy++)
+                        for (int xx=fac*x; xx<fac*x+fac; xx++) 
+                            sum += array[xx+yy*axisDim[0]+z*axisDim[0]*axisDim[1]];
+                    reduced->Array(x,y,z) = sum/double(fac*fac);
+                }
+            }
+        }
+    
+        reduced->Head().setCdelt(0, fac*head.Cdelt(0));
+        reduced->Head().setCdelt(1, fac*head.Cdelt(1));
+        reduced->Head().setCrpix(0, lround(head.Crpix(0)/double(fac)));
+        reduced->Head().setCrpix(1, lround(head.Crpix(1)/double(fac)));
+        reduced->Head().calcArea();
+    
+        std::string obeamsize = "  Old beam size: "+to_string(Head().BeamArea())+" pixels";
+        std::string nbeamsize = "  New beam size: "+to_string(reduced->Head().BeamArea())+" pixels";
+        reduced->Head().addKey("HISTORY BBAROLO SPATIAL AVERAGING: "+nbeamsize);
+        reduced->Head().addKey("HISTORY BBAROLO SPATIAL AVERAGING: "+obeamsize);
+        if (par.isVerbose()) std::cout << "OK\n" << obeamsize << std::endl << nbeamsize << std::endl;
+    }
     
     T minn,maxx;
     findMinMax<T>(reduced->Array(), reduced->NumPix(), minn, maxx);
     reduced->Head().setDataMax(double(maxx));
     reduced->Head().setDataMin(double(minn));
-    reduced->Head().Keys().push_back("HISTORY BBAROLO RESAMPLING: "+nbeamsize);
-    reduced->Head().Keys().push_back("HISTORY BBAROLO RESAMPLING: "+obeamsize);
     
     return reduced;
     
 }
-template Cube<short>* Cube<short>::Reduce (int);
-template Cube<int>* Cube<int>::Reduce (int);
-template Cube<long>* Cube<long>::Reduce (int);
-template Cube<float>* Cube<float>::Reduce (int);
-template Cube<double>* Cube<double>::Reduce (int);  
+template Cube<short>* Cube<short>::Reduce (int,std::string);
+template Cube<int>* Cube<int>::Reduce (int,std::string);
+template Cube<long>* Cube<long>::Reduce (int,std::string);
+template Cube<float>* Cube<float>::Reduce (int,std::string);
+template Cube<double>* Cube<double>::Reduce (int,std::string);  
     
     
     

@@ -8,6 +8,7 @@
 #include<Tasks/galwind.hh>
 #include<Tasks/ringmodel.hh>
 #include<Tasks/ellprof.hh>
+#include<Tasks/smooth3D.hh>
 
 
 using namespace Model;
@@ -118,6 +119,16 @@ Ellprof<float>* Ellprof_new(Cube<float> *c, Rings<float> *r, const char* mask, c
 void Ellprof_delete(Ellprof<float> *e) {delete e;}
 void Ellprof_compute(Ellprof<float> *e) {signal(SIGINT, signalHandler); e->RadialProfile();}
 void Ellprof_write(Ellprof<float> *e, const char *fout) {std::ofstream fileo(fout); e->printProfile(fileo);}
+//////////////////////////////////////////////////////////////////////////////////////////                  
+
+
+// Interface for HANNING class //////////////////////////////////////////////////////////
+Hanning3D<float>* Hanning_new(size_t window_size) {return new Hanning3D<float>(window_size);}
+void Hanning_delete(Hanning3D<float> *h) {delete h;}
+void Hanning_compute(Hanning3D<float> *h, Cube<float> *c) {signal(SIGINT, signalHandler); h->compute(c);}
+float* Hanning_array(Hanning3D<float> *h) {return h->Array();}
+void Hanning_write(Hanning3D<float> *h, Cube<float> *c, const char *fout, bool average) {
+                   c->pars().setflagReduce(average); h->fitswrite(c, string(fout));}
 //////////////////////////////////////////////////////////////////////////////////////////                  
                     
 }

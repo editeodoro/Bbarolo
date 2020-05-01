@@ -144,7 +144,7 @@ public:
 
     //void  WriteFITSMap (T *Array, int T);          /// Write a map in a FITS file.
     
-    Cube<T>*    Reduce (int fac);
+    Cube<T>*    Reduce (int fac,std::string rtype="spatial");
     void    CheckChannels ();
     
     void    checkBeam();

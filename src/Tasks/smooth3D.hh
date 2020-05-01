@@ -147,7 +147,7 @@ public:
 
     void compute(Cube<T> *c);
     void compute(T *inarray, size_t xsize, size_t ysize, size_t zsize);
-    void fitswrite(Cube<T> *templ);
+    void fitswrite(Cube<T> *templ,std::string outname="");
    
 private: 
     T       *array;                     //< The smoothed array.

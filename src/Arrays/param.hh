@@ -222,6 +222,7 @@ public:
     float   getScaleFactor () {return scalefactor;}
     void    setFactor (float f) {factor=f;}
     bool    getflagReduce() {return flagReduce;}
+    void    setflagReduce(bool b) {flagReduce=b;}
     string  getSmoothOut () {return smo_out;}
     
     bool    getflagHanning () {return flagHanning;}
