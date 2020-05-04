@@ -49,6 +49,8 @@ Below, an example :download:`parameter <examples/n2403_smooth.par>` file to smoo
 
 |
 
+.. _spectralsmoothtask:
+
 SMOOTHSPEC task (v1.5.2+)
 #########################
 This task convolves each spectrum in a datacube with a given window, i.e. it performs spectral smoothing. 

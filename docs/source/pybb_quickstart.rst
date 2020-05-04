@@ -56,6 +56,8 @@ Available tasks
 
 * **Ellprof()**: wrapped class for BBarolo's :ref:`ELLPROF <ellproftask>` task.
 
+* **SpectralSmooth()**: wrapped class for BBarolo's :ref:`SMOOTHSPEC <spectralsmoothtask>` task.
+
  
 Example 1: 3D fit of a galaxy
 =============================
