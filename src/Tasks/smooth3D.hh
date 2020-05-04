@@ -135,24 +135,25 @@ private:
 /// A class for Hanning smoothing a datacube
 /////////////////////////////////////////////////////////////////////////////////////
 template <class T>
-class Hanning3D 
+class SpectralSmooth3D 
 {
 public:
-    Hanning3D(size_t window_size) {window=window_size;}         //< Constructor.
-    virtual ~Hanning3D() {if (arrayAllocated) delete [] array;} //< Destructor.
+    SpectralSmooth3D(std::string wtype, size_t wsize);                      //< Constructor.
+    virtual ~SpectralSmooth3D() {if (arrayAllocated) delete [] array;}      //< Destructor.
 
     /// Obvious inline functions
     T&   Array (int i) {return array[i];}
     T    *Array () {return array;}
 
     void compute(Cube<T> *c);
-    void compute(T *inarray, size_t xsize, size_t ysize, size_t zsize);
+    void compute(T *inarray, size_t xsize, size_t ysize, size_t zsize, int nthreads=1);
     void fitswrite(Cube<T> *templ,std::string outname="");
    
 private: 
-    T       *array;                     //< The smoothed array.
-    bool    arrayAllocated = false;     //< Have been array allocated?
-    size_t  window = 3;                 //< Size of the Hanning window
+    T           *array;                     //< The smoothed array.
+    bool        arrayAllocated = false;     //< Have been array allocated?
+    std::string windowtype = "hanning";     //< Size of the Hanning window
+    size_t      windowsize = 3;             //< Size of the Hanning window
 };
 
 #endif

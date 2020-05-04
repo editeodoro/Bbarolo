@@ -75,7 +75,7 @@ bool BBcore (Param *par) {
     // --------------------------------------------------------------
     
     
-    /// Smoothing utility ------------------------------------------
+    /// Spatial smoothing utility ------------------------------------------
     if (par->getflagSmooth()) {
         Smooth3D<float> *sm = new Smooth3D<float>;
         sm->cubesmooth(c);
@@ -85,12 +85,12 @@ bool BBcore (Param *par) {
     // --------------------------------------------------------------
 
 
-    /// Hanning smoothing utility -----------------------------------
-    if (par->getflagHanning()) {
-        Hanning3D<float> *han = new Hanning3D<float>(par->getHanningWindow());
-        han->compute(c);
-        han->fitswrite(c);
-        delete han;
+    /// Spectral smoothing utility -----------------------------------
+    if (par->getflagSmoothSpectral()) {
+        SpectralSmooth3D<float> *sm = new SpectralSmooth3D<float>(par->getWindowType(),par->getWindowSize());
+        sm->compute(c);
+        sm->fitswrite(c);
+        delete sm;
     }
     // --------------------------------------------------------------
 
@@ -218,7 +218,7 @@ bool BBcore (Param *par) {
 
 
     // Repixeling task ------------------------------------------------
-    if (par->getflagReduce() && !(par->getflagSmooth() || par->getflagHanning())) {
+    if (par->getflagReduce() && !(par->getflagSmooth() || par->getflagSmoothSpectral())) {
         std::string name = c->pars().getOutfolder()+c->Head().Name()+"_red.fits";
         Cube<float> *red = c->Reduce(floor(c->pars().getFactor()));
         red->fitswrite_3d(name.c_str(),true);

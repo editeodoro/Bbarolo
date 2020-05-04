@@ -225,8 +225,9 @@ public:
     void    setflagReduce(bool b) {flagReduce=b;}
     string  getSmoothOut () {return smo_out;}
     
-    bool    getflagHanning () {return flagHanning;}
-    size_t  getHanningWindow () {return hanning_window;}
+    bool    getflagSmoothSpectral () {return flagSmoothSpectral;}
+    string  getWindowType () {return window_type;}
+    size_t  getWindowSize () {return window_size;}
     
 
     bool    getFlagSlitfit () {return flagSlitfit;}
@@ -244,12 +245,12 @@ public:
     /// Utility functions:
     
     bool    getopts(int argc, char **argv);          /// Parse the command line parameters correctly. 
-    int     readParams(string paramfile);            /// Read in parameters from a disk file.
-    void    setParam(stringstream &ss);               /// Set a parameter value.
+    bool    readParams(string paramfile);            /// Read in parameters from a disk file.
+    bool    readParamCL(std::string parstr);         /// Read a parameter from the command line.
+    void    setParam(stringstream &ss);              /// Set a parameter value.
     bool    checkPars();                             /// Check the parameter list for inconsistencies. 
     void    printDefaults (ostream& theStream=cout, string wtask="ALL"); /// Print on screen the defaults values.
     void    createTemplate();                        /// Create a template file for 3DFIT.
-    void    overrideParameter(std::string parstr);         /// Override a parameter in parameter file.
     friend ostream& operator<< (ostream& theStream, Param& par);
     
     friend class Image;
@@ -307,8 +308,9 @@ private:
     bool            flagReduce;
     string          smo_out;            ///< Output file.
     
-    bool            flagHanning;        ///< Hanning smooth the datacube?
-    size_t          hanning_window;     ///< Size of hanning window
+    bool            flagSmoothSpectral; ///< Spectral smoothing the datacube?
+    string          window_type;        ///< Type of smoothing window
+    size_t          window_size;        ///< Type of smoothing window
 
     bool            flagSlitfit;        ///< Fitting a 3D model to a slit observation.
     string          wavefile;           ///< Fitsfile containing the wavelegths.

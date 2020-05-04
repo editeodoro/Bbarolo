@@ -1045,53 +1045,62 @@ template void Smooth3D<double>::fitswrite();
 /////////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-void Hanning3D<T>::compute(Cube<T> *in) {
-    
-    // Performs Hanning smoothing on each spectrum of a datacube
-    if (in->pars().isVerbose()) std::cout << " Hanning smoothing..." << std::flush;
-    this->compute(in->Array(),in->DimX(),in->DimY(),in->DimZ());
-    if (in->pars().isVerbose()) std::cout << " Done!" << std::endl;
-    
+SpectralSmooth3D<T>::SpectralSmooth3D(std::string wtype, size_t wsize) {
+     windowtype = makeupper(wtype);
+     windowsize = wsize;
 }
-template void Hanning3D<float>::compute(Cube<float>*);
-template void Hanning3D<double>::compute(Cube<double>*);
+template SpectralSmooth3D<float>::SpectralSmooth3D(std::string,size_t);
+template SpectralSmooth3D<double>::SpectralSmooth3D(std::string,size_t);
 
 
 template <class T>
-void Hanning3D<T>::compute(T *inarray, size_t xsize, size_t ysize, size_t zsize) {
+void SpectralSmooth3D<T>::compute(Cube<T> *in) {
     
-    // Performs Hanning smoothing on each spectrum of a 3D array
+    // Performs smoothing on each spectrum of a datacube
+    if (in->pars().isVerbose()) std::cout << " Spectral smoothing (" << windowtype << ") ..." << std::flush;
+    this->compute(in->Array(),in->DimX(),in->DimY(),in->DimZ(),in->pars().getThreads());
+    if (in->pars().isVerbose()) std::cout << " Done!" << std::endl;
+    
+}
+template void SpectralSmooth3D<float>::compute(Cube<float>*);
+template void SpectralSmooth3D<double>::compute(Cube<double>*);
+
+
+template <class T>
+void SpectralSmooth3D<T>::compute(T *inarray, size_t xsize, size_t ysize, size_t zsize, int nthreads) {
+    
+    // Performs Spectral smoothing on each spectrum of a 3D array
     array = new T[xsize*ysize*zsize];
     arrayAllocated = true;
-    for (size_t x=0; x<xsize; x++) {
-        for (size_t y=0; y<ysize; y++) {
-            T *spec = new T[zsize];
-            for (size_t z=0; z<zsize; z++) spec[z] = inarray[x+y*xsize+z*ysize*xsize];
-            T* hann = HanningSmoothing<T>(spec,zsize,window);
-            for (size_t z=0; z<zsize; z++) array[x+y*xsize+z*ysize*xsize] = hann[z];
-            delete [] hann;
-            delete [] spec;
-        }
+
+#pragma omp parallel for num_threads(nthreads)
+    for (size_t i=0; i<xsize*ysize; i++) {
+        T *spec = new T[zsize];
+        for (size_t z=0; z<zsize; z++) spec[z] = inarray[i+z*ysize*xsize];
+        T* specsmooth = Smooth1D<T>(spec,zsize,windowtype,windowsize);
+        for (size_t z=0; z<zsize; z++) array[i+z*ysize*xsize] = specsmooth[z];
+        delete [] specsmooth;
+        delete [] spec;
     }
 }
-template void Hanning3D<float>::compute(float*,size_t,size_t,size_t);
-template void Hanning3D<double>::compute(double*,size_t,size_t,size_t);
+template void SpectralSmooth3D<float>::compute(float*,size_t,size_t,size_t,int);
+template void SpectralSmooth3D<double>::compute(double*,size_t,size_t,size_t,int);
 
 
 template <class T> 
-void Hanning3D<T>::fitswrite(Cube<T> *templ, std::string outname) {
+void SpectralSmooth3D<T>::fitswrite(Cube<T> *templ, std::string outname) {
     
     Cube<T> *out = new Cube<T>(*templ);
-    out->Head().Keys().push_back("HISTORY BBAROLO HANNING SMOOTHING: Hanning smoothed with window "+to_string(window)+" channels");
+    out->Head().Keys().push_back("HISTORY BBAROLO SPECTRAL SMOOTHING: "+windowtype+" window of size "+to_string(windowsize)+" channels");
     for (size_t i=0; i<out->NumPix(); i++) out->Array()[i] = array[i];
     if (outname=="") {
-        outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(window);
+        outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(windowsize);
         if (templ->pars().getflagReduce()) outname += "_red";
         outname += ".fits";
     }
 
-    if (templ->pars().getflagReduce() && window>1) {
-        Cube<T> *red = out->Reduce(window,"spectral"); 
+    if (templ->pars().getflagReduce() && windowsize>1) {
+        Cube<T> *red = out->Reduce(windowsize,"spectral"); 
         red->fitswrite_3d(outname.c_str(),true);
         delete red;
     }
@@ -1103,11 +1112,11 @@ void Hanning3D<T>::fitswrite(Cube<T> *templ, std::string outname) {
         out->fitswrite_3d(outname.c_str(),true);
     }
 
-    if (templ->pars().isVerbose()) std::cout << " Hanning-smoothed datacube written in " << outname << std::endl;
+    if (templ->pars().isVerbose()) std::cout << " Spectrally-smoothed datacube written in " << outname << std::endl;
     delete out;
 }
-template void Hanning3D<float>::fitswrite(Cube<float>*,std::string);
-template void Hanning3D<double>::fitswrite(Cube<double>*,std::string);
+template void SpectralSmooth3D<float>::fitswrite(Cube<float>*,std::string);
+template void SpectralSmooth3D<double>::fitswrite(Cube<double>*,std::string);
 
 
 

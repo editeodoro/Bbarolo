@@ -1017,31 +1017,64 @@ template double* SimulateNoise(double,size_t);
 
 
 template <class T>
-T* HanningSmoothing(T *inarray, size_t npts, size_t hanningSize) {
+T* Smooth1D(T *inarray,size_t npts,std::string windowType,size_t windowSize) {
     
-    // Performs Hanning smoothing on a single 1D array
+    // Performs smoothing on a single 1D array. Accepted windows are below 
     
-    T *newarray = new T[npts];
-    
-    if(hanningSize%2==0){ 
-      std::cerr << "Hanning: need an odd number for the size. "
-  	      << "Changing "<< hanningSize << " to " << hanningSize+1<<".\n";
-      hanningSize++;
+    bool known_window = windowType=="HANNING" || windowType=="HANNING2" ||
+                        windowType=="BOXCAR"  || windowType=="TOPHAT"   || 
+                        windowType=="FLATTOP" || windowType=="BARTLETT" ||
+                        windowType=="WELCH"   || windowType=="BLACKMAN";
+    if (!known_window) {
+         std::cerr << "Smoothing 1D: window type unknown "
+                   << "Changing "<< windowType << " to \"HANNING\" .\n";
+         windowType = "HANNING";
+    }
+    // Check window size and type
+    if(windowSize%2==0){ 
+      std::cerr << "Smoothing 1D: need an odd number for the window size. "
+  	            << "Changing "<< windowSize << " to " << windowSize+1<<".\n";
+      windowSize++;
+    }
+   
+    // Defining coefficients for smoothing
+    double *coeff = new double[windowSize];
+    float scale = (windowSize+1.)/2.;
+    float N = windowSize-1;
+    float sum = 0;
+    for(size_t j=0; j<windowSize; j++) {
+        float x = j-(windowSize-1)/2.;
+        if (windowType=="HANNING")            // Hanning used in radio-astronomy
+            coeff[j] = 0.5+0.5*cos(x*M_PI/scale);
+        else if (windowType=="HANNING2")      // Classical Hanning window
+            coeff[j] = 0.5-0.5*cos(j*2*M_PI/N);
+        else if (windowType=="BARTLETT")      // Triangular window
+            coeff[j] = 1-fabs((j-N/2.)/(N/2.));
+        else if (windowType=="WELCH")
+            coeff[j] = 1-std::pow((j-N/2.)/(N/2.),2);
+        else if (windowType=="BLACKMAN") 
+            coeff[j] = 0.42659-0.49656*cos(j*2*M_PI/N)+0.076849*cos(j*4*M_PI/N);
+        else if (windowType=="FLATTOP")
+            coeff[j] =  0.21557895-0.416631580*cos(j*2*M_PI/N)+0.277263158*cos(j*4*M_PI/N)
+                                  -0.083578957*cos(j*6*M_PI/N)+0.006947368*cos(j*8*M_PI/N);
+        else coeff[j] = 1.;
+        sum += coeff[j]; 
     }
     
-    float scale = (hanningSize+1.)/2.;
+    // Smooth
+    T *newarray = new T[npts];
     for(size_t i=0; i<npts; i++){
         newarray[i] = 0.;
-        for(size_t j=0; j<hanningSize; j++){
-            float x = j-(hanningSize-1)/2.;
-            double coeff = (0.5+0.5*cos(x*M_PI/scale))/scale;
-            if((i+x>0)&&(i+x<npts)) newarray[i] += coeff*inarray[i+int(x)];
+        for(size_t j=0; j<windowSize; j++){
+            float x = j-(windowSize-1)/2.;
+            if((i+x>0)&&(i+x<npts)) newarray[i] += coeff[j]/sum*inarray[i+int(x)];
         }
     }
+    delete [] coeff;
     return newarray;
 }
-template float* HanningSmoothing(float*,size_t,size_t);
-template double* HanningSmoothing(double*,size_t,size_t);
+template float* Smooth1D(float*,size_t,std::string,size_t);
+template double* Smooth1D(double*,size_t,std::string,size_t);
 
 
 

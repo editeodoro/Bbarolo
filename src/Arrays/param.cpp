@@ -37,7 +37,7 @@
 
 // A list of all tasks available in BBarolo
 vector<string> tasks = {
-     "3DFIT","GALMOD","SEARCH","2DFIT","SMOOTH","HANNING",
+     "3DFIT","GALMOD","SEARCH","2DFIT","SMOOTH","SMOOTHSPEC",
      "ELLPROF","MAKEMASK","SPACEPAR","GALWIND","SLITFIT",
      "GLOBALPROFILE","TOTALMAP","VELOCITYMAP","DISPERSIONMAP","PV",
  };
@@ -49,7 +49,7 @@ vector<string> taskdescr = {
      "Searching for sources in a 3D datacube or in a 2D image.",
      "Fitting a 2D tilted-ring model to a velocity field.",
      "Spatial smoothing of a datacube with a 2D Gaussian kernel.",
-     "Spectral smoothing of a datacube with a Hanning window.",
+     "Spectral smoothing of a datacube with a given window.",
      "Deriving radial profiles in elliptical rings from a map.",
      "Defining a mask for emission-line data.",
      "Computing the full 2D space for any pair of 3DFIT parameters.",
@@ -109,8 +109,9 @@ void Param::defaultValues() {
     smo_out             = "NONE";
     for (int i=0; i<6; i++) BOX[i] = -1;
 
-    flagHanning         = false;
-    hanning_window      = 3;
+    flagSmoothSpectral  = false;
+    window_type         = "HANNING";
+    window_size         = 3;
     
     flagSlitfit         = false;
     wavefile            = "NONE";
@@ -204,8 +205,9 @@ Param& Param::operator= (const Param& p) {
     this->flagReduce        = p.flagReduce;
     this->smo_out           = p.smo_out;
 
-    this->flagHanning       = p.flagHanning;
-    this->hanning_window    = p.hanning_window;
+    this->flagSmoothSpectral= p.flagSmoothSpectral;
+    this->window_type       = p.window_type;
+    this->window_size       = p.window_size;
     
     this->flagSlitfit       = p.flagSlitfit;
     this->wavefile          = p.wavefile;
@@ -235,21 +237,19 @@ bool Param::getopts(int argc, char ** argv) {
   /// \param argv The array of command line arguments.
 
     bool returnValue = false;
-    int status = 0;
-    if(argc<2){
-        helpscreen();
-        returnValue = false;
-    }
+    
+    if(argc<2) helpscreen();
     else {
         
         defaultValues();
         
         // List of short and long options
-        const char* const short_opts = "p:f:d:qvlth";
+        const char* const short_opts = "p:f:d:qcvlth";
         const option long_opts[] = {
                 {"paramfile", required_argument, nullptr, 'p'},
                 {"fitsfile",  required_argument, nullptr, 'f'},
                 {"defaults",  required_argument, nullptr, 'd'},
+                {"cline",     no_argument,       nullptr, 'c'},
                 {"list",      no_argument,       nullptr, 'l'},
                 {"version",   no_argument,       nullptr, 'v'},
                 {"template",  no_argument,       nullptr, 't'},
@@ -268,21 +268,13 @@ bool Param::getopts(int argc, char ** argv) {
                 
             case 'p':                    // Parameter file provided
                 file = optarg;
-                status = readParams(file);
-                if(status==1)
-                    cout << "Could not open parameter file " << file << ".\n";
-                else if(status==2)
-                    cout << "\nError opening list file: " << imageList << " doesn't exist.\n\n";
-                else if(status==3) 
-                    cout << "\nWrong input file. Exiting...\n\n";
-                else returnValue = true;
+                if(readParams(file)) returnValue = true;
+                else cerr << "Could not open parameter file " << file << ".\n";
                 break;
                 
             case 'f':                    // Fits file provided
                 file = optarg;
-                images.push_back(file);
-                beamFWHM /= 3600.;
-                parSE.flagSearch=true;
+                imageFile = file;
                 parGF.flagGALFIT=true;
                 returnValue = true;
                 break;
@@ -292,6 +284,10 @@ bool Param::getopts(int argc, char ** argv) {
                 printDefaults(cout,file);
                 break;
                 
+            case 'c':                    // Read parameters from command line
+                returnValue = true;
+                break;
+                    
             case 't':                    // Write template paramater file
                 createTemplate();
                 break;
@@ -299,7 +295,7 @@ bool Param::getopts(int argc, char ** argv) {
             case 'l':                    // List available tasks
                 listTasks(cout);
                 break;
-                
+                    
             case 'v':                    // Print version info
                 versionInfo(cout, argv);
                 break;
@@ -321,19 +317,23 @@ bool Param::getopts(int argc, char ** argv) {
             }
         }
     
-        // Check if any parameter has been changed from the command line
+        // Check if any parameter has been given from the command line
         if (optind<argc && returnValue) {
-            while (optind<argc) overrideParameter(std::string(argv[optind++]));
-            if (!checkPars()) returnValue = false;
+            while (optind<argc) readParamCL(std::string(argv[optind++]));
         }
-    
+        
+        if (!checkPars()) {
+            cerr << "\nUnacceptable parameters. Exiting...\n\n";
+            returnValue = false;
+        }
+        
     }
-    
+
     return returnValue;
 }
 
 
-int Param::readParams(std::string paramfile) {
+bool Param::readParams(std::string paramfile) {
     
   /// The parameters are read in from a file, on the assumption that each
   /// line of the file has the format "parameter value" (eg. alphafdr 0.1)
@@ -343,12 +343,12 @@ int Param::readParams(std::string paramfile) {
   /// 
   /// \param paramfile  A std::string containing the parameter filename.
   /// 
-  /// \return           1 if the parameter file does not exist. SUCCESS if
+  /// \return           false if the parameter file does not exist. SUCCESS if
   ///                   it is able to read it.
 
 
     std::ifstream fin(paramfile.c_str());
-    if(!fin.is_open()) return 1;
+    if(!fin.is_open()) return false;
     std::string line;
     while(!std::getline(fin,line,'\n').eof()){
         if(line[0]!='#' || line[0]!='/'){
@@ -357,29 +357,23 @@ int Param::readParams(std::string paramfile) {
             setParam(ss);
         }
     }
+    return true;
+}
 
-    if(imageList!="NONE") {
-        std::ifstream file(imageList.c_str());
-        if(!file) return 2;
-        string s;
-        while(file.good()) {
-            getline(file, s);
-            checkHome(s);
-            if (s!="") images.push_back(s);
-        }
-        file.close();
+
+bool Param::readParamCL(std::string parstr){
+    // Read a parameter from the commandline:
+    // Example: BBarolo -p param.par INC=60
+  
+  
+  
+  
+      size_t found = parstr.find("=");
+    if (found!=std::string::npos) {
+        std::stringstream ss(parstr.replace(found,1," "));
+        setParam(ss);
     }
-    else {
-        checkHome(imageFile);
-        images.push_back(imageFile);
-    }
-
-    beamFWHM /= 3600.;
-
-    if (!checkPars()) return 3;
-
-    return 0;
-
+    return true;
 }
 
 
@@ -524,8 +518,9 @@ void Param::setParam(stringstream &ss) {
     if(arg=="reduce")    flagReduce = readFlag(ss);
     if(arg=="smoothoutput") smo_out = readFilename(ss);
 
-    if(arg=="hanning")    flagHanning = readFlag(ss);
-    if(arg=="hanning_size") hanning_window = readIval(ss);
+    if(arg=="smoothspec")  flagSmoothSpectral = readFlag(ss);
+    if(arg=="window_type") window_type = makeupper(readFilename(ss));
+    if(arg=="window_size") window_size = readIval(ss);
 
     if(arg=="slitfit")    flagSlitfit = readFlag(ss);
     if(arg=="wavefile")   wavefile = readFilename(ss);
@@ -545,7 +540,27 @@ bool Param::checkPars() {
     
     bool good = true;
     
-    checkHome(imageFile);
+    if(imageList!="NONE") {
+        std::ifstream file(imageList.c_str());
+        if(!file) { 
+            cerr << "\nError opening list file: " << imageList << " doesn't exist.\n\n";
+            return false;
+        }
+        string s;
+        while(file.good()) {
+            getline(file, s);
+            checkHome(s);
+            if (s!="") images.push_back(s);
+        }
+        file.close();
+    }
+    else {
+        checkHome(imageFile);
+        images.push_back(imageFile);
+    }
+
+    beamFWHM /= 3600.;
+    
     checkHome(outFolder);
     if (outFolder!="" && outFolder[outFolder.size()-1]!='/') outFolder.append("/");
 
@@ -615,13 +630,13 @@ bool Param::checkPars() {
             cout << "3DFIT warning: 3DFIT and GALMOD can not be run at the same time. Turning off GALMOD.";
             parGM.flagGALMOD = false;
         }
-        
-        if (parGF.NRADII==-1 && parGF.RADII=="-1")  {
-            cout << "3DFIT error: NRADII or RADII" << str << std::endl;
-            good = false;
-        }
 
         if (parGM.flagGALMOD) {
+            if (parGF.NRADII==-1 && parGF.RADII=="-1")  {
+                cout << "3DFIT error: NRADII or RADII" << str << std::endl;
+                good = false;
+            }
+            
             if (parGM.XPOS=="-1") {
                 cout << "3DFIT error: XPOS" << str << std::endl;
                 good = false;
@@ -709,11 +724,6 @@ bool Param::checkPars() {
             parGF.LTYPE = 1;
         }
         
-        //if ((parGF.RESTWAVE!=-1 && parGF.REDSHIFT==-1) || (parGF.RESTWAVE==-1 && parGF.REDSHIFT!=-1)) {
-         //   cout<< "3DFIT warning: Restwave and Redshift must be set both. Exiting...\n";
-         //   std::terminate();
-        //}
-        
         if (flagSlitfit & parGF.flagGALFIT) {
             checkHome(wavefile);
             checkHome(ivarfile);
@@ -799,9 +809,16 @@ bool Param::checkPars() {
         }
     }
 
-    if (flagHanning) {
-        if (hanning_window%2==0) {
-            cout << "HANNING error: Hanning window must be an odd number\n";
+    if (flagSmoothSpectral) {
+        if (window_size%2==0) {
+            cout << "SMOOTHSPEC error: smoothing window must be an odd number\n";
+            good = false;
+        }
+        std::string str = window_type;
+        bool ok = str=="HANNING" || str=="HANNING2" || str=="BOXCAR"  || str=="TOPHAT"   || 
+                  str=="FLATTOP" || str=="BARTLETT" || str=="WELCH"   || str=="BLACKMAN";
+        if (!ok) {
+            cout << "SMOOTHSPEC error: unknown window type " << str << "\n";
             good = false;
         }
     }
@@ -812,17 +829,6 @@ bool Param::checkPars() {
     }
     
     return good;
-}
-
-
-void Param::overrideParameter(std::string parstr){
-    // Override a parameter in the parameter file from the commandline:
-    // Example: BBarolo -p param.par INC=60
-    size_t found = parstr.find("=");
-    if (found!=std::string::npos) {
-        std::stringstream ss(parstr.replace(found,1," "));
-        setParam(ss);
-    }
 }
 
 
@@ -1103,11 +1109,12 @@ void printParams (std::ostream& Str, Param &p, bool defaults, string whichtask) 
         recordParam(Str, "[REDUCE]", "   Reducing datacube?", stringize(p.getflagReduce()));
     }
     
-    // PARAMETERS FOR HANNING
-    toPrint = isAll || p.getflagHanning() || (defaults && whichtask=="HANNING");
+    // PARAMETERS FOR SPECTRAL SMOOTHING
+    toPrint = isAll || p.getflagSmoothSpectral() || (defaults && whichtask=="SMOOTHSPEC");
     if (toPrint) {
-        recordParam(Str, "[HANNING]", "Hanning smoothing the datacube?", stringize(p.getflagHanning()));
-        recordParam(Str, "[HANNING_SIZE]", "   Size of hanning window (channels)", p.getHanningWindow());
+        recordParam(Str, "[SMOOTHSPEC]", "Spectral smoothing of the datacube?", stringize(p.getflagSmoothSpectral()));
+        recordParam(Str, "[WINDOW_TYPE]", "   Type of smoothing window ", p.getWindowType());
+        recordParam(Str, "[WINDOW_SIZE]", "   Size of smoothing window (channels)", p.getWindowSize());
     }
     
     // GALMOD & 3DFIT parameters
@@ -1409,6 +1416,9 @@ void helpscreen(std::ostream& Str) {
         << "this way to achieve best results. \n\n"
         << setw(m) << left << " " 
         << "Example:      BBarolo -p param.par       \n"
+        << endl << endl
+        << setw(m) << left << "   -c, --cline" 
+        << "Read all parameters from the command line \n"
         << endl << endl
         << setw(m) << left << "   -d, --defaults" 
         << "Print on the screen a list all available par-\n"

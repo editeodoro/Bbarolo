@@ -122,13 +122,14 @@ void Ellprof_write(Ellprof<float> *e, const char *fout) {std::ofstream fileo(fou
 //////////////////////////////////////////////////////////////////////////////////////////                  
 
 
-// Interface for HANNING class //////////////////////////////////////////////////////////
-Hanning3D<float>* Hanning_new(size_t window_size) {return new Hanning3D<float>(window_size);}
-void Hanning_delete(Hanning3D<float> *h) {delete h;}
-void Hanning_compute(Hanning3D<float> *h, Cube<float> *c) {signal(SIGINT, signalHandler); h->compute(c);}
-float* Hanning_array(Hanning3D<float> *h) {return h->Array();}
-void Hanning_write(Hanning3D<float> *h, Cube<float> *c, const char *fout, bool average) {
-                   c->pars().setflagReduce(average); h->fitswrite(c, string(fout));}
+// Interface for SpectralSmooth3D class //////////////////////////////////////////////////////////
+SpectralSmooth3D<float>* SpectralSmooth3D_new(const char *wtype, size_t wsize) {return new SpectralSmooth3D<float>(string(wtype),wsize);}
+void SpectralSmooth3D_delete(SpectralSmooth3D<float> *h) {delete h;}
+void SpectralSmooth3D_compute(SpectralSmooth3D<float> *h, Cube<float> *c, int NTHREADS) {
+                              signal(SIGINT, signalHandler); c->pars().setThreads(NTHREADS); h->compute(c);}
+float* SpectralSmooth3D_array(SpectralSmooth3D<float> *h) {return h->Array();}
+void SpectralSmooth3D_write(SpectralSmooth3D<float> *h, Cube<float> *c, const char *fout, bool average) {
+                            c->pars().setflagReduce(average); h->fitswrite(c, string(fout));}
 //////////////////////////////////////////////////////////////////////////////////////////                  
                     
 }
