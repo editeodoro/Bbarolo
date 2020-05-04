@@ -69,3 +69,11 @@ if __name__ == '__main__':
     ################################################################################
     #'''
     
+    #'''
+    ### SPECTRAL SMOOTHING TUTORIAL ############################################################
+    s = SpectralSmoothing(fitsname)
+    a = s.smooth(window_type='hanning',window_size=11,threads=8)
+    s.writeto("smoothedcube.fits",average=True)
+    ################################################################################
+    #'''
+    

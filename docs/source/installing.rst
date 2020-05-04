@@ -38,7 +38,7 @@ To compile the code, all you need is:
 - `QT toolkit <http://www.qt.io/developers/>`_ (> 4.0), only if you would like to use the GUI.
 - `Gnuplot <http://www.gnuplot.info/>`_ and `Python <https://www.python.org/>`_ (> 2.6) with the `Astropy <http://www.astropy.org/>`_ package. 
 
-Most of these libraries and packages should already be installed on scientific machines. Otherwise, you can easily install them through the terminal commands of the various package managers, i.e. *apt-get* on Ubuntu-based, *pacman* on Arch-based, *yum* on RPM-based distros, *brew* or *port* on Mac OS X. Note that the QT toolkit is only needed to compile the GUI, which is not mandatory. Gnuplot and Python are not needed to successfully compile the code, but without them BBarolo will not produce any outputs. 
+Most of these libraries and packages should already be installed on scientific machines. Otherwise, you can easily install them through the terminal commands of the various package managers, i.e. *apt-get* on Ubuntu-based, *pacman* on Arch-based, *yum* on RPM-based distros, *brew* or *port* on Mac OS X. Note that the QT toolkit is only needed to compile the GUI, which is optional. Gnuplot and Python are not needed to successfully compile the code, but without them BBarolo will not produce any outputs. 
 
 .. _compiling:
 
@@ -78,7 +78,6 @@ If your machine satisfies the above requirements, compiling BBarolo will hopeful
   To compile in parallel: ``> make -j N``, where N is the number of processors. If the compilation   succeeds, the executable **BBarolo** will appear in the current directory. 
 
 
-
 Optional steps
 """"""""""""""
 
@@ -101,3 +100,17 @@ Optional steps
     > make clean
 
 
+
+Installing via Homebrew (MAC only)
+========================================
+
+If you use `Homebrew <https://brew.sh/>`_ package manager for MacOSX, there is a simpler way of compiling and installing the code::
+
+    > wget https://github.com/editeodoro/Bbarolo/blob/master/bbarolo.rb .
+    > brew install [--devel] bbarolo.rb
+    
+The first command downloads a ruby installing script, the second command installs BBarolo in /usr/local/Cellar/bbarolo and symlinks the executable to /usr/local/bin. Homebrew takes care of all dependencies. After installation, you will be able to run the code from any directory just by typing ``BBarolo``. The optional argument ``--devel`` install the latest non-stable version rather than the stable release.
+
+To uninstall BBarolo::
+
+    > brew uninstall bbarolo

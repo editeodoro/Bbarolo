@@ -105,6 +105,8 @@ Additional parameters to control and refine the fit. All following parameters ha
 
 * **PLOTMASK** [false]. If true, the mask contour is overlayed on the channel maps and PVs plots.
 
+* **NOISERMS** [0] If > 0, Gaussian noise with rms = NOISERMS will be added to the final model cube.
+
 * **NORMALCUBE** [true] (BBarolo v1.5.1+). If true, the input cube is normalized before the fit. This usually helps convergence and avoids issues with very small flux values.
 
 

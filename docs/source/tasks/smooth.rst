@@ -49,14 +49,19 @@ Below, an example :download:`parameter <examples/n2403_smooth.par>` file to smoo
 
 |
 
-HANNING task
-#######################
-This task convolves each spectrum in a datacube with a Hanning window. 
+SMOOTHSPEC task (v1.5.2+)
+#########################
+This task convolves each spectrum in a datacube with a given window, i.e. it performs spectral smoothing. 
 
 Parameters
 ==========
-* **HANNING** [false]. This flag enables the Hanning smoothing algorithm. Can be *true* or *false*.
-* **HANNING_SIZE** [3]. Size of the Hanning window in channels. The spectral resolution of the output data will be FWHM = HANNING_SIZE/:math:`\pi`.
+* **SMOOTHSPEC** [false]. This flag enables the spectral smoothing algorithm. Can be *true* or *false*.
+
+* **WINDOW_TYPE** [HANNING]. Type of the smoothing window. Implemented windows include *HANNING*, *BOXCAR*, *BARTLETT*, *WELCH*, *BLACKMAN*, *FLATTOP*. 
+
+* **WINDOW_SIZE** [3]. Size of the smoothing window in channels. 
+
+* **REDUCE** [false]. If *true*, output data will be averaged over WINDOW_SIZE channels.
 
 Outputs
 ========

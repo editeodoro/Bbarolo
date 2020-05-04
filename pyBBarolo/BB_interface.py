@@ -135,3 +135,16 @@ libBB.Ellprof_compute.argtypes = [c_void_p]
 libBB.Ellprof_write.restype = None
 libBB.Ellprof_write.argtypes = [c_void_p,c_char_p]
 ########################################################################################
+
+# Class SpectralSmooth3D interface ############################################################
+libBB.SpectralSmooth3D_new.restype = c_void_p
+libBB.SpectralSmooth3D_new.argtypes = [c_char_p,c_size_t]
+libBB.SpectralSmooth3D_delete.restype = None
+libBB.SpectralSmooth3D_delete.argtypes = [c_void_p]
+libBB.SpectralSmooth3D_compute.restype = None
+libBB.SpectralSmooth3D_compute.argtypes = [c_void_p,c_void_p,c_int]
+libBB.SpectralSmooth3D_write.restype = None
+libBB.SpectralSmooth3D_write.argtypes = [c_void_p,c_void_p,c_char_p,c_bool]
+libBB.SpectralSmooth3D_array.restype = POINTER(c_float)
+libBB.SpectralSmooth3D_array.argtypes = [c_void_p]
+########################################################################################

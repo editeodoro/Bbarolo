@@ -919,3 +919,59 @@ class Ellprof(Task):
         if self._inri is None or self._mod is None: 
             raise ValueError("%s ERROR: you need to compute the profiles with compute() before calling writeto()."%self.taskname)
         libBB.Ellprof_write(self._mod,filename.encode('utf-8'))
+
+
+
+class SpectralSmoothing(Task):
+    """ Spectral smoothing of a datacube with a filtering window.
+    
+    Args:
+      fitsname (str): FITS file to fit with a 2D tilted-ring model
+    """
+    def __init__(self,fitsname):
+        super(SpectralSmoothing,self).__init__(fitsname=fitsname)
+        self.taskname = 'SPECTRALSMOOTHING'
+        # Pointer to the C++ Hanning class
+        self._ptr = None  
+    
+    
+    def __del__(self):
+        if self._ptr: libBB.SpectralSmooth3D_delete(self._ptr)
+        
+
+    def smooth(self,window_type='hanning',window_size=3,threads=1):
+        """ Compute an smoothed 3D array 
+
+        Args:
+          window_type (str): type of filtering window (hanning,bartlett,welch,flattop,boxcar,blackman)
+          window_size (int): width of the window (it has to be an odd number)
+          threads (int):     number of cpus to use for computation.
+        
+        Returns:
+        a 3D spectrally-smoothed array 
+        """
+        known_windows = ['HANNING','HANNING2','BOXCAR','BARTLETT','WELCH','BLACKMAN','FLATTOP']
+        self.__del__()
+        if window_size % 2 == 0:
+            raise ValueError("%s ERROR: window_size must be an odd number."%self.taskname)
+        if window_type.upper() not in known_windows:
+            raise ValueError("%s ERROR: window_type could only be HANNING, HANNING2, \
+                             BARTLETT, WELCH, BLACKMAN or FLATTOP"%(self.taskname))
+            
+        # Initializing SmoothSpectral smooth class
+        self._ptr = libBB.SpectralSmooth3D_new(window_type.encode('utf-8'),int(window_size))
+        # Performing Hanning smoothing class
+        libBB.SpectralSmooth3D_compute(self._ptr,self.inp._cube,int(threads))
+        return reshapePointer(libBB.SpectralSmooth3D_array(self._ptr),self.inp.dim[::-1])
+        
+        
+    def writeto(self,filename="",average=False):
+        """ Write the spectrally-smoothed 3D array to a FITS file 
+        
+        Args:
+          filename (str): name of output FITS file
+          average (bool): if true, average over window_size channels
+        """
+        if self._ptr is None: 
+            raise ValueError("%s ERROR: you need to Hanning smooth the data with compute() before calling writeto()."%self.taskname)
+        libBB.SpectralSmooth3D_write(self._ptr,self.inp._cube,filename.encode('utf-8'),average)

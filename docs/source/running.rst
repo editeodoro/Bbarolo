@@ -28,13 +28,17 @@ BBarolo is mainly meant to be run from the command line. For a very quick guide 
 All available parameters are described in the :ref:`task documentation <alltasks>`. In the input file, parameter names are not case-sensitive and lines starting with \# or \/\/ are not read in. The order in which parameters are listed is unimportant, but, if a parameter is listed more than once, only the last value is considered.
 
 Some parameters are mandatory, some others are optional and have default values which are assumed when not explicitly set. 
-A template parameter file can be obtained with the command ``> BBarolo -t``. A list of all parameters with their default values can be printed with ``> BBarolo -d``. An example of parameter file can be found `here <http://editeodoro.github.io/Bbarolo/resources/param.par>`_, full runnable instances can be downloaded from `this page <http://editeodoro.github.io/Bbarolo/downloads/examples>`_. The command ``> BBarolo -v`` will return information about the code version and compiler flags.
+A template parameter file for the 3DFIT task can be obtained with the command ``> BBarolo -t``. A list of all parameters with their default values can be printed with ``> BBarolo -d``. An example of parameter file can be found `here <http://editeodoro.github.io/Bbarolo/resources/param.par>`_, full runnable instances can be downloaded from `this page <http://editeodoro.github.io/Bbarolo/downloads/examples>`_. The command ``> BBarolo -v`` will return information about the code version and compiler flags.
 
 After your parameter file is ready, BBarolo can be run with the following::
 
     > BBarolo -p paramfile
     
-where *paramfile* is the name of the user-defined input file.
+where *paramfile* is the name of the user-defined input file. Since version v1.5.2, individual parameter values can also be overridden from the command line directly, without changing the parameter file. For example:: 
+
+    > BBarolo -p paramfile INC=60 PA=120
+    
+will set a INC of 60 degrees and a PA of 120 degrees and ignore the values listed in the *paramfile*.
 
 
 
