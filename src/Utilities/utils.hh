@@ -120,15 +120,22 @@ template <class T> void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
                                       std::vector<T> &x_out,std::vector<T> &y_out,
                                       int fp=0, int np=-1, int ns=-1);
 
-/// Other functions:
-/// Defined in utils.cpp
-
-bool mkdirp(const char* path, mode_t mode = DEFAULT_MODE);
+/// FITS-related functions:
+/// Defined in fitsUtils.cpp
 void FitsWrite_2D (const char *filename, float *image, long xsize, long ysize);
 void FitsWrite_2D (const char *filename, double *image, long xsize, long ysize);
 void FitsWrite_3D (const char *outfile, float *outcube, long *dimAxes);
 void FitsWrite_3D (const char *outfile, short *outcube, long *dimAxes);
+int  modhead(int argc, char *argv[]);
+int  listhead(int argc, char *argv[]);
+int  fitscopy(int argc, char *argv[]);
+int  fitsarith(int argc, char *argv[]);
 
+
+/// Other functions:
+/// Defined in utils.cpp
+
+bool mkdirp(const char* path, mode_t mode = DEFAULT_MODE);
 template <class T> T AlltoVel (T in, Header &h);
 template <class T> T DeltaVel (Header &h);
 template <class T> T FluxtoJy (T in, Header &h);

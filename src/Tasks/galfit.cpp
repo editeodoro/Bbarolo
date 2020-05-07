@@ -226,8 +226,8 @@ Galfit<T>::Galfit(Cube<T> *c) {
         vsys  = atof(par.VSYS.c_str());
         if (par.DISTANCE==-1) par.DISTANCE = VeltoDist(fabs(vsys));
         vrot  = atof(par.VROT.c_str());
-        vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;                  // default is 8 km/s
-        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.; // default is infinitely thin disk
+        vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;      // default is 8 km/s
+        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.;           // default is infinitely thin disk
         vrad  = par.VRAD!="-1" ? atof(par.VRAD.c_str()) : 0.;
         dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
         inc   = atof(par.INC.c_str());
@@ -1193,63 +1193,31 @@ template Model::Galmod<double>* Galfit<double>::getModel();
 template <class T>
 void Galfit<T>::setFree() {
 
-    std::string FREE = par.FREE;
-    FREE = makelower(FREE);
-
-    int found = FREE.find("vrot");
-    if (found<0) mpar[VROT]=false;
-    else mpar[VROT]=true;
-
-    found = FREE.find("vdisp");
-    if (found<0) mpar[VDISP]=false;
-    else mpar[VDISP]=true;
-
-    found = FREE.find("dens");
-    if (found<0) mpar[DENS]=false;
-    else mpar[DENS]=true;
-
-    found = FREE.find("z0");
-    if (found<0) mpar[Z0]=false;
-    else mpar[Z0]=true;
-
-    found = FREE.find("inc");
-    if (found<0) mpar[INC]=false;
-    else mpar[INC]=true;
-
-    found = FREE.find("pa");
-    if (found<0) {
-        found = FREE.find("phi");
-        if (found<0) mpar[PA]=false;
-        else mpar[PA]=true;
-    }
-    else mpar[PA]=true;
-
-    found = FREE.find("xpos");
-    if (found<0) mpar[XPOS]=false;
-    else mpar[XPOS]=true;
-
-    found = FREE.find("ypos");
-    if (found<0) mpar[YPOS]=false;
-    else mpar[YPOS]=true;
-
-    found = FREE.find("vsys");
-    if (found<0) mpar[VSYS]=false;
-    else mpar[VSYS]=true;
+    std::string f = makelower(par.FREE);
     
-    found = FREE.find("vrad");
-    if (found<0) mpar[VRAD]=false;
-    else mpar[VRAD]=true;
+    // Set everything to fixed
+    for (int i=0; i<MAXPAR; i++) mpar[i] = false;
+    
+    // Detect requested free parameters
+    if (f.find("vrot")!=std::string::npos) mpar[VROT] = true;
+    if (f.find("disp")!=std::string::npos) mpar[VDISP]= true;
+    if (f.find("z0")!=std::string::npos)   mpar[Z0]   = true;
+    if (f.find("inc")!=std::string::npos)  mpar[INC]  = true;
+    if (f.find("pa")!=std::string::npos)   mpar[PA]   = true;
+    if (f.find("phi")!=std::string::npos)  mpar[PA]   = true;
+    if (f.find("xpos")!=std::string::npos) mpar[XPOS] = true;
+    if (f.find("ypos")!=std::string::npos) mpar[YPOS] = true;
+    if (f.find("vsys")!=std::string::npos) mpar[VSYS] = true;
+    if (f.find("vrad")!=std::string::npos) mpar[VRAD] = true;
+    //if (f.find("dens")!=std::string::npos) mpar[DENS] = true;
 
-    found = FREE.find("all");
-    if (found>=0)
+    if (f.find("all")!=std::string::npos)
         for (int i=0; i<MAXPAR; i++) mpar[i] = true;
-
-    mpar[DENS] = false;
     
     int nfixed=0;
     for (int i=0; i<MAXPAR; i++) nfixed += (1-mpar[i]);
     if (nfixed == MAXPAR) {
-        std::cout << " 3DFIT ERROR: NO free parameters!\n";
+        std::cerr << " 3DFIT ERROR: NO free parameters!\n";
         std::terminate();
     }
     nfree = MAXPAR-nfixed;

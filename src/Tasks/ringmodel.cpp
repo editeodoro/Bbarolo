@@ -41,8 +41,8 @@
 
 #define nint(x)     (x>0.0?(int)(x+0.5):(int)(x-0.5))
 
-
-void Ringmodel::defaults() {
+template <class T>
+void Ringmodel<T>::defaults() {
     
     tol = 0.001;
     cor[0] = -1;
@@ -57,68 +57,114 @@ void Ringmodel::defaults() {
     
     allAllocated = false;
 }
+template void Ringmodel<float>::defaults();
+template void Ringmodel<double>::defaults();
 
 
-Ringmodel::Ringmodel() {
+
+template <class T>
+Ringmodel<T>::Ringmodel() {
     
     defaults();
     
 }
+template Ringmodel<float>::Ringmodel();
+template Ringmodel<double>::Ringmodel();
 
 
-Ringmodel::Ringmodel(int nrings) {
+template <class T>
+Ringmodel<T>::Ringmodel(int nrings) {
     
     defaults(); 
     
     nrad  = nrings;
-    rads  = new float [nrings]; 
-    wids  = new float [nrings];                 
-    vsysi = new float [nrings];             
-    vsysf = new float [nrings];             
-    vsyse = new float [nrings];                 
-    vroti = new float [nrings];             
-    vrotf = new float [nrings];         
-    vrote = new float [nrings];             
-    vexpi = new float [nrings];             
-    vexpf = new float [nrings];             
-    vexpe = new float [nrings];                 
-    posai = new float [nrings];         
-    posaf = new float [nrings];     
-    posae = new float [nrings];     
-    incli = new float [nrings];     
-    inclf = new float [nrings];     
-    incle = new float [nrings];         
-    xposf = new float [nrings];         
-    xpose = new float [nrings];                 
-    yposf = new float [nrings];     
-    ypose = new float [nrings];         
+    rads  = new T [nrings]; 
+    wids  = new T [nrings];
+    vsysi = new T [nrings];
+    vsysf = new T [nrings];
+    vsyse = new T [nrings];
+    vroti = new T [nrings];
+    vrotf = new T [nrings];
+    vrote = new T [nrings];
+    vexpi = new T [nrings];
+    vexpf = new T [nrings];
+    vexpe = new T [nrings];
+    posai = new T [nrings];
+    posaf = new T [nrings];
+    posae = new T [nrings];
+    incli = new T [nrings];
+    inclf = new T [nrings];
+    incle = new T [nrings];
+    xposf = new T [nrings];
+    xpose = new T [nrings];
+    yposf = new T [nrings];
+    ypose = new T [nrings];
 
-    npts  = new int [nrings];           
-    chis  = new float [nrings];     
+    npts  = new int [nrings];
+    chis  = new T [nrings];
     
     elp = allocate_2D<float>(nrings, 4);    
     
     allAllocated = true;
     
 }
+template Ringmodel<float>::Ringmodel(int);
+template Ringmodel<double>::Ringmodel(int);
 
 
-Ringmodel::Ringmodel (Cube<float> *c)  {
+template <class T>
+Ringmodel<T>::~Ringmodel() {
+    if (allAllocated) {
+        delete [] rads; 
+        delete [] wids;
+        delete [] vsysi;
+        delete [] vsysf;
+        delete [] vsyse;
+        delete [] vroti;
+        delete [] vrotf;
+        delete [] vrote;
+        delete [] vexpi;
+        delete [] vexpf;
+        delete [] vexpe;
+        delete [] posai;
+        delete [] posaf;
+        delete [] posae;
+        delete [] incli;
+        delete [] inclf;
+        delete [] incle;
+        delete [] xposf;
+        delete [] xpose;
+        delete [] yposf;
+        delete [] ypose;
+        delete [] npts;
+        delete [] chis;
+        deallocate_2D<float>(elp, nrad); 
+    }
+}
+template Ringmodel<float>::~Ringmodel();
+template Ringmodel<double>::~Ringmodel();
+
+
+template <class T>
+Ringmodel<T>::Ringmodel (Cube<T> *c)  {
     
     // Reading ring inputs
-    Rings<float> *r = readRings<float>(c->pars().getParGF(),c->Head());
+    Rings<T> *r = readRings<T>(c->pars().getParGF(),c->Head());
     setfromCube(c,r);
 }
+template Ringmodel<float>::Ringmodel(Cube<float>*);
+template Ringmodel<double>::Ringmodel(Cube<double>*);
 
 
-void Ringmodel::setfromCube (Cube<float> *c, Rings<float> *r)  { 
+template <class T>
+void Ringmodel<T>::setfromCube (Cube<T> *c, Rings<T> *r)  { 
 
     in = c;
     GALFIT_PAR p = in->pars().getParGF();
 
     int nrings = r->nr-1;
-    float *widths = new float[nrings];
-    float *radii = new float[nrings];
+    T *widths = new T[nrings];
+    T *radii = new T[nrings];
     for (int i=0; i<nrings; i++) {
         radii[i]  = r->radii[i]/(arcsconv(c->Head().Cunit(0))*c->Head().PixScale());
         widths[i] = (r->radii[i+1]-r->radii[i])/(arcsconv(c->Head().Cunit(0))*c->Head().PixScale());
@@ -175,7 +221,7 @@ void Ringmodel::setfromCube (Cube<float> *c, Rings<float> *r)  {
     setoption (mpar,hside,wfunc,15.);
 
     // Calculating 1st moment map
-    MomentMap<float> map;
+    MomentMap<T> map;
     map.input(c);
     if (c->Head().NumAx()>2 && c->DimZ()>1) map.FirstMoment(true);
     else {
@@ -188,27 +234,35 @@ void Ringmodel::setfromCube (Cube<float> *c, Rings<float> *r)  {
     int boxup[2] = {map.DimX()-1, map.DimY()-1};
     setfield(map.Array(),map.DimX(),map.DimY(),boxup,boxlow);
 }
+template void Ringmodel<float>::setfromCube(Cube<float>*,Rings<float>*);
+template void Ringmodel<double>::setfromCube(Cube<double>*,Rings<double>*);
 
 
-
-Ringmodel::Ringmodel (int nrings, float *radii, float *widths, float *vsys, float *vrot, 
-                      float *vexp, float *posang, float *incl, float xcenter, float ycenter)  {
+template <class T>
+Ringmodel<T>::Ringmodel (int nrings, T *radii, T *widths, T *vsys, T *vrot, 
+                         T *vexp, T *posang, T *incl, T xcenter, T ycenter)  {
     
     set(nrings, radii, widths, vsys, vrot, vexp, posang, incl, xcenter, ycenter);
     
 }
+template Ringmodel<float>::Ringmodel(int,float*,float*,float*,float*,float*,float*,float*,float,float);
+template Ringmodel<double>::Ringmodel(int,double*,double*,double*,double*,double*,double*,double*,double,double);
 
 
-Ringmodel::Ringmodel (int nrings, float *radii, float widths, float vsys, float vrot, 
-                      float vexp, float posang, float incl, float xcenter, float ycenter)  {
+template <class T>
+Ringmodel<T>::Ringmodel (int nrings, T *radii, T widths, T vsys, T vrot, 
+                         T vexp, T posang, T incl, T xcenter, T ycenter)  {
     
     set(nrings, radii, widths, vsys, vrot, vexp, posang, incl, xcenter, ycenter);
     
 }
+template Ringmodel<float>::Ringmodel(int,float*,float,float,float,float,float,float,float,float);
+template Ringmodel<double>::Ringmodel(int,double*,double,double,double,double,double,double,double,double);
 
 
-void Ringmodel::set (int nrings, float *radii, float *widths, float *vsys, float *vrot, 
-                      float *vexp, float *posang, float *incl, float xcenter, float ycenter) {
+template <class T>
+void Ringmodel<T>::set (int nrings, T *radii, T *widths, T *vsys, T *vrot, 
+                      T *vexp, T *posang, T *incl, T xcenter, T ycenter) {
                           
     defaults();
     
@@ -222,33 +276,36 @@ void Ringmodel::set (int nrings, float *radii, float *widths, float *vsys, float
     incli = incl;
     xposi = xcenter;
     yposi = ycenter;
-    vsysf = new float [nrings];             
-    vsyse = new float [nrings];                             
-    vrotf = new float [nrings];         
-    vrote = new float [nrings];                         
-    vexpf = new float [nrings];             
-    vexpe = new float [nrings];                         
-    posaf = new float [nrings];     
-    posae = new float [nrings];         
-    inclf = new float [nrings];     
-    incle = new float [nrings];         
-    xposf = new float [nrings];         
-    xpose = new float [nrings];                 
-    yposf = new float [nrings];     
-    ypose = new float [nrings];         
+    vsysf = new T [nrings];
+    vsyse = new T [nrings];
+    vrotf = new T [nrings];
+    vrote = new T [nrings];
+    vexpf = new T [nrings];
+    vexpe = new T [nrings];
+    posaf = new T [nrings];
+    posae = new T [nrings];
+    inclf = new T [nrings];
+    incle = new T [nrings];
+    xposf = new T [nrings];
+    xpose = new T [nrings];
+    yposf = new T [nrings];
+    ypose = new T [nrings];
 
-    npts  = new int [nrings];           
-    chis  = new float [nrings];     
+    npts  = new int [nrings];
+    chis  = new T [nrings];
     
-    elp = allocate_2D<float>(nrings, 4);        
+    elp = allocate_2D<float>(nrings, 4);
     
     allAllocated = true;
     
 }
+template void Ringmodel<float>::set(int,float*,float*,float*,float*,float*,float*,float*,float,float);
+template void Ringmodel<double>::set(int,double*,double*,double*,double*,double*,double*,double*,double,double);
 
 
-void Ringmodel::set (int nrings, float *radii, float widths, float vsys, float vrot, 
-                      float vexp, float posang, float incl, float xcenter, float ycenter) {
+template <class T>
+void Ringmodel<T>::set (int nrings, T *radii, T widths, T vsys, T vrot, 
+                        T vexp, T posang, T incl, T xcenter, T ycenter) {
 
     defaults();
     
@@ -257,12 +314,12 @@ void Ringmodel::set (int nrings, float *radii, float widths, float vsys, float v
     yposi = ycenter;
     
     rads  = radii;
-    wids  = new float [nrings];                 
-    vsysi = new float [nrings];                             
-    vroti = new float [nrings];                             
-    vexpi = new float [nrings];                             
-    posai = new float [nrings];             
-    incli = new float [nrings]; 
+    wids  = new T [nrings];
+    vsysi = new T [nrings];
+    vroti = new T [nrings];
+    vexpi = new T [nrings];
+    posai = new T [nrings];
+    incli = new T [nrings];
     
     for (int i=0; i<nrad; i++) {
         
@@ -275,32 +332,35 @@ void Ringmodel::set (int nrings, float *radii, float widths, float vsys, float v
 
     }   
 
-    vsysf = new float [nrings];             
-    vsyse = new float [nrings];                             
-    vrotf = new float [nrings];         
-    vrote = new float [nrings];                         
-    vexpf = new float [nrings];             
-    vexpe = new float [nrings];                         
-    posaf = new float [nrings];     
-    posae = new float [nrings];         
-    inclf = new float [nrings];     
-    incle = new float [nrings];         
-    xposf = new float [nrings];         
-    xpose = new float [nrings];                 
-    yposf = new float [nrings];     
-    ypose = new float [nrings];         
+    vsysf = new T [nrings];
+    vsyse = new T [nrings];
+    vrotf = new T [nrings];
+    vrote = new T [nrings];
+    vexpf = new T [nrings];
+    vexpe = new T [nrings];
+    posaf = new T [nrings];
+    posae = new T [nrings];
+    inclf = new T [nrings];
+    incle = new T [nrings];
+    xposf = new T [nrings];
+    xpose = new T [nrings];
+    yposf = new T [nrings];
+    ypose = new T [nrings];
 
-    npts  = new int [nrings];           
-    chis  = new float [nrings];     
+    npts  = new int [nrings];
+    chis  = new T [nrings];
     
     elp = allocate_2D<float>(nrings, 4);        
     
     allAllocated = true;
 
 }
+template void Ringmodel<float>::set(int,float*,float,float,float,float,float,float,float,float);
+template void Ringmodel<double>::set(int,double*,double,double,double,double,double,double,double,double);
 
 
-void Ringmodel::setoption (bool *maskpar, int hside, int wfunc, float freeangle) {
+template <class T>
+void Ringmodel<T>::setoption (bool *maskpar, int hside, int wfunc, float freeangle) {
     
   /// This function sets some options for fitting.
   ///
@@ -357,9 +417,12 @@ void Ringmodel::setoption (bool *maskpar, int hside, int wfunc, float freeangle)
     
 
 }
-    
+template void Ringmodel<float>::setoption(bool*,int,int,float);
+template void Ringmodel<double>::setoption(bool*,int,int,float);
 
-void Ringmodel::setfield (float *Array, int xsize, int ysize, int *boxup, int *boxlow) {
+
+template <class T>
+void Ringmodel<T>::setfield (T *Array, int xsize, int ysize, int *boxup, int *boxlow) {
     
     int npoints;
     
@@ -370,12 +433,12 @@ void Ringmodel::setfield (float *Array, int xsize, int ysize, int *boxup, int *b
     
     npoints = (bup[1]-blo[1]+1)*(bup[0]-blo[0]+1);
     
-    vfield = new float [npoints];
+    vfield = new T [npoints];
     fieldAllocated = true;
     
     for (int i=blo[0]; i<=bup[0]; i++) {
         for (int j=blo[1]; j<=bup[1]; j++) {
-            float v = Array[i+j*xsize];
+            T v = Array[i+j*xsize];
             int velpix = (i-blo[0]) + (j-blo[1])*(bup[0]-blo[0]+1);
             vfield[velpix]= v;
         }
@@ -383,9 +446,12 @@ void Ringmodel::setfield (float *Array, int xsize, int ysize, int *boxup, int *b
     }
 
 }
+template void Ringmodel<float>::setfield(float*,int,int,int*,int*);
+template void Ringmodel<double>::setfield(double*,int,int,int*,int*);
 
 
-void Ringmodel::ringfit() {
+template <class T>
+void Ringmodel<T>::ringfit() {
     
   /// This function makes a loop over all concentric rings 
   /// and do the fit.
@@ -407,9 +473,9 @@ void Ringmodel::ringfit() {
             if (verb) bar.update(ir+1);
             
             int n;
-            float   e[MAXPAR];
-            float   p[MAXPAR];
-            float   q = 0.0;
+            T   e[MAXPAR];
+            T       p[MAXPAR];
+            T  q = 0.0;
 
             p[VSYS] = vsysi[ir];
             p[VROT] = vroti[ir];
@@ -418,8 +484,8 @@ void Ringmodel::ringfit() {
             p[INC]  = incli[ir];
             p[X0]   = xposi;
             p[Y0]   = yposi;
-            float ri = rads[ir] - 0.5 * wids[ir];
-            float ro = rads[ir] + 0.5 * wids[ir];
+            T ri    = rads[ir] - 0.5 * wids[ir];
+            T ro    = rads[ir] + 0.5 * wids[ir];
             if (ri<0.0) ri = 0.0;
             
             if (rotfit(ri, ro, p, e, n, q)>0) {
@@ -477,9 +543,12 @@ void Ringmodel::ringfit() {
     
     
 }
+template void Ringmodel<float>::ringfit();
+template void Ringmodel<double>::ringfit();
 
 
-int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q) {
+template <class T>
+int Ringmodel<T>::rotfit (T ri, T ro, T *p, T *e, int &n, T &q) {
     
   /// This function does a least squares fit to the radial velocity field.
   ///
@@ -497,14 +566,14 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
     int     nfr;                // Number of free parameters.
     int     nrt;                // Return code from lsqfit.
     int     t = 100;            // Max. number of iterations.
-    float   b[MAXPAR];          // Partial derivatives.
-    float   chi;                // Old chi-squared.
+    T       b[MAXPAR];          // Partial derivatives.
+    double  chi;                // Old chi-squared.
     float   df[MAXPAR];         // Difference vector.
     float   eps = 0.1;          // Stop criterium.
     float   lab = 0.001;        // Mixing parameter.        
     
-    std::vector<float> x,y,w;           // (x,y) position, f(x,y) and w(x,y).
-    float *pf  = new float [MAXPAR];    // Intermediate results.
+    std::vector<T> x,y,w;       // (x,y) position, f(x,y) and w(x,y).
+    T *pf  = new T [MAXPAR];    // Intermediate results.
     
     for (nfr=0, i=0; i<MAXPAR; i++) nfr += mask[i];
     
@@ -517,7 +586,7 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
         chi = q;                                        // Save chi-squared.
         for (i=0; i<MAXPAR; i++) pf[i] = p[i];          // Loop to save initial estimates.
                 
-        Lsqfit<float> lsqfit(&x[0], xdim, &y[0], &w[0], n, pf, e, mask, npar, &func, &derv, tol, t, lab);
+        Lsqfit<T> lsqfit(&x[0], xdim, &y[0], &w[0], n, pf, e, mask, npar, &func, &derv, tol, t, lab);
         nrt = lsqfit.fit();
 
         if (nrt<0) break;                               // Stop because of error.
@@ -602,10 +671,10 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
         
     // Calculate ellipse parameters.
     if (ier==1 && cor[0]>-1 && cor[1]>-1 ) {
-        float a11 = 0.0;
-        float a12 = 0.0;
-        float a22 = 0.0;
-        float sigma2 = 0.0;
+        T a11 = 0.0;
+        T a12 = 0.0;
+        T a22 = 0.0;
+        T sigma2 = 0.0;
 
         for (i=0; i < n; i++) {
             derv( &x[2*i], p, b, MAXPAR);
@@ -625,10 +694,14 @@ int Ringmodel::rotfit (float ri, float ro, float *p, float *e, int &n, float &q)
     
     return ier;
 }
+template int Ringmodel<float>::rotfit(float,float,float*,float*,int&,float&);
+template int Ringmodel<double>::rotfit(double,double,double*,double*,int&,double&);
 
 
-int Ringmodel::getdat (std::vector<float> &x, std::vector<float> &y, std::vector<float> &w, 
-                       float *p, float ri, float ro, float &q, int nfr) {
+template <class T>
+int Ringmodel<T>::getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &w, 
+                          T *p, T ri, T ro, T &q, int nfr) 
+{
     
   /// The function selects the data from velocity field
   /// and calculates differences.
@@ -653,17 +726,17 @@ int Ringmodel::getdat (std::vector<float> &x, std::vector<float> &y, std::vector
     w.clear();
     q    = 0.0;
     // Definition of parameters.
-    float phi  = p[PA];       
-    float inc  = p[INC];              
-    float x0   = p[X0];           
-    float y0   = p[Y0];           
-    float free = fabs(sin(F*thetaf)); // Free angle.
-    float sinp = sin(F*phi);      
-    float cosp = cos(F*phi);  
-    float sini = sin(F*inc);      
-    float cosi = cos(F*inc);     
-    float a    = sqrt(1.0-cosp*cosp*sini*sini);
-    float b    = sqrt(1.0-sinp*sinp*sini*sini); 
+    T phi  = p[PA];       
+    T inc  = p[INC];              
+    T x0   = p[X0];           
+    T y0   = p[Y0];           
+    T free = fabs(sin(F*thetaf)); // Free angle.
+    T sinp = sin(F*phi);      
+    T cosp = cos(F*phi);  
+    T sini = sin(F*inc);      
+    T cosi = cos(F*inc);     
+    T a    = sqrt(1.0-cosp*cosp*sini*sini);
+    T b    = sqrt(1.0-sinp*sinp*sini*sini); 
     int llo    = std::max(blo[0], nint(x0-a*ro)-1);
     int lup    = std::min(bup[0], nint(x0+a*ro)+1);
     int mlo    = std::max(blo[1], nint(y0-b*ro)-1);
@@ -680,15 +753,15 @@ int Ringmodel::getdat (std::vector<float> &x, std::vector<float> &y, std::vector
     for (int rx=llo; rx<lup; rx++) {
         for (int ry=mlo; ry<mup; ry++) {
             int   ip = (ry-blo[1])*nlt+ (rx-blo[0]);
-            float v  = vfield[ip];                 // Radial velocity at this position.
+            T v  = vfield[ip];                 // Radial velocity at this position.
             
             if (v==v) {
-                float xr = (-(rx-x0)*sinp + (ry-y0)*cosp);
-                float yr = (-(rx-x0)*cosp - (ry-y0)*sinp)/cosi;
-                float r = sqrt(xr*xr+yr*yr);
-                float theta = 0.;
+                T xr = (-(rx-x0)*sinp + (ry-y0)*cosp);
+                T yr = (-(rx-x0)*cosp - (ry-y0)*sinp)/cosi;
+                T r = sqrt(xr*xr+yr*yr);
+                T theta = 0.;
                 if (r>=0.1) theta = atan2(yr, xr)/F;   
-                float costh = fabs(cos(F*theta));
+                T costh = fabs(cos(F*theta));
                     
                 if (r>ri && r<ro && costh>free) {      // If we are inside the ring.
 
@@ -698,10 +771,10 @@ int Ringmodel::getdat (std::vector<float> &x, std::vector<float> &y, std::vector
 
                     if (use) {                          // Load data point ? 
                         n += 1;
-                        float xx[2] = {float(rx),float(ry)};
-                        float vz = func (xx, p, MAXPAR);
-                        float s = v - vz;          // Corrected difference
-                        float wi = std::pow(costh, wpow); // Weight of this point.
+                        T xx[2] = {float(rx),float(ry)};
+                        T vz = func (xx, p, MAXPAR);
+                        T s = v - vz;          // Corrected difference
+                        T wi = std::pow(costh, wpow); // Weight of this point.
                         x.push_back(rx);           // Load X-coordinate.
                         x.push_back(ry);           // Load Y-coordinate.
                         y.push_back(v);            // Load LOS velocity.
@@ -714,15 +787,18 @@ int Ringmodel::getdat (std::vector<float> &x, std::vector<float> &y, std::vector
         }   
     }
     
-    if (n > nfr) q = sqrt(q/(float)(n-nfr));     // Enough data points ? 
+    if (n > nfr) q = sqrt(q/(T)(n-nfr));     // Enough data points ? 
     else q = FLT_MAX;       
     
     return n;
     
 }
+template int Ringmodel<float>::getdat(std::vector<float>&,std::vector<float>&,std::vector<float>&,float*,float,float,float&,int);
+template int Ringmodel<double>::getdat(std::vector<double>&,std::vector<double>&,std::vector<double>&,double*,double,double,double&,int);
 
 
-void Ringmodel::print (std::ostream& Stream) {
+template <class T>
+void Ringmodel<T>::print (std::ostream& Stream) {
         
     if (allAllocated && fieldAllocated) {
         
@@ -839,8 +915,12 @@ void Ringmodel::print (std::ostream& Stream) {
         }
     }
 }
+template void Ringmodel<float>::print(std::ostream&);
+template void Ringmodel<double>::print(std::ostream&);
 
-void Ringmodel::printfinal (std::ostream& Stream) {
+
+template <class T>
+void Ringmodel<T>::printfinal (std::ostream& Stream) {
 
     int m=10;
     Stream  << fixed << setprecision(2);
@@ -878,9 +958,12 @@ void Ringmodel::printfinal (std::ostream& Stream) {
 
     }
 }
+template void Ringmodel<float>::printfinal(std::ostream&);
+template void Ringmodel<double>::printfinal(std::ostream&);
 
 
-void Ringmodel::writeModel (std::string fname) {
+template <class T>
+void Ringmodel<T>::writeModel (std::string fname) {
     
     int dim[2] = {in->DimX(),in->DimY()};
     Image2D<float> model(dim);
@@ -888,7 +971,7 @@ void Ringmodel::writeModel (std::string fname) {
     for (int i=model.NumPix(); i--;) model[i] = log(-1);
 
     const double F = M_PI/180.;
-    float p[MAXPAR], e[MAXPAR];
+    T p[MAXPAR], e[MAXPAR];
     float ot = thetaf;
     thetaf = 0;
     ///*
@@ -901,17 +984,17 @@ void Ringmodel::writeModel (std::string fname) {
         p[VROT] = vrotf[ir];
         p[VSYS] = vsysf[ir];
                 
-        float ri = rads[ir] - 0.5 * wids[ir];
-        float ro = rads[ir] + 0.5 * wids[ir];
+        T ri = rads[ir] - 0.5 * wids[ir];
+        T ro = rads[ir] + 0.5 * wids[ir];
         if (ri<0.0) ri = 0.0;
-        float q = 0.0;
-        std::vector<float> x,y,w;
+        T q = 0.0;
+        std::vector<T> x,y,w;
         int n = getdat(x,y,w,p,ri,ro,q,0);
         
         for (int j=1; j<=n; j++) {
-            float xx[2] = {x[2*j-2],x[2*j-1]};
+            T xx[2] = {x[2*j-2],x[2*j-1]};
             if (xx[0]<model.DimX() && xx[1]<model.DimY()) {
-                float vv = func(xx,p,MAXPAR);
+                T vv = func(xx,p,MAXPAR);
                 size_t pp = xx[0]+xx[1]*model.DimX();
                 if (model[pp]!=model[pp]) model[pp] = vv;
                 else model[pp] = (model[pp]+vv)/2.;
@@ -927,25 +1010,25 @@ void Ringmodel::writeModel (std::string fname) {
     p[VEXP] = vexpf[nrad-1];
     p[VROT] = vrotf[nrad-1];
     p[VSYS] = vsysf[nrad-1];
-    float rl = rads[nrad-1]+0.5*wids[nrad-1];
-    float q = 0;
+    T rl = rads[nrad-1]+0.5*wids[nrad-1];
+    T q = 0;
     
-    std::vector<float> x,y,w;
+    std::vector<T> x,y,w;
     int n = getdat(x,y,w,p,0,rl,q,0);
     
     for (int j=1; j<=n; j++) {
-        float xx[2] = {x[2*j-2],x[2*j-1]};
+        T xx[2] = {x[2*j-2],x[2*j-1]};
         if (xx[0]<model.DimX() && xx[1]<model.DimY()) {
             size_t pp = xx[0]+xx[1]*model.DimX();
             if (model[pp]!=model[pp]) {
-                float xr = (-(xx[0]-p[X0])*sin(F*p[PA]) + (xx[1]-p[Y0])*cos(F*p[PA]));
-                float yr = (-(xx[0]-p[X0])*cos(F*p[PA]) - (xx[1]-p[Y0])*sin(F*p[PA]))/cos(F*p[INC]);
-                float R  = sqrt(xr*xr+yr*yr);
+                T xr = (-(xx[0]-p[X0])*sin(F*p[PA]) + (xx[1]-p[Y0])*cos(F*p[PA]));
+                T yr = (-(xx[0]-p[X0])*cos(F*p[PA]) - (xx[1]-p[Y0])*sin(F*p[PA]))/cos(F*p[INC]);
+                T R  = sqrt(xr*xr+yr*yr);
                 // Finding closest radius 
                 float bdif = 1E18;
                 int ind = 0;
                 for (int j=0; j<nrad; j++) {
-                    float diff = fabs(R-rads[j]);
+                    T diff = fabs(R-rads[j]);
                     if (diff<bdif) {
                         bdif = diff;
                         ind  = j;
@@ -966,16 +1049,20 @@ void Ringmodel::writeModel (std::string fname) {
     model.fitswrite_2d(fname.c_str());
     thetaf = ot;
 }
+template void Ringmodel<float>::writeModel(std::string);
+template void Ringmodel<double>::writeModel(std::string);
 
 
-std::ostream& operator<< (std::ostream& Stream, Ringmodel& r) {
+template <class T>
+std::ostream& operator<< (std::ostream& Stream, Ringmodel<T> &r) {
     
     r.print(Stream);
     return Stream;
 }
 
 
-float func (float *c, float *p, int npar) {
+template <class T>
+T func (T *c, T *p, int npar) {
   
   /// The function calculates radial velocity from rotation curve.
   /// 
@@ -986,16 +1073,16 @@ float func (float *c, float *p, int npar) {
   /// \return       The radial velocity in requested point.
   
 
-    float   vs, vc, vr;                     // Parameters of velocity field. 
-    float   x, y;                           // Sky coordinates.
-    float   cost1, sint1; 
-    float   x1, y1, r;
+    T   vs, vc, vr;                     // Parameters of velocity field. 
+    T   x, y;                           // Sky coordinates.
+    T   cost1, sint1; 
+    T   x1, y1, r;
    
-    static float phi= 0.0, inc = 0.0;       // Saved parameters (static type).
-    static float cosp1 = 1.0;
-    static float sinp1 = 0.0;
-    static float cosi1 = 1.0;
-    static float sini1 = 0.0;
+    static double phi= 0.0, inc = 0.0;       // Saved parameters (static type).
+    static double cosp1 = 1.0;
+    static double sinp1 = 0.0;
+    static double cosi1 = 1.0;
+    static double sini1 = 0.0;
 #pragma omp threadprivate(phi,inc,cosp1,sinp1,cosi1,sini1)
 
     vs = p[VSYS];                           // Systemic velocity.
@@ -1025,13 +1112,16 @@ float func (float *c, float *p, int npar) {
     cost1 = x1 / r;                         // Azimutal angle (theta).
     sint1 = y1 / r;                         
 
-    float vrad = vs + (vc*cost1 + vr*sint1) * sini1;
+    T vrad = vs + (vc*cost1 + vr*sint1) * sini1;
         
     return vrad;    
 }
+template float func (float*,float*,int);
+template double func (double*,double*,int);
+    
 
-
-void derv (float *c, float *p, float *d, int npar) {
+template <class T>
+void derv (T *c, T *p, T *d, int npar) {
     
   /// The function derv calculates the partial derivatives 
   /// with respect to the parameters.
@@ -1098,4 +1188,5 @@ void derv (float *c, float *p, float *d, int npar) {
     d[Y0]   = - vc * (sint1 * cosp1 + cost1 * sinp1 / cosi1) * sint1 * sini1 / r +
                 vr * (sint1 * cosp1 + cost1 * sinp1 / cosi1) * cost1 * sini1 / r;
 }
-
+template void derv (float*,float*,float*,int);
+template void derv (double*,double*,double*,int);

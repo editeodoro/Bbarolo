@@ -31,126 +31,127 @@
 
 enum ALLPARS {VSYS, VROT, VEXP, PA, INC, X0, Y0, MAXPAR};
 
-class Ringmodel                         /// A class to make a least-square fitting
-{                                       /// of velocity field with a tilted rings
-public:                                 /// model.  
-    
+template <class T>
+class Ringmodel
+///    A class to make a least-square fitting
+///    of velocity field with a tilted-ring model
+{                                       
+public:
     Ringmodel();                        /// Default constructor.    
-    Ringmodel(int nrings);              /// Alternative constructor.
+    Ringmodel(int nrings);              /// Alternative constructors.
     
-    Ringmodel (Cube<float> *c);
+    Ringmodel (Cube<T> *c);
 
-    Ringmodel(int nrings, float *radii, float *widths, float *vsys, float *vrot,
-              float *vexp, float *posang, float *incl, float xcenter, float ycenter);
+    Ringmodel(int nrings, T *radii, T *widths, T *vsys, T *vrot,
+              T *vexp, T *posang, T *incl, T xcenter, T ycenter);
               
-    Ringmodel(int nrings, float *radii, float widths, float vsys, float vrot,
-              float vexp, float posang, float incl, float xcenter, float ycenter);
+    Ringmodel(int nrings, T *radii, T widths, T vsys, T vrot,
+              T vexp, T posang, T incl, T xcenter, T ycenter);
     
-    ~Ringmodel() {}                     /// Default destructor.
+    ~Ringmodel();                       /// Default destructor.
     
     void defaults();                    /// Default values for some variable.
     
-    void set(int nrings, float *radii, float *widths, float *vsys, float *vrot,
-             float *vexp, float *posang, float *incl, float xcenter, float ycenter);
+    void set(int nrings, T *radii, T *widths, T *vsys, T *vrot,
+             T *vexp, T *posang, T *incl, T xcenter, T ycenter);
               
-    void set (int nrings, float *radii, float widths, float vsys, float vrot, 
-              float vexp, float posang, float incl, float xcenter, float ycenter);
+    void set (int nrings, T *radii, T widths, T vsys, T vrot, 
+              T vexp, T posang, T incl, T xcenter, T ycenter);
     
-    void setfromCube (Cube<float> *c, Rings<float> *r);
+    void setfromCube (Cube<T> *c, Rings<T> *r);
     
     /// Inline functions to access private members:
-    float&   getRadius(int i) {return rads [i];}
-    float&   getWidth (int i) {return wids [i];}
-    float&   getVsysf (int i) {return vsysf[i];}
-    float&   getVrotf (int i) {return vrotf[i];}
-    float&   getVexpf (int i) {return vexpf[i];}
-    float&   getPosaf (int i) {return posaf[i];}
-    float&   getInclf (int i) {return inclf[i];}
-    float&   getXposf (int i) {return xposf[i];}
-    float&   getYposf (int i) {return yposf[i];}
+    T&   getRadius(int i) {return rads [i];}
+    T&   getWidth (int i) {return wids [i];}
+    T&   getVsysf (int i) {return vsysf[i];}
+    T&   getVrotf (int i) {return vrotf[i];}
+    T&   getVexpf (int i) {return vexpf[i];}
+    T&   getPosaf (int i) {return posaf[i];}
+    T&   getInclf (int i) {return inclf[i];}
+    T&   getXposf (int i) {return xposf[i];}
+    T&   getYposf (int i) {return yposf[i];}
     
-    float&   getVsyse (int i) {return vsyse[i];}
-    float&   getVrote (int i) {return vrote[i];}
-    float&   getVexpe (int i) {return vexpe[i];}
-    float&   getPosae (int i) {return posae[i];}
-    float&   getIncle (int i) {return incle[i];}
-    float&   getXpose (int i) {return xpose[i];}
-    float&   getYpose (int i) {return ypose[i];}
+    T&   getVsyse (int i) {return vsyse[i];}
+    T&   getVrote (int i) {return vrote[i];}
+    T&   getVexpe (int i) {return vexpe[i];}
+    T&   getPosae (int i) {return posae[i];}
+    T&   getIncle (int i) {return incle[i];}
+    T&   getXpose (int i) {return xpose[i];}
+    T&   getYpose (int i) {return ypose[i];}
     
+    T&   getChisq (int i) {return chis [i];}
+    int& getNpts  (int i) {return npts [i];}
+    int  getNradii () {return nrad;}
     
-    float&   getChisq (int i) {return chis [i];}
-    int&     getNpts  (int i) {return npts [i];}
-    int     getNradii () {return nrad;}
-    
-    float   getMatrix (int nring, int a) {return elp[nring][a];}
-    float   **getMatrix () {return elp;}
+    float getMatrix (int nring, int a) {return elp[nring][a];}
+    float **getMatrix () {return elp;}
         
-    void    hold(const int i) {mask[i]=false;}            /// Hold a parameter fixed
-    void    free(const int i) {mask[i]=true;}                              /// Release a fixed parameter
+    void hold(const int i) {mask[i]=false;}  /// Hold a parameter fixed
+    void free(const int i) {mask[i]=true;}   /// Release a fixed parameter
     
     /// Fitting specific functions:
     
-    void    setoption (bool *maskpar, int hside, int wfunc, float freeangle);   
-    void    setfield (float *Array, int xsize, int ysize, int *boxup, int *boxlow);
+    void setoption (bool *maskpar, int hside, int wfunc, float freeangle);   
+    void setfield (T *Array, int xsize, int ysize, int *boxup, int *boxlow);
     
-    void    ringfit();
-    int     rotfit (float ri, float ro, float *p, float *e, int &n, float &q);
-    int     getdat (std::vector<float> &x, std::vector<float> &y, std::vector<float> &w, float *p, float ri, float ro, float &q, int nfr);
+    void ringfit();
+    int  rotfit (T ri, T ro, T *p, T *e, int &n, T &q);
+    int  getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &w, T *p, T ri, T ro, T &q, int nfr);
     
-    void    print (std::ostream& Stream);
-    void    printfinal (std::ostream& Stream);
-    void    writeModel (std::string fname);
+    void print (std::ostream& Stream);
+    void printfinal (std::ostream& Stream);
+    void writeModel (std::string fname);
 
-    friend std::ostream& operator<< (std::ostream& Stream, Ringmodel& r);
+    template <class M>
+    friend std::ostream& operator<< (std::ostream& Stream, Ringmodel<M> &r);
     
 protected:
 
-    long    nrad;           ///< Number of rings.
+    long nrad;           ///< Number of rings.
     
-    float   *rads;          ///< Radii of rings.
-    float   *wids;          ///< Widths of rings.
+    T    *rads;          ///< Radii of rings.
+    T    *wids;          ///< Widths of rings.
     
-    float   *vsysi;         ///< Initial systemic velocity.  
-    float   *vsysf;         ///< Fitted systemic velocity.  
-    float   *vsyse;         ///< Error in systemic velocity.  
+    T    *vsysi;         ///< Initial systemic velocity.  
+    T    *vsysf;         ///< Fitted systemic velocity.  
+    T    *vsyse;         ///< Error in systemic velocity.  
     
-    float   *vroti;         ///< Initial rotation velocity.
-    float   *vrotf;         ///< Fitted rotation velocity.
-    float   *vrote;         ///< Error rotation velocity.  
+    T    *vroti;         ///< Initial rotation velocity.
+    T    *vrotf;         ///< Fitted rotation velocity.
+    T    *vrote;         ///< Error rotation velocity.  
     
-    float   *vexpi;         ///< Initial expansion velocity.    
-    float   *vexpf;         ///< Fitted expansion velocity.
-    float   *vexpe;         ///< Error in expansion velocity.
+    T    *vexpi;         ///< Initial expansion velocity.    
+    T    *vexpf;         ///< Fitted expansion velocity.
+    T    *vexpe;         ///< Error in expansion velocity.
     
-    float   *posai;         ///< Initial position angle (anticlockwise from north).
-    float   *posaf;         ///< Fitted position angle.
-    float   *posae;         ///< Error in position angle. 
+    T    *posai;         ///< Initial position angle (anticlockwise from north).
+    T    *posaf;         ///< Fitted position angle.
+    T    *posae;         ///< Error in position angle. 
 
-    float   *incli;         ///< Initial inclination angle.
-    float   *inclf;         ///< Fitted inclination angle.  
-    float   *incle;         ///< Error in inclination angle.  
+    T    *incli;         ///< Initial inclination angle.
+    T    *inclf;         ///< Fitted inclination angle.  
+    T    *incle;         ///< Error in inclination angle.  
     
-    float   xposi;          ///< Initial center position in X. 
-    float   *xposf;         ///< Fitted center position in X.
-    float   *xpose;         ///< Error in center position in X.
+    T    xposi;          ///< Initial center position in X. 
+    T    *xposf;         ///< Fitted center position in X.
+    T    *xpose;         ///< Error in center position in X.
     
-    float   yposi;          ///< Initial center position in Y. 
-    float   *yposf;         ///< Fitted center position in Y. 
-    float   *ypose;         ///< Error in center position in Y.  
+    T    yposi;          ///< Initial center position in Y. 
+    T    *yposf;         ///< Fitted center position in Y. 
+    T    *ypose;         ///< Error in center position in Y.  
     
-    bool    *mask;          ///< Parameter fit mask
-    int     *npts;          ///< Number of points in each ring.
-    float   *chis;          ///< Chi-squared for each ring.
+    bool *mask;          ///< Parameter fit mask
+    int  *npts;          ///< Number of points in each ring.
+    T    *chis;          ///< Chi-squared for each ring.
     
-    float   *vfield;        ///< Velocity field array.
-    float   **elp;          ///< Matrices of coefficients.
+    T     *vfield;        ///< Velocity field array.
+    float **elp;          ///< Matrices of coefficients.
     
-    bool    allAllocated;   ///< Have all array been allocated?
-    bool    fieldAllocated; ///< Has the fitting field been constructed?
+    bool  allAllocated;   ///< Have all array been allocated?
+    bool  fieldAllocated; ///< Has the fitting field been constructed?
 
 private:
-
-    Cube<float> *in;
+    Cube<T> *in;
     int     blo[2];         ///< Lower edge of box.
     int     bup[2];         ///< Upper edge of box.
     int     side;           ///< Which half of velocity field:
@@ -179,8 +180,8 @@ private:
   ///                                            r * cos(INCL)
   ///
     
-    float func (float *c, float *p, int npar);
-    void  derv (float *c, float *p, float *d, int npar);
+template <class T> T func (T *c, T *p, int npar);
+template <class T> void  derv (T *c, T *p, T *d, int npar);
 
 
 #endif

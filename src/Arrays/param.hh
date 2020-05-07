@@ -245,9 +245,9 @@ public:
     /// Utility functions:
     
     bool    getopts(int argc, char **argv);          /// Parse the command line parameters correctly. 
-    bool    readParams(string paramfile);            /// Read in parameters from a disk file.
+    bool    readParamFile(string paramfile);         /// Read in parameters from a disk file.
     bool    readParamCL(std::string parstr);         /// Read a parameter from the command line.
-    void    setParam(stringstream &ss);              /// Set a parameter value.
+    void    setParam(string &parstr);                /// Set a parameter value.
     bool    checkPars();                             /// Check the parameter list for inconsistencies. 
     void    printDefaults (ostream& theStream=cout, string wtask="ALL"); /// Print on screen the defaults values.
     void    createTemplate();                        /// Create a template file for 3DFIT.
@@ -340,6 +340,7 @@ void recordParameters(ostream& theStream, string paramName, string paramDesc, st
 
 // Some utility functions
 void listTasks (std::ostream& Str=cout);
+void listFitsUtils(std::ostream& Str);
 void helpscreen(ostream& Str=cout);
 void versionInfo(ostream& Str, char ** argv);
 void welcomeMessage(std::ostream& ostr=std::cout);

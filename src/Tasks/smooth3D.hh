@@ -21,24 +21,6 @@
     Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
-// Smooth3D is a class for smoothing datacubes with a gaussian. 
-// NB; All beams are in arcsec, position angles in degrees.
-//
-// The correct way to call the class is the following:
-//
-// 1) call smooth(...) functions: 
-//      -Cube *c:       the Cube object to be smoothed.
-//      -int *Bhi:      an array with upper coordinate box limits.
-//      -int *Blo:      an array with lower coordinate box limits.
-//      -Beam oldbeam:  a Beam object with {oldbmaj, oldbin, oldpa}. 
-//      -Beam newbeam;  the desired beam after the smoothing process.
-//
-//  
-// The smoothed array is written in the 'array' variable. 
-//
-//
-
-
 #ifndef SMOOTH3D_HH_
 #define SMOOTH3D_HH_
 
@@ -53,9 +35,26 @@ struct Beam {
 };
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////
+/// A class for spatial smoothing a datacube
+/////////////////////////////////////////////////////////////////////////////////////
 template <class T>
 class Smooth3D 
+// Smooth3D is a class for spatially-smoothing datacubes with a gaussian kernel.
+// NB; All beams are in arcsec, position angles in degrees.
+//
+// The correct way to call the class is the following:
+//
+// 1) call smooth(...) functions: 
+//      -Cube *c:       the Cube object to be smoothed.
+//      -int *Bhi:      an array with upper coordinate box limits.
+//      -int *Blo:      an array with lower coordinate box limits.
+//      -Beam oldbeam:  a Beam object with {oldbmaj, oldbin, oldpa}. 
+//      -Beam newbeam;  the desired beam after the smoothing process.
+//
+//  
+// The smoothed array is written in the 'array' variable. 
+//
 {
 public:
     Smooth3D();                                 //< Default constructor.
@@ -89,7 +88,7 @@ private:
     bool    arrayAllocated;             //< Have been array allocated?
     bool    *blanks;                    //< An array with blank pixels.
     bool    blanksAllocated;            //< Have been blanks allocated?
-    bool    useBlanks;
+    bool    useBlanks;                  //< Whether to account for blank pixels
     int     NdatX;                      //< X-box dimension.
     int     NdatY;                      //< Y-box dimension.
     int     NdatZ;                      //< Number of channels.
@@ -132,27 +131,44 @@ private:
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-/// A class for Hanning smoothing a datacube
+/// A class for spectral smoothing of a datacube
 /////////////////////////////////////////////////////////////////////////////////////
 template <class T>
-class SpectralSmooth3D 
+class SpectralSmooth3D
+// SpectralSmooth3D is a class to spectrally smooth datacubes with a filterning window.
+//
+// The correct way to call the class is the following:
+// 
+// 1) call constructor:
+//      - string wtype: Type of filtering window
+//      - size_t wsize: Size of filtering window
+//
+// 2) call smooth(...) functions:
+//      -Cube *c:       the Cube object to be smoothed.
+//                           or
+//      -T *inarray:    the array to be smoothed
+//      -size_T xsize,ysize,zsize: axis dimensions of inarray
+//      -int nthreads:  number of CPUs to use for smoothing
+//
+// The smoothed array is written in the 'array' variable. 
+//
 {
 public:
-    SpectralSmooth3D(std::string wtype, size_t wsize);                      //< Constructor.
-    virtual ~SpectralSmooth3D() {if (arrayAllocated) delete [] array;}      //< Destructor.
+    SpectralSmooth3D(std::string wtype, size_t wsize);                //< Constructor.
+    ~SpectralSmooth3D() {if (arrayAllocated) delete [] array;}        //< Destructor.
 
     /// Obvious inline functions
     T&   Array (int i) {return array[i];}
     T    *Array () {return array;}
 
-    void compute(Cube<T> *c);
-    void compute(T *inarray, size_t xsize, size_t ysize, size_t zsize, int nthreads=1);
-    void fitswrite(Cube<T> *templ,std::string outname="");
-   
+    void smooth(Cube<T> *c);
+    void smooth(T *inarray, size_t xsize, size_t ysize, size_t zsize, int nthreads=1);
+    void fitswrite(Cube<T> *templ, std::string outname="");
+    
 private: 
     T           *array;                     //< The smoothed array.
-    bool        arrayAllocated = false;     //< Have been array allocated?
-    std::string windowtype = "hanning";     //< Size of the Hanning window
+    bool        arrayAllocated = false;     //< Has array been allocated?
+    std::string windowtype = "hanning";     //< Type of the Hanning window
     size_t      windowsize = 3;             //< Size of the Hanning window
 };
 

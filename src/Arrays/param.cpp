@@ -26,6 +26,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <map>
 #include <cmath>
 #include <thread>
 #include <unistd.h>
@@ -35,38 +36,39 @@
 
 #define BBVERSION "1.5.2"
 
-// A list of all tasks available in BBarolo
-vector<string> tasks = {
-     "3DFIT","GALMOD","SEARCH","2DFIT","SMOOTH","SMOOTHSPEC",
-     "ELLPROF","MAKEMASK","SPACEPAR","GALWIND","SLITFIT",
-     "GLOBALPROFILE","TOTALMAP","VELOCITYMAP","DISPERSIONMAP","PV",
+// A list and description of all tasks available in BBarolo
+map<string, string> tasksList = {
+  {"3DFIT",         "Fit a 3D tilted-ring model to an emission-line datacube."},
+  {"GALMOD",        "Make a 3D model observation datacube of an emission line."},
+  {"SEARCH",        "Search for sources in a 3D datacube or in a 2D image."},
+  {"2DFIT",         "Fit a 2D tilted-ring model to a velocity field."},
+  {"SMOOTH",        "Smooth spatially of a datacube with a 2D Gaussian kernel."},
+  {"SMOOTHSPEC",    "Smooth spectrally of a datacube with a given window."},
+  {"ELLPROF",       "Derive radial profiles in elliptical rings from a map."},
+  {"MAKEMASK",      "Define a mask for emission-line data."},
+  {"SPACEPAR",      "Compute the full 2D space for any pair of 3DFIT parameters."},
+  {"GALWIND",       "Make a 3D emission-line model of a bi-conical outflow."},
+  {"SLITFIT",       "Fit the kinematics from long-slit data (CURRENTLY BROKEN)."},
+  {"GLOBALPROFILE", "Extract a total spectral profile from a datacube."},
+  {"TOTALMAP",      "Compute a total intensity map from a datacube."},
+  {"VELOCITYMAP",   "Compute a velocity field from a datacube."},
+  {"DISPERSIONMAP", "Compute a velocity dispersion field from a datacube."},
+  {"PV",            "Extracting a position-velocity slice from a datacube."},
  };
 
-// A brief description of tasks
-vector<string> taskdescr = {
-     "Fitting a 3D tilted-ring model to an emission-line datacube.",
-     "Making a 3D model observation datacube of an emission line.",
-     "Searching for sources in a 3D datacube or in a 2D image.",
-     "Fitting a 2D tilted-ring model to a velocity field.",
-     "Spatial smoothing of a datacube with a 2D Gaussian kernel.",
-     "Spectral smoothing of a datacube with a given window.",
-     "Deriving radial profiles in elliptical rings from a map.",
-     "Defining a mask for emission-line data.",
-     "Computing the full 2D space for any pair of 3DFIT parameters.",
-     "Making a 3D emission-line model of a bi-conical outflow.",
-     "Fitting the kinematics of slit data (CURRENTLY BROKEN).",
-     "Extracting a total spectral profile from a datacube.",
-     "Computing a total intensity map from a datacube.",
-     "Computing a velocity field from a datacube.",
-     "Computing a velocity dispersion field from a datacube.",
-     "Extracting a position-velocity slice from a datacube.",
+// A list and description of available FITS utilities 
+map<string, string> fitsUtilsList = {
+  {"listhead",  "List header keywords in a FITS file."},
+  {"modhead",   "Modify/print a keyword in a FITS file."},
+  {"fitscopy",  "Copy a input file to a new FITS file with filtering."},
+  {"fitsarith", "Arithmetic operations with FITS files."},
 };
-
 
 Param::Param() {
     
     defaultValues();
 }
+
 
 void Param::defaultValues() {
     
@@ -228,7 +230,7 @@ Param& Param::operator= (const Param& p) {
 }
  
  
-bool Param::getopts(int argc, char ** argv) {
+bool Param::getopts(int argc, char **argv) {
     
   /// A function that reads in the command-line options, in a manner 
   /// tailored for use with the main program.
@@ -246,6 +248,7 @@ bool Param::getopts(int argc, char ** argv) {
         // List of short and long options
         const char* const short_opts = "p:f:d:qcvlth";
         const option long_opts[] = {
+                // BBarolo's main options
                 {"paramfile", required_argument, nullptr, 'p'},
                 {"fitsfile",  required_argument, nullptr, 'f'},
                 {"defaults",  required_argument, nullptr, 'd'},
@@ -255,11 +258,17 @@ bool Param::getopts(int argc, char ** argv) {
                 {"template",  no_argument,       nullptr, 't'},
                 {"help",      no_argument,       nullptr, 'h'},
                 {"quote",     no_argument,       nullptr, 'q'},
+                // Fits Utilities
+                {"fitsutils", no_argument,       nullptr, 'F'},
+                {"modhead",   no_argument,       nullptr, 'M'},
+                {"listhead",  no_argument,       nullptr, 'L'},
+                {"fitscopy",  no_argument,       nullptr, 'C'},
+                {"fitsarith", no_argument,       nullptr, 'A'},
                 {0, 0, 0, 0}
         };
         
         string file;
-        char c=0;
+        int c=0;
         // Turning off error messages from getopt_long
         opterr = 0;
         while((c = getopt_long(argc, argv, short_opts, long_opts, nullptr)) != -1){
@@ -268,7 +277,7 @@ bool Param::getopts(int argc, char ** argv) {
                 
             case 'p':                    // Parameter file provided
                 file = optarg;
-                if(readParams(file)) returnValue = true;
+                if(readParamFile(file)) returnValue = true;
                 else cerr << "Could not open parameter file " << file << ".\n";
                 break;
                 
@@ -303,28 +312,50 @@ bool Param::getopts(int argc, char ** argv) {
             case 'q':                    // Random citation
                 cout << endl << " " << randomQuoting() << endl << endl;
                 break;
-                
-            case '?':                     // Unrecognized option
+            
+            case 'F':                    // List available FITS utilities
+                listFitsUtils(cout);
+                break;
+                    
+            case 'M':                    // Modify header
+                modhead(argc,argv);
+                break;
+
+            case 'L':                    // List header keywords
+                listhead(argc,argv);
+                break;
+            
+            case 'C':                    // Copy a fits image with filtering
+                fitscopy(argc,argv);
+                break;
+
+            case 'A':                    // Operations on a fits image
+                fitsarith(argc,argv);
+                break;
+
+            case '?':                    // Unrecognized option
                 // If d is provided with no argument, print all defaults
                 if (optopt == 'd') printDefaults(cout);
                 break;
                 
-            case ':':                     // Missing option argument
-            case 'h':                     // Print help screen
+            case ':':                    // Missing option argument
+            case 'h':                    // Print help screen
             default :
                 helpscreen();
                 break;
             }
         }
     
-        // Check if any parameter has been given from the command line
-        if (optind<argc && returnValue) {
-            while (optind<argc) readParamCL(std::string(argv[optind++]));
-        }
-        
-        if (!checkPars()) {
-            cerr << "\nUnacceptable parameters. Exiting...\n\n";
-            returnValue = false;
+        if (returnValue) {
+            // Check if any parameter has been given from the command line.
+            if (optind<argc)
+                while (optind<argc) readParamCL(std::string(argv[optind++]));
+                
+            // Check if input parameter are good.
+            if (!checkPars()) {
+                cerr << "\n Unacceptable input parameters. Exiting...\n\n";
+                returnValue = false;
+            }
         }
         
     }
@@ -333,7 +364,7 @@ bool Param::getopts(int argc, char ** argv) {
 }
 
 
-bool Param::readParams(std::string paramfile) {
+bool Param::readParamFile(std::string paramfile) {
     
   /// The parameters are read in from a file, on the assumption that each
   /// line of the file has the format "parameter value" (eg. alphafdr 0.1)
@@ -346,16 +377,11 @@ bool Param::readParams(std::string paramfile) {
   /// \return           false if the parameter file does not exist. SUCCESS if
   ///                   it is able to read it.
 
-
     std::ifstream fin(paramfile.c_str());
     if(!fin.is_open()) return false;
     std::string line;
     while(!std::getline(fin,line,'\n').eof()){
-        if(line[0]!='#' || line[0]!='/'){
-            std::stringstream ss;
-            ss.str(line);
-            setParam(ss);
-        }
+        if(line[0]!='#' || line[0]!='/') setParam(line);
     }
     return true;
 }
@@ -364,22 +390,18 @@ bool Param::readParams(std::string paramfile) {
 bool Param::readParamCL(std::string parstr){
     // Read a parameter from the commandline:
     // Example: BBarolo -p param.par INC=60
-  
-  
-  
-  
-      size_t found = parstr.find("=");
-    if (found!=std::string::npos) {
-        std::stringstream ss(parstr.replace(found,1," "));
-        setParam(ss);
-    }
+
+    size_t found = parstr.find("=");
+    if (found==std::string::npos) return false;
+    else setParam(parstr.replace(found,1," "));
     return true;
 }
 
 
-void Param::setParam(stringstream &ss) {
+void Param::setParam(string &parstr) {
     
     string arg;
+    stringstream ss(parstr);
     ss >> arg;
     arg = makelower(arg);
     
@@ -399,12 +421,7 @@ void Param::setParam(stringstream &ss) {
     
     if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss); 
     
-    if(arg=="snrcut")           parSE.snrCut = readFval(ss); 
-    if(arg=="threshold"){
-        parSE.threshold = readFval(ss);
-        parSE.UserThreshold = true;
-    }
-
+    // SEARCH ONLY PARAMETERS
     if(arg=="search")            parSE.flagSearch = readFlag(ss);
     if(arg=="searchtype")        parSE.searchType = readSval(ss);
     if(arg=="flagadjacent")      parSE.flagAdjacent = readFlag(ss);
@@ -417,6 +434,11 @@ void Param::setParam(stringstream &ss) {
     if(arg=="maxangsize")        parSE.maxAngSize = readFval(ss);
     if(arg=="rejectbeforemerge") parSE.RejectBeforeMerge = readFlag(ss);
     if(arg=="twostagemerging")   parSE.TwoStageMerging = readFlag(ss);
+    if(arg=="snrcut")            parSE.snrCut = readFval(ss); 
+    if(arg=="threshold"){
+        parSE.threshold = readFval(ss);
+        parSE.UserThreshold = true;
+    }
     if(arg=="flaggrowth")        parSE.flagGrowth = readFlag(ss);
     if(arg=="growthcut")         parSE.growthCut = readFval(ss);
     if(arg=="growththreshold"){
@@ -469,7 +491,7 @@ void Param::setParam(stringstream &ss) {
     if(arg=="relint")    parGM.RELINT = parGF.RELINT               = readVec<double>(ss);
     if(arg=="noiserms")  parGM.NOISERMS = parGF.NOISERMS           = readDval(ss);
     
-    // GALFIT ONLY PARAMETERS
+    // 3DFIT ONLY PARAMETERS
     if(arg=="deltainc")  parGF.DELTAINC   = readFval(ss);
     if(arg=="deltapa")   parGF.DELTAPHI   = readFval(ss);
     if(arg=="deltavrot") parGF.DELTAVROT  = readFval(ss);
@@ -543,7 +565,7 @@ bool Param::checkPars() {
     if(imageList!="NONE") {
         std::ifstream file(imageList.c_str());
         if(!file) { 
-            cerr << "\nError opening list file: " << imageList << " doesn't exist.\n\n";
+            cerr << "\n Error opening list file: " << imageList << " doesn't exist.\n\n";
             return false;
         }
         string s;
@@ -556,9 +578,14 @@ bool Param::checkPars() {
     }
     else {
         checkHome(imageFile);
-        images.push_back(imageFile);
+        if (imageFile!="") images.push_back(imageFile);
     }
-
+    
+    if (images.size()==0) {
+        cerr << "\n BBAROLO ERROR: no FITSFILE provided.\n";
+        return false;
+    }
+    
     beamFWHM /= 3600.;
     
     checkHome(outFolder);
@@ -839,8 +866,8 @@ void Param::printDefaults (std::ostream& theStream, string wtask) {
     string whichtask = wtask;
     // Check that whichtask is ok
     bool isOK = false;
-    for (size_t i=0;i<tasks.size();i++) {
-        isOK = whichtask==tasks[i];
+    for (auto i : tasksList) {
+        isOK = whichtask==i.first;
         if (isOK) break;
     }
     if (!isOK) whichtask = "ALL";
@@ -851,7 +878,6 @@ void Param::printDefaults (std::ostream& theStream, string wtask) {
     theStream  << std::setfill('.');
    
     printParams(theStream,par,true,whichtask);
-    
 }
 
 
@@ -1001,7 +1027,7 @@ std::ostream& operator<< (std::ostream& theStream, Param& par) {
 }
 
 
-void printParams (std::ostream& Str, Param &p, bool defaults, string whichtask) {
+void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     
     bool isAll = whichtask=="ALL" && defaults;
     
@@ -1342,13 +1368,13 @@ void printParams (std::ostream& Str, Param &p, bool defaults, string whichtask) 
     }
     
     Str  << std::endl <<"-----------------------------";
-    Str  << "------------------------------\n\n";
+    Str  << "----------------------------------\n\n";
     Str  << std::setfill(' ');
     Str.unsetf(std::ios::left);
 }
 
 
-void listTasks (std::ostream& Str) {
+void listTasks(std::ostream& Str) {
     Str.setf(std::ios::left);
     
     Str << "     _ _                                                            \n"
@@ -1360,12 +1386,26 @@ void listTasks (std::ostream& Str) {
         << "|O| | O |   \\>                                    |-----|==|---|=| \n"
         << setfill('"') << setw(68) << right << "\n\n";
 
-    for (size_t i=0;i<tasks.size();i++) {
-        Str << tasks[i] << ": " << endl;
-        Str << "   "  << taskdescr[i] << endl << endl;
+    for (auto i : tasksList) {
+        Str << i.first << ": " << endl;
+        Str << "   "  << i.second << endl << endl;
     }
     Str << setfill('"') << setw(68) << right << "\n\n";
 
+}
+
+
+void listFitsUtils(std::ostream& Str) {
+    Str.setf(std::ios::left);
+
+    Str << "\n A few utilities to handle FITS files are available in BBarolo \n\n"
+        << "   Usage: BBarolo --utilityname [options] \n\n"
+        << " where 'utilityname' is one of the following: \n\n";
+        
+    for (auto i : fitsUtilsList) {
+        Str << "   " << setw(10) << i.first << ":  " << i.second << endl;
+    }
+    Str << endl;
 }
 
 

@@ -361,7 +361,7 @@ bool Cube<T>::fitswrite_3d(const char *outfile, bool fullHead) {
     long dnaxes[3] = {axisDim[0], axisDim[1], axisDim[2]};
     int status=0;
   
-    remove(outfile);             
+    remove(outfile);
      
     if (fits_create_file(&fptr, outfile, &status)) {
         fits_report_error(stderr, status); 

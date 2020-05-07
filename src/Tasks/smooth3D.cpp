@@ -1054,22 +1054,23 @@ template SpectralSmooth3D<double>::SpectralSmooth3D(std::string,size_t);
 
 
 template <class T>
-void SpectralSmooth3D<T>::compute(Cube<T> *in) {
+void SpectralSmooth3D<T>::smooth(Cube<T> *in) {
     
     // Performs smoothing on each spectrum of a datacube
     if (in->pars().isVerbose()) std::cout << " Spectral smoothing (" << windowtype << ") ..." << std::flush;
-    this->compute(in->Array(),in->DimX(),in->DimY(),in->DimZ(),in->pars().getThreads());
+    this->smooth(in->Array(),in->DimX(),in->DimY(),in->DimZ(),in->pars().getThreads());
     if (in->pars().isVerbose()) std::cout << " Done!" << std::endl;
     
 }
-template void SpectralSmooth3D<float>::compute(Cube<float>*);
-template void SpectralSmooth3D<double>::compute(Cube<double>*);
+template void SpectralSmooth3D<float>::smooth(Cube<float>*);
+template void SpectralSmooth3D<double>::smooth(Cube<double>*);
 
 
 template <class T>
-void SpectralSmooth3D<T>::compute(T *inarray, size_t xsize, size_t ysize, size_t zsize, int nthreads) {
+void SpectralSmooth3D<T>::smooth(T *inarray, size_t xsize, size_t ysize, size_t zsize, int nthreads) {
     
     // Performs Spectral smoothing on each spectrum of a 3D array
+    if (arrayAllocated) delete [] array;
     array = new T[xsize*ysize*zsize];
     arrayAllocated = true;
 
@@ -1083,8 +1084,8 @@ void SpectralSmooth3D<T>::compute(T *inarray, size_t xsize, size_t ysize, size_t
         delete [] spec;
     }
 }
-template void SpectralSmooth3D<float>::compute(float*,size_t,size_t,size_t,int);
-template void SpectralSmooth3D<double>::compute(double*,size_t,size_t,size_t,int);
+template void SpectralSmooth3D<float>::smooth(float*,size_t,size_t,size_t,int);
+template void SpectralSmooth3D<double>::smooth(double*,size_t,size_t,size_t,int);
 
 
 template <class T> 

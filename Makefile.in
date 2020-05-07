@@ -43,10 +43,10 @@ PYINC = @PYTHON_INCLUDE@
 PYLIB = @PYTHON_LIBS@
 
 OPT = @GNUPLOT@ @FFTW3@ @HAVEPYTHON@ @HAVEMPI@
-
 ifeq ($(OPS),MACOSX)
 	OPT += -DMACOSX
 endif
+#OPT += -DDOUBLE_PRECISION
 
 OTHERLIB = -lm 
 
@@ -123,6 +123,7 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/interpolation.o\
 	 $(OBJDIR)/converter.o\
 	 $(OBJDIR)/wcsUtils.o\
+	 $(OBJDIR)/fitsUtils.o\
 	 $(OBJDIR)/BB_interface.o\
 
 bbarolo : builddir $(OBJECTS)

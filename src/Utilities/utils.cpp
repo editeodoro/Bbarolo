@@ -54,6 +54,7 @@ double KpcPerArc(double d) {return 2*d*tan(M_PI/2/180)/3.6;}
 double VeltoDist(double vsys) {return vsys/70.;}
 double RedtoDist(double redshift) {return redshift*299792.458/70.;}
 
+
 template <class Type> 
 bool isNaN (Type n) {
     volatile Type d = n; 
@@ -92,120 +93,6 @@ bool mkdirp(const char* path, mode_t mode) {
 }
 
 
-void FitsWrite_2D (const char *filename, float *image, long xsize, long ysize) {
-    
-    fitsfile *fptr;
-    int status, numAxes = 2;
-    long firstPix = 1, numPix;
-    long dimAxes[2] = {xsize, ysize};
-    numPix = xsize*ysize;
-    
-    remove (filename);
-    
-    //Create the new file
-    status = 0;
-    if (fits_create_file (&fptr, filename, &status)) {
-        fits_report_error (stderr, status);
-        }
-    
-    //Create the primary array image    
-    if (fits_create_img (fptr, FLOAT_IMG, numAxes, dimAxes, &status)){
-        fits_report_error (stderr, status);
-    }
-    
-    
-    if (fits_write_img (fptr, TFLOAT, firstPix, numPix, image, &status)){
-        fits_report_error (stderr, status);
-    }
-    
-    // Close the FITS File
-    if (fits_close_file(fptr, &status)){
-        fits_report_error(stderr, status);
-    }
-    
-}
-
-
-void FitsWrite_2D (const char *filename, double *image, long xsize, long ysize) {
-
-    fitsfile *fptr;
-    int status, numAxes = 2;
-    long firstPix = 1, numPix;
-    long dimAxes[2] = {xsize, ysize};
-    numPix = xsize*ysize;
-
-    remove (filename);
-
-    //Create the new file
-    status = 0;
-    if (fits_create_file (&fptr, filename, &status)) {
-        fits_report_error (stderr, status);
-        }
-
-    //Create the primary array image
-    if (fits_create_img (fptr, DOUBLE_IMG, numAxes, dimAxes, &status)){
-        fits_report_error (stderr, status);
-    }
-
-
-    if (fits_write_img (fptr, TDOUBLE, firstPix, numPix, image, &status)){
-        fits_report_error (stderr, status);
-    }
-
-    // Close the FITS File
-    if (fits_close_file(fptr, &status)){
-        fits_report_error(stderr, status);
-    }
-
-}
-
-
-void FitsWrite_3D (const char *outfile, float *outcube, long *dimAxes) {
-    
-    fitsfile *fptr;
-    int status = 0;      
-    long  fpixel = 1, naxis = 3, nelements;
-    long dnaxes[3] = {dimAxes[0], dimAxes[1], dimAxes[2]};
-    long naxes[3] = {dimAxes[2], dimAxes[1], dimAxes[0]};
- 
-    remove(outfile);             
-    status = 0;   
-    fits_create_file(&fptr, outfile, &status);  
-    fits_create_img(fptr, FLOAT_IMG, naxis, dnaxes, &status);
-        
-    nelements = naxes[0]*naxes[1]*naxes[2]; 
-    
-    fits_write_img(fptr, TFLOAT, fpixel, nelements, outcube, &status);
-
-    fits_close_file(fptr, &status);      
-  
-    fits_report_error(stderr, status);  
-}
-
-
-void FitsWrite_3D (const char *outfile, short *outcube, long *dimAxes) {
-    
-    fitsfile *fptr;
-    int status = 0;      
-    long  fpixel = 1, naxis = 3, nelements;
-    long dnaxes[3] = {dimAxes[0], dimAxes[1], dimAxes[2]};
-    long naxes[3] = {dimAxes[2], dimAxes[1], dimAxes[0]};
- 
-    remove(outfile);             
-    status = 0;   
-    fits_create_file(&fptr, outfile, &status);  
-    fits_create_img(fptr, SHORT_IMG, naxis, dnaxes, &status);
-        
-    nelements = naxes[0]*naxes[1]*naxes[2]; 
-    
-    fits_write_img(fptr, TSHORT, fpixel, nelements, outcube, &status);
-
-    fits_close_file(fptr, &status);      
-  
-    fits_report_error(stderr, status);  
-}
-
-
 template <class T> 
 T AlltoVel (T in, Header &h) {
     
@@ -228,7 +115,7 @@ T AlltoVel (T in, Header &h) {
     }
     else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
              cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {          // Micron or Angstrom for Hi-Z
-        //int z_cent = floor(h.DimAx(2)/2.)-1;        
+        //int z_cent = floor(h.DimAx(2)/2.)-1;
         double z_cent = h.Crpix(2)-1;
         double restw = h.Wave0(), reds = h.Redshift();
         if (restw!=-1) {

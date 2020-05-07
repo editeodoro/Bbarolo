@@ -42,12 +42,17 @@
 #include <Tasks/spacepar.hh>
 #include <Utilities/utils.hh>
 
+#ifdef DOUBLE_PRECISION
+using BBreal = double;
+#else
+using BBreal = float;
+#endif
 
 bool BBcore (Param *par) {
 
     // Interface for all BBarolo's tasks
 
-    Cube<float> *c = new Cube<float>;
+    Cube<BBreal> *c = new Cube<BBreal>;
     c->saveParam(*par);
 
     if (!c->readCube(par->getImageFile())) {
@@ -77,7 +82,7 @@ bool BBcore (Param *par) {
     
     /// Spatial smoothing utility ------------------------------------------
     if (par->getflagSmooth()) {
-        Smooth3D<float> *sm = new Smooth3D<float>;
+        Smooth3D<BBreal> *sm = new Smooth3D<BBreal>;
         sm->cubesmooth(c);
         sm->fitswrite();
         delete sm;
@@ -87,8 +92,8 @@ bool BBcore (Param *par) {
 
     /// Spectral smoothing utility -----------------------------------
     if (par->getflagSmoothSpectral()) {
-        SpectralSmooth3D<float> *sm = new SpectralSmooth3D<float>(par->getWindowType(),par->getWindowSize());
-        sm->compute(c);
+        SpectralSmooth3D<BBreal> *sm = new SpectralSmooth3D<BBreal>(par->getWindowType(),par->getWindowSize());
+        sm->smooth(c);
         sm->fitswrite(c);
         delete sm;
     }
@@ -107,7 +112,7 @@ bool BBcore (Param *par) {
         
     // 3D Cube Fitting task -----------------------------------------
     if (par->getflagGalFit()) {
-        Model::Galfit<float> *fit = new Model::Galfit<float>(c);
+        Model::Galfit<BBreal> *fit = new Model::Galfit<BBreal>(c);
         fit->galfit();
         if (par->getParGF().TWOSTAGE) fit->SecondStage();
         if (par->getFlagDebug()) fit->writeModel("BOTH",par->getFlagPlots());
@@ -119,7 +124,7 @@ bool BBcore (Param *par) {
     
     // Cube Model task -----------------------------------------------
     if (par->getflagGalMod()) {
-        Model::Galfit<float> *fit = new Model::Galfit<float>(c);
+        Model::Galfit<BBreal> *fit = new Model::Galfit<BBreal>(c);
         if (par->getFlagDebug()) fit->writeModel("BOTH",false);
         else fit->writeModel(par->getParGF().NORM,false);
         delete fit;
@@ -129,7 +134,7 @@ bool BBcore (Param *par) {
     
     // Full parameter space task --------------------------------------
     if (par->getflagSpace()) {
-        Spacepar<float> *sp = new Spacepar<float>(c);
+        Spacepar<BBreal> *sp = new Spacepar<BBreal>(c);
         sp->calculate();
         sp->plotAll_Python();
         delete sp;
@@ -139,7 +144,7 @@ bool BBcore (Param *par) {
 
     // GalWind task --------------------------------------------------
     if (par->getParGW().flagGALWIND) {
-        GalWind<float> *w = new GalWind<float>(c);   
+        GalWind<BBreal> *w = new GalWind<BBreal>(c);   
         w->compute();
         if (par->getParGF().SM) w->smooth();
         w->writeFITS();
@@ -152,8 +157,9 @@ bool BBcore (Param *par) {
 
 
     // 2D tilted-ring fitting task -----------------------------------
+    
     if (par->getFlagRing()) {
-        Ringmodel *trmod = new Ringmodel(c);
+        Ringmodel<BBreal> *trmod = new Ringmodel<BBreal>(c);
         trmod->ringfit();
         std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_2dtrm.txt";
         std::ofstream fileo(fout.c_str());
@@ -163,12 +169,13 @@ bool BBcore (Param *par) {
         trmod->writeModel(c->pars().getOutfolder()+c->Head().Name()+"_2d_mod.fits");
         delete trmod;
     }
+    
     //-----------------------------------------------------------------
 
 
     // Moment maps task -----------------------------------------------
     if (par->getMaps()) {
-        MomentMap<float> map;
+        MomentMap<BBreal> map;
         map.input(c);
         std::string s = outfolder+c->Head().Name();
         bool masking = par->getMASK()=="NONE" ? false : true;
@@ -193,7 +200,7 @@ bool BBcore (Param *par) {
             map.fitswrite_2d((s+"map_RMS.fits").c_str());
         }
         if (par->getGlobProf()) {
-            Image2D<float> spectrum;
+            Image2D<BBreal> spectrum;
             spectrum.extractGlobalSpectrum(c);
             std::string specfname = c->pars().getOutfolder()+"spectrum.txt";
             std::ofstream specfile; specfile.open(specfname.c_str());
@@ -206,11 +213,11 @@ bool BBcore (Param *par) {
 
     // PVs extraction task --------------------------------------------
     if (par->getFlagPV()) {
-        float xpos = par->getXPOS_PV();
-        float ypos = par->getYPOS_PV();
-        float ang = par->getPA_PV();
+        BBreal xpos = par->getXPOS_PV();
+        BBreal ypos = par->getYPOS_PV();
+        BBreal ang = par->getPA_PV();
         std::string s = outfolder+c->Head().Name();
-        Image2D<float> *pv = PositionVelocity(c,xpos,ypos,ang);
+        Image2D<BBreal> *pv = PositionVelocity(c,xpos,ypos,ang);
         pv->fitswrite_2d((s+"pv_"+to_string(ang,0)+".fits").c_str());
         delete pv;
     }
@@ -220,7 +227,7 @@ bool BBcore (Param *par) {
     // Repixeling task ------------------------------------------------
     if (par->getflagReduce() && !(par->getflagSmooth() || par->getflagSmoothSpectral())) {
         std::string name = c->pars().getOutfolder()+c->Head().Name()+"_red.fits";
-        Cube<float> *red = c->Reduce(floor(c->pars().getFactor()));
+        Cube<BBreal> *red = c->Reduce(floor(c->pars().getFactor()));
         red->fitswrite_3d(name.c_str(),true);
         delete red;
     }
@@ -229,7 +236,7 @@ bool BBcore (Param *par) {
 
     // Kinematics fitting to slit data --------------------------------
     if (par->getFlagSlitfit()) {
-        Model::Galfit<float> *sfit = new Model::Galfit<float>;
+        Model::Galfit<BBreal> *sfit = new Model::Galfit<BBreal>;
         sfit->slit_init(c);
         //sfit->galfit();
         //if (par->getParGF().TWOSTAGE) {
@@ -243,7 +250,7 @@ bool BBcore (Param *par) {
 
     // Radial profile ------------------------------------------------
     if (par->getFlagEllProf()) {
-        Tasks::Ellprof<float> *ell = new Tasks::Ellprof<float>(c);
+        Tasks::Ellprof<BBreal> *ell = new Tasks::Ellprof<BBreal>(c);
         ell->RadialProfile();
         std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_densprof.txt";
         std::ofstream fileo(fout.c_str());

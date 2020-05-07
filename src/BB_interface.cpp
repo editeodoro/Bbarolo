@@ -17,7 +17,7 @@ using namespace Tasks;
 
 // Wrapped C functions cannot be stopped in python with CTRL-C.
 // Using handler to catch the SIGINT. Use signal(SIGINT, signalHandler)
-// in function that have long execution time.
+// in functions that have long execution time.
 void signalHandler(int signum) {std::cerr << "Killed by the user.\n"; exit(signum);}
 
  
@@ -102,13 +102,13 @@ void Search_search(Cube<float> *c, const char* searchtype, float snrCut, float t
                     
 
 // Interface for 2DFIT class //////////////////////////////////////////////////////////
-Ringmodel* Fit2D_new(Cube<float> *c, Rings<float> *r, const char* mask, const char* free, const char* side, int wfunc, int NTHREADS) {
+Ringmodel<float>* Fit2D_new(Cube<float> *c, Rings<float> *r, const char* mask, const char* free, const char* side, int wfunc, int NTHREADS) {
                     c->pars().setMASK(string(mask)); c->pars().getParGF().FREE = string(free); 
                     c->pars().getParGF().SIDE = string(side); c->pars().getParGF().WFUNC= wfunc; c->pars().setThreads(NTHREADS);
-                     Ringmodel *rm = new Ringmodel(); rm->setfromCube(c,r); return rm;}
-void Fit2D_delete(Ringmodel *rm) {delete rm;}
-void Fit2D_compute(Ringmodel *rm) {signal(SIGINT, signalHandler); rm->ringfit();}
-void Fit2D_write(Ringmodel *rm, const char *fout) {std::ofstream fileo(fout); rm->printfinal(fileo);}
+                     Ringmodel<float> *rm = new Ringmodel<float>(); rm->setfromCube(c,r); return rm;}
+void Fit2D_delete(Ringmodel<float> *rm) {delete rm;}
+void Fit2D_compute(Ringmodel<float> *rm) {signal(SIGINT, signalHandler); rm->ringfit();}
+void Fit2D_write(Ringmodel<float> *rm, const char *fout) {std::ofstream fileo(fout); rm->printfinal(fileo);}
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -122,14 +122,13 @@ void Ellprof_write(Ellprof<float> *e, const char *fout) {std::ofstream fileo(fou
 //////////////////////////////////////////////////////////////////////////////////////////                  
 
 
-// Interface for SpectralSmooth3D class //////////////////////////////////////////////////////////
+// Interface for SpectralSmooth3D class /////////////////////////////////////////////////
 SpectralSmooth3D<float>* SpectralSmooth3D_new(const char *wtype, size_t wsize) {return new SpectralSmooth3D<float>(string(wtype),wsize);}
 void SpectralSmooth3D_delete(SpectralSmooth3D<float> *h) {delete h;}
 void SpectralSmooth3D_compute(SpectralSmooth3D<float> *h, Cube<float> *c, int NTHREADS) {
-                              signal(SIGINT, signalHandler); c->pars().setThreads(NTHREADS); h->compute(c);}
+                              signal(SIGINT, signalHandler); c->pars().setThreads(NTHREADS); h->smooth(c);}
 float* SpectralSmooth3D_array(SpectralSmooth3D<float> *h) {return h->Array();}
 void SpectralSmooth3D_write(SpectralSmooth3D<float> *h, Cube<float> *c, const char *fout, bool average) {
                             c->pars().setflagReduce(average); h->fitswrite(c, string(fout));}
-//////////////////////////////////////////////////////////////////////////////////////////                  
-                    
+/////////////////////////////////////////////////////////////////////////////////////////
 }
