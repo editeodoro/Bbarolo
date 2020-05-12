@@ -11,7 +11,7 @@ BASE = @BASEDIR@
 
 INSTALLDIR = @prefix@/bin
 LIBDIR = @prefix@/lib
-INCDIR = @prefix@/include/barolo
+INCDIR = @prefix@/include/bbarolo
 
 V = @PACKAGE_VERSION@
 EXEC = BBarolo-$(V)
@@ -129,42 +129,6 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 bbarolo : builddir $(OBJECTS)
 	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(LIBS) $(OPT)
 
-lib : builddir $(OBJECTS)
-	$(AR) $(LIB) $(OBJECTS)
-	$(RANLIB) $(LIB)
-	$(SHAREDLIB) $(CINC) $(LIBS) -o $(LIBSO) $(OBJECTS)
-	rm -rf $(LIBSO_LN) $(LIB_LN)
-	$(LN_S) $(LIBSO) $(LIBSO_LN)
-	$(LN_S) $(LIB) $(LIB_LN)
-#	$(CXX) $(SHAREDFLAGS) -o $(LIBSO) $(OBJECTS)
-
-linux : $(OBJECTS)
-	$(LINK) -o BBarololinux $(OBJECTS) $(LIBS)
-
-install : 
-	$(INSTALL) -d -m 2755 $(INSTALLDIR)
-	mv $(EXEC-STUB) $(EXEC)
-	$(INSTALL) -m 755 $(EXEC) $(INSTALLDIR)
-	$(RM) $(INSTALLDIR)/$(EXEC-STUB)
-	cd $(INSTALLDIR) && $(LN_S) $(EXEC) $(EXEC-STUB)
-#	-test ! -f $(LIB) || $(INSTALL) -d -m 2755 $(LIBDIR)
-#	-test ! -f $(LIB) || $(INSTALL) -m 644 $(LIB) $(LIBDIR)
-#	-test ! -f $(LIB) || cd $(LIBDIR) && $(RM) $(LIB_LN) && $(LN_S) $(LIB) $(LIB_LN)
-#	-test ! -f $(LIBSO) || $(INSTALL) -m 755 $(LIBSO) $(LIBDIR) && \
-#		if [ "@SHRLN@" != "" ] ; then \
-#			cd $(LIBDIR) && $(RM) $(LIBSO_LN) && $(LN_S) $(LIBSO) $(LIBSO_LN); \
-#		fi
-#	$(INSTALL) -d -m 2755 $(INCDIR)
-#	$(INSTALL) -m 644 $(BASE)/*.hh $(INCDIR)
-#	$(INSTALL) -m 644 $(BASE)/*.h $(INCDIR)
-#	$(INSTALL) -d -m 2755 $(INCDIR)/Arrays
-#	$(INSTALL) -m 644 $(ARRAYDIR)/*.hh $(INCDIR)/Arrays
-#	$(INSTALL) -d -m 2755 $(INCDIR)/Map
-#	$(INSTALL) -m 644 $(MAPDIR)/*.hh $(INCDIR)/Map
-#	$(INSTALL) -d -m 2755 $(INCDIR)/Utilities
-#	$(INSTALL) -m 644 $(UTILDIR)/*.hh $(INCDIR)/Utilities
-
-
 $(OBJECTS) : $(HEADS)
 
 %.o: %.cpp
@@ -190,20 +154,72 @@ $(OBJDIR)/%.o: $(TASKDIR)/%.cpp
 
 .c.o:
 	$(CC) -c $< $(CINC) -o $@ $(OPT)
+    
+lib : builddir $(OBJECTS)
+	$(AR) $(LIB) $(OBJECTS)
+	$(RANLIB) $(LIB)
+	$(SHAREDLIB) $(CINC) $(LIBS) -o $(LIBSO) $(OBJECTS)
+	rm -rf $(LIBSO_LN) $(LIB_LN)
+	$(LN_S) $(LIBSO) $(LIBSO_LN)
+	$(LN_S) $(LIB) $(LIB_LN)
+#	$(CXX) $(SHAREDFLAGS) -o $(LIBSO) $(OBJECTS)
+
+linux : $(OBJECTS)
+	$(LINK) -o BBarololinux $(OBJECTS) $(LIBS)
+
+install : 
+	$(INSTALL) -d -m 2755 $(INSTALLDIR)
+ifneq ("$(wildcard BBarolo)","")
+	cp $(EXEC-STUB) $(EXEC)
+	$(RM) $(INSTALLDIR)/$(EXEC-STUB) $(INSTALLDIR)/$(EXEC)
+	$(INSTALL) -m 755 $(EXEC) $(INSTALLDIR)
+	$(LN_S) $(INSTALLDIR)/$(EXEC) $(INSTALLDIR)/$(EXEC-STUB)
+else
+	@echo "BBarolo executable not found: run 'make' before 'make install'"
+endif
+ifneq ("$(wildcard BBarolo_MPI)","")
+	$(RM) $(INSTALLDIR)/BBarolo_MPI
+	$(INSTALL) -m 755 BBarolo_MPI $(INSTALLDIR)
+endif
+
+installall : lib install
+	-test ! -f $(LIB) || $(INSTALL) -d -m 2755 $(LIBDIR)
+	-test ! -f $(LIB) || $(INSTALL) -m 644 $(LIB) $(LIBDIR)
+	-test ! -f $(LIB) || cd $(LIBDIR) && $(RM) $(LIB_LN) && $(LN_S) $(LIB) $(LIB_LN)
+	-test ! -f $(LIBSO) || $(INSTALL) -m 755 $(LIBSO) $(LIBDIR) && \
+	if [ "@SHRLN@" != "" ] ; then \
+		cd $(LIBDIR) && $(RM) $(LIBSO_LN) && $(LN_S) $(LIBSO) $(LIBSO_LN); \
+	fi
+	$(INSTALL) -d -m 2755 $(INCDIR)
+	$(INSTALL) -m 644 $(BASE)/*.hh $(INCDIR)
+	$(INSTALL) -d -m 2755 $(INCDIR)/Arrays
+	$(INSTALL) -m 644 $(ARRAYDIR)/*.hh $(INCDIR)/Arrays
+	$(INSTALL) -d -m 2755 $(INCDIR)/Map
+	$(INSTALL) -m 644 $(MAPDIR)/*.hh $(INCDIR)/Map
+	$(INSTALL) -d -m 2755 $(INCDIR)/Utilities
+	$(INSTALL) -m 644 $(UTILDIR)/*.hh $(INCDIR)/Utilities
+
+uninstall :
+	$(RM) $(INSTALLDIR)/$(EXEC-STUB) $(INSTALLDIR)/$(EXEC) $(INSTALLDIR)/BBarolo_MPI
+	cd $(LIBDIR) && $(RM) $(LIB) $(LIB_LN) $(LIBSO) $(LIBSO_LN)
+	$(RM) -r $(INCDIR) 
 	
 builddir: 
 	mkdir -p $(OBJDIR)
-	
-clean : cleanup
-	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
-	cd ./src/GUI && make clean
 
+.PHONY: clean	
+clean : cleanup cleangui
+	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
+
+.PHONY: cleanest
 cleanest: clean
 	rm -rf Makefile $(EXEC) $(EXEC-STUB)
 
+.PHONY: cleanup	
 cleanup:
 	rm -rf autom4te.cache config.log config.status setup.log
 
+.PHONY: cleangui
 cleangui:
 	cd ./src/GUI && make clean
 

@@ -34,20 +34,16 @@
 
 std::string makelower(std::string s) {
 
-    std::string out = "";
-    for( size_t i=0; i<s.size(); ++i ) {
-        out += tolower(s[i]);
-    }
+    std::string out;
+    for(size_t i=0; i<s.size(); ++i) out += tolower(s[i]);
     return out;
 }
 
 
 std::string makeupper(std::string s) {
 
-    std::string out = "";
-    for( size_t i=0; i<s.size(); ++i ) {
-        out += toupper(s[i]);
-    }
+    std::string out;
+    for(size_t i=0; i<s.size(); ++i) out += toupper(s[i]);
     return out;
 }
 
@@ -56,9 +52,8 @@ std::string stringize(bool b) {
   /// Convert a bool variable to the textual equivalent. 
   /// \return A std::string with the english equivalent of the bool.
 
-    std::string output;
-    if(b) output="true";
-    else output="false";
+    std::string output = "false";
+    if(b) output = "true";
     return output;
 }
 
@@ -73,14 +68,6 @@ bool boolify(std::string s) {
     if((s=="1") || (makelower(s)=="true")) return true;
     else if((s=="0") || (makelower(s)=="false")) return false;
     else return false;
-}
-
-
-std::string readSval(std::stringstream& ss) {
- 
-  std::string val; 
-  ss >> val; 
-  return val;
 }
 
 
@@ -100,28 +87,16 @@ bool readFlag(std::stringstream& ss) {
 }
 
 
-float readFval(std::stringstream& ss) {
+template <class T>
+T readval(std::stringstream& ss) {
   
-    float val; 
+    T val; 
     ss >> val; 
     return val;
 }
-
-
-double readDval(std::stringstream& ss) {
-  
-    double val; 
-    ss >> val; 
-    return val;
-}
-
-
-int readIval(std::stringstream& ss) {
- 
-  int val; 
-  ss >> val; 
-  return val;
-}
+template int readval(std::stringstream&);
+template float readval(std::stringstream&);
+template double readval(std::stringstream&);
 
 
 template <class T>
@@ -248,6 +223,7 @@ void printHash(int num) {
  
     printHash(std::cout,num);
 }
+
 
 void checkHome(std::string &s) {
     

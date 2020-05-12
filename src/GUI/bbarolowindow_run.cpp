@@ -223,7 +223,7 @@ void BBaroloWindow::on_RunpushButton_clicked() {
 void BBaroloWindow::readParamFromFile(std::string filein) {
 
     Param *par = new Param;
-    par->readParams(filein);
+    par->readParamFile(filein);
 
     QString filename = QString::fromStdString(par->getImageFile());
     bool isBox = filename.contains("[") && filename.contains("]");
@@ -390,10 +390,10 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         ui->FFTcheckBox->setChecked(par->getflagFFT());
         ui->ReducecheckBox->setChecked(par->getflagReduce());
     } 
-    if (par->getflagHanning()) {
+    if (par->getflagSmoothSpectral()) {
         setSmoothFlag(Qt::Checked);
         ui->HanninggroupBox->setChecked(true);
-        size_t hanning_window = par->getHanningWindow();
+        size_t hanning_window = par->getWindowSize();
         if (hanning_window%2==0) hanning_window+=1;
         ui->HanningspinBox->setValue(hanning_window);
     }
@@ -555,10 +555,11 @@ void BBaroloWindow::writeParamFile(QString file) {
         else out << setw(n) << "SMOOTH" << "false" << endl;
         
         if (ui->HanninggroupBox->isChecked()) {
-            out << setw(n) << "HANNING" << "true" << endl;
-            out << setw(n) << "HANNING_SIZE" << ui->HanningspinBox->value();
+            out << setw(n) << "SMOOTHSPEC" << "true" << endl;
+            out << setw(n) << "WINDOW_TYPE" << "HANNING";
+            out << setw(n) << "WINDOW_SIZE" << ui->HanningspinBox->value();
         }
-        else out << setw(n) << "HANNING" << "false" << endl;
+        else out << setw(n) << "SMOOTHSPEC" << "false" << endl;
     }
 
 

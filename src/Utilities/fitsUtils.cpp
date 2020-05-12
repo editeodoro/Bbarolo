@@ -23,8 +23,20 @@
 
 #include <iostream>
 #include <cstring>
-#include <Utilities/utils.hh>
 #include <fitsio.h>
+#include <Utilities/utils.hh>
+
+template <> int selectBitpix<short>() {return SHORT_IMG;}
+template <> int selectBitpix<int>() {return SHORT_IMG;}
+template <> int selectBitpix<long>() {return LONG_IMG;}
+template <> int selectBitpix<float>() {return FLOAT_IMG;}
+template <> int selectBitpix<double>() {return DOUBLE_IMG;}
+
+template <> int selectDatatype<short>() {return TSHORT;}
+template <> int selectDatatype<int>() {return TINT;}
+template <> int selectDatatype<long>() {return TLONG;}
+template <> int selectDatatype<float>() {return TFLOAT;}
+template <> int selectDatatype<double>() {return TDOUBLE;}
 
 
 void FitsWrite_2D (const char *filename, float *image, long xsize, long ysize) {
@@ -295,8 +307,9 @@ int fitscopy(int argc, char *argv[]) {
                   << " Examples: \n"
                   << "   BBarolo --fitscopy in.fits out.fits                   (simple file copy)\n"
                   << "   BBarolo --fitscopy in.fits[11:50,21:60] out.fits      (copy a subimage)\n"
+                  << "   BBarolo --fitscopy in.fits[-*,*] out.fits             (mirror reverse axis 0)\n"
                   << "   BBarolo --fitscopy iniraf.imh out.fits                (IRAF image to FITS)\n"
-                  << "   BBarolo --fitscopy in.dat[i512,512] out.fit           (raw array to FITS)\n"
+                  << "   BBarolo --fitscopy in.dat[i512,512] out.fit           (binary file to FITS)\n"
                   << "   BBarolo --fitscopy in.fits[events][pi>35] out.fits    (copy rows with pi>35)\n"
                   << "   BBarolo --fitscopy in.fits[events][bin X,Y] out.fits  (bin an image)\n\n"
                   << " NOTE: it may be necessary to enclose the input file name in single quote\n"

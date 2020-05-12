@@ -76,7 +76,7 @@ int main (int argc, char *argv[]) {
   for (auto i=start[rank]; i<start[rank+1]; i++) {
     
     Param *par = new Param;
-    par->readParams(parfiles[i]);
+    par->readParamFile(parfiles[i]);
     std::cout << *par;
     if (!BBcore(par)) {
       if(par->getListSize()-i>1) std::cout << "Skipping to next file...\n";

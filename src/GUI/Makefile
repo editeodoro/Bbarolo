@@ -10,12 +10,12 @@ MAKEFILE      = Makefile
 
 ####### Compiler, tools and options
 
-CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11
-CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 
+CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
+CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
 DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -O2 -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I../ -I/usr/local/include -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers/ -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
+CXXFLAGS      = -pipe -stdlib=libc++ -O2 -Wall -W -fPIC $(DEFINES)
+INCPATH       = -I. -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers/ -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
 QMAKE         = /Users/edt/Programs/QT/5.7/clang_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -34,7 +34,7 @@ TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = BBaroloGUI1.0.0
 DISTDIR = /Users/edt/Dropbox/Codex/BBarolo/src/Build/BBaroloGUI1.0.0
-LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11
+LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
 LFLAGS        = -headerpad_max_install_names -Wl,-rpath,/Users/edt/Programs/QT/5.7/clang_64/lib
 LIBS          = $(SUBLIBS) -F/Users/edt/Programs/QT/5.7/clang_64/lib -L/usr/local/lib -lfftw3 -lcfitsio -lwcs -lm -static-libgcc -static-libstdc++ -framework QtPrintSupport -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL 
 AR            = ar cq
@@ -57,6 +57,7 @@ SOURCES       = main.cpp \
 		../Utilities/string.cpp \
 		../Arrays/header.cpp \
 		../Utilities/interpolation.cpp \
+		../Utilities/fitsUtils.cpp \
 		../Utilities/allocator.cpp \
 		qcustomplot.cpp ../Build/moc_bbarolowindow.cpp \
 		../Build/moc_qcustomplot.cpp
@@ -69,6 +70,7 @@ OBJECTS       = ../Build/main.o \
 		../Build/string.o \
 		../Build/header.o \
 		../Build/interpolation.o \
+		../Build/fitsUtils.o \
 		../Build/allocator.o \
 		../Build/qcustomplot.o \
 		../Build/moc_bbarolowindow.o \
@@ -226,6 +228,7 @@ DIST          = /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/spec_pre.pr
 		../Utilities/string.cpp \
 		../Arrays/header.cpp \
 		../Utilities/interpolation.cpp \
+		../Utilities/fitsUtils.cpp \
 		../Utilities/allocator.cpp \
 		qcustomplot.cpp
 QMAKE_TARGET  = BBaroloGUI
@@ -566,7 +569,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.h ../Arrays/header.hh ../Arrays/param.hh ../Utilities/utils.hh qcustomplot.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp bbarolowindow.cpp bbarolowindow_run.cpp ../Arrays/param.cpp ../Utilities/utils.cpp ../Utilities/wcsUtils.cpp ../Utilities/string.cpp ../Arrays/header.cpp ../Utilities/interpolation.cpp ../Utilities/allocator.cpp qcustomplot.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp bbarolowindow.cpp bbarolowindow_run.cpp ../Arrays/param.cpp ../Utilities/utils.cpp ../Utilities/wcsUtils.cpp ../Utilities/string.cpp ../Arrays/header.cpp ../Utilities/interpolation.cpp ../Utilities/fitsUtils.cpp ../Utilities/allocator.cpp qcustomplot.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.ui $(DISTDIR)/
 
 
@@ -650,6 +653,9 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ../Build/interpolation.o: ../Utilities/interpolation.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/interpolation.o ../Utilities/interpolation.cpp
+
+../Build/fitsUtils.o: ../Utilities/fitsUtils.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/fitsUtils.o ../Utilities/fitsUtils.cpp
 
 ../Build/allocator.o: ../Utilities/allocator.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/allocator.o ../Utilities/allocator.cpp

@@ -55,18 +55,6 @@ double VeltoDist(double vsys) {return vsys/70.;}
 double RedtoDist(double redshift) {return redshift*299792.458/70.;}
 
 
-template <class Type> 
-bool isNaN (Type n) {
-    volatile Type d = n; 
-    return d != d;
-}
-template bool isNaN (short);
-template bool isNaN (int);
-template bool isNaN (long);
-template bool isNaN (float);
-template bool isNaN (double);
-
-
 bool fexists(std::string filename) {std::ifstream ifile(filename.c_str()); return ifile.good();}
 
 
@@ -964,15 +952,3 @@ template float* Smooth1D(float*,size_t,std::string,size_t);
 template double* Smooth1D(double*,size_t,std::string,size_t);
 
 
-
-template <> int selectBitpix<short>() {return SHORT_IMG;}
-template <> int selectBitpix<int>() {return SHORT_IMG;}
-template <> int selectBitpix<long>() {return LONG_IMG;}
-template <> int selectBitpix<float>() {return FLOAT_IMG;}
-template <> int selectBitpix<double>() {return DOUBLE_IMG;}
-
-template <> int selectDatatype<short>() {return TSHORT;}
-template <> int selectDatatype<int>() {return TINT;}
-template <> int selectDatatype<long>() {return TLONG;}
-template <> int selectDatatype<float>() {return TFLOAT;}
-template <> int selectDatatype<double>() {return TDOUBLE;}

@@ -37,6 +37,7 @@ SOURCES += main.cpp\
 #    ../Utilities/galfit_out.cpp \
 #    ../Utilities/galfit.cpp \
 #    ../Utilities/conv2D.cpp \
+    ../Utilities/fitsUtils.cpp \
     ../Utilities/allocator.cpp \
     qcustomplot.cpp
 

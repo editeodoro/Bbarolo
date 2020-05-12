@@ -26,43 +26,44 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <map>
 #include <cmath>
 #include <thread>
-#include <unistd.h>
 #include <getopt.h>
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
 #define BBVERSION "1.5.2"
 
+struct Entry {string name; string descr;};
+
 // A list and description of all tasks available in BBarolo
-map<string, string> tasksList = {
-  {"3DFIT",         "Fit a 3D tilted-ring model to an emission-line datacube."},
-  {"GALMOD",        "Make a 3D model observation datacube of an emission line."},
-  {"SEARCH",        "Search for sources in a 3D datacube or in a 2D image."},
-  {"2DFIT",         "Fit a 2D tilted-ring model to a velocity field."},
-  {"SMOOTH",        "Smooth spatially of a datacube with a 2D Gaussian kernel."},
-  {"SMOOTHSPEC",    "Smooth spectrally of a datacube with a given window."},
-  {"ELLPROF",       "Derive radial profiles in elliptical rings from a map."},
-  {"MAKEMASK",      "Define a mask for emission-line data."},
-  {"SPACEPAR",      "Compute the full 2D space for any pair of 3DFIT parameters."},
-  {"GALWIND",       "Make a 3D emission-line model of a bi-conical outflow."},
-  {"SLITFIT",       "Fit the kinematics from long-slit data (CURRENTLY BROKEN)."},
-  {"GLOBALPROFILE", "Extract a total spectral profile from a datacube."},
-  {"TOTALMAP",      "Compute a total intensity map from a datacube."},
-  {"VELOCITYMAP",   "Compute a velocity field from a datacube."},
-  {"DISPERSIONMAP", "Compute a velocity dispersion field from a datacube."},
-  {"PV",            "Extracting a position-velocity slice from a datacube."},
- };
+vector<Entry> tasksList = {
+    {"3DFIT",         "Fit a 3D tilted-ring model to an emission-line datacube."},
+    {"GALMOD",        "Make a 3D model observation datacube of an emission line."},
+    {"SEARCH",        "Search for sources in a 3D datacube or in a 2D image."},
+    {"2DFIT",         "Fit a 2D tilted-ring model to a velocity field."},
+    {"SMOOTH",        "Smooth spatially of a datacube with a 2D Gaussian kernel."},
+    {"SMOOTHSPEC",    "Smooth spectrally of a datacube with a given window."},
+    {"ELLPROF",       "Derive radial profiles in elliptical rings from a map."},
+    {"MAKEMASK",      "Define a mask for emission-line data."},
+    {"SPACEPAR",      "Compute the full 2D space for any pair of 3DFIT parameters."},
+    {"GALWIND",       "Make a 3D emission-line model of a bi-conical outflow."},
+    {"SLITFIT",       "Fit the kinematics from long-slit data (CURRENTLY BROKEN)."},
+    {"GLOBALPROFILE", "Extract a total spectral profile from a datacube."},
+    {"TOTALMAP",      "Compute a total intensity map from a datacube."},
+    {"VELOCITYMAP",   "Compute a velocity field from a datacube."},
+    {"DISPERSIONMAP", "Compute a velocity dispersion field from a datacube."},
+    {"PV",            "Extracting a position-velocity slice from a datacube."},
+};
 
 // A list and description of available FITS utilities 
-map<string, string> fitsUtilsList = {
+vector<Entry> fitsUtilsList = {
   {"listhead",  "List header keywords in a FITS file."},
   {"modhead",   "Modify/print a keyword in a FITS file."},
   {"fitscopy",  "Copy a input file to a new FITS file with filtering."},
   {"fitsarith", "Arithmetic operations with FITS files."},
 };
+
 
 Param::Param() {
     
@@ -278,7 +279,9 @@ bool Param::getopts(int argc, char **argv) {
             case 'p':                    // Parameter file provided
                 file = optarg;
                 if(readParamFile(file)) returnValue = true;
-                else cerr << "Could not open parameter file " << file << ".\n";
+                else 
+                    cerr << "\n BBAROLO ERROR: Could not open parameter file " 
+                         << file << ".\n\n";
                 break;
                 
             case 'f':                    // Fits file provided
@@ -336,6 +339,19 @@ bool Param::getopts(int argc, char **argv) {
             case '?':                    // Unrecognized option
                 // If d is provided with no argument, print all defaults
                 if (optopt == 'd') printDefaults(cout);
+                // If p or f are provided with no argument, raise an error.
+                else if (optopt == 'p') {
+                    std::cerr << "\n Option -p requires a paramter file as argument.\n\n"
+                              << "   Usage: BBarolo -p paramfile \n\n";
+                }
+                else if (optopt == 'f') {
+                    std::cerr << "\n Option -f requires a FITS file as argument.\n\n" 
+                              << "   Usage: BBarolo -f fitsfile \n\n";
+                }
+                else {
+                    std::cerr << "\n Option " << argv[1] << " is unacceptable. "
+                              << "Try BBarolo -h for help.\n\n"; 
+                }
                 break;
                 
             case ':':                    // Missing option argument
@@ -351,7 +367,7 @@ bool Param::getopts(int argc, char **argv) {
             if (optind<argc)
                 while (optind<argc) readParamCL(std::string(argv[optind++]));
                 
-            // Check if input parameter are good.
+            // Check if input parameters are good.
             if (!checkPars()) {
                 cerr << "\n Unacceptable input parameters. Exiting...\n\n";
                 returnValue = false;
@@ -409,11 +425,11 @@ void Param::setParam(string &parstr) {
     if(arg=="fitslist")         imageList = readFilename(ss);
     if(arg=="verbose")          verbose   = readFlag(ss);
     if(arg=="outfolder")        outFolder = readFilename(ss);
-    if(arg=="threads")          threads   = readIval(ss);
+    if(arg=="threads")          threads   = readval<int>(ss);
     if(arg=="debug")            debug     = readFlag(ss);
     if(arg=="showbar")          showbar   = readFlag(ss);
     if(arg=="plots")            plots     = readFlag(ss);
-    if(arg=="beamfwhm")         beamFWHM  = readFval(ss);
+    if(arg=="beamfwhm")         beamFWHM  = readval<float>(ss);
     if(arg=="checkchannels")    checkChannels = readFlag(ss);
     
     if(arg=="makemask")         makeMask  = readFlag(ss);
@@ -423,26 +439,26 @@ void Param::setParam(string &parstr) {
     
     // SEARCH ONLY PARAMETERS
     if(arg=="search")            parSE.flagSearch = readFlag(ss);
-    if(arg=="searchtype")        parSE.searchType = readSval(ss);
+    if(arg=="searchtype")        parSE.searchType = readFilename(ss);
     if(arg=="flagadjacent")      parSE.flagAdjacent = readFlag(ss);
-    if(arg=="threshspatial")     parSE.threshSpatial = readIval(ss);
-    if(arg=="threshvelocity")    parSE.threshVelocity = readIval(ss);
-    if(arg=="minchannels")       parSE.minChannels = readIval(ss);
-    if(arg=="minvoxels")         parSE.minVoxels = readIval(ss);
-    if(arg=="minpix")            parSE.minPix = readIval(ss);
-    if(arg=="maxchannels")       parSE.maxChannels = readIval(ss);
-    if(arg=="maxangsize")        parSE.maxAngSize = readFval(ss);
+    if(arg=="threshspatial")     parSE.threshSpatial = readval<int>(ss);
+    if(arg=="threshvelocity")    parSE.threshVelocity = readval<int>(ss);
+    if(arg=="minchannels")       parSE.minChannels = readval<int>(ss);
+    if(arg=="minvoxels")         parSE.minVoxels = readval<int>(ss);
+    if(arg=="minpix")            parSE.minPix = readval<int>(ss);
+    if(arg=="maxchannels")       parSE.maxChannels = readval<int>(ss);
+    if(arg=="maxangsize")        parSE.maxAngSize = readval<float>(ss);
     if(arg=="rejectbeforemerge") parSE.RejectBeforeMerge = readFlag(ss);
     if(arg=="twostagemerging")   parSE.TwoStageMerging = readFlag(ss);
-    if(arg=="snrcut")            parSE.snrCut = readFval(ss); 
+    if(arg=="snrcut")            parSE.snrCut = readval<float>(ss); 
     if(arg=="threshold"){
-        parSE.threshold = readFval(ss);
+        parSE.threshold = readval<float>(ss);
         parSE.UserThreshold = true;
     }
     if(arg=="flaggrowth")        parSE.flagGrowth = readFlag(ss);
-    if(arg=="growthcut")         parSE.growthCut = readFval(ss);
+    if(arg=="growthcut")         parSE.growthCut = readval<float>(ss);
     if(arg=="growththreshold"){
-        parSE.growthThreshold = readFval(ss);
+        parSE.growthThreshold = readval<float>(ss);
         parSE.flagUserGrowthT  = true;
     }
 
@@ -452,7 +468,7 @@ void Param::setParam(string &parstr) {
     if(arg=="velocitymap")      velocitymap = readFlag(ss);
     if(arg=="dispersionmap")    dispersionmap = readFlag(ss);
     if(arg=="rmsmap")           rmsmap = readFlag(ss);
-    if(arg=="blankcut")         blankCut = readFval(ss);
+    if(arg=="blankcut")         blankCut = readval<float>(ss);
     if(arg=="maptype")          maptype  = makeupper(readFilename(ss));
     
 
@@ -465,9 +481,9 @@ void Param::setParam(string &parstr) {
     if(arg=="galmod")    parGM.flagGALMOD  = readFlag(ss);
     if(arg=="galwind")   parGW.flagGALWIND = readFlag(ss);
     if(arg=="spacepar")  flagSpace  = readFlag(ss);
-    if(arg=="nradii")    parGM.NRADII = parGF.NRADII               = readIval(ss);
+    if(arg=="nradii")    parGM.NRADII = parGF.NRADII               = readval<int>(ss);
     if(arg=="radii")     parGM.RADII  = parGF.RADII = parGW.RADII  = readFilename(ss);
-    if(arg=="radsep")    parGM.RADSEP = parGF.RADSEP               = readDval(ss);
+    if(arg=="radsep")    parGM.RADSEP = parGF.RADSEP               = readval<double>(ss);
     if(arg=="vrot")      parGM.VROT   = parGF.VROT = parGW.VROT    = readFilename(ss);
     if(arg=="vrad")      parGM.VRAD   = parGF.VRAD                 = readFilename(ss);
     if(arg=="z0")        parGM.Z0     = parGF.Z0                   = readFilename(ss);
@@ -481,44 +497,44 @@ void Param::setParam(string &parstr) {
     if(arg=="inc")       parGM.INC    = parGF.INC    = parGW.INC   = readFilename(ss);
     if(arg=="pa")        parGM.PHI    = parGF.PHI    = parGW.PHI   = readFilename(ss);
     if(arg=="dens")      parGM.DENS   = parGF.DENS   = parGW.DENS  = readFilename(ss);
-    if(arg=="cdens")     parGM.CDENS  = parGF.CDENS  = parGW.CDENS = readFval(ss);
-    if(arg=="nv")        parGM.NV     = parGF.NV     = parGW.NV    = readIval(ss);
+    if(arg=="cdens")     parGM.CDENS  = parGF.CDENS  = parGW.CDENS = readval<float>(ss);
+    if(arg=="nv")        parGM.NV     = parGF.NV     = parGW.NV    = readval<int>(ss);
     if(arg=="sm")        parGM.SM     = parGF.SM     = parGW.SM    = readFlag(ss);
-    if(arg=="ltype")     parGM.LTYPE  = parGF.LTYPE                = readIval(ss);
-    if(arg=="redshift")  parGM.REDSHIFT = parGF.REDSHIFT           = readDval(ss);
+    if(arg=="ltype")     parGM.LTYPE  = parGF.LTYPE                = readval<int>(ss);
+    if(arg=="redshift")  parGM.REDSHIFT = parGF.REDSHIFT           = readval<double>(ss);
     if(arg=="restwave")  parGM.RESTWAVE = parGF.RESTWAVE           = readVec<double>(ss);
     if(arg=="restfreq")  parGM.RESTFREQ = parGF.RESTFREQ           = readVec<double>(ss);
     if(arg=="relint")    parGM.RELINT = parGF.RELINT               = readVec<double>(ss);
-    if(arg=="noiserms")  parGM.NOISERMS = parGF.NOISERMS           = readDval(ss);
+    if(arg=="noiserms")  parGM.NOISERMS = parGF.NOISERMS           = readval<double>(ss);
     
     // 3DFIT ONLY PARAMETERS
-    if(arg=="deltainc")  parGF.DELTAINC   = readFval(ss);
-    if(arg=="deltapa")   parGF.DELTAPHI   = readFval(ss);
-    if(arg=="deltavrot") parGF.DELTAVROT  = readFval(ss);
-    if(arg=="ftype")     parGF.FTYPE      = readIval(ss);
-    if(arg=="wfunc")     parGF.WFUNC      = readIval(ss);
-    if(arg=="tol")       parGF.TOL        = readDval(ss);
+    if(arg=="deltainc")  parGF.DELTAINC   = readval<float>(ss);
+    if(arg=="deltapa")   parGF.DELTAPHI   = readval<float>(ss);
+    if(arg=="deltavrot") parGF.DELTAVROT  = readval<float>(ss);
+    if(arg=="ftype")     parGF.FTYPE      = readval<int>(ss);
+    if(arg=="wfunc")     parGF.WFUNC      = readval<int>(ss);
+    if(arg=="tol")       parGF.TOL        = readval<double>(ss);
     if(arg=="free")      parGF.FREE       = readFilename(ss);
     if(arg=="side")      parGF.SIDE       = readFilename(ss);
-    if(arg=="bweight")   parGF.BWEIGHT    = readIval(ss);
+    if(arg=="bweight")   parGF.BWEIGHT    = readval<int>(ss);
     if(arg=="twostage")  parGF.TWOSTAGE   = readFlag(ss);
     if(arg=="flagerrors")parGF.flagERRORS = readFlag(ss);
     if(arg=="norm")      parGF.NORM       = makeupper(readFilename(ss));
     if(arg=="polyn")     parGF.POLYN      = readFilename(ss);
-    if(arg=="startrad")  parGF.STARTRAD   = readIval(ss);
-    if(arg=="distance")  parGF.DISTANCE   = readFval(ss);
+    if(arg=="startrad")  parGF.STARTRAD   = readval<int>(ss);
+    if(arg=="distance")  parGF.DISTANCE   = readval<float>(ss);
     if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
     if(arg=="plotmask")  parGF.PLOTMASK   = readFlag(ss);
     if(arg=="cumulative")parGF.CUMULATIVE = readFlag(ss);
     if(arg=="normalcube")parGF.NORMALCUBE = readFlag(ss);
 
     // GALWIND ONLY PARAMETERS
-    if(arg=="htot")      parGW.HTOT       = readFval(ss);
+    if(arg=="htot")      parGW.HTOT       = readval<float>(ss);
     if(arg=="openang")   parGW.OPENANG    = readFilename(ss);
-    if(arg=="ntot")      parGW.NTOT       = readIval(ss);
+    if(arg=="ntot")      parGW.NTOT       = readval<int>(ss);
     if(arg=="vwind")     parGW.VWIND      = readFilename(ss);
-    if(arg=="denstype")  parGW.DENSTYPE   = readIval(ss);
-    if(arg=="wtype")     parGW.WTYPE      = readIval(ss);
+    if(arg=="denstype")  parGW.DENSTYPE   = readval<int>(ss);
+    if(arg=="wtype")     parGW.WTYPE      = readval<int>(ss);
 
     if(arg=="p1")        P1 = readFilename(ss);
     if(arg=="p1par")     readArray<float>(ss,P1p,3);
@@ -527,22 +543,22 @@ void Param::setParam(string &parstr) {
     
     if(arg=="smooth")    flagSmooth = readFlag(ss);
     if(arg=="box")       readArray<int>(ss,BOX,6);
-    if(arg=="bmaj")      bmaj = readDval(ss); 
-    if(arg=="bmin")      bmin = readDval(ss);
-    if(arg=="bpa")       bpa = readDval(ss);
-    if(arg=="obmaj")     obmaj = readDval(ss);
-    if(arg=="obmin")     obmin = readDval(ss);
-    if(arg=="obpa")      obpa = readDval(ss);
-    if(arg=="linear")    linear = readDval(ss);
-    if(arg=="factor")    factor = readDval(ss);
-    if(arg=="scalefactor") scalefactor = readDval(ss);
+    if(arg=="bmaj")      bmaj = readval<double>(ss); 
+    if(arg=="bmin")      bmin = readval<double>(ss);
+    if(arg=="bpa")       bpa = readval<double>(ss);
+    if(arg=="obmaj")     obmaj = readval<double>(ss);
+    if(arg=="obmin")     obmin = readval<double>(ss);
+    if(arg=="obpa")      obpa = readval<double>(ss);
+    if(arg=="linear")    linear = readval<double>(ss);
+    if(arg=="factor")    factor = readval<double>(ss);
+    if(arg=="scalefactor") scalefactor = readval<double>(ss);
     if(arg=="fft")       flagFFT = readFlag(ss);
     if(arg=="reduce")    flagReduce = readFlag(ss);
     if(arg=="smoothoutput") smo_out = readFilename(ss);
 
     if(arg=="smoothspec")  flagSmoothSpectral = readFlag(ss);
     if(arg=="window_type") window_type = makeupper(readFilename(ss));
-    if(arg=="window_size") window_size = readIval(ss);
+    if(arg=="window_size") window_size = readval<int>(ss);
 
     if(arg=="slitfit")    flagSlitfit = readFlag(ss);
     if(arg=="wavefile")   wavefile = readFilename(ss);
@@ -551,9 +567,9 @@ void Param::setParam(string &parstr) {
     
     if (arg=="flagpv")    flagPV = readFlag(ss);
     if (arg=="pv")        flagPV = readFlag(ss);
-    if (arg=="xpos_pv")   XPOS_PV = readFval(ss);
-    if (arg=="ypos_pv")   YPOS_PV = readFval(ss);
-    if (arg=="pa_pv")     PA_PV = readFval(ss);
+    if (arg=="xpos_pv")   XPOS_PV = readval<float>(ss);
+    if (arg=="ypos_pv")   YPOS_PV = readval<float>(ss);
+    if (arg=="pa_pv")     PA_PV = readval<float>(ss);
     
 }
 
@@ -867,7 +883,7 @@ void Param::printDefaults (std::ostream& theStream, string wtask) {
     // Check that whichtask is ok
     bool isOK = false;
     for (auto i : tasksList) {
-        isOK = whichtask==i.first;
+        isOK = whichtask==i.name;
         if (isOK) break;
     }
     if (!isOK) whichtask = "ALL";
@@ -1387,8 +1403,8 @@ void listTasks(std::ostream& Str) {
         << setfill('"') << setw(68) << right << "\n\n";
 
     for (auto i : tasksList) {
-        Str << i.first << ": " << endl;
-        Str << "   "  << i.second << endl << endl;
+        Str << i.name << ": " << endl;
+        Str << "   "  << i.descr << endl << endl;
     }
     Str << setfill('"') << setw(68) << right << "\n\n";
 
@@ -1403,7 +1419,7 @@ void listFitsUtils(std::ostream& Str) {
         << " where 'utilityname' is one of the following: \n\n";
         
     for (auto i : fitsUtilsList) {
-        Str << "   " << setw(10) << i.first << ":  " << i.second << endl;
+        Str << "   " << setw(10) << i.name << ":  " << i.descr << endl;
     }
     Str << endl;
 }
