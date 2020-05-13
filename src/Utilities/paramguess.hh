@@ -537,6 +537,10 @@ void ParamGuess<T>::findInitial() {
     
     radsep = in->Head().Bmaj()*arcsconv(in->Head().Cunit(0));
     nrings = lround(Rmax/radsep);
+    if (nrings<5) {
+        radsep /= 2.;
+        nrings = lround(Rmax/radsep);
+    }
     vrot=fabs(obj->getW50()/2.)/sin(inclin*M_PI/180.);  
         
 }

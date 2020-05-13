@@ -997,7 +997,7 @@ int Galfit<T>::plotAll_Python() {
 
     if (par.PLOTMASK) py_file << "plotmask=True \n";
     else py_file << "plotmask=False \n";
-
+    
     py_file << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.genfromtxt(file1,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True) \n";
     if (outr->nr==1) py_file << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.array([rad]),np.array([vrot]),np.array([disp]),np.array([inc]),np.array([pa]),np.array([z0]),np.array([xpos]),np.array([ypos]),np.array([vsys]),np.array([vrad])\n";
     py_file << "err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",len(rad))), np.zeros(shape=(" << MAXPAR << ",len(rad)))\n"
@@ -1376,8 +1376,6 @@ int Galfit<T>::plotAll_Python() {
             << "y = np.tan(np.radians(phi-90))*(x-xcen)+ycen \n"
             << "ext = [0,xmax-xmin,0, ymax-ymin] \n"
             << "rad_pix = rad/cdeltsp \n"
-            << "x_pix = rad_pix*np.cos(np.radians(phi-90)) \n"
-            << "y_pix = rad_pix*np.sin(np.radians(phi-90)) \n"
             << std::endl
             << "for k in range (len(files_mod0)): \n"
             << "\tmom0_mod = fits.open(outfolder+'/maps/'+files_mod0[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
@@ -1422,9 +1420,16 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"    
             << "\t\t\telif i==1: \n"
             << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
-            << "\t\t\t\tif len(x_pix)<10: \n"
+            << "\t\t\t\tif len(rad_pix)<10: \n"
+            << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(phi-90)) \n"
+            << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(phi-90)) \n"
             << "\t\t\t\t\taxis.scatter(x_pix+xcen,y_pix+ycen,c='grey',s=12) \n"
             << "\t\t\t\t\taxis.scatter(xcen-x_pix,ycen-y_pix,c='grey',s=12) \n"
+            << "\t\t\t\tif len(rad_pix)>5 and not all(np.diff(posang)==0): \n"
+            << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(posang-90)) \n"
+            << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(posang-90)) \n"
+            << "\t\t\t\t\taxis.plot(xcen-x_pix,ycen-y_pix,'-',color='grey',lw=1) \n"
+            << "\t\t\t\t\taxis.plot(x_pix+xcen,y_pix+ycen,'-',color='grey',lw=1) \n"
             << "\t\t\tif j==0: axis.text(-0.12,0.5,mapname[i],va='center',rotation=90,transform=axis.transAxes,fontsize=15) \n\n"
             << "\t\tcbax = fig.add_axes([ax[i][2].get_position().x0+0.003,ax[i][2].get_position().y0-0.025,x_len-0.003,0.02]) \n"
             << "\t\tcb2 = ColorbarBase(cbax, orientation='horizontal', cmap=cmaps[i], norm=norm) \n"

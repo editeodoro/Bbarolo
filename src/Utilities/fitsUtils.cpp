@@ -305,7 +305,6 @@ int fitscopy(int argc, char *argv[]) {
                   << " FITS images (see CFITSIO User's Guide for filtering syntax).\n\n"
                   << " Usage:\n   BBarolo --fitscopy inputfile[filter] outputfile \n\n"
                   << " Examples: \n"
-                  << "   BBarolo --fitscopy in.fits out.fits                   (simple file copy)\n"
                   << "   BBarolo --fitscopy in.fits[11:50,21:60] out.fits      (copy a subimage)\n"
                   << "   BBarolo --fitscopy in.fits[-*,*] out.fits             (mirror reverse axis 0)\n"
                   << "   BBarolo --fitscopy iniraf.imh out.fits                (IRAF image to FITS)\n"
