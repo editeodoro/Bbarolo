@@ -1004,7 +1004,8 @@ int Galfit<T>::plotAll_Python() {
             << "color=color2='#B22222' \n"
             << "max_vrot,max_vdisp,max_inc,max_pa=np.max(vrot),np.max(disp),np.max(inc),np.max(pa) \n"
             << "max_z0,max_xpos,max_ypos,max_vsys=np.max(z0),np.max(xpos),np.max(ypos),np.max(vsys) \n"
-            << "max_rad = 1.1*np.max(rad) \n";
+            << "max_rad = 1.1*np.max(rad) \n"
+            << "xcen_m,ycen_m,inc_m,pa_m,vsys_m=np.nanmean((xpos,ypos,inc,pa,vsys),axis=1)\n";
 
     for (int i=0; i<MAXPAR; i++) {
         if (nc[i]>0) {
@@ -1019,7 +1020,8 @@ int Galfit<T>::plotAll_Python() {
     py_file << "\terr2_l, err2_h = np.zeros(shape=(" << MAXPAR << ",len(rad2))), np.zeros(shape=(" << MAXPAR << ",len(rad2)))\n"
             << "\tcolor='#A0A0A0' \n"
             << "\tmax_vrot,max_vdisp,max_inc,max_pa=np.maximum(max_vrot,np.max(vrot2)),np.maximum(max_vdisp,np.max(disp2)),np.maximum(max_inc,np.max(inc2)),np.maximum(max_pa,np.max(pa2)) \n"
-            << "\tmax_z0,max_xpos,max_ypos,max_vsys=np.maximum(max_z0,np.max(z02)),np.maximum(max_xpos,np.max(xpos2)),np.maximum(max_ypos,np.max(ypos2)),np.maximum(max_vsys,np.max(vsys2)) \n";
+            << "\tmax_z0,max_xpos,max_ypos,max_vsys=np.maximum(max_z0,np.max(z02)),np.maximum(max_xpos,np.max(xpos2)),np.maximum(max_ypos,np.max(ypos2)),np.maximum(max_vsys,np.max(vsys2)) \n"
+            << "\txcen_m,ycen_m,inc_m,pa_m,vsys_m=np.nanmean((xpos2,ypos2,inc2,pa2,vsys2),axis=1) \n";
 
     for (int i=0; i<MAXPAR; i++) {
         if ((i==0 || i==1 || i==9) && (nc[i]>0)) {
@@ -1039,8 +1041,7 @@ int Galfit<T>::plotAll_Python() {
             << "bunit = f0[0].header['BUNIT'] \n"
             << "bunit = bunit.replace(' ', '').lower() \n\n";
 
-    py_file << "\nfig1=plt.figure(figsize=(11.69,8.27), dpi=150)  \n"
-            << "fig_ratio = 11.69/8.27 \n"
+    py_file << "\nfig1=plt.figure(figsize=(11,11), dpi=150)  \n"
             << "nrows, ncols = 3,3 \n"
             << "x_axis_length, y_axis_length = 0.27, 0.13 \n"
             << "x_sep, y_sep = 0.07,0.015 \n"
@@ -1049,14 +1050,14 @@ int Galfit<T>::plotAll_Python() {
             << "\tbottom_corner[0], axcol, ylen = 0.1, [], y_axis_length \n"
             << "\tif i==0: ylen *= 1.8 \n"
             << "\tfor j in range (ncols): \n"
-            << "\t\taxcol.append(fig1.add_axes([bottom_corner[0],bottom_corner[1],x_axis_length,ylen*fig_ratio])) \n"
+            << "\t\taxcol.append(fig1.add_axes([bottom_corner[0],bottom_corner[1],x_axis_length,ylen])) \n"
             << "\t\tbottom_corner[0]+=x_axis_length+x_sep \n"
             << "\tax.append(axcol) \n"
-            << "\tbottom_corner[1]-=(y_axis_length+y_sep)*fig_ratio \n";
+            << "\tbottom_corner[1]-=(y_axis_length+y_sep) \n";
 
     py_file << std::endl
             << "axis=ax[0][0]  \n"
-            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True)  \n"
+            << "axis.tick_params(top=True,right=True,labelbottom=False,labelleft=True)  \n"
             << "axis.set_xlim(0,max_rad)  \n"
             << "axis.set_ylim(0,1.2*max_vrot)  \n"
             << "axis.set_ylabel('v$_\\mathrm{rot}$ (km/s)', fontsize=14)  \n"
@@ -1140,7 +1141,7 @@ int Galfit<T>::plotAll_Python() {
             << "if twostage==True: axis.errorbar(rad2,vsys2,yerr=[err2_l[8],-err2_h[8]],fmt='o', color=color2) \n";
 
     py_file << std::endl
-            << "plt.savefig(outfolder+'plot_parameters.pdf', orientation = 'landscape', format = 'pdf',bbox_inches='tight') \n"
+            << "fig1.savefig(outfolder+'plot_parameters.pdf',bbox_inches='tight') \n"
             << std::endl << std::endl;
 
     py_file << "# CHANNEL MAPS: Setting all the needed variables \n"
@@ -1162,7 +1163,8 @@ int Galfit<T>::plotAll_Python() {
             << "v_neg = [-cont] \n"
             << "interval = PercentileInterval(99.5) \n"
             << "vmax = interval.get_limits(data)[1] \n"
-            << "norm = ImageNormalize(vmin=cont, vmax=vmax, stretch=PowerStretch(0.5)) \n\n";
+            << "norm = ImageNormalize(vmin=cont, vmax=vmax, stretch=PowerStretch(0.5)) \n"
+            << "xcen, ycen = xcen_m-xmin, ycen_m-ymin  \n\n";
 
     py_file << "files_mod, typ = [], [] \n"
             << "for thisFile in os.listdir(outfolder): \n"
@@ -1178,12 +1180,10 @@ int Galfit<T>::plotAll_Python() {
             << "elif (len(files_mod)==len(typ)==0): exit() \n\n";
 
     py_file << "# Beginning channel map plot \n"
-            << "xcen, ycen, phi = [np.nanmean(xpos)-xmin,np.nanmean(ypos)-ymin,np.nanmean(pa)] \n"
-            << "if twostage==True: xcen, ycen, phi = [np.nanmean(xpos2)-xmin,np.nanmean(ypos2)-ymin,np.nanmean(pa2)] \n"
             << "for k in range (len(files_mod)): \n"
             << "\timage_mod = fits.open(outfolder+files_mod[k]) \n"
             << "\tdata_mod = image_mod[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
-            << "\tplt.figure(figsize=(8.27, 11.69), dpi=100) \n"
+            << "\tfig2 = plt.figure(figsize=(8.27, 11.69), dpi=100) \n"
             << "\tgrid = [gridspec.GridSpec(2,5),gridspec.GridSpec(2,5),gridspec.GridSpec(2,5)] \n"
             << "\tgrid[0].update(top=0.90, bottom=0.645, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
             << "\tgrid[1].update(top=0.60, bottom=0.345, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
@@ -1200,7 +1200,7 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
             << "\t\t\tvelo = ' v = ' + str(int(velo_kms)) + ' km/s' \n"
             << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
-            << "\t\t\tax.tick_params(top=True,right=Truelabelbottom=False,labelleft=False) \n"
+            << "\t\t\tax.tick_params(top=True,right=True,labelbottom=False,labelleft=False) \n"
             << "\t\t\tax.set_title(velo, fontsize=10,loc='left') \n"
             << "\t\t\tax.imshow(z,origin='lower',cmap = mpl.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
             << "\t\t\tax.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
@@ -1232,7 +1232,7 @@ int Galfit<T>::plotAll_Python() {
             << "\toutfile = 'plot_chanmaps.pdf' \n"
             << "\tif (typ[k]=='AZIM'): outfile = 'plot_chanmaps_azim.pdf' \n"
             << "\tif (typ[k]=='LOCAL'): outfile = 'plot_chanmaps_local.pdf' \n"
-            << "\tplt.savefig(outfolder+outfile, orientation = 'portrait', format = 'pdf') \n"
+            << "\tfig2.savefig(outfolder+outfile, orientation = 'portrait', format = 'pdf') \n"
             << "\timage_mod.close() \n\n"
             << "image.close() \n";
 
@@ -1286,12 +1286,11 @@ int Galfit<T>::plotAll_Python() {
             << "vlos2 = vsystem-vrotation*np.sin(np.deg2rad(inclin)) \n";
     if (reverse) py_file << "reverse = True \n";
     else py_file << "reverse = False \n";
-    py_file << "if reverse==True: vlos1, vlos2 = vlos2, vlos1 \n"
+    py_file << "if reverse: vlos1, vlos2 = vlos2, vlos1 \n"
             << "vlos = np.concatenate((vlos1,vlos2)) \n"
-            << "vsysmean, pamean = np.nanmean(vsystem), np.nanmean(posang) \n"
-            << "ext = [[xmin_wcs[0],xmax_wcs[0],zmin_wcs-vsysmean,zmax_wcs-vsysmean],\\" << std::endl
-            << "       [xmin_wcs[1],xmax_wcs[1],zmin_wcs-vsysmean,zmax_wcs-vsysmean]] \n"
-            << "labsize = 15 \n"
+            << "ext = [[xmin_wcs[0],xmax_wcs[0],zmin_wcs-vsys_m,zmax_wcs-vsys_m],\\" << std::endl
+            << "       [xmin_wcs[1],xmax_wcs[1],zmin_wcs-vsys_m,zmax_wcs-vsys_m]] \n"
+            << "labsize = 14 \n"
             << "palab = ['$\\phi = $" << pa_av <<"$^\\circ$', '$\\phi = $" << pa_min << "$^\\circ$'] \n\n";
     
     py_file << "# Beginning PV plot \n"
@@ -1302,14 +1301,13 @@ int Galfit<T>::plotAll_Python() {
             << "\tdata_mod_min = image_mod_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
             << "\ttoplot = [[data_maj,data_min],[data_mod_maj,data_mod_min],[data_mas_maj,data_mas_min]] \n"
             << std::endl
-            << "\tfig=plt.figure(figsize=(11.69,8.27), dpi=150) \n"
-            << "\tfig_ratio = 11.69/8.27 \n"
+            << "\tfig = plt.figure(figsize=(10,10), dpi=150) \n"
             << "\tx_len, y_len, y_sep = 0.6, 0.42, 0.08 \n"
             << "\tax, bottom_corner = [], [0.1,0.7] \n"
             << "\tfor i in range (2): \n"
             << "\t\tbottom_corner[0], axcol = 0.1, [] \n"
-            << "\t\tax.append(fig.add_axes([bottom_corner[0],bottom_corner[1],x_len,y_len*fig_ratio])) \n"
-            << "\t\tbottom_corner[1]-=(y_len+y_sep)*fig_ratio \n"
+            << "\t\tax.append(fig.add_axes([bottom_corner[0],bottom_corner[1],x_len,y_len])) \n"
+            << "\t\tbottom_corner[1]-=(y_len+y_sep) \n"
             << std::endl
             << "\tfor i in range (2): \n"
             << "\t\taxis = ax[i] \n"
@@ -1319,7 +1317,7 @@ int Galfit<T>::plotAll_Python() {
             << "\t\taxis.text(1, 1.02,palab[i],ha='right',transform=axis.transAxes,fontsize=labsize+4) \n"
             << "\t\taxis2 = axis.twinx() \n"
             << "\t\taxis2.set_xlim([ext[i][0],ext[i][1]]) \n"
-            << "\t\taxis2.set_ylim([ext[i][2]+vsysmean,ext[i][3]+vsysmean]) \n"
+            << "\t\taxis2.set_ylim([ext[i][2]+vsys_m,ext[i][3]+vsys_m]) \n"
             << "\t\taxis2.tick_params(which='major',length=8, labelsize=labsize) \n"
             << "\t\taxis2.set_ylabel('$\\mathrm{V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
             << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = mpl.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
@@ -1337,7 +1335,7 @@ int Galfit<T>::plotAll_Python() {
             << "\toutfile = 'plot_pv.pdf' \n"
             << "\tif (typ[k]=='AZIM'): outfile = 'plot_pv_azim.pdf' \n"
             << "\tif (typ[k]=='LOCAL'): outfile = 'plot_pv_local.pdf' \n"
-            << "\tplt.savefig(outfolder+outfile, bbox_inches='tight') \n"
+            << "\tfig.savefig(outfolder+outfile, bbox_inches='tight') \n"
             << "\timage_mod_maj.close() \n"
             << "\timage_mod_min.close() \n"
             << std::endl
@@ -1373,7 +1371,7 @@ int Galfit<T>::plotAll_Python() {
             << "maskmap[maskmap==0] = np.nan\n"
             << std::endl
             << "x = np.arange(0,xmax-xmin,0.1) \n"
-            << "y = np.tan(np.radians(phi-90))*(x-xcen)+ycen \n"
+            << "y = np.tan(np.radians(pa_m-90))*(x-xcen)+ycen \n"
             << "ext = [0,xmax-xmin,0, ymax-ymin] \n"
             << "rad_pix = rad/cdeltsp \n"
             << std::endl
@@ -1381,9 +1379,9 @@ int Galfit<T>::plotAll_Python() {
             << "\tmom0_mod = fits.open(outfolder+'/maps/'+files_mod0[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
             << "\tmom1_mod = fits.open(outfolder+'/maps/'+files_mod1[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
             << "\tmom2_mod = fits.open(outfolder+'/maps/'+files_mod2[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "\tto_plot = [[mom0,mom1-vsysmean,mom2],[mom0_mod,mom1_mod-vsysmean,mom2_mod],[mom0-mom0_mod,mom1-mom1_mod,mom2-mom2_mod]] \n"
+            << "\tto_plot = [[mom0,mom1-vsys_m,mom2],[mom0_mod,mom1_mod-vsys_m,mom2_mod],[mom0-mom0_mod,mom1-mom1_mod,mom2-mom2_mod]] \n"
             << std::endl
-            << "\tfig=plt.figure(figsize=(10,10), dpi=150) \n"
+            << "\tfig=plt.figure(figsize=(11,11), dpi=150) \n"
             << "\tnrows, ncols = 3, 3 \n"
             << "\tx_len, y_len = 0.2, 0.2 \n"
             << "\tx_sep, y_sep = 0.00,0.08 \n"
@@ -1417,12 +1415,20 @@ int Galfit<T>::plotAll_Python() {
             << std::endl
             << "\t\t\tif i==0: \n"
             << "\t\t\t\taxis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"
-            << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"    
+            << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
+            << "\t\t\t\tif j==1 and len(rad_pix)>3:  \n"
+            << "\t\t\t\t\taxmaj = rad_pix[-1]+rad_pix[-1]-rad_pix[-2]  \n"
+            << "\t\t\t\t\taxmin = axmaj*np.cos(np.radians(inc_m))  \n"
+            << "\t\t\t\t\tposa = np.radians(pa_m-90)  \n"
+            << "\t\t\t\t\tt = np.linspace(0,2*np.pi,100)  \n"
+            << "\t\t\t\t\txt = xcen+axmaj*np.cos(posa)*np.cos(t)-axmin*np.sin(posa)*np.sin(t)  \n"
+            << "\t\t\t\t\tyt = ycen+axmaj*np.sin(posa)*np.cos(t)+axmin*np.cos(posa)*np.sin(t)  \n"
+            << "\t\t\t\t\taxis.plot(xt,yt,'-',c='k',lw=0.8)  \n"
             << "\t\t\telif i==1: \n"
             << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
             << "\t\t\t\tif len(rad_pix)<10: \n"
-            << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(phi-90)) \n"
-            << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(phi-90)) \n"
+            << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(pa_m-90)) \n"
+            << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(pa_m-90)) \n"
             << "\t\t\t\t\taxis.scatter(x_pix+xcen,y_pix+ycen,c='grey',s=12) \n"
             << "\t\t\t\t\taxis.scatter(xcen-x_pix,ycen-y_pix,c='grey',s=12) \n"
             << "\t\t\t\tif len(rad_pix)>5 and not all(np.diff(posang)==0): \n"
@@ -1441,7 +1447,7 @@ int Galfit<T>::plotAll_Python() {
             << std::endl 
             << "\tif (typ[k]=='AZIM'): outfile = 'plot_maps_azim.pdf' \n"
             << "\tif (typ[k]=='LOCAL'): outfile = 'plot_maps_local.pdf' \n"
-            << "\tplt.savefig(outfolder+outfile, bbox_inches = 'tight') \n";
+            << "\tfig.savefig(outfolder+outfile, bbox_inches = 'tight') \n";
 
     if (par.flagADRIFT) {
         py_file << "\n#Asymmetric drift correction\n"
@@ -1449,10 +1455,10 @@ int Galfit<T>::plotAll_Python() {
                 << "if twostage: \n"
                 << "\tvrot, disp = vrot2, disp2 \n"
                 << "\terr1_l, err1_h = err2_l, err2_h\n"
-                << "fig4=plt.figure(figsize=(10,10), dpi=150) \n" 
-                << "ax1 = fig4.add_axes([0.10,0.1,0.3,0.25])\n"
-                << "ax2 = fig4.add_axes([0.48,0.1,0.3,0.25])\n"
-                << "ax3 = fig4.add_axes([0.86,0.1,0.3,0.25])\n"
+                << "fig=plt.figure(figsize=(10,10), dpi=150) \n" 
+                << "ax1 = fig.add_axes([0.10,0.1,0.3,0.25])\n"
+                << "ax2 = fig.add_axes([0.48,0.1,0.3,0.25])\n"
+                << "ax3 = fig.add_axes([0.86,0.1,0.3,0.25])\n"
                 << "vcirc = np.sqrt(vrot**2+va**2)\n"
                 << "ax1.set_xlim(0,max_rad)\n"
                 << "ax1.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
@@ -1473,7 +1479,7 @@ int Galfit<T>::plotAll_Python() {
                 << "ax3.plot(rad,fun,'o', color=color2,label=r'$f_\\mathrm{obs}$',zorder=0)\n"   
                 << "ax3.plot(rad,funr,'-', color='#0FA45A',label=r'$f_\\mathrm{reg}$',zorder=1)\n"
                 << "ax3.legend()\n"
-                << "fig4.savefig(outfolder+'asymmetricdrift.pdf',bbox_inches='tight')\n";
+                << "fig.savefig(outfolder+'asymmetricdrift.pdf',bbox_inches='tight')\n";
     }    
         
     py_file.close();

@@ -1360,7 +1360,7 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     init_par[7] = ip->posang;
     
     //std::cout << ip->inclin << std::endl;
-    //ip->plotGuess();
+    ip->plotGuess();
     //std::terminate();
     
 
