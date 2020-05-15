@@ -55,8 +55,6 @@ GalWind<T>::GalWind(Cube<T> *c, T x0, T y0, T pa, T inc, T disp, T dens, T vsys,
 
     in->checkBeam();
 }
-template GalWind<float>::GalWind(Cube<float>*,float,float,float,float,float,float,float,float,float,float,int,int,int,int,int);
-template GalWind<double>::GalWind(Cube<double>*,double,double,double,double,double,double,double,double,double,double,int,int,int,int,int);
 
 
 template <class T>
@@ -72,8 +70,6 @@ GalWind<T>& GalWind<T>::operator= (const GalWind<T>& gw) {
     
     return *this;
 }
-template GalWind<float>& GalWind<float>::operator=(const GalWind<float>&);
-template GalWind<double>& GalWind<double>::operator=(const GalWind<double>&);
 
 
 template <class T>
@@ -90,8 +86,6 @@ bool GalWind<T>::compute() {
     else return compute_spherical();
     
 }
-template bool GalWind<float>::compute();
-template bool GalWind<double>::compute();
 
 
 template <class T>
@@ -170,8 +164,6 @@ bool GalWind<T>::compute_spherical() {
      
     return true;
 }
-template bool GalWind<float>::compute_spherical();
-template bool GalWind<double>::compute_spherical();
 
 
 template <class T>
@@ -303,9 +295,6 @@ bool GalWind<T>::compute_cylindrical() {
     in->pars().setVerbosity(verb);
     return true;
 }
-template bool GalWind<float>::compute_cylindrical();
-template bool GalWind<double>::compute_cylindrical();
-
 
 
 template <class T>
@@ -332,8 +321,6 @@ bool GalWind<T>::smooth(bool scalefac) {
     
     
 }
-template bool GalWind<float>::smooth(bool);
-template bool GalWind<double>::smooth(bool);
 
 
 template <class T>
@@ -348,8 +335,6 @@ bool GalWind<T>::writeFITS(std::string fname, bool fullHead) {
     else return false;
 
 }
-template bool GalWind<float>::writeFITS(std::string, bool);
-template bool GalWind<double>::writeFITS(std::string, bool);
 
 
 template <class T>
@@ -370,8 +355,6 @@ bool GalWind<T>::writeMomentMaps() {
     }
     else return false;
 }
-template bool GalWind<float>::writeMomentMaps();
-template bool GalWind<double>::writeMomentMaps();
 
 
 template <class T>
@@ -391,8 +374,6 @@ bool GalWind<T>::writePV(std::string fname){
     else return false;
     
 }
-template bool GalWind<float>::writePV(std::string);
-template bool GalWind<double>::writePV(std::string);
 
 
 template <class T>
@@ -529,5 +510,8 @@ bool GalWind<T>::makePlots(){
 
     return true;
 }
-template bool GalWind<float>::makePlots();
-template bool GalWind<double>::makePlots();
+
+
+// Explicit instantiation of the class
+template class GalWind<float>;
+template class GalWind<double>;

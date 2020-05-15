@@ -49,11 +49,6 @@ void Smooth3D<T>::defaults() {
     //func_psf = &Smooth3D<T>::defineBeam_Moffat;
     
 }
-template void Smooth3D<short>::defaults();
-template void Smooth3D<int>::defaults();
-template void Smooth3D<long>::defaults();
-template void Smooth3D<float>::defaults();
-template void Smooth3D<double>::defaults();
 
 
 template <class T>
@@ -61,11 +56,6 @@ Smooth3D<T>::Smooth3D() {
     
     defaults();
 }
-template Smooth3D<short>::Smooth3D();
-template Smooth3D<int>::Smooth3D();
-template Smooth3D<long>::Smooth3D();
-template Smooth3D<float>::Smooth3D();
-template Smooth3D<double>::Smooth3D();
 
 
 template <class T>
@@ -75,11 +65,6 @@ Smooth3D<T>::~Smooth3D() {
     if (blanksAllocated) delete [] blanks;
     if (confieAllocated) delete [] confie;
 }
-template Smooth3D<short>::~Smooth3D();
-template Smooth3D<int>::~Smooth3D();
-template Smooth3D<long>::~Smooth3D();
-template Smooth3D<float>::~Smooth3D();
-template Smooth3D<double>::~Smooth3D();
 
 
 template <class T>
@@ -87,11 +72,6 @@ Smooth3D<T>::Smooth3D(const Smooth3D<T> &s) {
 
     operator=(s);
 }
-template Smooth3D<short>::Smooth3D(const Smooth3D<short> &);
-template Smooth3D<int>::Smooth3D(const Smooth3D<int> &);
-template Smooth3D<long>::Smooth3D(const Smooth3D<long> &);
-template Smooth3D<float>::Smooth3D(const Smooth3D<float> &);
-template Smooth3D<double>::Smooth3D(const Smooth3D<double> &);
 
 
 template <class T>
@@ -153,11 +133,6 @@ Smooth3D<T>& Smooth3D<T>::operator=(const Smooth3D<T> &s) {
     
     return *this;
 }
-template Smooth3D<short>& Smooth3D<short>::operator=(const Smooth3D<short> &);
-template Smooth3D<int>& Smooth3D<int>::operator=(const Smooth3D<int> &);
-template Smooth3D<long>& Smooth3D<long>::operator=(const Smooth3D<long> &);
-template Smooth3D<float>& Smooth3D<float>::operator=(const Smooth3D<float> &);
-template Smooth3D<double>& Smooth3D<double>::operator=(const Smooth3D<double> &);
 
 
 template <class T>
@@ -210,11 +185,6 @@ void Smooth3D<T>::cubesmooth(Cube<T> *c) {
 
     smooth(c, Bhi, Blo, OB, NB);
 }
-template void Smooth3D<short>::cubesmooth(Cube<short>*);
-template void Smooth3D<int>::cubesmooth(Cube<int>*);
-template void Smooth3D<long>::cubesmooth(Cube<long>*);
-template void Smooth3D<float>::cubesmooth(Cube<float>*);
-template void Smooth3D<double>::cubesmooth(Cube<double>*);
 
 
 template <class T>
@@ -225,11 +195,6 @@ void Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam) {
     
     smooth(c, Bhi, Blo, Oldbeam, Newbeam);
 }
-template void Smooth3D<short>::smooth(Cube<short>*,Beam, Beam);
-template void Smooth3D<int>::smooth(Cube<int>*,Beam, Beam);
-template void Smooth3D<long>::smooth(Cube<long>*,Beam, Beam);
-template void Smooth3D<float>::smooth(Cube<float>*,Beam, Beam);
-template void Smooth3D<double>::smooth(Cube<double>*,Beam, Beam);
 
 
 template <class T>
@@ -310,11 +275,6 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
     }
 
 }
-template void Smooth3D<short>::smooth(Cube<short>*,int*,int*,Beam, Beam);
-template void Smooth3D<int>::smooth(Cube<int>*,int*,int*,Beam, Beam);
-template void Smooth3D<long>::smooth(Cube<long>*,int*,int*,Beam, Beam);
-template void Smooth3D<float>::smooth(Cube<float>*,int*,int*,Beam, Beam);
-template void Smooth3D<double>::smooth(Cube<double>*,int*,int*,Beam, Beam);
 
 
 template <class T>
@@ -364,11 +324,6 @@ bool Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam, T *OldArray, T 
     
     return true;
 }
-template bool Smooth3D<short>::smooth(Cube<short>*,Beam,Beam,short*,short*);
-template bool Smooth3D<int>::smooth(Cube<int>*,Beam,Beam,int*,int*);
-template bool Smooth3D<long>::smooth(Cube<long>*,Beam,Beam,long*,long*);
-template bool Smooth3D<float>::smooth(Cube<float>*,Beam,Beam,float*,float*);
-template bool Smooth3D<double>::smooth(Cube<double>*,Beam,Beam,double*,double*);
 
 
 template <class T>
@@ -477,11 +432,6 @@ bool Smooth3D<T>::defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam) {
     
     return true;
 }
-template bool Smooth3D<short>::defineBeam_Gaussian(Beam,Beam);
-template bool Smooth3D<int>::defineBeam_Gaussian(Beam,Beam);
-template bool Smooth3D<long>::defineBeam_Gaussian(Beam,Beam);
-template bool Smooth3D<float>::defineBeam_Gaussian(Beam,Beam);
-template bool Smooth3D<double>::defineBeam_Gaussian(Beam,Beam);
 
 
 template <class T>
@@ -520,11 +470,6 @@ bool Smooth3D<T>::defineBeam_Moffat(Beam Oldbeam, Beam Newbeam) {
     
     return true;
 }
-template bool Smooth3D<short>::defineBeam_Moffat(Beam,Beam);
-template bool Smooth3D<int>::defineBeam_Moffat(Beam,Beam);
-template bool Smooth3D<long>::defineBeam_Moffat(Beam,Beam);
-template bool Smooth3D<float>::defineBeam_Moffat(Beam,Beam);
-template bool Smooth3D<double>::defineBeam_Moffat(Beam,Beam);
 
 
 template <class T>
@@ -590,11 +535,6 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
     
     return true;
 }
-template bool Smooth3D<short>::calculate(short*,short*);
-template bool Smooth3D<int>::calculate(int*,int*);
-template bool Smooth3D<long>::calculate(long*,long*);
-template bool Smooth3D<float>::calculate(float*,float*);
-template bool Smooth3D<double>::calculate(double*,double*);
 
 
 template <class T>
@@ -650,11 +590,6 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
 
     return true;
 }
-template bool Smooth3D<short>::calculatefft(short*,short*);
-template bool Smooth3D<int>::calculatefft(int*,int*);
-template bool Smooth3D<long>::calculatefft(long*,long*);
-template bool Smooth3D<float>::calculatefft(float*,float*);
-template bool Smooth3D<double>::calculatefft(double*,double*);
 
 
 template <class T>  
@@ -724,11 +659,6 @@ int Smooth3D<T>::Convolve(double *cfie, int ncx, int ncy, T *dat1, T *dat2, int 
   
    return ier;
 }
-template int Smooth3D<short>::Convolve(double*,int,int,short*,short*,int,int);
-template int Smooth3D<int>::Convolve(double*,int,int,int*,int*,int,int);
-template int Smooth3D<long>::Convolve(double*,int,int,long*,long*,int,int);
-template int Smooth3D<float>::Convolve(double*,int,int,float*,float*,int,int);
-template int Smooth3D<double>::Convolve(double*,int,int,double*,double*,int,int);
 
 
 template <class T>
@@ -792,11 +722,6 @@ bool Smooth3D<T>::Convpars() {
     return true;
  
 }
-template bool Smooth3D<short>::Convpars();
-template bool Smooth3D<int>::Convpars();
-template bool Smooth3D<long>::Convpars();
-template bool Smooth3D<float>::Convpars();
-template bool Smooth3D<double>::Convpars();
 
 
 template <class T>
@@ -890,12 +815,6 @@ bool Smooth3D<T>::Fillgauss2d(Beam varbeam, float ampl, bool norm, int &nconx, i
     
     return true;   
 }
-template bool Smooth3D<short>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<int>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<long>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<float>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<double>::Fillgauss2d(Beam,float,bool,int&,int&,double*);
-
 
 
 template <class T>
@@ -971,11 +890,6 @@ bool Smooth3D<T>::FillMoffat2d(Beam varbeam, float ampl, bool norm, int &nconx, 
     
     return true;   
 }
-template bool Smooth3D<short>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<int>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<long>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<float>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
-template bool Smooth3D<double>::FillMoffat2d(Beam,float,bool,int&,int&,double*);
 
 
 template <class T> 
@@ -1033,15 +947,10 @@ void Smooth3D<T>::fitswrite() {
     }
     delete out;
 }
-template void Smooth3D<short>::fitswrite();
-template void Smooth3D<int>::fitswrite();
-template void Smooth3D<long>::fitswrite();
-template void Smooth3D<float>::fitswrite();
-template void Smooth3D<double>::fitswrite();
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-/// Function defintion for Hanning smoothing class
+/// Function defintion for SpectralSmooth class
 /////////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
@@ -1049,8 +958,6 @@ SpectralSmooth3D<T>::SpectralSmooth3D(std::string wtype, size_t wsize) {
      windowtype = makeupper(wtype);
      windowsize = wsize;
 }
-template SpectralSmooth3D<float>::SpectralSmooth3D(std::string,size_t);
-template SpectralSmooth3D<double>::SpectralSmooth3D(std::string,size_t);
 
 
 template <class T>
@@ -1062,8 +969,6 @@ void SpectralSmooth3D<T>::smooth(Cube<T> *in) {
     if (in->pars().isVerbose()) std::cout << " Done!" << std::endl;
     
 }
-template void SpectralSmooth3D<float>::smooth(Cube<float>*);
-template void SpectralSmooth3D<double>::smooth(Cube<double>*);
 
 
 template <class T>
@@ -1084,8 +989,6 @@ void SpectralSmooth3D<T>::smooth(T *inarray, size_t xsize, size_t ysize, size_t 
         delete [] spec;
     }
 }
-template void SpectralSmooth3D<float>::smooth(float*,size_t,size_t,size_t,int);
-template void SpectralSmooth3D<double>::smooth(double*,size_t,size_t,size_t,int);
 
 
 template <class T> 
@@ -1116,9 +1019,15 @@ void SpectralSmooth3D<T>::fitswrite(Cube<T> *templ, std::string outname) {
     if (templ->pars().isVerbose()) std::cout << " Spectrally-smoothed datacube written in " << outname << std::endl;
     delete out;
 }
-template void SpectralSmooth3D<float>::fitswrite(Cube<float>*,std::string);
-template void SpectralSmooth3D<double>::fitswrite(Cube<double>*,std::string);
 
 
+// Explicit instantiation of the classes
+template class Smooth3D<short>;
+template class Smooth3D<int>;
+template class Smooth3D<long>;
+template class Smooth3D<float>;
+template class Smooth3D<double>;
+template class SpectralSmooth3D<float>;
+template class SpectralSmooth3D<double>;
 
 

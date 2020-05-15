@@ -45,26 +45,6 @@ void Cube<T>::defaults() {
     objectList = new std::vector<Detection<T> >; 
     
 }
-template void Cube<short>::defaults(); 
-template void Cube<int>::defaults(); 
-template void Cube<long>::defaults(); 
-template void Cube<float>::defaults(); 
-template void Cube<double>::defaults(); 
-
-
-
-template <class T>
-Cube<T>::Cube() {   
-    
-    defaults();
-    
-}
-template Cube<short>::Cube();
-template Cube<int>::Cube();
-template Cube<long>::Cube();
-template Cube<float>::Cube();
-template Cube<double>::Cube();
-
 
 
 template <class T>
@@ -80,12 +60,6 @@ Cube<T>::~Cube () {
     mapAllocated=false;
     delete objectList;
 } 
-template Cube<short>::~Cube();
-template Cube<int>::~Cube();
-template Cube<long>::~Cube();
-template Cube<float>::~Cube();
-template Cube<double>::~Cube();
- 
 
 
 template <class T>
@@ -95,12 +69,6 @@ Cube<T>::Cube(std::string fname) {
     par.setImageFile(fname);
     this->readCube(fname);
 }
-template Cube<short>::Cube(std::string);
-template Cube<int>::Cube(std::string);
-template Cube<long>::Cube(std::string);
-template Cube<float>::Cube(std::string);
-template Cube<double>::Cube(std::string);
-
 
 
 template <class T>
@@ -133,12 +101,6 @@ Cube<T>::Cube(int *dimensions) {
     }
     
 }
-template Cube<short>::Cube(int *);
-template Cube<int>::Cube(int*);
-template Cube<long>::Cube(int*);
-template Cube<float>::Cube(int*);
-template Cube<double>::Cube(int*);
-
 
 
 template <class T>
@@ -148,11 +110,6 @@ Cube<T>::Cube(const Cube<T> &c) {
     this->operator=(c);
 
 }
-template Cube<short>::Cube(const Cube<short> &);
-template Cube<int>::Cube(const Cube<int> &);
-template Cube<long>::Cube(const Cube<long> &);
-template Cube<float>::Cube(const Cube<float> &);
-template Cube<double>::Cube(const Cube<double> &);
 
 
 template <class T>
@@ -200,11 +157,6 @@ Cube<T>& Cube<T>::operator=(const Cube<T> &c) {
     
     return *this;
 }
-template Cube<short>& Cube<short>::operator=(const Cube<short>&);
-template Cube<int>& Cube<int>::operator=(const Cube<int>&);
-template Cube<long>& Cube<long>::operator=(const Cube<long>&);
-template Cube<float>& Cube<float>::operator=(const Cube<float>&);
-template Cube<double>& Cube<double>::operator=(const Cube<double>&);
 
 
 template <class T>
@@ -230,11 +182,7 @@ void Cube<T>::checkBeam() {
         head.calcArea();
     }
 }
-template void Cube<short>::checkBeam ();
-template void Cube<int>::checkBeam ();
-template void Cube<long>::checkBeam ();
-template void Cube<float>::checkBeam ();
-template void Cube<double>::checkBeam ();
+
 
 /**=====================================================================================*/ 
 /** FUNCTIONS FOR INPUT AND OUTPUT */
@@ -258,12 +206,6 @@ void Cube<T>::setCube (T *input, int *dim) {
     mapAllocated=true;
     
 }
-template void Cube<short>::setCube (short*, int*);
-template void Cube<int>::setCube (int*, int*);
-template void Cube<long>::setCube (long*, int*);
-template void Cube<float>::setCube (float*, int*);
-template void Cube<double>::setCube (double*, int*);
-
 
 
 template <class T>
@@ -293,12 +235,6 @@ bool Cube<T>::readCube (std::string fname) {
     for (int i=0; i<axisDim[0]*axisDim[1]; i++) detectMap[i] = 0;
     return true;
 }
-template bool Cube<short>::readCube (std::string);
-template bool Cube<int>::readCube (std::string);
-template bool Cube<long>::readCube (std::string);
-template bool Cube<float>::readCube (std::string);
-template bool Cube<double>::readCube (std::string);
-
 
 
 template <class T>
@@ -345,12 +281,6 @@ bool Cube<T>::fitsread_3d() {
 
     return true;
 }
-template bool Cube<short>::fitsread_3d();
-template bool Cube<int>::fitsread_3d();
-template bool Cube<long>::fitsread_3d();
-template bool Cube<float>::fitsread_3d();
-template bool Cube<double>::fitsread_3d();
-
 
 
 template <class T>
@@ -391,11 +321,6 @@ bool Cube<T>::fitswrite_3d(const char *outfile, bool fullHead) {
     
     return true;
 }
-template bool Cube<short>::fitswrite_3d(const char*,bool);
-template bool Cube<int>::fitswrite_3d(const char*,bool);
-template bool Cube<long>::fitswrite_3d(const char*,bool);
-template bool Cube<float>::fitswrite_3d(const char*,bool);
-template bool Cube<double>::fitswrite_3d(const char*,bool);
 
 
 /**=====================================================================================*/ 
@@ -433,12 +358,6 @@ void Cube<T>::setCubeStats() {
     statsDefined = true;
     
 }
-template void Cube<short>::setCubeStats();
-template void Cube<int>::setCubeStats();
-template void Cube<long>::setCubeStats();
-template void Cube<float>::setCubeStats();
-template void Cube<double>::setCubeStats();
-
 
 
 template <class T>
@@ -457,12 +376,6 @@ void Cube<T>::BlankCube (T *Array, size_t size) {
         for (size_t i=0; i<size; i++) Array[i] *= mask[i];
     }
 }
-template void Cube<short>::BlankCube (short*, size_t);
-template void Cube<int>::BlankCube (int*, size_t);
-template void Cube<long>::BlankCube (long*, size_t);
-template void Cube<float>::BlankCube (float*, size_t);
-template void Cube<double>::BlankCube (double*, size_t);
-
 
 
 template <class T>
@@ -716,15 +629,9 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     maskAllocated = true;
     
 }
-template void Cube<short>::BlankMask (float*,bool);
-template void Cube<int>::BlankMask (float*,bool);
-template void Cube<long>::BlankMask (float*,bool);
-template void Cube<float>::BlankMask (float*,bool);
-template void Cube<double>::BlankMask (float*,bool);
 
 
 /**=====================================================================================*/ 
-
 
 
 template <class T>
@@ -809,14 +716,8 @@ Cube<T>* Cube<T>::Reduce (int fac, std::string rtype) {
     return reduced;
     
 }
-template Cube<short>* Cube<short>::Reduce (int,std::string);
-template Cube<int>* Cube<int>::Reduce (int,std::string);
-template Cube<long>* Cube<long>::Reduce (int,std::string);
-template Cube<float>* Cube<float>::Reduce (int,std::string);
-template Cube<double>* Cube<double>::Reduce (int,std::string);  
-    
-    
-    
+
+
 template <class T>
 void Cube<T>::CheckChannels () {
     
@@ -923,9 +824,11 @@ void Cube<T>::CheckChannels () {
     delete [] mapchan;
     
 }
-template void Cube<short>::CheckChannels ();
-template void Cube<int>::CheckChannels ();
-template void Cube<long>::CheckChannels ();
-template void Cube<float>::CheckChannels ();
-template void Cube<double>::CheckChannels ();
 
+
+// Explicit instantiation of the class
+template class Cube<short>;
+template class Cube<int>;
+template class Cube<long>;
+template class Cube<float>;
+template class Cube<double>;

@@ -32,29 +32,12 @@
 
 namespace PixelInfo
 {
-  template <class T>
-  Object2D<T>::Object2D() {
-    
-    numPix = 0;
-  }
-  template Object2D<short>::Object2D();
-  template Object2D<int>::Object2D();
-  template Object2D<long>::Object2D();
-  template Object2D<float>::Object2D();
-  template Object2D<double>::Object2D();
-  
   
   template <class T>  
   Object2D<T>::Object2D(const Object2D<T>& o) {
       
     operator=(o);
   }  
-  template Object2D<short>::Object2D(const Object2D<short>&);
-  template Object2D<int>::Object2D(const Object2D<int>&);
-  template Object2D<long>::Object2D(const Object2D<long>&);
-  template Object2D<float>::Object2D(const Object2D<float>&);
-  template Object2D<double>::Object2D(const Object2D<double>&);
-
 
   template <class T>
   Object2D<T>& Object2D<T>::operator= (const Object2D<T>& o) {
@@ -70,26 +53,6 @@ namespace PixelInfo
     this->ymax     = o.ymax;
     return *this;
   }  
-  template Object2D<short>& Object2D<short>::operator=(const Object2D<short>&);
-  template Object2D<int>& Object2D<int>::operator=(const Object2D<int>&);
-  template Object2D<long>& Object2D<long>::operator=(const Object2D<long>&);
-  template Object2D<float>& Object2D<float>::operator=(const Object2D<float>&);
-  template Object2D<double>& Object2D<double>::operator=(const Object2D<double>&);
-
-
-  template <class T>
-  Object2D<T> operator+ (Object2D<T> lhs, Object2D<T> rhs) {
-      
-    Object2D<T> output = lhs;
-    for(typename std::vector<Scan<T> >::iterator s=rhs.scanlist.begin();s!=rhs.scanlist.end();s++)
-        output.addScan(*s);
-    return output;
-  }
-  template Object2D<short> operator+(Object2D<short>,Object2D<short>);
-  template Object2D<int> operator+(Object2D<int>,Object2D<int>);
-  template Object2D<long> operator+(Object2D<long>,Object2D<long>);
-  template Object2D<float> operator+(Object2D<float>,Object2D<float>);
-  template Object2D<double> operator+(Object2D<double>,Object2D<double>);
 
 
   template <class T>
@@ -182,11 +145,6 @@ namespace PixelInfo
     }
 
   }
-  template void Object2D<short>::addPixel(long&,long&);
-  template void Object2D<int>::addPixel(long&,long&);
-  template void Object2D<long>::addPixel(long&,long&);
-  template void Object2D<float>::addPixel(long&,long&);
-  template void Object2D<double>::addPixel(long&,long&);
 
 
   template <class T>
@@ -196,11 +154,6 @@ namespace PixelInfo
     for(long x=scan.getX();x<=scan.getXmax();x++) addPixel(x,y);
 
   }
-  template void Object2D<short>::addScan(Scan<short>&);
-  template void Object2D<int>::addScan(Scan<int>&);
-  template void Object2D<long>::addScan(Scan<long>&);
-  template void Object2D<float>::addScan(Scan<float>&);
-  template void Object2D<double>::addScan(Scan<double>&); 
 
 
   template <class T> 
@@ -215,29 +168,7 @@ namespace PixelInfo
     return returnval;
 
   }
-  template bool Object2D<short>::isInObject(long,long);
-  template bool Object2D<int>::isInObject(long,long);
-  template bool Object2D<long>::isInObject(long,long);
-  template bool Object2D<float>::isInObject(long,long);
-  template bool Object2D<double>::isInObject(long,long);
     
-
-  template <class T>
-  std::ostream& operator<< (std::ostream& theStream, Object2D<T>& obj) {
-      
-    if(obj.scanlist.size()>1) obj.order();
-    for(typename std::vector<Scan<T> >::iterator s=obj.scanlist.begin();s!=obj.scanlist.end();s++)
-        theStream << *s << "\n";
-    theStream<<"---\n";
-    return theStream;
-
-  }
-  template std::ostream& operator<< (std::ostream&, Object2D<short>&);
-  template std::ostream& operator<< (std::ostream&, Object2D<int>&);
-  template std::ostream& operator<< (std::ostream&, Object2D<long>&);
-  template std::ostream& operator<< (std::ostream&, Object2D<float>&);
-  template std::ostream& operator<< (std::ostream&, Object2D<double>&);  
-
 
   template <class T>  
   void Object2D<T>::calcParams() {
@@ -265,11 +196,6 @@ namespace PixelInfo
     }
 
   }
-  template void Object2D<short>::calcParams();
-  template void Object2D<int>::calcParams();
-  template void Object2D<long>::calcParams();
-  template void Object2D<float>::calcParams();
-  template void Object2D<double>::calcParams(); 
 
 
   template <class T>
@@ -287,11 +213,6 @@ namespace PixelInfo
     }
 
   }
-  template void Object2D<short>::cleanup();
-  template void Object2D<int>::cleanup();
-  template void Object2D<long>::cleanup();
-  template void Object2D<float>::cleanup();
-  template void Object2D<double>::cleanup(); 
 
 
   template <class T>
@@ -313,11 +234,6 @@ namespace PixelInfo
     }
     return ylist.size();
   }
-  template long Object2D<short>::getNumDistinctY();
-  template long Object2D<int>::getNumDistinctY();
-  template long Object2D<long>::getNumDistinctY();
-  template long Object2D<float>::getNumDistinctY();
-  template long Object2D<double>::getNumDistinctY(); 
 
 
   template <class T>
@@ -340,11 +256,6 @@ namespace PixelInfo
     }
     return xlist.size();
   }
-  template long Object2D<short>::getNumDistinctX();
-  template long Object2D<int>::getNumDistinctX();
-  template long Object2D<long>::getNumDistinctX();
-  template long Object2D<float>::getNumDistinctX();
-  template long Object2D<double>::getNumDistinctX(); 
   
 
   template <class T>
@@ -356,11 +267,6 @@ namespace PixelInfo
     }
     return returnval;
   }
-  template bool Object2D<short>::scanOverlaps(Scan<short>&);
-  template bool Object2D<int>::scanOverlaps(Scan<int>&);
-  template bool Object2D<long>::scanOverlaps(Scan<long>&);
-  template bool Object2D<float>::scanOverlaps(Scan<float>&);
-  template bool Object2D<double>::scanOverlaps(Scan<double>&);
   
 
   template <class T>
@@ -374,11 +280,6 @@ namespace PixelInfo
     ySum += yoff*numPix;
     ymin += yoff; ymax += yoff;
   }
-  template void Object2D<short>::addOffsets(long,long);
-  template void Object2D<int>::addOffsets(long,long);
-  template void Object2D<long>::addOffsets(long,long);
-  template void Object2D<float>::addOffsets(long,long);
-  template void Object2D<double>::addOffsets(long,long); 
   
 
   template <class T>
@@ -411,11 +312,6 @@ namespace PixelInfo
 
     return atan(tantheta);
   }
-  template double Object2D<short>::getPositionAngle();
-  template double Object2D<int>::getPositionAngle();
-  template double Object2D<long>::getPositionAngle();
-  template double Object2D<float>::getPositionAngle();
-  template double Object2D<double>::getPositionAngle(); 
   
 
   template <class T>
@@ -444,11 +340,6 @@ namespace PixelInfo
     return axes;
 
   }
-  template std::pair<double,double> Object2D<short>::getPrincipleAxes();
-  template std::pair<double,double> Object2D<int>::getPrincipleAxes();
-  template std::pair<double,double> Object2D<long>::getPrincipleAxes();
-  template std::pair<double,double> Object2D<float>::getPrincipleAxes();
-  template std::pair<double,double> Object2D<double>::getPrincipleAxes(); 
   
 
   template <class T>
@@ -461,11 +352,6 @@ namespace PixelInfo
     if(near) return isClose(other,threshS,flagAdj);
     else return near;
   }
-  template bool Object2D<short>::canMerge(Object2D<short>&,float,bool);
-  template bool Object2D<int>::canMerge(Object2D<int>&,float,bool);
-  template bool Object2D<long>::canMerge(Object2D<long>&,float,bool);
-  template bool Object2D<float>::canMerge(Object2D<float>&,float,bool);
-  template bool Object2D<double>::canMerge(Object2D<double>&,float,bool);
   
  
   template <class T>
@@ -482,12 +368,7 @@ namespace PixelInfo
     }
     return areNear;
   }
-  template bool Object2D<short>::isNear(Object2D<short>&,long);
-  template bool Object2D<int>::isNear(Object2D<int>&,long);
-  template bool Object2D<long>::isNear(Object2D<long>&,long);
-  template bool Object2D<float>::isNear(Object2D<float>&,long);
-  template bool Object2D<double>::isNear(Object2D<double>&,long);
-  
+
 
   template <class T>
   bool Object2D<T>::isClose(Object2D<T> &other, float threshS, bool flagAdj) {
@@ -521,10 +402,44 @@ namespace PixelInfo
     return close;
     
   }
-  template bool Object2D<short>::isClose(Object2D<short>&,float,bool);
-  template bool Object2D<int>::isClose(Object2D<int>&,float,bool);
-  template bool Object2D<long>::isClose(Object2D<long>&,float,bool);
-  template bool Object2D<float>::isClose(Object2D<float>&,float,bool);
-  template bool Object2D<double>::isClose(Object2D<double>&,float,bool);
+
+
+  template <class T>
+  Object2D<T> operator+ (Object2D<T> lhs, Object2D<T> rhs) {
+      
+    Object2D<T> output = lhs;
+    for(typename std::vector<Scan<T> >::iterator s=rhs.scanlist.begin();s!=rhs.scanlist.end();s++)
+        output.addScan(*s);
+    return output;
+  }
+  template Object2D<short> operator+ (Object2D<short>,Object2D<short>);
+  template Object2D<int> operator+ (Object2D<int>,Object2D<int>);
+  template Object2D<long> operator+ (Object2D<long>,Object2D<long>);
+  template Object2D<float> operator+ (Object2D<float>,Object2D<float>);
+  template Object2D<double>operator+ (Object2D<double>,Object2D<double>);
+  
+  
+  template <class T>
+  std::ostream& operator<< (std::ostream& theStream, Object2D<T>& obj) {
+      
+    if(obj.scanlist.size()>1) obj.order();
+    for(typename std::vector<Scan<T> >::iterator s=obj.scanlist.begin();s!=obj.scanlist.end();s++)
+        theStream << *s << "\n";
+    theStream<<"---\n";
+    return theStream;
+  }
+  template std::ostream& operator<< (std::ostream&, Object2D<short>& obj);
+  template std::ostream& operator<< (std::ostream&, Object2D<int>& obj);
+  template std::ostream& operator<< (std::ostream&, Object2D<long>& obj);
+  template std::ostream& operator<< (std::ostream&, Object2D<float>& obj);
+  template std::ostream& operator<< (std::ostream&, Object2D<double>& obj);
+  
+
+  // Explicit instantiation of the class
+  template class Object2D<short>;
+  template class Object2D<int>;
+  template class Object2D<long>;
+  template class Object2D<float>;
+  template class Object2D<double>;
 
 }

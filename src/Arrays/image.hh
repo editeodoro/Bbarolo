@@ -36,7 +36,7 @@ template <class Type>
 class Image2D
 {
 public:
-    Image2D();                                      /// Default constructor.
+    Image2D() {defaults();}                         /// Default constructor.
     Image2D(int *dimensions);                       /// Alternative constructor.
     virtual ~Image2D();                             /// Default destructor.
     Image2D(const Image2D &i);                      /// Copy constructor.
@@ -50,7 +50,7 @@ public:
     void defaults();
 
     /// Inline functions to access the data:
-        
+    
     long    NumPix() {return numPix;}
     int     DimX() {return axisDim[0];}
     int     DimY() {return axisDim[1];}
@@ -64,7 +64,7 @@ public:
     void    setYsize (int i) {axisDim[1] = i;}
     void    setHeadDef (bool b) {headDefined = b;}
     void    saveHead (Header &h) {head = h; headDefined=true;}
-    Type    printStats() {std::cout << stats << std::endl;}
+    void    printStats() {std::cout << stats << std::endl;}
     int     getopts(int argc, char **argv){return par.getopts(argc,argv);}
     void    saveStats(Stats<Type> newStats){stats = newStats;}
     bool    StatsDef () {return statsDefined;}

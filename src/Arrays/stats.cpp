@@ -29,36 +29,11 @@
 namespace Statistics
 {
 
-    float sigmaToMADFM(float sigma){
-        return float(sigma)*correctionFactor;
-    }
-
-
-    template <class T> 
-    float madfmToSigma(T madfm){
-        return float(madfm)/correctionFactor;
-    }
-    template float madfmToSigma<short>(short);
-    template float madfmToSigma<int>(int);
-    template float madfmToSigma<long>(long);
-    template float madfmToSigma<float>(float);
-    template float madfmToSigma<double>(double);
-
-
-//-----------------------------------------------------------------------------
-
-
     template <class Type> 
     Stats<Type>::Stats(const Stats<Type>& s) {
         
         operator=(s);
     }
-    template Stats<short>::Stats(const Stats<short>&);
-    template Stats<int>::Stats(const Stats<int>&);
-    template Stats<long>::Stats(const Stats<long>&);
-    template Stats<float>::Stats(const Stats<float>&);
-    template Stats<double>::Stats(const Stats<double>&);
-
 
 
     template <class Type> 
@@ -79,77 +54,43 @@ namespace Statistics
 
         return *this;
     }
-    template Stats<short>& Stats<short>::operator= (const Stats<short>&);
-    template Stats<int>& Stats<int>::operator= (const Stats<int>&);
-    template Stats<long>& Stats<long>::operator= (const Stats<long>&);
-    template Stats<float>& Stats<float>::operator= (const Stats<float>&);
-    template Stats<double>& Stats<double>::operator= (const Stats<double>&);
-
 
 
     template <class Type> 
     Type Stats<Type>::getThresholdSNR() {
-            return (threshold - getMiddle())/getSpread();   /// The SNR is defined in terms of excess over the middle 
-    }                                                       /// estimator in units of the spread estimator. 
-    template short Stats<short>::getThresholdSNR();
-    template int Stats<int>::getThresholdSNR();
-    template long Stats<long>::getThresholdSNR();
-    template float Stats<float>::getThresholdSNR();
-    template double Stats<double>::getThresholdSNR();
-
+        /// The SNR is defined in terms of excess over the middle 
+        /// estimator in units of the spread estimator. 
+        return (threshold - getMiddle())/getSpread();   
+    }
 
 
     template <class Type> 
     void  Stats<Type>::setThresholdSNR(Type snr) {
         threshold = getMiddle() + snr*getSpread();
     }
-    template void Stats<short>::setThresholdSNR(short);
-    template void Stats<int>::setThresholdSNR(int);
-    template void Stats<long>::setThresholdSNR(long);
-    template void Stats<float>::setThresholdSNR(float);
-    template void Stats<double>::setThresholdSNR(double);
-
 
   
     template <class Type> 
     Type Stats<Type>::valueToSNR(Type value) {
         return (value - getMiddle())/getSpread();
     }
-    template short Stats<short>::valueToSNR(short);
-    template int Stats<int>::valueToSNR(int);
-    template long Stats<long>::valueToSNR(long);
-    template float Stats<float>::valueToSNR(float);
-    template double Stats<double>::valueToSNR(double);
- 
  
   
     template <class Type> 
     Type Stats<Type>::snrToValue(Type snr) {
         return (snr * getSpread() + getMiddle());
     }
-    template short Stats<short>::snrToValue(short);
-    template int Stats<int>::snrToValue(int);
-    template long Stats<long>::snrToValue(long);
-    template float Stats<float>::snrToValue(float);
-    template double Stats<double>::snrToValue(double);
- 
- 
+
     
     template <class Type> 
     void Stats<Type>::setMiddle(Type middle) {
    
-  /// The middle value is determined by the Stats::useRobust flag 
-  /// It will be either the median (if true), or the mean (if false).
+    /// The middle value is determined by the Stats::useRobust flag 
+    /// It will be either the median (if true), or the mean (if false).
   
     if(useRobust) median = Type(middle); 
     else mean = middle;
-  }
-    template void Stats<short>::setMiddle(short);
-    template void Stats<int>::setMiddle(int);
-    template void Stats<long>::setMiddle(long);
-    template void Stats<float>::setMiddle(float);
-    template void Stats<double>::setMiddle(double);
-
+    }
 
     
     template <class Type> 
@@ -157,69 +98,46 @@ namespace Statistics
         if(useRobust) return median; 
         else return mean;
     }
-    template short Stats<short>::getMiddle();
-    template int Stats<int>::getMiddle();
-    template long Stats<long>::getMiddle();
-    template float Stats<float>::getMiddle();
-    template double Stats<double>::getMiddle();
- 
+    
     
     template <class Type> 
     void Stats<Type>::setSpread(Type spread) {
   
-  /// The spread value is set according to the Stats::useRobust flag --
-  /// It will be either the madfm (if true), or the rms (if false). 
-  /// If robust, the spread value will be converted to a madfm from an 
-  /// equivalent rms under the assumption of Gaussianity, using the 
-  /// Statistics::sigmaToMADFM function.
+    /// The spread value is set according to the Stats::useRobust flag --
+    /// It will be either the madfm (if true), or the rms (if false). 
+    /// If robust, the spread value will be converted to a madfm from an 
+    /// equivalent rms under the assumption of Gaussianity, using the 
+    /// Statistics::sigmaToMADFM function.
   
         if(useRobust) madfm = Type(sigmaToMADFM(spread)); 
         else stddev = spread;
-  }
-    template void Stats<short>::setSpread(short);
-    template void Stats<int>::setSpread(int);
-    template void Stats<long>::setSpread(long);
-    template void Stats<float>::setSpread(float);
-    template void Stats<double>::setSpread(double);
-  
-  
+    }
+
      
     template <class Type> 
     Type Stats<Type>::getSpread() {
 
-  /// The spread value returned is determined by the Stats::useRobust flag. 
-  /// It will be either the madfm (if true), or the rms (if false). 
-  /// If robust, the madfm will be converted to an equivalent rms under the 
-  /// assumption of Gaussianity, using the Statistics::madfmToSigma function.
+    /// The spread value returned is determined by the Stats::useRobust flag. 
+    /// It will be either the madfm (if true), or the rms (if false). 
+    /// If robust, the madfm will be converted to an equivalent rms under the 
+    /// assumption of Gaussianity, using the Statistics::madfmToSigma function.
         
         if(useRobust) return madfmToSigma(madfm); 
         else return stddev;
     }
-    template short Stats<short>::getSpread();
-    template int Stats<int>::getSpread();
-    template long Stats<long>::getSpread();
-    template float Stats<float>::getSpread();
-    template double Stats<double>::getSpread();
   
   
-    
     template <class Type> 
     void  Stats<Type>::scaleNoise(Type scale) {
       
-  ///  Multiply the noise parameters (stddev & madfm) by a given
-  ///  factor, and adjust the threshold.
+    ///  Multiply the noise parameters (stddev & madfm) by a given
+    ///  factor, and adjust the threshold.
    
         Type snr = (threshold - getMiddle())/getSpread();    
         madfm  = Type(madfm*scale);
         stddev *= scale;
         threshold = getMiddle() + snr*getSpread();
     }
-    template void Stats<short>::scaleNoise(short);
-    template void Stats<int>::scaleNoise(int);
-    template void Stats<long>::scaleNoise(long);
-    template void Stats<float>::scaleNoise(float);
-    template void Stats<double>::scaleNoise(double);
-
 
 
     template <class Type> 
@@ -231,14 +149,8 @@ namespace Statistics
         Type zStat = (value-getMiddle())/getSpread();
         return 0.5*erfc(zStat/M_SQRT2);
     }
-    template short Stats<short>::getPValue(short);
-    template int Stats<int>::getPValue(int);
-    template long Stats<long>::getPValue(long);
-    template float Stats<float>::getPValue(float);
-    template double Stats<double>::getPValue(double);
 
 
-    
     template <class Type> 
     bool Stats<Type>::isDetection(Type value) {
 
@@ -248,12 +160,6 @@ namespace Statistics
         if(useFDR) return (getPValue(value) < pThreshold);
         else return (value > threshold);
     }
-    template bool Stats<short>::isDetection(short);
-    template bool Stats<int>::isDetection(int);
-    template bool Stats<long>::isDetection(long);
-    template bool Stats<float>::isDetection(float);
-    template bool Stats<double>::isDetection(double);
-
 
 
     template <class Type> 
@@ -267,12 +173,6 @@ namespace Statistics
         findAllStats(array,size,mean,stddev,median,madfm,max_val,min_val);      
         defined = true;
     }
-    template void Stats<short>::calculate(short *, long);
-    template void Stats<int>::calculate(int *, long);
-    template void Stats<long>::calculate(long *, long);
-    template void Stats<float>::calculate(float *, long);
-    template void Stats<double>::calculate(double *, long);
-
 
 
     template <class Type> 
@@ -289,12 +189,6 @@ namespace Statistics
         findAllStats(array, size, mask, mean, stddev, median, madfm,max_val,min_val);
         defined = true;
     }
-    template void Stats<short>::calculate(short *, long, bool *);
-    template void Stats<int>::calculate(int *, long, bool *);
-    template void Stats<long>::calculate(long *, long, bool *);
-    template void Stats<float>::calculate(float *, long, bool *);
-    template void Stats<double>::calculate(double *, long, bool *);
-
 
 
     template <class Type> 
@@ -314,5 +208,11 @@ namespace Statistics
     template std::ostream& operator<<<float> (std::ostream& theStream, Stats<float> &s);
     template std::ostream& operator<<<double> (std::ostream& theStream, Stats<double> &s);
 
-
+    
+    // Explicit instantiation of the class
+    template class Stats<short>;
+    template class Stats<int>;
+    template class Stats<long>;
+    template class Stats<float>;
+    template class Stats<double>;
 }

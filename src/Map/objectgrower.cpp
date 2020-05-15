@@ -32,22 +32,12 @@
 
 template <class T>
 ObjectGrower<T>::ObjectGrower() {}
-template ObjectGrower<short>::ObjectGrower();
-template ObjectGrower<int>::ObjectGrower();
-template ObjectGrower<long>::ObjectGrower();
-template ObjectGrower<float>::ObjectGrower();
-template ObjectGrower<double>::ObjectGrower();
 
 
 template <class T>
 ObjectGrower<T>::ObjectGrower(ObjectGrower<T> &o) {
     this->operator=(o);
 }
-template ObjectGrower<short>::ObjectGrower(ObjectGrower<short>&);
-template ObjectGrower<int>::ObjectGrower(ObjectGrower<int>&);
-template ObjectGrower<long>::ObjectGrower(ObjectGrower<long>&);
-template ObjectGrower<float>::ObjectGrower(ObjectGrower<float>&);
-template ObjectGrower<double>::ObjectGrower(ObjectGrower<double>&);
 
 
 template <class T>
@@ -62,11 +52,6 @@ ObjectGrower<T>& ObjectGrower<T>::operator=(const ObjectGrower<T> &o) {
     this->itsFluxArray = o.itsFluxArray;
     return *this;
 }
-template ObjectGrower<short>& ObjectGrower<short>::operator=(const ObjectGrower<short>&);
-template ObjectGrower<int>& ObjectGrower<int>::operator=(const ObjectGrower<int>&);
-template ObjectGrower<long>& ObjectGrower<long>::operator=(const ObjectGrower<long>&);
-template ObjectGrower<float>& ObjectGrower<float>::operator=(const ObjectGrower<float>&);
-template ObjectGrower<double>& ObjectGrower<double>::operator=(const ObjectGrower<double>&);
 
 
 template <class T>
@@ -111,11 +96,6 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     }
 
 }
-template void ObjectGrower<short>::define(Cube<short>*);
-template void ObjectGrower<int>::define(Cube<int>*);
-template void ObjectGrower<long>::define(Cube<long>*);
-template void ObjectGrower<float>::define(Cube<float>*);
-template void ObjectGrower<double>::define(Cube<double>*);
 
 
 template <class T>
@@ -141,11 +121,6 @@ void ObjectGrower<T>::updateDetectMap(short *map) {
     }
 
 }
-template void ObjectGrower<short>::updateDetectMap(short*);
-template void ObjectGrower<int>::updateDetectMap(short*);
-template void ObjectGrower<long>::updateDetectMap(short*);
-template void ObjectGrower<float>::updateDetectMap(short*);
-template void ObjectGrower<double>::updateDetectMap(short*);
 
 
 template <class T>
@@ -207,11 +182,6 @@ void ObjectGrower<T>::grow(Detection<T> *theObject) {
    
 
 }
-template void ObjectGrower<short>::grow(Detection<short>*);
-template void ObjectGrower<int>::grow(Detection<int>*);
-template void ObjectGrower<long>::grow(Detection<long>*);
-template void ObjectGrower<float>::grow(Detection<float>*);
-template void ObjectGrower<double>::grow(Detection<double>*);
 
 
 template <class T>
@@ -261,10 +231,11 @@ std::vector<Voxel<T> > ObjectGrower<T>::growFromPixel(Voxel<T> &vox) {
     return newVoxels;
 
 }
-template std::vector<Voxel<short> > ObjectGrower<short>::growFromPixel(Voxel<short>&);
-template std::vector<Voxel<int> > ObjectGrower<int>::growFromPixel(Voxel<int>&);
-template std::vector<Voxel<long> > ObjectGrower<long>::growFromPixel(Voxel<long>&);
-template std::vector<Voxel<float> > ObjectGrower<float>::growFromPixel(Voxel<float>&);
-template std::vector<Voxel<double> > ObjectGrower<double>::growFromPixel(Voxel<double>&);
 
 
+// Explicit instantiation of the class
+template class ObjectGrower<short>;
+template class ObjectGrower<int>;
+template class ObjectGrower<long>;
+template class ObjectGrower<float>;
+template class ObjectGrower<double>;

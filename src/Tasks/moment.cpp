@@ -41,11 +41,6 @@ MomentMap<T>::MomentMap() {
     this->statsDefined   = false;
     
 }
-template MomentMap<short>::MomentMap(); 
-template MomentMap<int>::MomentMap(); 
-template MomentMap<long>::MomentMap(); 
-template MomentMap<float>::MomentMap(); 
-template MomentMap<double>::MomentMap(); 
 
 
 template <class T> 
@@ -67,11 +62,6 @@ void MomentMap<T>::input (Cube<T> *c, int *Blo, int *Bhi) {
     this->arrayAllocated = true;
     this->par = c->pars();
 }
-template void MomentMap<short>::input(Cube<short>*,int*,int*); 
-template void MomentMap<int>::input(Cube<int>*,int*,int*); 
-template void MomentMap<long>::input(Cube<long>*,int*,int*); 
-template void MomentMap<float>::input(Cube<float>*,int*,int*); 
-template void MomentMap<double>::input(Cube<double>*,int*,int*); 
 
 
 template <class T> 
@@ -83,11 +73,6 @@ void MomentMap<T>::input (Cube<T> *c) {
     input(c,blo,bhi);
     
 }
-template void MomentMap<short>::input(Cube<short>*); 
-template void MomentMap<int>::input(Cube<int>*); 
-template void MomentMap<long>::input(Cube<long>*); 
-template void MomentMap<float>::input(Cube<float>*); 
-template void MomentMap<double>::input(Cube<double>*); 
 
 
 template <class T>
@@ -102,11 +87,6 @@ void MomentMap<T>::SumMap (bool msk) {
     this->head.setBunit(in->Head().Bunit());
 
 }
-template void MomentMap<short>::SumMap(bool); 
-template void MomentMap<int>::SumMap(bool); 
-template void MomentMap<long>::SumMap(bool); 
-template void MomentMap<float>::SumMap(bool); 
-template void MomentMap<double>::SumMap(bool); 
 
 
 template <class T>
@@ -144,11 +124,6 @@ void MomentMap<T>::HIMassDensityMap (bool msk) {
         std::terminate();
     }
 }
-template void MomentMap<short>::HIMassDensityMap(bool); 
-template void MomentMap<int>::HIMassDensityMap(bool); 
-template void MomentMap<long>::HIMassDensityMap(bool); 
-template void MomentMap<float>::HIMassDensityMap(bool); 
-template void MomentMap<double>::HIMassDensityMap(bool); 
 
 
 template <class T>
@@ -208,11 +183,6 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
     if (isVerbose) bar.fillSpace("Done.\n");
     
 }
-template void MomentMap<short>::storeMap(bool,int,std::string);
-template void MomentMap<int>::storeMap(bool,int,std::string);
-template void MomentMap<long>::storeMap(bool,int,std::string);
-template void MomentMap<float>::storeMap(bool,int,std::string);
-template void MomentMap<double>::storeMap(bool,int,std::string);
 
 
 template <class T> 
@@ -285,11 +255,6 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
 
 
 }
-template void MomentMap<short>::RMSMap(float,float); 
-template void MomentMap<int>::RMSMap(float,float); 
-template void MomentMap<long>::RMSMap(float,float); 
-template void MomentMap<float>::RMSMap(float,float); 
-template void MomentMap<double>::RMSMap(float,float); 
 
 
 template <class T> 
@@ -324,12 +289,6 @@ bool MomentMap<T>::setHead(int type) {
     return this->headDefined;
     
 }
-template bool MomentMap<short>::setHead(int); 
-template bool MomentMap<int>::setHead(int); 
-template bool MomentMap<long>::setHead(int); 
-template bool MomentMap<float>::setHead(int); 
-template bool MomentMap<double>::setHead(int); 
-
 
 
 template <class T>
@@ -385,12 +344,6 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
     delete [] vels;
     return true;
 }
-template bool MomentMap<short>::calculateMoments(size_t,size_t,bool,double*); 
-template bool MomentMap<int>::calculateMoments(size_t,size_t,bool,double*); 
-template bool MomentMap<long>::calculateMoments(size_t,size_t,bool,double*); 
-template bool MomentMap<float>::calculateMoments(size_t,size_t,bool,double*); 
-template bool MomentMap<double>::calculateMoments(size_t,size_t,bool,double*); 
-
 
 
 template <class T>
@@ -442,11 +395,6 @@ bool MomentMap<T>::fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar
     
     return true;
 }
-template bool MomentMap<short>::fitSpectrum(size_t,size_t,bool,double*); 
-template bool MomentMap<int>::fitSpectrum(size_t,size_t,bool,double*); 
-template bool MomentMap<long>::fitSpectrum(size_t,size_t,bool,double*); 
-template bool MomentMap<float>::fitSpectrum(size_t,size_t,bool,double*); 
-template bool MomentMap<double>::fitSpectrum(size_t,size_t,bool,double*); 
 
 
 template <class T>
@@ -566,3 +514,10 @@ template Image2D<long>* PositionVelocity (Cube<long>*,float,float,float);
 template Image2D<float>* PositionVelocity (Cube<float>*,float,float,float);
 template Image2D<double>* PositionVelocity (Cube<double>*,float,float,float);
 
+
+// Explicit instantiation of the class
+template class MomentMap<short>;
+template class MomentMap<int>;
+template class MomentMap<long>;
+template class MomentMap<float>;
+template class MomentMap<double>;

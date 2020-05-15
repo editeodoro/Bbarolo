@@ -88,7 +88,7 @@ public:
     Cube<Type>  *In () {return in;}
     Cube<Type>  *Out() {return out;}
     Rings<Type> *Ring() {return r;}
-    float *getArray() {return out->Array();}
+    Type *getArray() {return out->Array();}
     
     void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings, 
                int NV=-1, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);

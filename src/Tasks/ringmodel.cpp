@@ -57,19 +57,6 @@ void Ringmodel<T>::defaults() {
     
     allAllocated = false;
 }
-template void Ringmodel<float>::defaults();
-template void Ringmodel<double>::defaults();
-
-
-
-template <class T>
-Ringmodel<T>::Ringmodel() {
-    
-    defaults();
-    
-}
-template Ringmodel<float>::Ringmodel();
-template Ringmodel<double>::Ringmodel();
 
 
 template <class T>
@@ -108,8 +95,6 @@ Ringmodel<T>::Ringmodel(int nrings) {
     allAllocated = true;
     
 }
-template Ringmodel<float>::Ringmodel(int);
-template Ringmodel<double>::Ringmodel(int);
 
 
 template <class T>
@@ -141,8 +126,6 @@ Ringmodel<T>::~Ringmodel() {
         deallocate_2D<float>(elp, nrad); 
     }
 }
-template Ringmodel<float>::~Ringmodel();
-template Ringmodel<double>::~Ringmodel();
 
 
 template <class T>
@@ -152,8 +135,6 @@ Ringmodel<T>::Ringmodel (Cube<T> *c)  {
     Rings<T> *r = readRings<T>(c->pars().getParGF(),c->Head());
     setfromCube(c,r);
 }
-template Ringmodel<float>::Ringmodel(Cube<float>*);
-template Ringmodel<double>::Ringmodel(Cube<double>*);
 
 
 template <class T>
@@ -234,8 +215,6 @@ void Ringmodel<T>::setfromCube (Cube<T> *c, Rings<T> *r)  {
     int boxup[2] = {map.DimX()-1, map.DimY()-1};
     setfield(map.Array(),map.DimX(),map.DimY(),boxup,boxlow);
 }
-template void Ringmodel<float>::setfromCube(Cube<float>*,Rings<float>*);
-template void Ringmodel<double>::setfromCube(Cube<double>*,Rings<double>*);
 
 
 template <class T>
@@ -245,8 +224,6 @@ Ringmodel<T>::Ringmodel (int nrings, T *radii, T *widths, T *vsys, T *vrot,
     set(nrings, radii, widths, vsys, vrot, vexp, posang, incl, xcenter, ycenter);
     
 }
-template Ringmodel<float>::Ringmodel(int,float*,float*,float*,float*,float*,float*,float*,float,float);
-template Ringmodel<double>::Ringmodel(int,double*,double*,double*,double*,double*,double*,double*,double,double);
 
 
 template <class T>
@@ -256,8 +233,6 @@ Ringmodel<T>::Ringmodel (int nrings, T *radii, T widths, T vsys, T vrot,
     set(nrings, radii, widths, vsys, vrot, vexp, posang, incl, xcenter, ycenter);
     
 }
-template Ringmodel<float>::Ringmodel(int,float*,float,float,float,float,float,float,float,float);
-template Ringmodel<double>::Ringmodel(int,double*,double,double,double,double,double,double,double,double);
 
 
 template <class T>
@@ -299,8 +274,6 @@ void Ringmodel<T>::set (int nrings, T *radii, T *widths, T *vsys, T *vrot,
     allAllocated = true;
     
 }
-template void Ringmodel<float>::set(int,float*,float*,float*,float*,float*,float*,float*,float,float);
-template void Ringmodel<double>::set(int,double*,double*,double*,double*,double*,double*,double*,double,double);
 
 
 template <class T>
@@ -355,8 +328,6 @@ void Ringmodel<T>::set (int nrings, T *radii, T widths, T vsys, T vrot,
     allAllocated = true;
 
 }
-template void Ringmodel<float>::set(int,float*,float,float,float,float,float,float,float,float);
-template void Ringmodel<double>::set(int,double*,double,double,double,double,double,double,double,double);
 
 
 template <class T>
@@ -417,8 +388,6 @@ void Ringmodel<T>::setoption (bool *maskpar, int hside, int wfunc, float freeang
     
 
 }
-template void Ringmodel<float>::setoption(bool*,int,int,float);
-template void Ringmodel<double>::setoption(bool*,int,int,float);
 
 
 template <class T>
@@ -446,8 +415,6 @@ void Ringmodel<T>::setfield (T *Array, int xsize, int ysize, int *boxup, int *bo
     }
 
 }
-template void Ringmodel<float>::setfield(float*,int,int,int*,int*);
-template void Ringmodel<double>::setfield(double*,int,int,int*,int*);
 
 
 template <class T>
@@ -543,8 +510,6 @@ void Ringmodel<T>::ringfit() {
     
     
 }
-template void Ringmodel<float>::ringfit();
-template void Ringmodel<double>::ringfit();
 
 
 template <class T>
@@ -694,8 +659,6 @@ int Ringmodel<T>::rotfit (T ri, T ro, T *p, T *e, int &n, T &q) {
     
     return ier;
 }
-template int Ringmodel<float>::rotfit(float,float,float*,float*,int&,float&);
-template int Ringmodel<double>::rotfit(double,double,double*,double*,int&,double&);
 
 
 template <class T>
@@ -793,8 +756,6 @@ int Ringmodel<T>::getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &
     return n;
     
 }
-template int Ringmodel<float>::getdat(std::vector<float>&,std::vector<float>&,std::vector<float>&,float*,float,float,float&,int);
-template int Ringmodel<double>::getdat(std::vector<double>&,std::vector<double>&,std::vector<double>&,double*,double,double,double&,int);
 
 
 template <class T>
@@ -915,8 +876,6 @@ void Ringmodel<T>::print (std::ostream& Stream) {
         }
     }
 }
-template void Ringmodel<float>::print(std::ostream&);
-template void Ringmodel<double>::print(std::ostream&);
 
 
 template <class T>
@@ -958,8 +917,6 @@ void Ringmodel<T>::printfinal (std::ostream& Stream) {
 
     }
 }
-template void Ringmodel<float>::printfinal(std::ostream&);
-template void Ringmodel<double>::printfinal(std::ostream&);
 
 
 template <class T>
@@ -1049,8 +1006,6 @@ void Ringmodel<T>::writeModel (std::string fname) {
     model.fitswrite_2d(fname.c_str());
     thetaf = ot;
 }
-template void Ringmodel<float>::writeModel(std::string);
-template void Ringmodel<double>::writeModel(std::string);
 
 
 template <class T>
@@ -1190,3 +1145,8 @@ void derv (T *c, T *p, T *d, int npar) {
 }
 template void derv (float*,float*,float*,int);
 template void derv (double*,double*,double*,int);
+
+
+// Explicit instantiation of the classes
+template class Ringmodel<float>;
+template class Ringmodel<double>;

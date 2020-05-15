@@ -135,7 +135,7 @@ public:
     float  getWidth (int i) {return Width[i];}
     float  getPhi (int i) {return Phi[i];}
     float  getInc (int i) {return Inc[i];}
-    float  getPosition (size_t i) {if (i==0 || i==1) return Position[i];}
+    float  getPosition (size_t i) {return Position[i];}
 
     double getSum(size_t i, size_t j=0) {return Sum[i][j];}
     long   getNum(size_t i, size_t j=0) {return Num[i][j];}

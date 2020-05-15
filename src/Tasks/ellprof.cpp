@@ -48,8 +48,6 @@ void Ellprof<T>::defaults() {
     subpix[0]=subpix[1]=2;
     Mass = Distance = 0;
 }
-template void Ellprof<float>::defaults();
-template void Ellprof<double>::defaults();
 
 
 template <class T>
@@ -117,8 +115,6 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
     } 
 
 }
-template void Ellprof<float>::allocateArrays(size_t,size_t);
-template void Ellprof<double>::allocateArrays(size_t,size_t);
 
 
 template <class T>
@@ -178,8 +174,6 @@ void Ellprof<T>::deallocateArrays () {
     delete [] medianArray;
 
 }
-template void Ellprof<float>::deallocateArrays ();
-template void Ellprof<double>::deallocateArrays ();
 
 
 template <class T>
@@ -191,8 +185,6 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
     delete inR;
 
 }
-template Ellprof<float>::Ellprof(Cube<float>*);
-template Ellprof<double>::Ellprof(Cube<double>*);
 
 
 template <class T>
@@ -214,16 +206,12 @@ Ellprof<T>::Ellprof(MomentMap<T> *image, size_t nrad, float width, float phi, fl
 
     delete r;
 }
-template Ellprof<float>::Ellprof(MomentMap<float>*,size_t,float,float,float,float*,size_t,float*);
-template Ellprof<double>::Ellprof(MomentMap<double>*,size_t,float,float,float,float*,size_t,float*);
 
 
 template <class T>
 Ellprof<T>::Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* segments) {
     init(image,rings,nseg,segments);
 }
-template Ellprof<float>::Ellprof(MomentMap<float>*,Rings<float>*,size_t,float*);
-template Ellprof<double>::Ellprof(MomentMap<double>*,Rings<double>*,size_t,float*);
 
 
 template <class T>
@@ -272,8 +260,6 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
     setOptions(mass,dist); 
     //im->fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_0th.fits").c_str());
 }
-template void Ellprof<float>::setFromCube(Cube<float> *, Rings<float> *);
-template void Ellprof<double>::setFromCube(Cube<double> *, Rings<double> *);
 
 
 template <class T>
@@ -363,8 +349,6 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
     stepxy[1] = fabs(Dy) / (float) subpix[1];
 
 }
-template void Ellprof<float>::init(MomentMap<float>*,Rings<float>*,size_t,float*);
-template void Ellprof<double>::init(MomentMap<double>*,Rings<double>*,size_t,float*);
 
 
 template <class T>
@@ -375,8 +359,6 @@ void Ellprof<T>::setOptions (bool overlap, float *range, float *subp) {
     subpix[0] = subp[0];
     subpix[1] = subp[1];
 }
-template void Ellprof<float>::setOptions (bool, float*,float*);
-template void Ellprof<double>::setOptions (bool, float*,float*);
 
 
 template <class T>
@@ -384,8 +366,6 @@ void Ellprof<T>::setOptions (float mass, float distance) {
     Mass = mass;         // In Msun
     Distance = distance; // In Mpc
 }
-template void Ellprof<float>::setOptions(float,float);
-template void Ellprof<double>::setOptions(float,float);
 
 
 template <class T>
@@ -533,8 +513,6 @@ void Ellprof<T>::RadialProfile () {
     }
     
 }
-template void Ellprof<float>::RadialProfile ();
-template void Ellprof<double>::RadialProfile ();
 
 
 template <class T>
@@ -632,8 +610,6 @@ void Ellprof<T>::processpixel(int x, int y,float imval) {
             if (Contribflag[rad][seg]) Contrib[rad][seg] += 1;
 
 }
-template void Ellprof<float>::processpixel(int,int,float);
-template void Ellprof<double>::processpixel(int,int,float);
 
 
 template <class T>
@@ -649,8 +625,6 @@ bool Ellprof<T>::IsInRange(float value, float *Range) {
     }
     return false;
 }
-template bool Ellprof<float>::IsInRange(float,float*);
-template bool Ellprof<double>::IsInRange(float,float*);
 
 
 template <class T>
@@ -662,8 +636,6 @@ bool Ellprof<T>::IsInRing(float Xr, float Yr, int radnr) {
     float R_sqr = Xx*Xx + Yy*Yy;
     return( (Annuli[radnr][0]*Annuli[radnr][0] <= R_sqr && R_sqr < Annuli[radnr][1]*Annuli[radnr][1]) );
 }
-template bool Ellprof<float>::IsInRing(float,float,int);
-template bool Ellprof<double>::IsInRing(float,float,int);
 
 
 template <class T>
@@ -692,8 +664,6 @@ float Ellprof<T>::gettheta(float X,float Y,float Phi,float Crota) {
     theta = toangle(theta + 270.0  - Phi - Crota);
     return theta;
 }
-template float Ellprof<float>::gettheta(float,float,float,float);
-template float Ellprof<double>::gettheta(float,float,float,float);
 
 
 template <class T>
@@ -707,8 +677,6 @@ float Ellprof<T>::toangle(float Angle) {
         Angle -=360.0;
     return Angle;
 }
-template float Ellprof<float>::toangle(float);
-template float Ellprof<double>::toangle(float);
 
 
 template <class T>
@@ -734,8 +702,6 @@ bool Ellprof<T>::IsInSegment(float Angle, float Segm1, float Segm2) {
 
     return false;
 }
-template bool Ellprof<float>::IsInSegment(float,float,float);
-template bool Ellprof<double>::IsInSegment(float,float,float);
 
 
 template <class T>
@@ -821,7 +787,9 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
         theStream << std::endl;
     }
 }
-template void Ellprof<float>::printProfile (ostream&, int);
-template void Ellprof<double>::printProfile (ostream&, int);
 
+
+// Explicit instantiation of the class
+template class Ellprof<float>;
+template class Ellprof<double>;
 }

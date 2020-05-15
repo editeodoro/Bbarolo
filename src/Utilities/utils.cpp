@@ -381,24 +381,26 @@ double arcsconv(std::string cunit) {
     else if (Cunit=="arcmin" || Cunit=="arcm") return 60.;
     else if (Cunit=="arcsec" || Cunit=="arcs") return 1.;
     else {
-        std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
-        std::cout << "cannot convert to ARCSEC.\n";
-        std::cout << cunit;
-        std::terminate(); 
+        std::string errmsg = "Conversion error (unknown CUNIT for RA-DEC): " + cunit + ".";
+        errmsg += " Cannot convert to ARCSEC.\n";
+        //throw errmsg;
+        std::cerr << errmsg;
+        std::terminate();
     }
 }
 
 
 double degconv(std::string cunit) {
 
-    std::string Cunit = makelower(cunit);
-    if (Cunit=="degree" || Cunit=="degrees" || Cunit=="deg") return 1.;
-    else if (Cunit=="arcmin" || Cunit=="arcm") return 1./60.;
-    else if (Cunit=="arcsec" || Cunit=="arcs") return 1./3600.;
+    std::string c = makelower(cunit);
+    if (c.find("deg")!=std::string::npos) return 1.;
+    else if (c.find("arcm")!=std::string::npos) return 1./60.;
+    else if (c.find("arcs")!=std::string::npos) return 1./3600.;
     else {
-        std::cout << "Conversion error (unknown CUNIT for RA-DEC): ";
-        std::cout << "cannot convert to DEGREE.\n";
-        std::cout << cunit;
+        std::string errmsg = "Conversion error (unknown CUNIT for RA-DEC): " + cunit + ".";
+        errmsg += " Cannot convert to DEGREE.\n";
+        //throw errmsg;
+        std::cerr << errmsg;
         std::terminate();
     }
 }

@@ -218,7 +218,7 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
         }
         
     }
-    
+
     else if (algorithm == 2) {
         /// This algorithm samples the velocity field in rectangular regions 
         /// with size equal to the beam size. In each region it calculates the 
@@ -827,7 +827,6 @@ template <class T>
 void ParamGuess<T>::plotGuess() {
     
 
-    //cout << posang << " " << xcentre << " " << ycentre << endl;
     /// Plotting axes in a .eps file.
     std::ofstream velf;
     std::string outfolder = in->pars().getOutfolder();
@@ -897,9 +896,8 @@ void ParamGuess<T>::plotGuess() {
     gp.end();
     remove((outfolder+"ellipse.tab").c_str());
 #endif  
-    //remove((outfolder+"vfield.dat").c_str());
-    //remove((outfolder+"gnuscript.gnu").c_str());
-
+    remove((outfolder+"vfield.dat").c_str());
+    remove((outfolder+"gnuscript.gnu").c_str());
 
 }
 

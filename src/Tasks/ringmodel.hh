@@ -37,7 +37,7 @@ class Ringmodel
 ///    of velocity field with a tilted-ring model
 {                                       
 public:
-    Ringmodel();                        /// Default constructor.    
+    Ringmodel() {defaults();}           /// Default constructor.    
     Ringmodel(int nrings);              /// Alternative constructors.
     
     Ringmodel (Cube<T> *c);

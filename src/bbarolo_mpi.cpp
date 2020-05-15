@@ -8,17 +8,14 @@
 #include <csignal>
 
 
-void sigsegv_handler(int signal)
-{
+void sigsegv_handler(int signal) {
   // this signal handler is not POSIX-compliant, but apparently signals
   // in MPI are a mess anyway, so I guess don't worry too much...
   int rank=0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::cerr << "Segmentation fault (SIGSEGV) in process rank "
-	    << rank << "." << std::endl;
-  std::cerr << "Process terminated (remaining processes will continue)."
-	    << std::endl;
-  std::cout << "Exited with segmentation fault (SIGSEGV) error!" << std::endl;
+  std::cerr << "Segmentation fault (SIGSEGV) in process rank " << rank << "." << std::endl;
+  std::cerr << "Process terminated (remaining processes will continue)." << std::endl;
+  std::cerr << "Exited with segmentation fault (SIGSEGV) error!" << std::endl;
   MPI_Finalize();
   _Exit(0);
 }

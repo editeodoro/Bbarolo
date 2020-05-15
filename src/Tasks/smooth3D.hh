@@ -1,6 +1,6 @@
-//---------------------------------------------------------------
-// smooth3d.hh: Definition of the Smooth3D class.
-//---------------------------------------------------------------
+//-------------------------------------------------------------------
+// smooth3d.hh: Definition of the Smooth3D and SmoothSpectral classes.
+//-------------------------------------------------------------------
 
 /*-----------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify it
@@ -40,6 +40,7 @@ struct Beam {
 /////////////////////////////////////////////////////////////////////////////////////
 template <class T>
 class Smooth3D 
+{
 // Smooth3D is a class for spatially-smoothing datacubes with a gaussian kernel.
 // NB; All beams are in arcsec, position angles in degrees.
 //
@@ -55,7 +56,6 @@ class Smooth3D
 //  
 // The smoothed array is written in the 'array' variable. 
 //
-{
 public:
     Smooth3D();                                 //< Default constructor.
     virtual ~Smooth3D();                        //< Destructor.
@@ -67,7 +67,7 @@ public:
     /// Obvious inline functions
     T       Array (int i) {return array[i];}
     T       *Array () {return array;}
-    T       *Confie() {return confie;}
+    double  *Confie() {return confie;}
     Beam    Oldbeam() {return oldbeam;}
     Beam    Newbeam() {return newbeam;}
     Beam    Conbeam() {return conbeam;}
@@ -135,6 +135,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 template <class T>
 class SpectralSmooth3D
+{
 // SpectralSmooth3D is a class to spectrally smooth datacubes with a filterning window.
 //
 // The correct way to call the class is the following:
@@ -152,7 +153,6 @@ class SpectralSmooth3D
 //
 // The smoothed array is written in the 'array' variable. 
 //
-{
 public:
     SpectralSmooth3D(std::string wtype, size_t wsize);                //< Constructor.
     ~SpectralSmooth3D() {if (arrayAllocated) delete [] array;}        //< Destructor.

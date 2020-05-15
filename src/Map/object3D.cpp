@@ -42,11 +42,6 @@ namespace PixelInfo
     zSum = 0;
     xmin = xmax = ymin = ymax = zmin = zmax = -1;
   }
-  template Object3D<short>::Object3D();
-  template Object3D<int>::Object3D();
-  template Object3D<long>::Object3D();
-  template Object3D<float>::Object3D();
-  template Object3D<double>::Object3D();
   
   
   template <class T>
@@ -54,11 +49,6 @@ namespace PixelInfo
       
     operator=(o);
   }
-  template Object3D<short>::Object3D(const Object3D<short>&);
-  template Object3D<int>::Object3D(const Object3D<int>&);
-  template Object3D<long>::Object3D(const Object3D<long>&);
-  template Object3D<float>::Object3D(const Object3D<float>&);
-  template Object3D<double>::Object3D(const Object3D<double>&);
   
    
   template <class T> 
@@ -78,11 +68,6 @@ namespace PixelInfo
     this->zmax    = o.zmax;
     return *this;
   }
-  template Object3D<short>& Object3D<short>::operator=(const Object3D<short>&);
-  template Object3D<int>& Object3D<int>::operator=(const Object3D<int>&);
-  template Object3D<long>& Object3D<long>::operator=(const Object3D<long>&);
-  template Object3D<float>& Object3D<float>::operator=(const Object3D<float>&);
-  template Object3D<double>& Object3D<double>::operator=(const Object3D<double>&);
   
   
   template <class T>
@@ -93,11 +78,6 @@ namespace PixelInfo
         output.addChannel(it->first, it->second);
     return output;
   }
-  template Object3D<short> operator+(Object3D<short>,Object3D<short>);
-  template Object3D<int> operator+(Object3D<int>,Object3D<int>);
-  template Object3D<long> operator+(Object3D<long>,Object3D<long>);
-  template Object3D<float> operator+(Object3D<float>,Object3D<float>);
-  template Object3D<double> operator+(Object3D<double>,Object3D<double>);
   
   
   template <class T>  
@@ -106,11 +86,6 @@ namespace PixelInfo
     if(numVox>0) return xSum/float(numVox); 
     else return 0.;
   }
-  template float Object3D<short>::getXaverage();
-  template float Object3D<int>::getXaverage();
-  template float Object3D<long>::getXaverage();
-  template float Object3D<float>::getXaverage();
-  template float Object3D<double>::getXaverage();
   
  
   template <class T>
@@ -119,11 +94,6 @@ namespace PixelInfo
     if(numVox>0) return ySum/float(numVox);
     else return 0.;
   }
-  template float Object3D<short>::getYaverage();
-  template float Object3D<int>::getYaverage();
-  template float Object3D<long>::getYaverage();
-  template float Object3D<float>::getYaverage();
-  template float Object3D<double>::getYaverage();
   
   
   template <class T>
@@ -132,12 +102,7 @@ namespace PixelInfo
     if(numVox>0) return zSum/float(numVox); 
     else return 0.;
   }
-  template float Object3D<short>::getZaverage();
-  template float Object3D<int>::getZaverage();
-  template float Object3D<long>::getZaverage();
-  template float Object3D<float>::getZaverage();
-  template float Object3D<double>::getZaverage();  
-  
+
   
   template <class T> 
   bool Object3D<T>::isInObject(long x, long y, long z) {
@@ -147,11 +112,6 @@ namespace PixelInfo
     if(it==chanlist.end()) return false;
     else return it->second.isInObject(x,y);
   }
-  template bool Object3D<short>::isInObject(long,long,long);
-  template bool Object3D<int>::isInObject(long,long,long);
-  template bool Object3D<long>::isInObject(long,long,long);
-  template bool Object3D<float>::isInObject(long,long,long);
-  template bool Object3D<double>::isInObject(long,long,long);  
   
     
   template <class T>
@@ -209,11 +169,6 @@ namespace PixelInfo
     }
 
   }
-  template void Object3D<short>::addPixel(long,long,long);
-  template void Object3D<int>::addPixel(long,long,long);
-  template void Object3D<long>::addPixel(long,long,long);
-  template void Object3D<float>::addPixel(long,long,long);
-  template void Object3D<double>::addPixel(long,long,long);  
   
    
   template <class T>
@@ -223,11 +178,6 @@ namespace PixelInfo
     for(int x=s.getX(); x<=s.getXmax(); x++) 
         addPixel(x,y,z);
   }
-  template void Object3D<short>::addScan(Scan<short>,long);
-  template void Object3D<int>::addScan(Scan<int>,long);
-  template void Object3D<long>::addScan(Scan<long>,long);
-  template void Object3D<float>::addScan(Scan<float>,long);
-  template void Object3D<double>::addScan(Scan<double>,long); 
 
 
   template <class T>
@@ -277,11 +227,6 @@ namespace PixelInfo
         if(obj.ymax>ymax) ymax = obj.ymax;
     }
   }
-  template void Object3D<short>::addChannel(const long&,Object2D<short>&);
-  template void Object3D<int>::addChannel(const long&,Object2D<int>&);
-  template void Object3D<long>::addChannel(const long&,Object2D<long>&);
-  template void Object3D<float>::addChannel(const long&,Object2D<float>&);
-  template void Object3D<double>::addChannel(const long&,Object2D<double>&); 
   
   
   template <class T>
@@ -290,11 +235,6 @@ namespace PixelInfo
     Object2D<T> spatialMap = getSpatialMap();
     return spatialMap.getSize();
   }
-  template unsigned long Object3D<short>::getSpatialSize();
-  template unsigned long Object3D<int>::getSpatialSize();
-  template unsigned long Object3D<long>::getSpatialSize();
-  template unsigned long Object3D<float>::getSpatialSize();
-  template unsigned long Object3D<double>::getSpatialSize(); 
   
   
   template <class T>
@@ -307,11 +247,6 @@ namespace PixelInfo
     }
     return spatialMap;
   }
-  template Object2D<short> Object3D<short>::getSpatialMap();
-  template Object2D<int> Object3D<int>::getSpatialMap();
-  template Object2D<long> Object3D<long>::getSpatialMap();
-  template Object2D<float> Object3D<float>::getSpatialMap();
-  template Object2D<double> Object3D<double>::getSpatialMap(); 
   
   
   template <class T> 
@@ -346,11 +281,6 @@ namespace PixelInfo
     }
 
   }
-  template void Object3D<short>::calcParams();
-  template void Object3D<int>::calcParams();
-  template void Object3D<long>::calcParams();
-  template void Object3D<float>::calcParams();
-  template void Object3D<double>::calcParams(); 
   
   
   template <class T>
@@ -363,11 +293,6 @@ namespace PixelInfo
     }  
     theStream << "\n";
   }
-  template void Object3D<short>::print(std::ostream&);
-  template void Object3D<int>::print(std::ostream&);
-  template void Object3D<long>::print(std::ostream&);
-  template void Object3D<float>::print(std::ostream&);
-  template void Object3D<double>::print(std::ostream&); 
 
 
   template <class T>
@@ -376,11 +301,6 @@ namespace PixelInfo
     obj.print(theStream);
     return theStream;
   }
-  template std::ostream& operator<<(std::ostream&,Object3D<short>&);
-  template std::ostream& operator<<(std::ostream&,Object3D<int>&);
-  template std::ostream& operator<<(std::ostream&,Object3D<long>&);
-  template std::ostream& operator<<(std::ostream&,Object3D<float>&);
-  template std::ostream& operator<<(std::ostream&,Object3D<double>&);
   
     
   template <class T>
@@ -404,11 +324,6 @@ namespace PixelInfo
     return voxList;
 
   }
-  template std::vector<Voxel<short> > Object3D<short>::getPixelSet();
-  template std::vector<Voxel<int> > Object3D<int>::getPixelSet();
-  template std::vector<Voxel<long> > Object3D<long>::getPixelSet();
-  template std::vector<Voxel<float> > Object3D<float>::getPixelSet();
-  template std::vector<Voxel<double> > Object3D<double>::getPixelSet(); 
   
   
   template <class T>
@@ -436,11 +351,6 @@ namespace PixelInfo
     return voxList;
 
   }
-  template std::vector<Voxel<short> > Object3D<short>::getPixelSet(short*,int*);
-  template std::vector<Voxel<int> > Object3D<int>::getPixelSet(int*,int*);
-  template std::vector<Voxel<long> > Object3D<long>::getPixelSet(long*,int*);
-  template std::vector<Voxel<float> > Object3D<float>::getPixelSet(float*,int*);
-  template std::vector<Voxel<double> > Object3D<double>::getPixelSet(double*,int*); 
   
   
   template <class T>
@@ -453,11 +363,6 @@ namespace PixelInfo
     }
     return chanlist;
   }
-  template std::vector<long> Object3D<short>::getChannelList();
-  template std::vector<long> Object3D<int>::getChannelList();
-  template std::vector<long> Object3D<long>::getChannelList();
-  template std::vector<long> Object3D<float>::getChannelList();
-  template std::vector<long> Object3D<double>::getChannelList(); 
   
   
   template <class T>
@@ -470,11 +375,6 @@ namespace PixelInfo
     else obj = it->second;
     return obj;
   }
-  template Object2D<short> Object3D<short>::getChanMap(long);
-  template Object2D<int> Object3D<int>::getChanMap(long);
-  template Object2D<long> Object3D<long>::getChanMap(long);
-  template Object2D<float> Object3D<float>::getChanMap(long);
-  template Object2D<double> Object3D<double>::getChanMap(long); 
   
   
   template <class T>
@@ -506,11 +406,6 @@ namespace PixelInfo
     maxnumchan = std::max(maxnumchan,zcount);
     return maxnumchan;
   }
-  template int Object3D<short>::getMaxAdjacentChannels();
-  template int Object3D<int>::getMaxAdjacentChannels();
-  template int Object3D<long>::getMaxAdjacentChannels();
-  template int Object3D<float>::getMaxAdjacentChannels();
-  template int Object3D<double>::getMaxAdjacentChannels(); 
   
   
   template <class T> 
@@ -533,10 +428,13 @@ namespace PixelInfo
         zmin += zoff; zmax += zoff;
     }
   }
-  template void Object3D<short>::addOffsets(long,long,long);
-  template void Object3D<int>::addOffsets(long,long,long);
-  template void Object3D<long>::addOffsets(long,long,long);
-  template void Object3D<float>::addOffsets(long,long,long);
-  template void Object3D<double>::addOffsets(long,long,long); 
+  
+  
+  // Explicit instantiation of the class
+  template class Object3D<short>;
+  template class Object3D<int>;
+  template class Object3D<long>;
+  template class Object3D<float>;
+  template class Object3D<double>;
 
 }

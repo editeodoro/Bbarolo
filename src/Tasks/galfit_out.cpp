@@ -1200,7 +1200,7 @@ int Galfit<T>::plotAll_Python() {
             << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
             << "\t\t\tvelo = ' v = ' + str(int(velo_kms)) + ' km/s' \n"
             << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
-            << "\t\t\tax.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=False) \n"
+            << "\t\t\tax.tick_params(top=True,right=Truelabelbottom=False,labelleft=False) \n"
             << "\t\t\tax.set_title(velo, fontsize=10,loc='left') \n"
             << "\t\t\tax.imshow(z,origin='lower',cmap = mpl.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
             << "\t\t\tax.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"

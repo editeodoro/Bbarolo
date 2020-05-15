@@ -42,24 +42,6 @@ void Image2D<Type>::defaults() {
     headDefined = false;
     statsDefined= false;
 }
-template void Image2D<short>::defaults();
-template void Image2D<int>::defaults();
-template void Image2D<long>::defaults();
-template void Image2D<float>::defaults();
-template void Image2D<double>::defaults();
-
-
-template <class Type> 
-Image2D<Type>::Image2D () {
-    
-    defaults();
-    
-}
-template Image2D<short>::Image2D();
-template Image2D<int>::Image2D();
-template Image2D<long>::Image2D();
-template Image2D<float>::Image2D();
-template Image2D<double>::Image2D();
 
 
 template <class Type> 
@@ -67,11 +49,6 @@ Image2D<Type>::~Image2D () {
     
     if (arrayAllocated) delete [] array;
 }
-template Image2D<short>::~Image2D();
-template Image2D<int>::~Image2D();
-template Image2D<long>::~Image2D();
-template Image2D<float>::~Image2D();
-template Image2D<double>::~Image2D();
 
 
 template <class Type>
@@ -94,11 +71,6 @@ Image2D<Type>::Image2D(int *dim)  {
 
     }
 }
-template Image2D<short>::Image2D(int*);
-template Image2D<int>::Image2D(int*);
-template Image2D<long>::Image2D(int*);
-template Image2D<float>::Image2D(int*);
-template Image2D<double>::Image2D(int*);
 
 
 template <class Type>
@@ -106,11 +78,6 @@ Image2D<Type>::Image2D(const Image2D<Type> &i) {
     
     this->operator=(i);
 }
-template Image2D<short>::Image2D(const Image2D<short>&);
-template Image2D<int>::Image2D(const Image2D<int>&);
-template Image2D<long>::Image2D(const Image2D<long>&);
-template Image2D<float>::Image2D(const Image2D<float>&);
-template Image2D<double>::Image2D(const Image2D<double>&);
 
 
 template <class Type>
@@ -138,11 +105,6 @@ Image2D<Type>& Image2D<Type>::operator=(const Image2D<Type> &i) {
    
     return *this;
 }
-template Image2D<short>& Image2D<short>::operator=(const Image2D<short>&);
-template Image2D<int>& Image2D<int>::operator=(const Image2D<int>&);
-template Image2D<long>& Image2D<long>::operator=(const Image2D<long>&);
-template Image2D<float>& Image2D<float>::operator=(const Image2D<float>&);
-template Image2D<double>& Image2D<double>::operator=(const Image2D<double>&);
 
 /**==============================================================================*/
 
@@ -162,11 +124,6 @@ void Image2D<Type>::setImage(Type *input, int *dim) {
             }
     
 }
-template void Image2D<short>::setImage(short*,int*);
-template void Image2D<int>::setImage(int*,int*);
-template void Image2D<long>::setImage(long*,int*);
-template void Image2D<float>::setImage(float*,int*);
-template void Image2D<double>::setImage(double*,int*);
 
 
 template <class Type>
@@ -182,12 +139,6 @@ bool Image2D<Type>::readImage(std::string fname) {
     if (!fitsread_2d()) return false;
     return true;
 }
-template bool Image2D<short>::readImage(std::string);
-template bool Image2D<int>::readImage(std::string);
-template bool Image2D<long>::readImage(std::string);
-template bool Image2D<float>::readImage(std::string);
-template bool Image2D<double>::readImage(std::string);
-
 
 
 template <class Type>
@@ -234,11 +185,6 @@ bool Image2D<Type>::fitsread_2d () {
     return true;
     
 }
-template bool Image2D<short>::fitsread_2d ();
-template bool Image2D<int>::fitsread_2d ();
-template bool Image2D<long>::fitsread_2d ();
-template bool Image2D<float>::fitsread_2d ();
-template bool Image2D<double>::fitsread_2d ();
 
 
 template <class Type>
@@ -279,12 +225,6 @@ bool Image2D<Type>::fitswrite_2d (const char *outname) {
     return true;
     
 }
-template bool Image2D<short>::fitswrite_2d (const char*);
-template bool Image2D<int>::fitswrite_2d (const char*);
-template bool Image2D<long>::fitswrite_2d (const char*);
-template bool Image2D<float>::fitswrite_2d (const char*);
-template bool Image2D<double>::fitswrite_2d (const char*);
-
 
 
 template <class Type>
@@ -309,11 +249,6 @@ void Image2D<Type>::copyHeader (Header &c) {
         head.setName(c.Name());
     }
 }
-template void Image2D<short>::copyHeader(Header&);
-template void Image2D<int>::copyHeader(Header&);
-template void Image2D<long>::copyHeader(Header&);
-template void Image2D<float>::copyHeader(Header&);
-template void Image2D<double>::copyHeader(Header&);
 
 
 template <class Type>
@@ -341,11 +276,6 @@ void Image2D<Type>::setImageStats() {
     statsDefined = true;
     
 }
-template void Image2D<short>::setImageStats();
-template void Image2D<int>::setImageStats();
-template void Image2D<long>::setImageStats();
-template void Image2D<float>::setImageStats();
-template void Image2D<double>::setImageStats();
 
 
 template <class Type>
@@ -376,11 +306,6 @@ void Image2D<Type>::extractSpectrum(Type *Array, int *dim, long pixel) {
         }
     }
 }
-template void Image2D<short>::extractSpectrum(short*,int*,long);
-template void Image2D<int>::extractSpectrum(int*,int*,long);
-template void Image2D<long>::extractSpectrum(long*,int*,long);
-template void Image2D<float>::extractSpectrum(float*,int*,long);
-template void Image2D<double>::extractSpectrum(double*,int*,long);
 
 
 template <class Type>
@@ -412,11 +337,6 @@ void Image2D<Type>::extractSpectrum(Cube<Type> &cube, long pixel)  {
         }
     }
 }
-template void Image2D<short>::extractSpectrum(Cube<short>&,long);
-template void Image2D<int>::extractSpectrum(Cube<int>&,long);
-template void Image2D<long>::extractSpectrum(Cube<long>&,long);
-template void Image2D<float>::extractSpectrum(Cube<float>&,long);
-template void Image2D<double>::extractSpectrum(Cube<double>&,long);
 
 
 template <class Type>
@@ -441,11 +361,6 @@ void Image2D<Type>::extractGlobalSpectrum(Cube<Type> *cube)  {
         }
     }
 }
-template void Image2D<short>::extractGlobalSpectrum(Cube<short>*);
-template void Image2D<int>::extractGlobalSpectrum(Cube<int>*);
-template void Image2D<long>::extractGlobalSpectrum(Cube<long>*);
-template void Image2D<float>::extractGlobalSpectrum(Cube<float>*);
-template void Image2D<double>::extractGlobalSpectrum(Cube<double>*);
 
 
 template <class Type>
@@ -479,11 +394,6 @@ void Image2D<Type>::extractImage(Type *Array, int *dim, long channel) {
         }
     }
 }
-template void Image2D<short>::extractImage(short*,int*,long);
-template void Image2D<int>::extractImage(int*,int*,long);
-template void Image2D<long>::extractImage(long*,int*,long);
-template void Image2D<float>::extractImage(float*,int*,long);
-template void Image2D<double>::extractImage(double*,int*,long);
 
 
 template <class Type>
@@ -514,11 +424,6 @@ void Image2D<Type>::extractImage(Cube<Type> &cube, long channel) {
         }
     }
 }
-template void Image2D<short>::extractImage(Cube<short>&,long);
-template void Image2D<int>::extractImage(Cube<int>&,long);
-template void Image2D<long>::extractImage(Cube<long>&,long);
-template void Image2D<float>::extractImage(Cube<float>&,long);
-template void Image2D<double>::extractImage(Cube<double>&,long);
 
 
 template <class Type>
@@ -530,11 +435,6 @@ std::vector<PixelInfo::Scan<Type> > Image2D<Type>::findSources1D() {
     }
     return spectrumDetect(thresholdedArray);
 }
-template std::vector<PixelInfo::Scan<short> > Image2D<short>::findSources1D();
-template std::vector<PixelInfo::Scan<int> > Image2D<int>::findSources1D();
-template std::vector<PixelInfo::Scan<long> > Image2D<long>::findSources1D();
-template std::vector<PixelInfo::Scan<float> > Image2D<float>::findSources1D();
-template std::vector<PixelInfo::Scan<double> > Image2D<double>::findSources1D();
 
 
 template <class Type>
@@ -549,11 +449,6 @@ std::vector<Object2D<Type> > Image2D<Type>::findSources2D() {
     }
     return imageDetect(thresholdedArray);
 }
-template std::vector<Object2D<short> > Image2D<short>::findSources2D();
-template std::vector<Object2D<int> > Image2D<int>::findSources2D();
-template std::vector<Object2D<long> > Image2D<long>::findSources2D();
-template std::vector<Object2D<float> > Image2D<float>::findSources2D();
-template std::vector<Object2D<double> > Image2D<double>::findSources2D(); 
 
 
 template <class Type>  
@@ -566,11 +461,6 @@ bool Image2D<Type>::isDetection(long x, long y) {
       long voxel = y*axisDim[0] + x;
       return stats.isDetection(array[voxel]);
 }
-template bool Image2D<short>::isDetection(long,long);
-template bool Image2D<int>::isDetection(long,long);
-template bool Image2D<long>::isDetection(long,long);
-template bool Image2D<float>::isDetection(long,long);
-template bool Image2D<double>::isDetection(long,long); 
 
 
 template <class Type>
@@ -618,11 +508,6 @@ std::vector<PixelInfo::Scan<Type> > Image2D<Type>::spectrumDetect(std::vector<bo
     return outputlist;
   
 }
-template std::vector<PixelInfo::Scan<short> > Image2D<short>::spectrumDetect(std::vector<bool>&);
-template std::vector<PixelInfo::Scan<int> > Image2D<int>::spectrumDetect(std::vector<bool>&);
-template std::vector<PixelInfo::Scan<long> > Image2D<long>::spectrumDetect(std::vector<bool>&);
-template std::vector<PixelInfo::Scan<float> > Image2D<float>::spectrumDetect(std::vector<bool>&);
-template std::vector<PixelInfo::Scan<double> > Image2D<double>::spectrumDetect(std::vector<bool>&);
 
 
 template <class Type>
@@ -791,10 +676,12 @@ std::vector<Object2D<Type> > Image2D<Type>::imageDetect(std::vector<bool> &array
     return outputlist;
 
 }
-template std::vector<Object2D<short> > Image2D<short>::imageDetect(std::vector<bool>&);
-template std::vector<Object2D<int> > Image2D<int>::imageDetect(std::vector<bool>&);
-template std::vector<Object2D<long> > Image2D<long>::imageDetect(std::vector<bool>&);
-template std::vector<Object2D<float> > Image2D<float>::imageDetect(std::vector<bool>&);
-template std::vector<Object2D<double> > Image2D<double>::imageDetect(std::vector<bool>&); 
 
+
+// Explicit instantiation of the class
+template class Image2D<short>;
+template class Image2D<int>;
+template class Image2D<long>;
+template class Image2D<float>;
+template class Image2D<double>;
 

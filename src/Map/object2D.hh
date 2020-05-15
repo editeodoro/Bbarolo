@@ -47,7 +47,7 @@ namespace PixelInfo
   class Object2D
   {
   public:
-    Object2D();
+    Object2D() {};
     Object2D(const Object2D& o);
     Object2D& operator= (const Object2D& o);  
     virtual ~Object2D(){}
@@ -126,8 +126,8 @@ namespace PixelInfo
     template <class Type> friend class Detection;
 
   protected:
-    std::vector<Scan<T> > scanlist;       ///< The list of Scans
-    unsigned long     numPix;         ///< Number of pixels in the Object
+    std::vector<Scan<T> > scanlist;   ///< The list of Scans
+    unsigned long     numPix = 0 ;    ///< Number of pixels in the Object
     float             xSum;           ///< Sum of x values
     float             ySum;           ///< Sum of y values
     long              xmin,xmax;      ///< min and max x-values of object

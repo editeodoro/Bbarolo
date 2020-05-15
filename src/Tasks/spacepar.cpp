@@ -83,8 +83,6 @@ Spacepar<T>::Spacepar(Cube<T> *c) : Galfit<T>::Galfit(c) {
     
     parspAll = false;
 }
-template Spacepar<float>::Spacepar(Cube<float>*);
-template Spacepar<double>::Spacepar(Cube<double>*);
 
 
 template <class T>
@@ -251,8 +249,6 @@ void Spacepar<T>::calculate() {
     delete [] p1steps;
     delete [] p2steps;
 }
-template void Spacepar<float>::calculate();
-template void Spacepar<double>::calculate();
 
 
 template <class T>
@@ -303,8 +299,6 @@ void Spacepar<T>::plotmin_Gnuplot (int nr) {
     gp.end();
 #endif  
 }
-template void Spacepar<float>::plotmin_Gnuplot(int);
-template void Spacepar<double>::plotmin_Gnuplot(int);
 
 
 template <class T>
@@ -408,8 +402,6 @@ void Spacepar<T>::plotAll_Python() {
 #endif
     
 }
-template void Spacepar<float>::plotAll_Python();
-template void Spacepar<double>::plotAll_Python();
 
 
 template <class T>
@@ -451,6 +443,8 @@ void Spacepar<T>::setOutSpacepar(int p1_nsteps, int p2_nsteps) {
     parspace->saveHead(h);
     parspAll = true;
 }
-template void Spacepar<float>::setOutSpacepar(int,int);
-template void Spacepar<double>::setOutSpacepar(int,int);
 
+
+// Explicit instantiation of the class
+template class Spacepar<float>;
+template class Spacepar<double>;

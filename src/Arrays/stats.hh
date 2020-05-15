@@ -39,16 +39,15 @@ namespace Statistics
     const double trimToNormal = 1.17036753077;
 
     /// A non-templated function to do the rms-to-MADFM conversion. 
-    float sigmaToMADFM(float sigma);
+    inline float sigmaToMADFM(float sigma) {return float(sigma)*correctionFactor;}
     
     /// A templated function to do the MADFM-to-rms conversion. 
-    template <class T> float madfmToSigma(T madfm);
-  
+    template <class T> inline float madfmToSigma(T madfm) {return float(madfm)/correctionFactor;}
   
 
     ///  Template class to hold statistics for a given set of values.
     template <class Type> 
-    class Stats                         
+    class Stats
     {
     public:
         Stats() {useRobust=true; defined=false; useFDR=false;}                 /// Default constructor.

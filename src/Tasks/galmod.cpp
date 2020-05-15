@@ -156,8 +156,6 @@ void Galmod<T>::defaults() {
     relint.push_back(1);
            
 }
-template void Galmod<float>::defaults();
-template void Galmod<double>::defaults();
 
 
 template <class T>
@@ -165,8 +163,6 @@ Galmod<T>::Galmod() {
     
     defaults();
 }
-template Galmod<float>::Galmod();
-template Galmod<double>::Galmod();
 
 
 template <class T>
@@ -176,8 +172,6 @@ Galmod<T>::~Galmod() {
     if (outDefined) delete out;
     if (ringDefined) delete r;
 }
-template Galmod<float>::~Galmod();
-template Galmod<double>::~Galmod();
 
 
 template <class T>
@@ -185,8 +179,6 @@ Galmod<T>::Galmod(const Galmod<T> &g) {
 
     operator=(g);
 }
-template Galmod<float>::Galmod(const Galmod<float>&);
-template Galmod<double>::Galmod(const Galmod<double>&);
 
 
 template <class T>
@@ -247,8 +239,6 @@ Galmod<T>& Galmod<T>::operator=(const Galmod &g) {
     
     return *this;
 }
-template Galmod<float>& Galmod<float>::operator=(const Galmod<float>&);
-template Galmod<double>& Galmod<double>::operator=(const Galmod<double>&);
 
 
 template <class T>
@@ -276,8 +266,6 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
     readytomod=true;
     
 }
-template void Galmod<float>::input(Cube<float>*,int*,int*,Rings<float>*,int,int,int,float,int);
-template void Galmod<double>::input(Cube<double>*,int*,int*,Rings<double>*,int,int,int,float,int);
 
 
 template <class T>
@@ -290,8 +278,6 @@ void Galmod<T>::input(Cube<T> *c, Rings<T> *rings, int NV, int LTYPE, int CMODE,
     
     input(c,Bup,Blo,rings,NV,LTYPE,CMODE,CDENS,ISEED);
 }
-template void Galmod<float>::input(Cube<float>*,Rings<float>*,int,int,int,float,int);
-template void Galmod<double>::input(Cube<double>*,Rings<double>*,int,int,int,float,int);
 
 
 template <class T>
@@ -322,8 +308,6 @@ void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED) {
     gaussia   = std::normal_distribution<float>(0.,1.);
         
 }
-template void Galmod<float>::setOptions(int,int,float,int);
-template void Galmod<double>::setOptions(int,int,float,int);
 
 
 template <class T>
@@ -340,8 +324,6 @@ bool Galmod<T>::calculate() {
     }
     return true;
 }
-template bool Galmod<float>::calculate();
-template bool Galmod<double>::calculate();
 
 
 template <class T>
@@ -372,8 +354,6 @@ bool Galmod<T>::smooth(bool usescalefac) {
     
     return true;
 }
-template bool Galmod<float>::smooth(bool);
-template bool Galmod<double>::smooth(bool);
 
 
 template <class T>
@@ -425,8 +405,6 @@ void Galmod<T>::normalize() {
     }
     
 }
-template void Galmod<float>::normalize();
-template void Galmod<double>::normalize();
 
 
 template <class T>
@@ -615,8 +593,6 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     sig_instr = nch*chwidth;
     
 }
-template void Galmod<float>::initialize(Cube<float>*,int*,int*);
-template void Galmod<double>::initialize(Cube<double>*,int*,int*);
 
 
 template <class T>
@@ -783,8 +759,6 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
     delete [] uypos;
     delete [] uvsys;
 }
-template void Galmod<float>::ringIO(Rings<float>*);
-template void Galmod<double>::ringIO(Rings<double>*);
 
 ///*
 template <class T>
@@ -953,8 +927,6 @@ void Galmod<T>::galmod() {
     modCalculated=true;
 
 }
-template void Galmod<float>::galmod();
-template void Galmod<double>::galmod();
 //*/  
 
 /*
@@ -1178,8 +1150,6 @@ void Galmod<T>::galmod() {
     modCalculated=true;
     
 }
-template void Galmod<float>::galmod();
-template void Galmod<double>::galmod();
 */
 
 
@@ -1244,8 +1214,6 @@ void Galmod<T>::NHItoRAD(){
     }
 
 }
-template void Galmod<float>::NHItoRAD();
-template void Galmod<double>::NHItoRAD();
 
 
 template <class T>  
@@ -1275,8 +1243,6 @@ double Galmod<T>::velgrid(double v) {
     return velg;
 
 }
-template double Galmod<float>::velgrid(double);
-template double Galmod<double>::velgrid(double);
 
 
 template <class T>
@@ -1308,8 +1274,7 @@ double Galmod<T>::fdev(int &idum){
 
     return Fdev;
 }
-template double Galmod<float>::fdev(int&);
-template double Galmod<double>::fdev(int&);
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1338,8 +1303,6 @@ void Galmod_wind<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Shells<T> *shell
     this->readytomod=true;
     
 }
-template void Galmod_wind<float>::input(Cube<float>*,int*,int*,Shells<float>*,int,int,int,float,int);
-template void Galmod_wind<double>::input(Cube<double>*,int*,int*,Shells<double>*,int,int,int,float,int);
 
 
 template <class T>
@@ -1472,8 +1435,6 @@ void Galmod_wind<T>::shellIO(Shells<T> *shells) {
     delete [] uvsys;
     delete [] uvoan;
 }
-template void Galmod_wind<float>::shellIO(Shells<float>*);
-template void Galmod_wind<double>::shellIO(Shells<double>*);
 
 
 template <class T>
@@ -1488,9 +1449,6 @@ bool Galmod_wind<T>::calculate() {
     }
     return true;
 }
-template bool Galmod_wind<float>::calculate();
-template bool Galmod_wind<double>::calculate();
-
 
 
 template <class T>
@@ -1605,8 +1563,13 @@ void Galmod_wind<T>::galmod_wind() {
     this->modCalculated=true;
 
 }
-template void Galmod_wind<float>::galmod_wind();
-template void Galmod_wind<double>::galmod_wind();
+
+
+// Explicit instantiation of the classes
+template class Galmod<float>;
+template class Galmod<double>;
+template class Galmod_wind<float>;
+template class Galmod_wind<double>;
 
 }
 
