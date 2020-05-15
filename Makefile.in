@@ -124,6 +124,7 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/converter.o\
 	 $(OBJDIR)/wcsUtils.o\
 	 $(OBJDIR)/fitsUtils.o\
+	 $(OBJDIR)/paramguess.o\
 	 $(OBJDIR)/BB_interface.o\
 
 bbarolo : builddir $(OBJECTS)

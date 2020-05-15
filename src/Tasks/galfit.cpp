@@ -1304,6 +1304,7 @@ template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,in
 template <class T>
 T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     
+    // Running the source finder to detect the source
     if (!c->getIsSearched()) c->Search();
     Detection<T> *largest = c->LargestDetection();
 
@@ -1312,24 +1313,45 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
         std::terminate();
     }
 
-    ParamGuess<T> *ip = new ParamGuess<T>(c,largest);
-    ip->findInitial();
 
+    ParamGuess<T> *ip = new ParamGuess<T>(c,largest);
+    //ip->findAll();
+
+    // Estimating centre if not given
     string pos[2] = {p->XPOS, p->YPOS};
     double *pixs = getCenterCoordinates(pos, c->Head());
-    if (p->XPOS!="-1" && p->YPOS!="-1") {
-        ip->setXcentre(pixs[0]);
-        ip->setYcentre(pixs[1]);
-    }
-    if (p->PHI!="-1")  ip->setPosang(atof(p->PHI.c_str()));
+    if (p->XPOS!="-1" && p->YPOS!="-1") ip->setCentre(pixs[0],pixs[1]); 
+    else ip->findCentre();
+    
+    // Estimating systemic velocity if not given
+    if (p->VSYS!="-1") ip->vsystem = atof(p->VSYS.c_str());
+    else ip->findSystemicVelocity();
+    
+    // Estimating position angle if not given
+    if (p->PHI!="-1") ip->setPosang(atof(p->PHI.c_str()));
+    else ip->findPositionAngle(1);
 
-    ip->fitEllipse();
-    if (c->pars().getFlagDebug()) ip->fitIncfromMap();
+    // Estimating rotation velocity angle if not given
+    // In findInclination: 1=axis ratio, 2=ellipse, 3=totalmap
+    if (p->INC!="-1") ip->inclin = atof(p->INC.c_str());
+    else ip->findInclination(2);
+    
+    // Estimating rings if not given
+    if (par.NRADII!=-1 && par.RADSEP!=-1) {
+        ip->radsep = par.RADSEP;
+        ip->nrings = par.NRADII;
+    }
+    else ip->findRings();
+    
+    //if (c->pars().getFlagDebug()) ip->fitIncfromMap();
     if (c->pars().getFlagDebug()) ip->plotGuess();
     
+    if (p->VROT!="-1") ip->vrot = atof(p->VROT.c_str());
+    else ip->findRotationVelocity();
+
     T *init_par = new T[8];
     init_par[0] = ip->nrings;
-    init_par[1] = ip->radsep; 
+    init_par[1] = ip->radsep;
     init_par[2] = ip->xcentre;
     init_par[3] = ip->ycentre;
     init_par[4] = ip->vsystem;
@@ -1337,6 +1359,11 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     init_par[6] = ip->inclin;
     init_par[7] = ip->posang;
     
+    //std::cout << ip->inclin << std::endl;
+    //ip->plotGuess();
+    //std::terminate();
+    
+
     delete ip;
     return init_par;
 }
