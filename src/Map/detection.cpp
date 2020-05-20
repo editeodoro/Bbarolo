@@ -62,7 +62,6 @@ void Detection<T>::defaultDetection() {
     xCentroid = 0.;
     yCentroid = 0.;
     zCentroid = 0.;
-    centreType="centroid";
     negSource = false; 
     flagText="";
     id = -1;
@@ -137,7 +136,6 @@ Detection<T>& Detection<T>::operator= (const Detection<T>& d) {
     this->xCentroid    = d.xCentroid;
     this->yCentroid    = d.yCentroid;
     this->zCentroid    = d.zCentroid;
-    this->centreType   = d.centreType;
     this->negSource    = d.negSource;
     this->flagText     = d.flagText;
     this->id           = d.id;
@@ -191,7 +189,7 @@ Detection<T> operator+ (Detection<T> &lhs, Detection<T> &rhs) {
 
 
 template <class T>  
-float Detection<T>::getXcentre() {
+float Detection<T>::getXcentre(std::string centreType) {
     
     if(centreType=="peak") return xpeak;
     else if(centreType=="average") return this->getXaverage();
@@ -200,7 +198,7 @@ float Detection<T>::getXcentre() {
 
 
 template <class T>  
-float Detection<T>::getYcentre() {
+float Detection<T>::getYcentre(std::string centreType) {
     
     if(centreType=="peak") return ypeak;
     else if(centreType=="average") return this->getYaverage();
@@ -209,7 +207,7 @@ float Detection<T>::getYcentre() {
 
 
 template <class T>
-float Detection<T>::getZcentre() {
+float Detection<T>::getZcentre(std::string centreType) {
     
     if(centreType=="peak") return zpeak;
     else if(centreType=="average") return this->getZaverage();

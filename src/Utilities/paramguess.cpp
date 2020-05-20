@@ -98,8 +98,8 @@ void ParamGuess<T>::findAll() {
 template <class T>
 void ParamGuess<T>::findCentre() {
     
-    // X-Y centres are estimated from the centroids of the 
-    // object detected by the source-finding algorithm. 
+    /// X-Y centres are estimated from the centroids of the
+    /// object detected by the source-finding algorithm.
     xcentre = (obj->getXcentre()+obj->getXaverage())/2.;
     ycentre = (obj->getYcentre()+obj->getYaverage())/2.;
 }
@@ -108,8 +108,8 @@ void ParamGuess<T>::findCentre() {
 template <class T>
 void ParamGuess<T>::findSystemicVelocity() {
     
-    // Systemic velocity is estimated from the total spectrum of 
-    // the object detected by the source-finding algorithm. 
+    /// Systemic velocity is estimated from the total spectrum of
+    /// the object detected by the source-finding algorithm.
     vsystem = obj->getVsys();
 }
 
@@ -117,8 +117,8 @@ void ParamGuess<T>::findSystemicVelocity() {
 template <class T>
 void ParamGuess<T>::findRotationVelocity() {
     
-    // Rotation velocity is estimated from the W50 of spectrum of 
-    // the object detected by the source-finding algorithm. 
+    /// Rotation velocity is estimated from the W50 of spectrum of
+    /// the object detected by the source-finding algorithm.
     vrot=fabs(obj->getW50()/2.)/sin(inclin*M_PI/180.);  
 }
 
@@ -127,12 +127,12 @@ template <class T>
 void ParamGuess<T>::findPositionAngle(int algorithm) {
     
     ////////////////////////////////////////////////////////////////////////////
-    // Estimating Position angle using several different algorithms
-    // algorithm = 1: velocity differences from the VSYS
-    // algorithm = 2: regions of highest/lowest velocities
-    //
-    // NB: xcenter, ycenter, vsystem need to be set before calling this function
-    // This function sets posang, pmaj, pmin
+    /// Estimating Position angle using several different algorithms
+    /// algorithm = 1: velocity differences from the VSYS
+    /// algorithm = 2: regions of highest/lowest velocities
+    ///
+    /// NB: xcenter, ycenter, vsystem need to be set before calling this function
+    /// This function sets posang
     ////////////////////////////////////////////////////////////////////////////
     
     // Getting maximum and minimum velocity in the spectral range of the cube
@@ -220,11 +220,11 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
     }
 
     else if (algorithm == 2) {
-        /// This algorithm samples the velocity field in rectangular regions 
-        /// with size equal to the beam size. In each region it calculates the 
-        /// median velocity value and finds the two spots where this median value 
-        /// is the highest and the lowest. Then, a linear regression between 
-        /// these two regions is performed and the position angle estimated.
+        // This algorithm samples the velocity field in rectangular regions
+        // with size equal to the beam size. In each region it calculates the
+        // median velocity value and finds the two spots where this median value
+        // is the highest and the lowest. Then, a linear regression between
+        // these two regions is performed and the position angle estimated.
 
         float vel_high = vsystem;
         float vel_low  = vsystem;   
@@ -258,14 +258,14 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
         std::vector<int> xx(3), yy(3);
         xx[0]=coord_low[0]; xx[1]=coord_high[0]; xx[2]=lround(xcentre);
         yy[0]=coord_low[1]; yy[1]=coord_high[1]; yy[2]=lround(ycentre);
-        float rmaj, errmaj[2];
+        float rmaj, errmaj[2], pmaj[2];
     
-        /// Linear regression between the center and the two point found previously.
-        /// For not including the center, just change the last parameter from 
-        /// 2 to 1 in the function below.
+        // Linear regression between the center and the two point found previously.
+        // For not including the center, just change the last parameter from
+        // 2 to 1 in the function below.
         int a = linear_reg<int>(3, xx, yy, pmaj, errmaj, rmaj, 0, 2);
         
-        float ang = atan(pmaj[0]);  
+        float ang = atan(pmaj[0]);
         if (coord_high[0]>=xcentre) {   
             if (ang<M_PI_2) posang = (3*M_PI_2+ang)*180/M_PI;
             else posang = (M_PI_2+ang)*180/M_PI;
@@ -281,9 +281,6 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
         std::terminate();
     }
     
-    // Setting angular coefficient and zero point of major/minor axis
-    setAxesLine(xcentre, ycentre, posang);
-    
 }
 
 
@@ -291,20 +288,22 @@ template <class T>
 void ParamGuess<T>::findInclination(int algorithm) {
     
     ////////////////////////////////////////////////////////////////////////////
-    // Estimating Inclination angle using several different algorithms
-    // algorithm = 1: Length of major/minor axis on the velocity field.
-    // algorithm = 2: Ellipse with largest number of valid pixels.
-    // algorithm = 3: Fit a model intensity map to the observed one.
-    //
-    // NB: xcenter, ycenter, vsystem and posang need to be set before calling 
-    // this function.
-    // This function sets inclin, Rmax, nrings, radsep
+    /// Estimating Inclination angle using several different algorithms
+    /// algorithm = 1: Length of major/minor axis on the velocity field.
+    /// algorithm = 2: Ellipse with largest number of valid pixels.
+    /// algorithm = 3: Fit a model intensity map to the observed one.
+    ///
+    /// NB: xcenter, ycenter, vsystem and posang need to be set before calling
+    /// this function.
+    /// This function sets inclin, Rmax, nrings, radsep
     ////////////////////////////////////////////////////////////////////////////
     
     // We always start with algorithm==1. This will provide also initial 
     // guesses for other algorithms.
     
-    /// Estimating axis lengths for major and minor axis
+    // Estimating axis lengths for major and minor axis
+    float pmaj[2], pmin[2];
+    setAxesLine(xcentre,ycentre,posang,pmaj,pmin);
     T axmaj = findAxisLength(pmaj, major_max, major_min);
     T axmin = findAxisLength(pmin, minor_max, minor_min);
     
@@ -325,11 +324,11 @@ void ParamGuess<T>::findInclination(int algorithm) {
         return;
     }
     else if (algorithm==2 || algorithm==3) {
-        /// Algorithm 2 finds the ellipses that contains the largest number of
-        /// non-NaN pixels on the velocity field.
-        ///
-        /// Algorithm 3 minimizes the difference between a model intensity map
-        /// and the observed intensity map.
+        // Algorithm 2 finds the ellipses that contains the largest number of
+        // non-NaN pixels on the velocity field.
+        //
+        // Algorithm 3 minimizes the difference between a model intensity map
+        // and the observed intensity map.
         
         if (algorithm==2) func = &ParamGuess<T>::funcEllipse;
         else func = &ParamGuess<T>::funcIncfromMap;
@@ -345,7 +344,7 @@ void ParamGuess<T>::findInclination(int algorithm) {
         //point[3] = xcentre;
         //point[4] = ycentre;
     
-        /// Determine the initial simplex.
+        // Determine the initial simplex.
         for (int i=0; i<ndim; i++) {
             dels[i]  = 0.1*point[i]; 
             point[i] = point[i]-0.05*point[i];      
@@ -464,23 +463,23 @@ T ParamGuess<T>::findAxisLength(float *lpar, int *coords_up, int *coords_low) {
 
 
 template <class T>
-void ParamGuess<T>::setAxesLine(T xcen, T ycen, T pa) {
+void ParamGuess<T>::setAxesLine(T xcen, T ycen, T pa, float *maj, float *min) {
 
+    /// Calculate angular coefficients and zero-points for major and minor axis.
     float m = pa - 90;
     while (m>180) m-=180;
     while (m<0) m+=180;
-    pmaj[0] = tan(m*M_PI/180.);
-    pmaj[1] = ycen-pmaj[0]*xcen;
-    pmin[0] = - 1/pmaj[0];
-    pmin[1] = ycen-pmin[0]*xcen;
-    
+    maj[0] = tan(m*M_PI/180.);
+    maj[1] = ycen-maj[0]*xcen;
+    min[0] = - 1/maj[0];
+    min[1] = ycen-min[0]*xcen;
 }
 
 
 template <class T>
 bool ParamGuess<T>::fitSimplex(int ndim, T **p) {
     
-    const int NMAX=5000;            
+    const int NMAX=5000;
     const double TINY=1.0e-10;
     const double tol =1.E-03;
     
@@ -607,19 +606,17 @@ bool ParamGuess<T>::fitSimplex(int ndim, T **p) {
 template <class T>
 T ParamGuess<T>::funcEllipse(T *mypar) {
     
-    double F = M_PI/180.;
-    
     T R   = mypar[0]/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
-    T inc = mypar[1];
-    T phi = posang;//mypar[2];
+    T inc = mypar[1]*M_PI/180.;
+    T phi = posang*M_PI/180.;//mypar[2];
     T x0  = xcentre;//mypar[3];
     T y0  = ycentre;//mypar[4];
 
     double func = 0;
     for (int x=0; x<in->DimX(); x++) {
         for (int y=0; y<in->DimY(); y++) {
-            T xr =  -(x-x0)*sin(F*phi)+(y-y0)*cos(F*phi);
-            T yr = (-(x-x0)*cos(F*phi)-(y-y0)*sin(F*phi))/cos(F*inc);
+            T xr =  -(x-x0)*sin(phi)+(y-y0)*cos(phi);
+            T yr = (-(x-x0)*cos(phi)-(y-y0)*sin(phi))/cos(inc);
             T r = sqrt(xr*xr+yr*yr);
             bool isIn = r<=R;
             if (!isIn) continue;
@@ -824,46 +821,171 @@ T ParamGuess<T>::funcIncfromMap(T *mypar) {
 
 
 template <class T>
-void ParamGuess<T>::plotGuess() {
+int ParamGuess<T>::plotGuess() {
     
+    /// Plotting the initial guesses
 
-    /// Plotting axes in a .eps file.
-    std::ofstream velf;
     std::string outfolder = in->pars().getOutfolder();
-    velf.open((outfolder+"vfield.dat").c_str());
-
     std::vector<T> vec;
-    float vrange = fabs(DeltaVel<float>(in->Head()));
-    for (int x=0; x<in->DimX(); x++) {
-        for (int y=0; y<in->DimY(); y++) {
+    T axmaj_pix = Rmax/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
+    T axmin_pix = axmaj_pix*cos(inclin*M_PI/180.);
+    float maj[2], min[2];
+    int ret = 0;
+
+    // Writing intensity map and velocity field in a text file
+    std::ofstream velf((outfolder+"vfield.dat").c_str());
+    std::ofstream intf((outfolder+"ifield.dat").c_str());
+    short b = 10;
+    int xstart = obj->getXmin()-b>=0 ? obj->getXmin()-b : 0;
+    int xstop  = obj->getXmax()+b<in->DimX() ? obj->getXmax()+b : in->DimX()-1;
+    int ystart = obj->getYmin()-b>=0 ? obj->getYmin()-b : 0;
+    int ystop  = obj->getYmax()+b<in->DimY() ? obj->getYmax()+b : in->DimY()-1;
+
+    T *prof = new T[in->DimZ()];
+    for (int z=0; z<in->DimZ(); z++) prof[z] = 0;
+
+    for (int x=xstart; x<=xstop; x++) {
+        for (int y=ystart; y<=ystop; y++) {
             long npix = x+y*in->DimX(); 
-            if (!isNaN(Vemap[npix])) vec.push_back(Vemap[npix]); 
-            velf << x << " " << y << " " << Vemap[npix]<<std::endl;
+            if (!isNaN(Vemap[npix])) vec.push_back(Vemap[npix]);
+            velf << x << "  " << y << "  " << Vemap[npix] << std::endl;
+            intf << x << "  " << y << "  " << Intmap[npix] << std::endl;
+            for (int z=0; z<in->DimZ(); z++) prof[z] += in->Array(x,y,z);
         }
         velf << std::endl;
     }
     velf.close();
-    
+    intf.close();
+
+    // Writing total spectrum to a file
+    std::ofstream spf((outfolder+"spec.dat").c_str());
+    for (int z=0; z<in->DimZ(); z++)
+        spf << AlltoVel(in->getZphys(z),in->Head()) << "  " << prof[z] << std::endl;
+    delete [] prof;
+    spf.close();
+
     float maxvel = *max_element(&vec[0], &vec[0]+vec.size());
     float minvel = *min_element(&vec[0], &vec[0]+vec.size());
-    vec.clear();
-    
-    std::string outfile = outfolder+"initial_geometry.eps";
+
+    double pix[3] = {xcentre, ycentre, 0}, world[3];
+    pixToWCSSingle(in->Head().WCS(),pix,world);
+
+#ifdef HAVE_PYTHON
+    setAxesLine(xcentre-xstart,ycentre-ystart,posang,maj,min);
+
+    std::ofstream pyf((outfolder+"pyscript_ig.py").c_str());
+    pyf << "import numpy as np \n"
+        << "import matplotlib as mpl \n"
+        << "import matplotlib.pyplot as plt \n"
+        << "fsize = 11 \n"
+        << "mpl.rc('xtick',direction='in',labelsize=fsize) \n"
+        << "mpl.rc('ytick',direction='in',labelsize=fsize) \n"
+        << "plt.rc('font',family='sans-serif',serif='Helvetica',size=fsize) \n"
+        << "params = {'text.usetex': False, 'mathtext.fontset': 'cm', 'mathtext.default': 'regular'} \n"
+        << "plt.rcParams.update(params) \n"
+        << std::endl
+        << "outdir = '"<< outfolder << "'\n"
+        << "xsize, ysize = " << xstop-xstart+1 << " , " << ystop-ystart+1 << "\n"
+        << "xpos, ypos, pa, inc = " << xcentre-xstart << " , " << ycentre-ystart
+        << " , " << posang << " , " << inclin << "\n"
+        << "axmaj, axmin, vsys = " << axmaj_pix << " , " << axmin_pix << " , " << vsystem << "\n"
+        << "f = np.genfromtxt('%s/ifield.dat'%outdir,usecols=(2),unpack=True) \n"
+        << "v = np.genfromtxt('%s/vfield.dat'%outdir,usecols=(2),unpack=True) \n"
+        << "v = v.reshape(xsize,ysize).T \n"
+        << "f = f.reshape(xsize,ysize).T \n"
+        << "f[f==0] = np.nan \n"
+        << "t  = np.linspace(0,2*np.pi,100) \n"
+        << "xt = xpos+axmaj*np.cos(np.radians(pa-90))*np.cos(t)-axmin*np.sin(np.radians(pa-90))*np.sin(t) \n"
+        << "yt = ypos+axmaj*np.sin(np.radians(pa-90))*np.cos(t)+axmin*np.cos(np.radians(pa-90))*np.sin(t) \n"
+        << "fx = lambda x: " << maj[0] << "*x+" << to_string(maj[1]) << std::endl
+        << "gx = lambda x: " << min[0] << "*x+" << to_string(min[1]) << std::endl
+        << "x_maj, y_maj = ["<< major_min[0]-xstart << "," << major_max[0]-xstart << "], ["
+        << major_min[1]-ystart << "," << major_max[1]-ystart << "] \n"
+        << "x_min, y_min = ["<< minor_min[0]-xstart << "," << minor_max[0]-xstart << "], ["
+        << minor_min[1]-ystart << "," << minor_max[1]-ystart << "] \n"
+        << "vel, sp = np.genfromtxt('%s/spec.dat'%outdir,usecols=(0,1),unpack=True) \n"
+        << "v20min, v20max = " << obj->getV20Min() << " , " << obj->getV20Max() << "\n"
+        << "v50min, v50max = " << obj->getV50Min() << " , " << obj->getV50Max() << "\n"
+        << std::endl
+        << "fig = plt.figure(figsize=(10,10)) \n"
+        << "fig.add_axes([0.00,0.42,0.3,0.3]) \n"
+        << "fig.add_axes([0.31,0.42,0.3,0.3]) \n"
+        << "fig.add_axes([0.00,0.1,0.4,0.3]) \n"
+        << "ax = fig.axes \n"
+        << "cax1 = fig.add_axes([ax[0].get_position().x0,ax[0].get_position().y1+0.01,0.3,0.02]) \n"
+        << "cax2 = fig.add_axes([ax[1].get_position().x0,ax[1].get_position().y1+0.01,0.3,0.02]) \n"
+        << std::endl
+        << "im = ax[0].imshow(f,origin='lower',cmap=plt.get_cmap('Spectral_r')) \n"
+        << "cb = plt.colorbar(im,cax=cax1,orientation='horizontal') \n"
+        << "cb.set_label('Int flux (std)',labelpad=-50,fontsize=fsize+1) \n"
+        << std::endl
+        << "im = ax[1].imshow(v,origin='lower',cmap=plt.get_cmap('RdBu_r',25)) \n"
+        << "ax[1].contour(v,levels=[vsys],colors='green') \n"
+        << "cb = plt.colorbar(im,cax=cax2 ,orientation='horizontal') \n"
+        << "cb.set_label(r'V$_\\mathrm{LOS}$ (km/s)',labelpad=-50,fontsize=fsize+1) \n"
+        << std::endl
+        << "ax[2].plot(vel,sp,'.-') \n"
+        << "ax[2].axhline(0,c='k',lw=0.8) \n"
+        << "ax[2].axvline(vsys,c='green') \n"
+        << "ax[2].axvline(v20min,c='#9932CC',lw=1,ls='--',label='V20') \n"
+        << "ax[2].axvline(v20max,c='#9932CC',lw=1,ls='--') \n"
+        << "ax[2].axvline(v50min,c='#FF8C00',lw=1,ls='--',label='V50') \n"
+        << "ax[2].axvline(v50max,c='#FF8C00',lw=1,ls='--') \n"
+        << "ax[2].set_xlabel(r'V$_\\mathrm{LOS}$ (km/s)',fontsize=fsize+1) \n"
+        << "ax[2].set_ylabel(r'Flux (std)',fontsize=fsize+1) \n"
+        << "ax[2].tick_params(right=True,top=True) \n"
+        << std::endl
+        << "for a in ax[:2]: \n"
+        << "\ta.plot([0,xsize],fx(np.array([0,xsize])),'-',c='#4169E1') \n"
+        << "\ta.plot([0,xsize],gx(np.array([0,xsize])),'--',c='#FF7F50') \n"
+        << "\ta.plot(xt,yt,'k') \n"
+        << "\ta.plot(xpos,ypos,'x',color='#000000',markersize=7,mew=1.5) \n"
+        << "\ta.plot(x_maj,y_maj,'o',color='red',markersize=4) \n"
+        << "\ta.plot(x_min,y_min,'o',color='red',markersize=4) \n"
+        << "\ta.tick_params(right=True,top=True,labelbottom=False,labelleft=False) \n"
+        << "\ta.set_xlim(0,xsize) \n"
+        << "\ta.set_ylim(0,ysize) \n"
+        << std::endl
+        << "for a in [cax1,cax2]: \n"
+        << "\ta.xaxis.set_ticks_position('top') \n"
+        << "\ta.locator_params(nbins=4) \n"
+        << std::endl
+        << "xpos, ypos = " << xcentre << " , " << ycentre << "\n"
+        << "ra, dec    = " << world[0] << " , " << world[1] << "\n"
+        << "pstr = [r'X$_\\mathrm{pos}$ = %.2f pix'%xpos, r'Y$_\\mathrm{pos}$ = %.2f pix'%ypos, \n "
+        << "        r'$\\alpha$  = %.5f$^\\circ$'%ra, r'$\\delta$ = %.5f$^\\circ$'%dec, \n"
+        << "        r'$\\phi$    = %.0f$^\\circ$'%pa,r'inc  = %.1f$^\\circ$'%inc, r'$b/a$ = %.2f'%(axmin/axmaj), \n"
+        << "        r'V$_\\mathrm{sys}$ = %.2f km/s'%vsys, r'W$_{20}$ = %.2f km/s'%(np.fabs(v20max-v20min)/2), \n"
+        << "        r'W$_{50}$ = %.2f km/s'%(np.fabs(v50max-v50min)/2)] \n"
+        << "for i in range (len(pstr)): \n"
+        << "\tax[2].text(1.1,0.97-i*0.1,pstr[i],va='top',transform=ax[2].transAxes) \n"
+        << std::endl
+        << "fig.savefig('%s/initial_guesses.pdf'%outdir,bbox_inches='tight') \n"
+        << std::endl;
+
+    pyf.close();
+
+    std::string cmd = "python "+outfolder+"pyscript_ig.py > /dev/null 2>&1";
+    ret = system(cmd.c_str());
+    remove((outfolder+"pyscript_ig.py").c_str());
+#else
+#ifdef HAVE_GNUPLOT
+    std::string outfile = outfolder+"initial_guesses.eps";
     std::ofstream gnu((outfolder+"gnuscript.gnu").c_str());
-    T Rmaxpix = Rmax/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
-    std::string amaj = to_string(Rmaxpix);
-    std::string amin = to_string(Rmaxpix*cos(inclin/180*M_PI));
+    std::string amaj = to_string(axmaj_pix);
+    std::string amin = to_string(axmin_pix);
     std::string posa = to_string(posang/180*M_PI-M_PI_2);
-    std::string xcenter = to_string(xcentre);
-    std::string ycenter = to_string(ycentre); 
+    std::string xcen = to_string(xcentre);
+    std::string ycen = to_string(ycentre);
+    setAxesLine(xcentre,ycentre,posang,maj,min);
     gnu << "unset key\n"
     //  << "set grid\n"
         << "set title 'Axis fitting'\n"
         << "set cbtics scale 0\n"
         << "set palette defined (0 '#000090',1 '#000fff',2 '#0090ff',3 '#0fffee',4 '#90ff70',"
         << " 5 '#ffee00', 6 '#ff7000',7 '#ee0000',8 '#7f0000')\n"
-        << "f(x)="<<to_string(pmaj[0])<<"*x+"<<to_string(pmaj[1])<<std::endl
-        << "g(x)="<<to_string(pmin[0])<<"*x+"<<to_string(pmin[1])<<std::endl
+        << "f(x)="<<to_string(maj[0])<<"*x+"<<to_string(maj[1])<<std::endl
+        << "g(x)="<<to_string(min[0])<<"*x+"<<to_string(min[1])<<std::endl
         << "set xrange [0:"<<to_string<long>(in->DimX())<<"]\n"
         << "set yrange [0:"<<to_string<long>(in->DimY())<<"]\n"
         << "set cbrange ["<<to_string(minvel)<<":"<<to_string(maxvel)<<"]\n"
@@ -871,8 +993,8 @@ void ParamGuess<T>::plotGuess() {
         << "set ylabel 'Y (pixels)'\n"
         << "set size square\n"
         << "set parametric\n"
-        << "x(t)="+xcenter+"+"+amaj+"*cos("+posa+")*cos(t)-"+amin+"*sin("+posa+")*sin(t)\n"
-        << "y(t)="+ycenter+"+"+amaj+"*sin("+posa+")*cos(t)+"+amin+"*cos("+posa+")*sin(t)\n"
+        << "x(t)="+xcen+"+"+amaj+"*cos("+posa+")*cos(t)-"+amin+"*sin("+posa+")*sin(t)\n"
+        << "y(t)="+ycen+"+"+amaj+"*sin("+posa+")*cos(t)+"+amin+"*cos("+posa+")*sin(t)\n"
         << "set table '"+outfolder+"ellipse.tab'\n"
         << "plot x(t), y(t)\n"
         << "unset table\n"
@@ -881,24 +1003,30 @@ void ParamGuess<T>::plotGuess() {
         << "set output '"<<outfile<<"'\n"
         << "plot '"+outfolder+"vfield.dat' w image pixels,"
         << " '"+outfolder+"ellipse.tab' w l ls -1 lw 2, f(x) ls 1 lw 2, g(x) ls 3 lw 2,'-' ls 5, '-' ls 7 \n"
-        << to_string(xcentre)+" "+to_string(ycentre) << std::endl
+        << xcen+" "+ycen << std::endl
         << "e" << std::endl
         << to_string(major_max[0])+" "+to_string(major_max[1]) << std::endl
         << to_string(major_min[0])+" "+to_string(major_min[1]) << std::endl
         << to_string(minor_max[0])+" "+to_string(minor_max[1]) << std::endl
         << to_string(minor_min[0])+" "+to_string(minor_min[1]) << std::endl
         << "e" << std::endl;
-    
-#ifdef HAVE_GNUPLOT
+
+    gnu.close();
+
     Gnuplot gp;
     gp.begin(); 
     gp.commandln(("load '"+outfolder+"gnuscript.gnu'").c_str());
     gp.end();
     remove((outfolder+"ellipse.tab").c_str());
-#endif  
-    remove((outfolder+"vfield.dat").c_str());
     remove((outfolder+"gnuscript.gnu").c_str());
+#endif
+#endif
 
+    remove((outfolder+"vfield.dat").c_str());
+    remove((outfolder+"ifield.dat").c_str());
+    remove((outfolder+"spec.dat").c_str());
+
+    return ret;
 }
 
 

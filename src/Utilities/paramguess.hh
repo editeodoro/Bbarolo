@@ -59,9 +59,8 @@ public:
     ParamGuess(Cube<T> *c, Detection<T> *object);
     ~ParamGuess() {delete [] Vemap; delete [] Intmap;}
 
-    void setCentre(T xcen, T ycen) {xcentre=xcen; ycentre=ycen; 
-                                    setAxesLine(xcentre,ycentre,posang);}
-    void setPosang(T pa) {posang=pa; setAxesLine(xcentre,ycentre,posang);}
+    void setCentre(T xcen, T ycen) {xcentre=xcen; ycentre=ycen;}
+    void setPosang(T pa) {posang=pa;}
     
     void findAll();
     void findCentre();
@@ -70,7 +69,7 @@ public:
     void findInclination(int algorithm=2);
     void findRotationVelocity();
     void findRings();
-    void plotGuess();
+    int  plotGuess();
     
 private:
     Cube<T> *in;            //< Pointer to input datacube
@@ -78,15 +77,13 @@ private:
     T*      Intmap;         //< Intensity map
     T*      Vemap;          //< Velocity field
     
-    float   pmaj[2];        //< Parameters of a linear function y=mx+q for major axis
-    float   pmin[2];        //< Parameters of a linear function y=mx+q for minor axis
     int     major_max[2];   //< Upper pixel coordinates on the major axis
     int     minor_max[2];   //< Upper pixel coordinates on the minor axis
     int     major_min[2];   //< Lower pixel coordinates on the major axis
     int     minor_min[2];   //< Lower pixel coordinates on the minor axis
     float   totflux_obs;    //< Total flux
 
-    void  setAxesLine(T xcen, T ycen, T pa);
+    void  setAxesLine(T xcen, T ycen, T pa, float *maj, float *min);
     T     findAxisLength(float *lpar, int *coords_up, int *coords_low);
     T     funcEllipse(T *mypar);
     T     funcIncfromMap(T *mypar);

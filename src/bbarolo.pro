@@ -39,9 +39,11 @@ SOURCES +=     bbarolo.cpp \
     Utilities/statistics.cpp \
     Utilities/string.cpp \
     Utilities/utils.cpp \
+    Utilities/paramguess.cpp \
     Tasks/galfit_out.cpp \
     Tasks/slitfit.cpp \
     Utilities/wcsUtils.cpp \
+    Utilities/fitsUtils.cpp \
     Tasks/ellprof.cpp \
     Tasks/moment.cpp
 

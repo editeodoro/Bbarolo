@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 #include <cfloat> 
 #include <Tasks/spacepar.hh>
 #include <Utilities/utils.hh>
@@ -306,11 +307,11 @@ void Spacepar<T>::plotAll_Python() {
     
     if (!parspAll) return;
     
-    bool verb = Galfit<T>::in->pars().isVerbose();
+    bool verb = this->in->pars().isVerbose();
     
     // Writing fitsfile with parameter space
-    std::string outfold = Galfit<T>::in->pars().getOutfolder();
-    std::string object  = Galfit<T>::in->Head().Name();
+    std::string outfold = this->in->pars().getOutfolder();
+    std::string object  = this->in->Head().Name();
     std::string fname   = outfold+"spacepar_"+object+".fits";
     
     // Writing parameter space as variation from minimum
@@ -322,9 +323,10 @@ void Spacepar<T>::plotAll_Python() {
     parspace->fitswrite_3d(fname.c_str());
     
     // Writing python script for output plots
+    mkdirp((this->in->pars().getOutfolder()+"plotscripts/").c_str());
     std::string scriptname = "spacepar.py";
     std::string fout = outfold+"spacepar_"+object+".pdf";
-    std::ofstream py_file((outfold+scriptname).c_str());
+    std::ofstream py_file((outfold+"plotscripts/"+scriptname).c_str());
     
     py_file << "# A script to produce output plots for SPACEPAR task.\n"
             << "import numpy as np\n" 
@@ -388,12 +390,15 @@ void Spacepar<T>::plotAll_Python() {
             << "\t\tax.set_xlabel(p1+' ('+p1u+')')\n\n"
                 
             << "fig.savefig('"+fout+"',bbox_inches='tight')\n";
-    
+
+    py_file.close();
+
+
 #ifdef HAVE_PYTHON
-    std::string cmd = "python "+outfold+scriptname;//+" > /dev/null 2>&1";
-    if (Galfit<T>::in->pars().getFlagPlots()) {
+    std::string cmd = "python "+outfold+"plotscripts/"+scriptname +" > /dev/null 2>&1 ";
+    if (this->in->pars().getFlagPlots()) {
         if (verb) std::cout << "\n\nProducing " << randomAdjective(1) << " parameter space plots..." << std::flush;
-        int ret = system(cmd.c_str());
+        int ret = std::system(cmd.c_str());
         if (verb) {
             if (ret==0) std::cout << " Done.\n";
             else std::cout << " Something went wrong! Check spacepar.py in the output folder.\n";

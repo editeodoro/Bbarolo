@@ -50,7 +50,7 @@ public:
     Detection(const Object3D<T>& o);
     Detection(const Detection& d);
     Detection& operator= (const Detection& d);
-    virtual ~Detection(){};
+    virtual ~Detection(){}
     void defaultDetection();
     
     template <class Type>
@@ -58,16 +58,16 @@ public:
     
     /// Utility functions;
     
-    float       getXcentre();
-    float       getYcentre();
-    float       getZcentre();
+    float       getXcentre(std::string centreType="centroid");
+    float       getYcentre(std::string centreType="centroid");
+    float       getZcentre(std::string centreType="centroid");
     
     /// Add a single voxel to the pixel list.
-    void   addPixel(long x, long y, long z){Object3D<T>::addPixel(x,y,z);};
+    void   addPixel(long x, long y, long z){Object3D<T>::addPixel(x,y,z);}
     void   addPixel(PixelInfo::Voxel<T> point);
 
     /// How many channels does the Detection have? 
-    long   getNumChannels(){return Object3D<T>::getNumChanMap();};
+    long   getNumChannels(){return Object3D<T>::getNumChanMap();}
 
     /// Is there at least the acceptable minimum number of channels in the Detection?  
     bool   hasEnoughChannels(int minNumber);
@@ -76,7 +76,7 @@ public:
     void   setOffsets(long Xoffset=0, long Yoffset=0, long Zoffset=0); 
 
     /// Add the offset values to the pixel locations 
-    void   addOffsets(long xoff, long yoff, long zoff){Object3D<T>::addOffsets(xoff,yoff,zoff);};
+    void   addOffsets(long xoff, long yoff, long zoff){Object3D<T>::addOffsets(xoff,yoff,zoff);}
     void   addOffsets();
     
     void   addDetection(Detection &other);
@@ -148,79 +148,77 @@ public:
     //-----------------------------------
     // Basic accessor functions for private members follow...
     //
-    long        getXOffset(){return xSubOffset;};
-    void        setXOffset(long o){xSubOffset = o;};
-    long        getYOffset(){return ySubOffset;};
-    void        setYOffset(long o){ySubOffset = o;};
-    long        getZOffset(){return zSubOffset;};
-    void        setZOffset(long o){zSubOffset = o;};
+    long        getXOffset(){return xSubOffset;}
+    void        setXOffset(long o){xSubOffset = o;}
+    long        getYOffset(){return ySubOffset;}
+    void        setYOffset(long o){ySubOffset = o;}
+    long        getZOffset(){return zSubOffset;}
+    void        setZOffset(long o){zSubOffset = o;}
     
-    bool        hasParams(){return haveParams;};
+    bool        hasParams(){return haveParams;}
     
-    float       getTotalFlux(){return totalFlux;};
-    void        setTotalFlux(float f){totalFlux=f;};
-    double      getIntegFlux(){return intFlux;};
-    void        setIntegFlux(double f){intFlux=f;};
-    float       getPeakFlux(){return peakFlux;};
-    void        setPeakFlux(float f){peakFlux=f;};
-    long        getXPeak(){return xpeak;};
-    long        getYPeak(){return ypeak;};
-    long        getZPeak(){return zpeak;};
-    float       getPeakSNR(){return peakSNR;};
-    void        setPeakSNR(float f){peakSNR = f;};
-    float       getXCentroid(){return xCentroid;};
-    float       getYCentroid(){return yCentroid;};
-    float       getZCentroid(){return zCentroid;};
-    std::string getCentreType(){return centreType;};
-    void        setCentreType(std::string s){centreType=s;};
-    bool        isNegative(){return negSource;};
-    void        setNegative(bool f){negSource = f;};
-    std::string getFlagText(){return flagText;};
-    void        setFlagText(std::string s){flagText = s;};
-    void        addToFlagText(std::string s){flagText += s;};
+    float       getTotalFlux(){return totalFlux;}
+    void        setTotalFlux(float f){totalFlux=f;}
+    double      getIntegFlux(){return intFlux;}
+    void        setIntegFlux(double f){intFlux=f;}
+    float       getPeakFlux(){return peakFlux;}
+    void        setPeakFlux(float f){peakFlux=f;}
+    long        getXPeak(){return xpeak;}
+    long        getYPeak(){return ypeak;}
+    long        getZPeak(){return zpeak;}
+    float       getPeakSNR(){return peakSNR;}
+    void        setPeakSNR(float f){peakSNR = f;}
+    float       getXCentroid(){return xCentroid;}
+    float       getYCentroid(){return yCentroid;}
+    float       getZCentroid(){return zCentroid;}
+    bool        isNegative(){return negSource;}
+    void        setNegative(bool f){negSource = f;}
+    std::string getFlagText(){return flagText;}
+    void        setFlagText(std::string s){flagText = s;}
+    void        addToFlagText(std::string s){flagText += s;}
     //        
-    bool        isWCS(){return flagWCS;};
-    std::string getRAs(){return raS;};
-    std::string getDecs(){return decS;};
-    float       getRA(){return ra;};
-    float       getDec(){return dec;};
-    float       getRAWidth(){return raWidth;};
-    float       getDecWidth(){return decWidth;};
-    float       getMajorAxis(){return majorAxis;};
-    float       getMinorAxis(){return minorAxis;};
-    float       getPositionAngle(){return posang;};
-    float       getVel(){return vel;};
-    float       getVsys() {return vsys;};
-    float       getVelWidth(){return velWidth;};
-    float       getVelMin(){return velMin;};
-    float       getVelMax(){return velMax;};
-    float       getW20(){return w20;};
-    float       getV20Min(){return v20min;};
-    float       getV20Max(){return v20max;};
-    float       getW50(){return w50;};
-    float       getV50Min(){return v50min;};
-    float       getV50Max(){return v50max;};
-    int         getID(){return id;};
-    void        setID(int i){id = i;};
+    bool        isWCS(){return flagWCS;}
+    std::string getRAs(){return raS;}
+    std::string getDecs(){return decS;}
+    float       getRA(){return ra;}
+    float       getDec(){return dec;}
+    float       getRAWidth(){return raWidth;}
+    float       getDecWidth(){return decWidth;}
+    float       getMajorAxis(){return majorAxis;}
+    float       getMinorAxis(){return minorAxis;}
+    float       getPositionAngle(){return posang;}
+    float       getVel(){return vel;}
+    float       getVsys() {return vsys;}
+    float       getVelWidth(){return velWidth;}
+    float       getVelMin(){return velMin;}
+    float       getVelMax(){return velMax;}
+    float       getW20(){return w20;}
+    float       getV20Min(){return v20min;}
+    float       getV20Max(){return v20max;}
+    float       getW50(){return w50;}
+    float       getV50Min(){return v50min;}
+    float       getV50Max(){return v50max;}
+    int         getID(){return id;}
+    void        setID(int i){id = i;}
     //
-    int         getPosPrec(){return posPrec;};
-    void        setPosPrec(int i){posPrec=i;};
-    int         getXYZPrec(){return xyzPrec;};
-    void        setXYZPrec(int i){xyzPrec=i;};
-    int         getFintPrec(){return fintPrec;};
-    void        setFintPrec(int i){fintPrec=i;};
-    int         getFpeakPrec(){return fpeakPrec;};
-    void        setFpeakPrec(int i){fpeakPrec=i;};
-    int         getVelPrec(){return velPrec;};
-    void        setVelPrec(int i){velPrec=i;};
-    int         getSNRPrec(){return snrPrec;};
-    void        setSNRPrec(int i){snrPrec=i;};
-    float       getMass () {return mass;};
-    void        setMass (float val) {mass=val; haveMass=true;};
-    bool        getHavemass() {return haveMass;};
-    void        setHavemass(bool flag) {haveMass=flag;};
-    float       getSFR () {return SFR;};
-    void        setSFR (float v) {SFR=v;};
+    int         getPosPrec(){return posPrec;}
+    void        setPosPrec(int i){posPrec=i;}
+    int         getXYZPrec(){return xyzPrec;}
+    void        setXYZPrec(int i){xyzPrec=i;}
+    int         getFintPrec(){return fintPrec;}
+    void        setFintPrec(int i){fintPrec=i;}
+    int         getFpeakPrec(){return fpeakPrec;}
+    void        setFpeakPrec(int i){fpeakPrec=i;}
+    int         getVelPrec(){return velPrec;}
+    void        setVelPrec(int i){velPrec=i;}
+    int         getSNRPrec(){return snrPrec;}
+    void        setSNRPrec(int i){snrPrec=i;}
+    float       getMass () {return mass;}
+    void        setMass (float val) {mass=val; haveMass=true;}
+    bool        getHavemass() {return haveMass;}
+    void        setHavemass(bool flag) {haveMass=flag;}
+    float       getSFR () {return SFR;}
+    void        setSFR (float v) {SFR=v;}
    
   protected:
     // Subsection offsets
@@ -232,9 +230,9 @@ public:
     float          totalFlux;      ///< sum of the fluxes of all the pixels
     double         intFlux;        ///< integrated flux: involves integration over velocity and PB correction.
     float          peakFlux;       ///< maximum flux over all the pixels
-    double          mass;          ///< Mass of detection.
-    bool            haveMass;      ///< Whether the mass has been calculated. 
-    float           SFR;        
+    double         mass;           ///< Mass of detection.
+    bool           haveMass;       ///< Whether the mass has been calculated.
+    float          SFR;
     long           xpeak;          ///< x-pixel location of peak flux
     long           ypeak;          ///< y-pixel location of peak flux
     long           zpeak;          ///< z-pixel location of peak flux
@@ -242,7 +240,6 @@ public:
     float          xCentroid;      ///< x-pixel location of centroid
     float          yCentroid;      ///< y-pixel location of centroid
     float          zCentroid;      ///< z-pixel location of centroid
-    std::string    centreType;     ///< which type of pixel centre to report: "average", "centroid", or "peak" (flux)
     bool           negSource;      ///< is the source a negative feature?
     std::string    flagText;       ///< any warning flags about the quality of the detection.
     // WCS related
@@ -275,7 +272,7 @@ public:
     float          w50;            ///< Velocity width at 50% of peak flux  
     ///  The next six are the precision of values printed in the headers of the spectral plots
     /// 
-    ///  
+    ///
     int            posPrec;        ///< Precision of WCS positional values 
     int            xyzPrec;        ///< Precision of pixel positional values
     int            fintPrec;       ///< Precision of F_int/F_tot values

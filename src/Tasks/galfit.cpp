@@ -1313,14 +1313,15 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
         std::terminate();
     }
 
-
     ParamGuess<T> *ip = new ParamGuess<T>(c,largest);
-    //ip->findAll();
 
     // Estimating centre if not given
     string pos[2] = {p->XPOS, p->YPOS};
     double *pixs = getCenterCoordinates(pos, c->Head());
-    if (p->XPOS!="-1" && p->YPOS!="-1") ip->setCentre(pixs[0],pixs[1]); 
+    if (p->XPOS!="-1" && p->YPOS!="-1") {
+        ip->xcentre = pixs[0];
+        ip->ycentre = pixs[1];
+    }
     else ip->findCentre();
     
     // Estimating systemic velocity if not given
@@ -1328,24 +1329,21 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     else ip->findSystemicVelocity();
     
     // Estimating position angle if not given
-    if (p->PHI!="-1") ip->setPosang(atof(p->PHI.c_str()));
+    if (p->PHI!="-1") ip->posang = atof(p->PHI.c_str());
     else ip->findPositionAngle(1);
 
     // Estimating rotation velocity angle if not given
     // In findInclination: 1=axis ratio, 2=ellipse, 3=totalmap
     if (p->INC!="-1") ip->inclin = atof(p->INC.c_str());
     else ip->findInclination(2);
-    
+
     // Estimating rings if not given
-    if (par.NRADII!=-1 && par.RADSEP!=-1) {
-        ip->radsep = par.RADSEP;
-        ip->nrings = par.NRADII;
+    if (p->NRADII!=-1 && p->RADSEP!=-1) {
+        ip->radsep = p->RADSEP;
+        ip->nrings = p->NRADII;
     }
     else ip->findRings();
-    
-    //if (c->pars().getFlagDebug()) ip->fitIncfromMap();
-    if (c->pars().getFlagDebug()) ip->plotGuess();
-    
+
     if (p->VROT!="-1") ip->vrot = atof(p->VROT.c_str());
     else ip->findRotationVelocity();
 
@@ -1358,11 +1356,8 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     init_par[5] = ip->vrot;
     init_par[6] = ip->inclin;
     init_par[7] = ip->posang;
-    
-    //std::cout << ip->inclin << std::endl;
-    ip->plotGuess();
-    //std::terminate();
-    
+
+    if (c->pars().getFlagPlots()) ip->plotGuess();
 
     delete ip;
     return init_par;
