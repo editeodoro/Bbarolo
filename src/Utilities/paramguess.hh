@@ -40,7 +40,7 @@ class ParamGuess
 //
 // After calling the constructor, call findAll() to estimate all parameters.
 // Individual parameters can be estimated as well, but they must follow this
-// order: 1) findCentre(), 2) findSystemicVelocity(), 3) findPositionAngle(), 
+// order: 1) findSystemicVelocity(), 2) findCentre(), 3) findPositionAngle(),
 // 4) findInclination(), 5) findRings() and findRotationVelocity()
 //
 {

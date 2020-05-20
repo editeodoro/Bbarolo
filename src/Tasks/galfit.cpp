@@ -1315,6 +1315,10 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
 
     ParamGuess<T> *ip = new ParamGuess<T>(c,largest);
 
+    // Estimating systemic velocity if not given
+    if (p->VSYS!="-1") ip->vsystem = atof(p->VSYS.c_str());
+    else ip->findSystemicVelocity();
+
     // Estimating centre if not given
     string pos[2] = {p->XPOS, p->YPOS};
     double *pixs = getCenterCoordinates(pos, c->Head());
@@ -1323,10 +1327,6 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
         ip->ycentre = pixs[1];
     }
     else ip->findCentre();
-    
-    // Estimating systemic velocity if not given
-    if (p->VSYS!="-1") ip->vsystem = atof(p->VSYS.c_str());
-    else ip->findSystemicVelocity();
     
     // Estimating position angle if not given
     if (p->PHI!="-1") ip->posang = atof(p->PHI.c_str());
@@ -1358,6 +1358,7 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     init_par[7] = ip->posang;
 
     if (c->pars().getFlagPlots()) ip->plotGuess();
+//    std::terminate();
 
     delete ip;
     return init_par;

@@ -332,7 +332,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         int ret = plotParam();
         if (verb) {
             if (ret==0) std::cout << " Done." << std::endl;
-            else std::cout << " Something went wrong! Check pyscript.py in the output folder." << std::endl;
+            else std::cout << " Something went wrong! Check plotting scripts in the output folder." << std::endl;
         }
     }
     in->pars().setVerbosity(verb);
@@ -695,7 +695,6 @@ void Galfit<T>::plotPar_Gnuplot () {
     if (par.TWOSTAGE)
         gnu << ", '" << outfold << "ringlog2.txt' u 2:5 w lp ls 2";
 
-
     gnu << endl;
 
     /// Plotting position angle
@@ -810,7 +809,6 @@ void Galfit<T>::plotPar_Gnuplot () {
 
     gnu << "unset multiplot" << endl;
 
-
     gnu << "set output '" << outfold << object << "_xc_yc_cd.eps'" << endl
         << "set multiplot layout 3,1 rowsfirst" << endl;
 
@@ -891,615 +889,7 @@ void Galfit<T>::plotPar_Gnuplot () {
 template void Galfit<float>::plotPar_Gnuplot();
 template void Galfit<double>::plotPar_Gnuplot();
 
-/*
-template <class T>
-int Galfit<T>::plotAll_Python() {
 
-    /// This function creates and runs a python script for plotting:
-    ///  1) Channel maps
-    ///  2) Position-Velocity diagrams along major/minor axis
-    ///  3) Output paramenters
-    ///  4) Moment maps
-    ///  5) Asymmetric drift correction
-    ///
-    /// It needs all output fitsfiles to be in the output directory!
-
-
-    std::string scriptname = "pyscript.py";
-    std::ofstream py_file((in->pars().getOutfolder()+scriptname).c_str());
-
-    float crpix3_kms = in->Head().Crpix(2);
-    float cdelt3_kms = DeltaVel<float>(in->Head());
-    float crval3_kms = AlltoVel(in->Head().Crval(2),in->Head());    
-    float bmaj = in->Head().Bmaj()/in->Head().PixScale();
-    float bmin = in->Head().Bmin()/in->Head().PixScale();
-    float bpa  = in->Head().Bpa();
-    
-    float cont = 0;
-    int xpos = findMedian(&outr->xpos[0],outr->nr);
-    int ypos = findMedian(&outr->ypos[0],outr->nr);
-    int xmin=0, ymin=0, zmin=0, disp=0;
-    int xmax=in->DimX()-1, ymax=in->DimY()-1, zmax=in->DimZ()-1;
-    float vsys_av = findMedian(&outr->vsys[0],outr->nr);
-
-    if (in->pars().getMASK()=="SEARCH") {
-        if (in->pars().getParSE().flagUserGrowthT) cont = in->pars().getParSE().growthThreshold;
-        else if (in->pars().getParSE().UserThreshold) cont = in->pars().getParSE().threshold;
-        else {
-            if (in->pars().getParSE().flagGrowth) cont = in->pars().getParSE().growthCut*in->stat().getSpread();
-            else cont = in->pars().getParSE().snrCut*in->stat().getSpread();
-        }
-        Detection<T> *larg = in->LargestDetection();
-        long ext[4] = {abs(xpos-lround(larg->getXmin()-2*in->Head().Bmaj()/in->Head().PixScale())),
-                       abs(xpos-lround(larg->getXmax()+2*in->Head().Bmaj()/in->Head().PixScale())),
-                       abs(ypos-lround(larg->getYmin()-2*in->Head().Bmaj()/in->Head().PixScale())),
-                       abs(ypos-lround(larg->getYmax()+2*in->Head().Bmaj()/in->Head().PixScale()))};
-        disp = *max_element(&ext[0],&ext[0]+4);
-        zmin = larg->getZmin()-3;
-        zmax = larg->getZmax()+3;
-        if (zmin<0) zmin=0;
-        if (zmax>=in->DimZ()) zmax=in->DimZ()-1;
-    }
-    else {
-        if (!in->StatsDef()) in->setCubeStats();
-        cont = 2.5*in->stat().getSpread();
-        if (in->pars().getParSE().UserThreshold) cont=in->pars().getParSE().threshold;
-        std::vector<T> maxv(outr->nr);
-        for (int i=0; i<outr->nr; i++) maxv[i]=outr->vrot[i]*sin(outr->inc[i]*M_PI/180.)+outr->vdisp[i];
-       //float max_vrot = *max_element(&outr->vrot[0],&outr->vrot[0]+outr->nr);
-        float max_v=*max_element(&maxv[0],&maxv[0]+outr->nr);
-        disp = fabs((outr->radii.back()/arcconv+2*in->Head().Bmaj())/in->Head().PixScale());
-        int z_vsys = (vsys_av-crval3_kms)/cdelt3_kms+crpix3_kms-1;
-        //int disp_v = ceil((1.5*max_vrot)*sin(inc_av*M_PI/180.)/fabs(DeltaVel<float>(in->Head())));
-        int disp_v = ceil((1.5*max_v)/fabs(DeltaVel<float>(in->Head())));
-        zmin = z_vsys-2*disp_v>0 ? z_vsys-2*disp_v : 0;
-        zmax = z_vsys+2*disp_v<in->DimZ() ? z_vsys+2*disp_v : in->DimZ()-1;
-    }
-    
-    
-
-    xmin = xpos-disp>=0 ? xpos-disp : 0;
-    xmax = xpos+disp<in->DimX() ? xpos+disp : in->DimX()-1;
-    ymin = ypos-disp>=0 ? ypos-disp : 0;
-    ymax = ypos+disp<in->DimY() ? ypos+disp : in->DimY()-1;
-
-    int *nc = getErrorColumns();
-
-    py_file << "import numpy as np \n"
-            << "import os \n"
-            << "import matplotlib as mpl \n"
-            << "import matplotlib.pyplot as plt \n"
-            << "import matplotlib.gridspec as gridspec \n"
-            << "from matplotlib.colorbar import ColorbarBase \n"
-            << "from astropy.io import fits \n"
-            << "from astropy.visualization import LinearStretch, PowerStretch \n"
-            << "from astropy.visualization.mpl_normalize import ImageNormalize \n"
-            << "from astropy.visualization import PercentileInterval \n"
-            << "mpl.rc('xtick',direction='in') \n"
-            << "mpl.rc('ytick',direction='in') \n"
-            << "mpl.rcParams['contour.negative_linestyle'] = 'solid' \n"
-            << "plt.rc('font',family='sans-serif',serif='Helvetica',size=10)  \n"
-            << "params = {'text.usetex': False, 'mathtext.fontset': 'cm', 'mathtext.default': 'regular', 'errorbar.capsize': 0} \n"
-            << "plt.rcParams.update(params) \n\n";
-
-    py_file << "# PARAMETERS: plotting the fit parameters \n"
-            << "gname = '" << in->Head().Name() <<"' \n"
-            << "outfolder = '" << in->pars().getOutfolder() <<"' \n"
-            << "file1 = outfolder+'ringlog1.txt' \n"
-            << "file2 = outfolder+'ringlog2.txt' \n"
-            << "filesb= outfolder+'densprof.txt' \n";
-
-    if (par.TWOSTAGE) py_file << "twostage=True \n";
-    else  py_file << "twostage=False \n";
-
-    if (par.PLOTMASK) py_file << "plotmask=True \n";
-    else py_file << "plotmask=False \n";
-    
-    py_file << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.genfromtxt(file1,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True) \n";
-    if (outr->nr==1) py_file << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.array([rad]),np.array([vrot]),np.array([disp]),np.array([inc]),np.array([pa]),np.array([z0]),np.array([xpos]),np.array([ypos]),np.array([vsys]),np.array([vrad])\n";
-    py_file << "err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",len(rad))), np.zeros(shape=(" << MAXPAR << ",len(rad)))\n"
-            << "color=color2='#B22222' \n"
-            << "max_vrot,max_vdisp,max_inc,max_pa=np.max(vrot),np.max(disp),np.max(inc),np.max(pa) \n"
-            << "max_z0,max_xpos,max_ypos,max_vsys=np.max(z0),np.max(xpos),np.max(ypos),np.max(vsys) \n"
-            << "max_rad = 1.1*np.max(rad) \n"
-            << "xcen_m,ycen_m,inc_m,pa_m,vsys_m=np.nanmean((xpos,ypos,inc,pa,vsys),axis=1)\n";
-
-    for (int i=0; i<MAXPAR; i++) {
-        if (nc[i]>0) {
-            py_file << "err1_l[" << i << "], err1_h[" << i << "] = np.genfromtxt(file1,skip_header=1,usecols=("
-                    << nc[i] << "," << nc[i]+1 << "),unpack=True) \n";
-        }
-    }
-
-    py_file << "\nif twostage: \n"
-            << "\trad2, vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2, vrad2 = np.genfromtxt(file2,skip_header=1,usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True)\n";
-    if (outr->nr==1) py_file << "\trad2,vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2,vrad2 = np.array([rad2]),np.array([vrot2]),np.array([disp2]),np.array([inc2]),np.array([pa2]),np.array([z02]),np.array([xpos2]),np.array([ypos2]),np.array([vsys2]),np.array([vrad2])\n";    
-    py_file << "\terr2_l, err2_h = np.zeros(shape=(" << MAXPAR << ",len(rad2))), np.zeros(shape=(" << MAXPAR << ",len(rad2)))\n"
-            << "\tcolor='#A0A0A0' \n"
-            << "\tmax_vrot,max_vdisp,max_inc,max_pa=np.maximum(max_vrot,np.max(vrot2)),np.maximum(max_vdisp,np.max(disp2)),np.maximum(max_inc,np.max(inc2)),np.maximum(max_pa,np.max(pa2)) \n"
-            << "\tmax_z0,max_xpos,max_ypos,max_vsys=np.maximum(max_z0,np.max(z02)),np.maximum(max_xpos,np.max(xpos2)),np.maximum(max_ypos,np.max(ypos2)),np.maximum(max_vsys,np.max(vsys2)) \n"
-            << "\txcen_m,ycen_m,inc_m,pa_m,vsys_m=np.nanmean((xpos2,ypos2,inc2,pa2,vsys2),axis=1) \n";
-
-    for (int i=0; i<MAXPAR; i++) {
-        if ((i==0 || i==1 || i==9) && (nc[i]>0)) {
-            int ff = i==9 ? 6 : 0;
-            py_file << "\terr2_l[" << i << "], err2_h[" << i << "] = np.genfromtxt(file2,skip_header=1,usecols=("
-                    << nc[i]-ff << "," << nc[i]+1-ff << "),unpack=True) \n";
-        }
-    }
-
-    py_file << std::endl
-            << "rad_sd, surfdens, sd_err = np.genfromtxt(filesb, usecols=(0,3,4),unpack=True) \n";
-
-    py_file << "# Opening maps and retrieving intensity map units\n"
-            << "f0 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_0mom.fits') \n"
-            << "f1 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_1mom.fits') \n"
-            << "f2 = fits.open(outfolder+'/maps/"<< in->Head().Name() << "_2mom.fits') \n"
-            << "bunit = f0[0].header['BUNIT'] \n"
-            << "bunit = bunit.replace(' ', '').lower() \n\n";
-
-    py_file << "\nfig1=plt.figure(figsize=(11,11), dpi=150)  \n"
-            << "nrows, ncols = 3,3 \n"
-            << "x_axis_length, y_axis_length = 0.27, 0.13 \n"
-            << "x_sep, y_sep = 0.07,0.015 \n"
-            << "ax, bottom_corner = [], [0.1,0.7]\n"
-            << "for i in range (nrows): \n"
-            << "\tbottom_corner[0], axcol, ylen = 0.1, [], y_axis_length \n"
-            << "\tif i==0: ylen *= 1.8 \n"
-            << "\tfor j in range (ncols): \n"
-            << "\t\taxcol.append(fig1.add_axes([bottom_corner[0],bottom_corner[1],x_axis_length,ylen])) \n"
-            << "\t\tbottom_corner[0]+=x_axis_length+x_sep \n"
-            << "\tax.append(axcol) \n"
-            << "\tbottom_corner[1]-=(y_axis_length+y_sep) \n";
-
-    py_file << std::endl
-            << "axis=ax[0][0]  \n"
-            << "axis.tick_params(top=True,right=True,labelbottom=False,labelleft=True)  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylim(0,1.2*max_vrot)  \n"
-            << "axis.set_ylabel('v$_\\mathrm{rot}$ (km/s)', fontsize=14)  \n"
-            << "axis.errorbar(rad,vrot, yerr=[err1_l[0],-err1_h[0]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,vrot2, yerr=[err2_l[0],-err2_h[0]],fmt='o', color=color2) \n";
-    
-    py_file << std::endl
-            << "axis=ax[1][0]  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('i (deg)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom=False,top=True,labelbottom=False,labelleft=True) \n"
-            << "axis.errorbar(rad,inc, yerr=[err1_l[4],-err1_h[4]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o-', color=color2) \n";
-
-    py_file << std::endl
-            << "axis=ax[2][0]  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('$\\phi$ (deg)', fontsize=14)  \n"
-            << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
-            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=True,labelleft=True)  \n"
-            << "axis.errorbar(rad,pa, yerr=[err1_l[5],-err1_h[5]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o-', color=color2)  \n";
-
-    py_file << std::endl
-            << "axis=ax[0][1]  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylim(0,1.2*max_vdisp)  \n"
-            << "axis.set_ylabel('$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True) \n"
-            << "axis.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o', color=color2)  \n"   ;
-    
-    py_file << std::endl
-            << "axis=ax[1][1]  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('x$_0$ (pix)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True)   \n"
-            << "axis.errorbar(rad,xpos, yerr=[err1_l[6],-err1_h[6]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o-', color=color2)  \n";
-
-    py_file << std::endl
-            << "axis=ax[2][1]  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('y$_0$ (pix)', fontsize=14)  \n"
-            << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
-            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=True,labelleft=True)  \n"
-            << "axis.errorbar(rad,ypos, yerr=[err1_l[7],-err1_h[7]],fmt='o', color=color)  \n"
-            << "if twostage: axis.errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o-', color=color2) \n";
-
-    py_file << std::endl
-            << "axis=ax[0][2]  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('$\\Sigma}$ ('+bunit+')', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=True)  \n"
-            << "axis.errorbar(rad_sd,surfdens, yerr=sd_err,fmt='o', color=color2)  \n";
-
-    //py_file << std::endl
-    //        << "axis=ax[1][2]  \n"
-    //        << "axis.set_xlim(0,max_rad)  \n"
-    //        << "axis.set_ylabel('z$_0$ (arcs)', fontsize=14)  \n"
-    //        << "axis.tick_params(axis='both',which='both',bottom=False,top=True,labelbottom=False,labelleft=True)  \n"
-    //        << "axis.errorbar(rad,z0, yerr=[err1_l[3],-err1_h[3]],fmt='o', color=color)  \n"
-    //        << "if twostage==True: axis.errorbar(rad2,z02,yerr=[err2_l[3],-err2_h[3]],fmt='o-', color=color2)  \n";
-
-    py_file << std::endl
-            << "axis=ax[1][2]  \n"
-            << "axis.set_xlim(0,max_rad)  \n"
-            << "axis.set_ylabel('V$_\\mathrm{rad}$ (km/s)', fontsize=14)  \n"
-            << "axis.tick_params(axis='both',which='both',bottom=False,top=True,labelbottom=False,labelleft=True)  \n"
-            << "axis.errorbar(rad,vrad, yerr=[err1_l[9],-err1_h[9]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,vrad2,yerr=[err2_l[9],-err2_h[9]],fmt='o', color=color2)  \n";
-
-
-    py_file << std::endl
-            << "axis=ax[2][2]  \n"
-            << "axis.set_xlim(0,max_rad) \n"
-            << "axis.set_ylabel('v$_\\mathrm{sys}$ (km/s)', fontsize=14) \n"
-            << "axis.set_xlabel('Radius (arcsec)', fontsize=14, labelpad=10) \n"
-            << "axis.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=True,labelleft=True)  \n"
-            << "axis.errorbar(rad,vsys, yerr=[err1_l[8],-err1_h[8]],fmt='o', color=color)  \n"
-            << "if twostage==True: axis.errorbar(rad2,vsys2,yerr=[err2_l[8],-err2_h[8]],fmt='o', color=color2) \n";
-
-    py_file << std::endl
-            << "fig1.savefig(outfolder+'plot_parameters.pdf',bbox_inches='tight') \n"
-            << std::endl << std::endl;
-
-    py_file << "# CHANNEL MAPS: Setting all the needed variables \n"
-            << "image = fits.open('" << in->pars().getImageFile() << "') \n"
-            << "image_mas = fits.open(outfolder+'mask.fits') \n"
-            << "xmin, xmax = " << xmin << ", " << xmax << std::endl
-            << "ymin, ymax = " << ymin << ", " << ymax << std::endl
-            << "zmin, zmax = " << zmin << ", " << zmax << std::endl
-            << "data = image[0].data[";
-    if (in->Head().NumAx()>3)
-        for (int i=0; i<in->Head().NumAx()-3; i++) py_file << "0,";
-    py_file << "zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
-            << "data_mas = image_mas[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
-            << "head = image[0].header \n"
-            << "zsize=data[:,0,0].size \n"
-            << "cdeltsp=" << in->Head().PixScale()*arcconv << std::endl
-            << "cont = " << cont << std::endl
-            << "v = np.array([1,2,4,8,16,32,64])*cont \n"
-            << "v_neg = [-cont] \n"
-            << "interval = PercentileInterval(99.5) \n"
-            << "vmax = interval.get_limits(data)[1] \n"
-            << "norm = ImageNormalize(vmin=cont, vmax=vmax, stretch=PowerStretch(0.5)) \n"
-            << "xcen, ycen = xcen_m-xmin, ycen_m-ymin  \n\n";
-
-    py_file << "files_mod, typ = [], [] \n"
-            << "for thisFile in os.listdir(outfolder): \n"
-            << "\tif 'mod_azim.fits'  in thisFile: files_mod.append(thisFile) \n"
-            << std::endl
-            << "if len(files_mod)==1: typ.append('AZIM') \n"
-            << std::endl
-            << "for thisFile in os.listdir(outfolder): \n"
-            << "\tif 'mod_local.fits'  in thisFile: files_mod.append(thisFile) \n"
-            << std::endl
-            << "if len(files_mod)==2: typ.append('LOCAL') \n"
-            << "elif (len(files_mod)==1 and len(typ)==0): typ.append('LOCAL') \n"
-            << "elif (len(files_mod)==len(typ)==0): exit() \n\n";
-
-    py_file << "# Beginning channel map plot \n"
-            << "for k in range (len(files_mod)): \n"
-            << "\timage_mod = fits.open(outfolder+files_mod[k]) \n"
-            << "\tdata_mod = image_mod[0].data[zmin:zmax+1,ymin:ymax+1,xmin:xmax+1] \n"
-            << "\tfig2 = plt.figure(figsize=(8.27, 11.69), dpi=100) \n"
-            << "\tgrid = [gridspec.GridSpec(2,5),gridspec.GridSpec(2,5),gridspec.GridSpec(2,5)] \n"
-            << "\tgrid[0].update(top=0.90, bottom=0.645, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
-            << "\tgrid[1].update(top=0.60, bottom=0.345, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
-            << "\tgrid[2].update(top=0.30, bottom=0.045, left=0.05, right=0.95, wspace=0.0, hspace=0.0) \n"
-            << std::endl
-            << "\tnum = 0 \n"
-            << "\tfor j in range (0,3): \n"
-            << "\t\tfor i in range (0,5): \n"
-            << "\t\t\tchan = int(num*(zsize)/15) \n"
-            << "\t\t\tz = data[chan,:,:] \n"
-            << "\t\t\tz_mod = data_mod[chan,:,:] \n"
-            << "\t\t\t#New matplotlib draws wrong contours when no contours are found. This is a workaround.\n"
-            << "\t\t\tif np.all(z_mod<v[0]): z_mod[:,:] =0\n"
-            << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
-            << "\t\t\tvelo = ' v = ' + str(int(velo_kms)) + ' km/s' \n"
-            << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
-            << "\t\t\tax.tick_params(top=True,right=True,labelbottom=False,labelleft=False) \n"
-            << "\t\t\tax.set_title(velo, fontsize=10,loc='left') \n"
-            << "\t\t\tax.imshow(z,origin='lower',cmap = mpl.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
-            << "\t\t\tax.contour(z,v,origin='lower',linewidths=0.7,colors='#00008B') \n"
-            << "\t\t\tax.contour(z,v_neg,origin='lower',linewidths=0.1,colors='gray') \n"
-            << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
-            << "\t\t\tif plotmask: \n"
-            << "\t\t\t\tax.contour(data_mas[chan],[1],origin='lower',linewidths=2,colors='k') \n"
-            << "\t\t\tif (j==i==0): \n"
-            << "\t\t\t\tax.text(0, 1.4, gname, transform=ax.transAxes,fontsize=15,va='center') \n"
-            << "\t\t\t\tlbar = 0.5*(xmax-xmin)*cdeltsp \n"
-            << "\t\t\t\tltex = \"%.0f'' \"%lbar if lbar>10 else \"%.2f'' \"%lbar \n"
-            << "\t\t\t\tif lbar>600: ltex = \"%.0f' \"%(lbar/60.) \n"
-            << "\t\t\t\tax.annotate('', xy=(4.5, 1.4), xycoords='axes fraction', xytext=(5, 1.4),arrowprops=dict(arrowstyle='<->', color='k'))\n"
-            << "\t\t\t\tax.text(4.75,1.50,ltex,transform=ax.transAxes,fontsize=11, ha='center')\n"
-            << "\t\t\t\tbmaj, bmin, bpa = " << bmaj << "/float(xmax-xmin), " << bmin << "/float(ymax-ymin)," << bpa << std::endl
-            << "\t\t\t\tbeam = mpl.patches.Ellipse((3.5, 1.4), bmaj, bmin, bpa, color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
-            << "\t\t\t\tax.add_artist(beam) \n"
-            << "\t\t\t\tax.text(3.6+bmaj/1.8,1.4,'Beam',transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
-            << "\t\t\tax = plt.subplot(grid[j][1,i]) \n"
-            << "\t\t\tax.tick_params(axis='both',which='both',bottom=True,top=True,labelbottom=False,labelleft=False) \n"
-            << "\t\t\tax.imshow(z_mod,origin='lower',cmap = mpl.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
-            << "\t\t\tax.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
-            << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
-            << "\t\t\tif (i==0 and j==2): \n"
-            << "\t\t\t\tclab = 'Contour levels at 2$^n \\, c_{min}$, where $c_{min}$ = %s " << in->Head().Bunit() << " and n = 0,1,..,8 '%cont \n"
-            << "\t\t\t\tax.text(0.01,-0.16,clab,transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
-            << "\t\t\tnum = num+1 \n"
-            << std::endl
-            << "\toutfile = 'plot_chanmaps.pdf' \n"
-            << "\tif (typ[k]=='AZIM'): outfile = 'plot_chanmaps_azim.pdf' \n"
-            << "\tif (typ[k]=='LOCAL'): outfile = 'plot_chanmaps_local.pdf' \n"
-            << "\tfig2.savefig(outfolder+outfile, orientation = 'portrait', format = 'pdf') \n"
-            << "\timage_mod.close() \n\n"
-            << "image.close() \n";
-
-    py_file << std::endl << std::endl;
-
-    float zmin_wcs = AlltoVel(in->getZphys(zmin),in->Head());
-    float zmax_wcs = AlltoVel(in->getZphys(zmax),in->Head());
-    int pa_av = lround(findMedian(&outr->phi[0],outr->nr));
-    int pa_min = pa_av+90<360 ? pa_av+90 : pa_av-90;
-//    if (zmin_wcs>zmax_wcs) std::swap(zmin_wcs,zmax_wcs);
-    bool reverse = (pa_av>=45 && pa_av<225);
-    //if (cdelt3_kms<0) reverse = !reverse;
-
-    py_file << "# Now plotting the position-velocity diagrams \n"
-            << "files_pva_mod, files_pvb_mod = [], [] \n"
-            << "for thisFile in os.listdir(outfolder+'pvs/'): \n"
-            << "\tif 'pv_a_azim.fits' in thisFile: files_pva_mod.append(thisFile) \n"
-            << "\tif 'pv_b_azim.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
-            << std::endl
-            << "for thisFile in os.listdir(outfolder+'pvs/'): \n"
-            << "\tif 'pv_a_local.fits' in thisFile: files_pva_mod.append(thisFile) \n"
-            << "\tif 'pv_b_local.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
-            << std::endl
-            << "image_maj     = fits.open(outfolder+'pvs/'+gname+'_pv_a.fits') \n"
-            << "image_min     = fits.open(outfolder+'pvs/'+gname+'_pv_b.fits') \n"
-            << "image_mas_maj = fits.open(outfolder+'pvs/'+gname+'mask_pv_a.fits') \n"
-            << "image_mas_min = fits.open(outfolder+'pvs/'+gname+'mask_pv_b.fits') \n"
-            << "head = [image_maj[0].header,image_min[0].header] \n"
-            << "crpixpv = np.array([head[0]['CRPIX1'],head[1]['CRPIX1']]) \n"
-            << "cdeltpv = np.array([head[0]['CDELT1'],head[1]['CDELT1']]) \n"
-            << "crvalpv = np.array([head[0]['CRVAL1'],head[1]['CRVAL1']]) \n"
-            << "xminpv, xmaxpv = np.floor(crpixpv-1-" << disp << "), np.ceil(crpixpv-1 +"<< disp << ") \n"
-            << "if xminpv[0]<0: xminpv[0]=0 \n"
-            << "if xminpv[1]<0: xminpv[1]=0 \n"
-            << "if xmaxpv[0]>=head[0]['NAXIS1']: xmaxpv[0]=head[0]['NAXIS1']-1 \n"
-            << "if xmaxpv[1]>=head[1]['NAXIS1']: xmaxpv[1]=head[1]['NAXIS1']-1 \n"
-            << "data_maj = image_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"
-            << "data_min = image_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
-            << "data_mas_maj = image_mas_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"
-            << "data_mas_min = image_mas_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
-            << "xmin_wcs = ((xminpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
-            << "xmax_wcs = ((xmaxpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
-            << "zmin_wcs, zmax_wcs = " << zmin_wcs << ", " << zmax_wcs << std::endl;
-
-    py_file << std::endl
-            << "radius = np.concatenate((rad,-rad)) \n"
-            << "vrotation, inclin, vsystem, posang = vrot, inc, vsys, pa  \n"
-            << "if twostage==True:\n "
-            << "\tradius, vrotation, inclin, vsystem, posang = np.concatenate((rad2,-rad2)), vrot2, inc2, vsys2, pa2 \n"
-            << "vlos1 = vrotation*np.sin(np.deg2rad(inclin))+vsystem \n"
-            << "vlos2 = vsystem-vrotation*np.sin(np.deg2rad(inclin)) \n";
-    if (reverse) py_file << "reverse = True \n";
-    else py_file << "reverse = False \n";
-    py_file << "if reverse: vlos1, vlos2 = vlos2, vlos1 \n"
-            << "vlos = np.concatenate((vlos1,vlos2)) \n"
-            << "ext = [[xmin_wcs[0],xmax_wcs[0],zmin_wcs-vsys_m,zmax_wcs-vsys_m],\\" << std::endl
-            << "       [xmin_wcs[1],xmax_wcs[1],zmin_wcs-vsys_m,zmax_wcs-vsys_m]] \n"
-            << "labsize = 14 \n"
-            << "palab = ['$\\phi = $" << pa_av <<"$^\\circ$', '$\\phi = $" << pa_min << "$^\\circ$'] \n\n";
-    
-    py_file << "# Beginning PV plot \n"
-            << "for k in range (len(files_pva_mod)): \n"
-            << "\timage_mod_maj = fits.open(outfolder+'pvs/'+files_pva_mod[k]) \n"
-            << "\timage_mod_min = fits.open(outfolder+'pvs/'+files_pvb_mod[k]) \n"
-            << "\tdata_mod_maj = image_mod_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"    
-            << "\tdata_mod_min = image_mod_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
-            << "\ttoplot = [[data_maj,data_min],[data_mod_maj,data_mod_min],[data_mas_maj,data_mas_min]] \n"
-            << std::endl
-            << "\tfig = plt.figure(figsize=(10,10), dpi=150) \n"
-            << "\tx_len, y_len, y_sep = 0.6, 0.42, 0.08 \n"
-            << "\tax, bottom_corner = [], [0.1,0.7] \n"
-            << "\tfor i in range (2): \n"
-            << "\t\tbottom_corner[0], axcol = 0.1, [] \n"
-            << "\t\tax.append(fig.add_axes([bottom_corner[0],bottom_corner[1],x_len,y_len])) \n"
-            << "\t\tbottom_corner[1]-=(y_len+y_sep) \n"
-            << std::endl
-            << "\tfor i in range (2): \n"
-            << "\t\taxis = ax[i] \n"
-            << "\t\taxis.tick_params(which='major',length=8, labelsize=labsize) \n"
-            << "\t\taxis.set_xlabel('Offset (arcsec)',fontsize=labsize+2) \n"
-            << "\t\taxis.set_ylabel('$\\mathrm{\\Delta V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
-            << "\t\taxis.text(1, 1.02,palab[i],ha='right',transform=axis.transAxes,fontsize=labsize+4) \n"
-            << "\t\taxis2 = axis.twinx() \n"
-            << "\t\taxis2.set_xlim([ext[i][0],ext[i][1]]) \n"
-            << "\t\taxis2.set_ylim([ext[i][2]+vsys_m,ext[i][3]+vsys_m]) \n"
-            << "\t\taxis2.tick_params(which='major',length=8, labelsize=labsize) \n"
-            << "\t\taxis2.set_ylabel('$\\mathrm{V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
-            << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = mpl.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
-            << "\t\taxis.contour(toplot[0][i],v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[i]) \n"
-            << "\t\taxis.contour(toplot[0][i],v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[i]) \n"
-            << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=1,colors='#B22222',extent=ext[i]) \n"
-            << "\t\taxis.axhline(y=0,color='black') \n"
-            << "\t\taxis.axvline(x=0,color='black') \n"
-            << "\t\tif plotmask: \n"
-            << "\t\t\taxis.contour(toplot[2][i],[1],origin='lower',linewidths=2,colors='k',extent=ext[i]) \n"
-            << "\t\tif i==0 : \n"
-            << "\t\t\taxis2.plot(radius,vlos,'yo') \n"
-            << "\t\t\taxis.text(0, 1.1, gname, transform=axis.transAxes,fontsize=22) \n"
-            << std::endl
-            << "\toutfile = 'plot_pv.pdf' \n"
-            << "\tif (typ[k]=='AZIM'): outfile = 'plot_pv_azim.pdf' \n"
-            << "\tif (typ[k]=='LOCAL'): outfile = 'plot_pv_local.pdf' \n"
-            << "\tfig.savefig(outfolder+outfile, bbox_inches='tight') \n"
-            << "\timage_mod_maj.close() \n"
-            << "\timage_mod_min.close() \n"
-            << std::endl
-            << "image_maj.close() \n"
-            << "image_min.close() \n";
-    
-
-
-    py_file << std::endl << "# Now plotting moment maps \n"
-            << "mom0 = f0[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "mom1 = f1[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "mom2 = f2[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << std::endl
-            << "files_mod0, files_mod1, files_mod2 = [], [], [] \n"
-            << "for thisFile in os.listdir(outfolder+'/maps/'): \n"
-            << "\tif 'azim_0mom.fits' in thisFile: files_mod0.append(thisFile) \n"
-            << "\tif 'azim_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
-            << "\tif 'azim_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
-            << std::endl
-            << "for thisFile in os.listdir(outfolder+'maps/'): \n"
-            << "\tif 'local_0mom.fits' in thisFile: files_mod0.append(thisFile) \n"
-            << "\tif 'local_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
-            << "\tif 'local_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
-            << std::endl
-            << "cmaps = [plt.get_cmap('Spectral_r'),plt.get_cmap('RdBu_r',25),plt.get_cmap('PuOr_r')] \n"
-            << "barlab = ['Intensity ('+bunit+')', 'V$_\\mathrm{LOS}$ (km/s)', '$\\sigma$ (km/s)'] \n"
-            << "barlab2 = ['I$_\\mathrm{res}$ ('+bunit+')', 'V$_\\mathrm{res}$ (km/s)', '$\\sigma_\\mathrm{res}$ (km/s)'] \n"
-            << "titles = ['DATA', 'MODEL','RESIDUAL'] \n"
-            << "mapname = ['INTENSITY', 'VELOCITY', 'DISPERSION'] \n"
-            << std::endl
-            << "maskmap = np.nansum(image_mas[0].data,axis=0).astype(np.float)[ymin:ymax+1,xmin:xmax+1]\n"
-            << "maskmap[maskmap>0]  = 1\n"
-            << "maskmap[maskmap==0] = np.nan\n"
-            << std::endl
-            << "x = np.arange(0,xmax-xmin,0.1) \n"
-            << "y = np.tan(np.radians(pa_m-90))*(x-xcen)+ycen \n"
-            << "ext = [0,xmax-xmin,0, ymax-ymin] \n"
-            << "rad_pix = rad/cdeltsp \n"
-            << std::endl
-            << "for k in range (len(files_mod0)): \n"
-            << "\tmom0_mod = fits.open(outfolder+'/maps/'+files_mod0[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "\tmom1_mod = fits.open(outfolder+'/maps/'+files_mod1[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "\tmom2_mod = fits.open(outfolder+'/maps/'+files_mod2[k])[0].data[ymin:ymax+1,xmin:xmax+1] \n"
-            << "\tto_plot = [[mom0,mom1-vsys_m,mom2],[mom0_mod,mom1_mod-vsys_m,mom2_mod],[mom0-mom0_mod,mom1-mom1_mod,mom2-mom2_mod]] \n"
-            << std::endl
-            << "\tfig=plt.figure(figsize=(11,11), dpi=150) \n"
-            << "\tnrows, ncols = 3, 3 \n"
-            << "\tx_len, y_len = 0.2, 0.2 \n"
-            << "\tx_sep, y_sep = 0.00,0.08 \n"
-            << "\tax, bottom_corner = [], [0.1,0.7] \n"
-            << "\tfor i in range (nrows): \n"
-            << "\t\tbottom_corner[0], axcol = 0.1, [] \n"
-            << "\t\tfor j in range (ncols): \n"
-            << "\t\t\taxcol.append(fig.add_axes([bottom_corner[0],bottom_corner[1],x_len,y_len])) \n"
-            << "\t\t\tbottom_corner[0]+=x_len+x_sep \n"
-            << "\t\tax.append(axcol) \n"
-            << "\t\tbottom_corner[1]-=(y_len+y_sep) \n"
-            << std::endl
-            << "\tfor i in range (nrows): \n"
-            << "\t\tcmaps[i].set_bad('w',1.) \n"
-            << "\t\tvmin, vmax = interval.get_limits(to_plot[1][i]) \n"
-            << "\t\tvmin, vmax = (-1.1*np.nanmax(vmax),1.1*np.nanmax(vmax)) if i==1 else (vmin,vmax) \n"
-            << "\t\tnorm = mpl.colors.Normalize(vmin=vmin, vmax=vmax) \n"
-            << "\t\tcbax = fig.add_axes([ax[i][0].get_position().x0,ax[i][0].get_position().y0-0.025,2*x_len-0.003,0.02]) \n"
-            << "\t\tcb1 = ColorbarBase(cbax, orientation='horizontal', cmap=cmaps[i], norm=norm) \n"
-            << "\t\tcb1.set_label(barlab[i],fontsize=13) \n"
-            << "\t\tfor j in range (ncols): \n"
-            << "\t\t\taxis = ax[i][j] \n"
-            << "\t\t\taxis.tick_params(labelbottom=False,labelleft=False,right=True,top=True) \n"
-            << "\t\t\taxis.set_xlim(ext[0],ext[1]) \n"
-            << "\t\t\taxis.set_ylim(ext[2],ext[3]) \n"
-            << "\t\t\tif j==2: \n"
-            << "\t\t\t\tvmax = np.nanmax(interval.get_limits(to_plot[j][i])) \n"
-            << "\t\t\t\tnorm = mpl.colors.Normalize(vmin=-vmax, vmax=vmax) \n"
-            << "\t\t\taxis.imshow(to_plot[j][i]*maskmap,origin='lower',cmap=cmaps[i],norm=norm,aspect='auto',extent=ext,interpolation='nearest') \n"
-            << "\t\t\taxis.plot(xcen,ycen,'x',color='#000000',markersize=7,mew=1.5) \n"
-            << std::endl
-            << "\t\t\tif i==0: \n"
-            << "\t\t\t\taxis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"
-            << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
-            << "\t\t\t\tif j==1 and len(rad_pix)>3:  \n"
-            << "\t\t\t\t\taxmaj = rad_pix[-1]+rad_pix[-1]-rad_pix[-2]  \n"
-            << "\t\t\t\t\taxmin = axmaj*np.cos(np.radians(inc_m))  \n"
-            << "\t\t\t\t\tposa = np.radians(pa_m-90)  \n"
-            << "\t\t\t\t\tt = np.linspace(0,2*np.pi,100)  \n"
-            << "\t\t\t\t\txt = xcen+axmaj*np.cos(posa)*np.cos(t)-axmin*np.sin(posa)*np.sin(t)  \n"
-            << "\t\t\t\t\tyt = ycen+axmaj*np.sin(posa)*np.cos(t)+axmin*np.cos(posa)*np.sin(t)  \n"
-            << "\t\t\t\t\taxis.plot(xt,yt,'-',c='k',lw=0.8)  \n"
-            << "\t\t\telif i==1: \n"
-            << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
-            << "\t\t\t\tif len(rad_pix)<10: \n"
-            << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(pa_m-90)) \n"
-            << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(pa_m-90)) \n"
-            << "\t\t\t\t\taxis.scatter(x_pix+xcen,y_pix+ycen,c='grey',s=12) \n"
-            << "\t\t\t\t\taxis.scatter(xcen-x_pix,ycen-y_pix,c='grey',s=12) \n"
-            << "\t\t\t\tif len(rad_pix)>5 and not all(np.diff(posang)==0): \n"
-            << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(posang-90)) \n"
-            << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(posang-90)) \n"
-            << "\t\t\t\t\taxis.plot(xcen-x_pix,ycen-y_pix,'-',color='grey',lw=1) \n"
-            << "\t\t\t\t\taxis.plot(x_pix+xcen,y_pix+ycen,'-',color='grey',lw=1) \n"
-            << "\t\t\tif j==0: axis.text(-0.12,0.5,mapname[i],va='center',rotation=90,transform=axis.transAxes,fontsize=15) \n\n"
-            << "\t\tcbax = fig.add_axes([ax[i][2].get_position().x0+0.003,ax[i][2].get_position().y0-0.025,x_len-0.003,0.02]) \n"
-            << "\t\tcb2 = ColorbarBase(cbax, orientation='horizontal', cmap=cmaps[i], norm=norm) \n"
-            << "\t\tcb2.set_label(barlab2[i],fontsize=13) \n"
-            << "\t\tcb2.ax.locator_params(nbins=3) \n"
-            << "\t\tfor c in [cb1,cb2]: \n"
-            << "\t\t\tc.solids.set_edgecolor('face') \n"
-            << "\t\t\tc.outline.set_linewidth(0) \n"
-            << std::endl 
-            << "\tif (typ[k]=='AZIM'): outfile = 'plot_maps_azim.pdf' \n"
-            << "\tif (typ[k]=='LOCAL'): outfile = 'plot_maps_local.pdf' \n"
-            << "\tfig.savefig(outfolder+outfile, bbox_inches = 'tight') \n";
-
-    if (par.flagADRIFT) {
-        py_file << "\n#Asymmetric drift correction\n"
-                << "va, dispr, fun, funr = np.genfromtxt(outfolder+'asymdrift.txt',usecols=(1,2,3,4),unpack=True)\n"
-                << "if twostage: \n"
-                << "\tvrot, disp = vrot2, disp2 \n"
-                << "\terr1_l, err1_h = err2_l, err2_h\n"
-                << "fig=plt.figure(figsize=(10,10), dpi=150) \n" 
-                << "ax1 = fig.add_axes([0.10,0.1,0.3,0.25])\n"
-                << "ax2 = fig.add_axes([0.48,0.1,0.3,0.25])\n"
-                << "ax3 = fig.add_axes([0.86,0.1,0.3,0.25])\n"
-                << "vcirc = np.sqrt(vrot**2+va**2)\n"
-                << "ax1.set_xlim(0,max_rad)\n"
-                << "ax1.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
-                << "ax1.set_ylabel('V (km/s)', fontsize=11)\n"
-                << "ax1.plot(rad,vrot,'-', color=color2,label=r'V$_\\mathrm{rot}$',zorder=1)\n"
-                << "ax1.plot(rad,va,'--', color='#FABC11',label=r'V$_\\mathrm{A}$',zorder=2)\n" 
-                << "ax1.errorbar(rad,vcirc, yerr=[err1_l[0],-err1_h[0]],fmt='o', color='#43A8D4',label=r'V$_\\mathrm{circ}$',zorder=0)\n"  
-                << "ax1.legend()\n"
-                << "ax2.set_xlim(0,max_rad)\n" 
-                << "ax2.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
-                << "ax2.set_ylabel('$\\sigma$ (km/s)', fontsize=11)\n"
-                << "ax2.errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color2,label=r'$\\sigma_\\mathrm{gas}$',zorder=0)\n"  
-                << "ax2.plot(rad,dispr,'-', color='#0FA45A',label=r'$\\sigma_\\mathrm{reg}$',zorder=1)\n"
-                << "ax2.legend()\n"
-                << "ax3.set_xlim(0,max_rad)\n"  
-                << "ax3.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
-                << "ax3.set_ylabel(r'$f = \\log(\\sigma_\\mathrm{gas}^2\\Sigma_\\mathrm{gas}\\cos(i)$)', fontsize=11)\n" 
-                << "ax3.plot(rad,fun,'o', color=color2,label=r'$f_\\mathrm{obs}$',zorder=0)\n"   
-                << "ax3.plot(rad,funr,'-', color='#0FA45A',label=r'$f_\\mathrm{reg}$',zorder=1)\n"
-                << "ax3.legend()\n"
-                << "fig.savefig(outfolder+'asymmetricdrift.pdf',bbox_inches='tight')\n";
-    }    
-        
-    py_file.close();
-
-#ifdef HAVE_PYTHON
-    std::string cmd = "python "+in->pars().getOutfolder()+scriptname+" > /dev/null 2>&1";
-    return system(cmd.c_str());
-    //Py_Initialize();
-    //std::string cmd = "import subprocess, os\n";
-    //cmd += "FNULL = open(os.devnull, 'w')\n";
-    //cmd += "subprocess.call(['python','"+in->pars().getOutfolder()+scriptname+"'],stdout=FNULL, stderr=FNULL)\n";
-    //int ret = PyRun_SimpleString(cmd.c_str());
-    //Py_Finalize();
-    //return ret;    
-#endif
-
-    return -1;
-}
-template int Galfit<float>::plotAll_Python();
-template int Galfit<double>::plotAll_Python();
-*/
-
-///*
 template <class T>
 int Galfit<T>::plotAll_Python() {
 
@@ -1581,11 +971,13 @@ int Galfit<T>::plotAll_Python() {
     scriptnames.push_back("plot_parameters.py");
     pyf.open((in->pars().getOutfolder()+"plotscripts/"+scriptnames[0]).c_str());
 
-    pyf << "# This script produces plots of the best-fit parameters \n"
+    pyf << "###############################################################\n"
+        << "#### This script produces plots of the best-fit parameters ####\n"
+        << "###############################################################\n"
         << "import numpy as np \n"
         << "import matplotlib as mpl \n"
         << "import matplotlib.pyplot as plt \n"
-        << "lsize = 12 \n"
+        << "lsize = 11 \n"
         << "mpl.rc('xtick',direction='in',top=True) \n"
         << "mpl.rc('ytick',direction='in',right=True) \n"
         << "mpl.rcParams['contour.negative_linestyle'] = 'solid' \n"
@@ -1647,7 +1039,7 @@ int Galfit<T>::plotAll_Python() {
         << std::endl
         << "# Plotting rotation velocity \n"
         << "ax[0].set_ylim(0,1.2*max_vrot) \n"
-        << "ax[0].set_ylabel('v$_\\mathrm{rot}$ (km/s)', fontsize=lsize) \n"
+        << "ax[0].set_ylabel('V$_\\mathrm{rot}$ (km/s)', fontsize=lsize) \n"
         << "ax[0].errorbar(rad,vrot, yerr=[err1_l[0],-err1_h[0]],fmt='o', color=color) \n"
         << "if twostage: ax[0].errorbar(rad2,vrot2, yerr=[err2_l[0],-err2_h[0]],fmt='o', color=color2) \n"
         << std::endl
@@ -1739,7 +1131,9 @@ int Galfit<T>::plotAll_Python() {
     scriptnames.push_back("plot_chanmaps.py");
     pyf.open((in->pars().getOutfolder()+"plotscripts/"+scriptnames[1]).c_str());
 
-    pyf << "# This script writes a plot of channel maps of model and data \n"
+    pyf << "#####################################################################\n"
+        << "#### This script writes a plot of channel maps of model and data ####\n"
+        << "#####################################################################\n"
         << "import numpy as np \n"
         << "import os \n"
         << "import matplotlib as mpl \n"
@@ -1865,7 +1259,9 @@ int Galfit<T>::plotAll_Python() {
     scriptnames.push_back("plot_pvs.py");
     pyf.open((in->pars().getOutfolder()+"plotscripts/"+scriptnames[2]).c_str());
 
-    pyf << "# This script writes a plot of position-velocity slices of model and data \n"
+    pyf << "#################################################################################\n"
+        << "#### This script writes a plot of position-velocity slices of model and data ####\n"
+        << "#################################################################################\n"
         << "import numpy as np \n"
         << "import os \n"
         << "import matplotlib as mpl \n"
@@ -1925,11 +1321,8 @@ int Galfit<T>::plotAll_Python() {
         << "norm = ImageNormalize(vmin=cont, vmax=vmax, stretch=PowerStretch(0.5)) \n\n";
 
     pyf << "radius = np.concatenate((rad,-rad)) \n"
-        << "vrotation, inclin, vsystem, posang = vrot, inc, vsys, pa  \n"
-        << "if twostage==True:\n "
-        << "\tradius, vrotation, inclin, vsystem, posang = np.concatenate((rad2,-rad2)), vrot2, inc2, vsys2, pa2 \n"
-        << "vlos1 = vrotation*np.sin(np.deg2rad(inclin))+vsystem \n"
-        << "vlos2 = vsystem-vrotation*np.sin(np.deg2rad(inclin)) \n";
+        << "vlos1 = vrot*np.sin(np.deg2rad(inc))+vsys \n"
+        << "vlos2 = vsys-vrot*np.sin(np.deg2rad(inc)) \n";
     if (reverse) pyf << "reverse = True \n";
     else pyf << "reverse = False \n";
     pyf << "if reverse: vlos1, vlos2 = vlos2, vlos1 \n"
@@ -1995,11 +1388,12 @@ int Galfit<T>::plotAll_Python() {
     /////////////////////////////////////////////////////////////////////////
     /// Script to plot kinematic maps of model vs data
     /////////////////////////////////////////////////////////////////////////
-
     scriptnames.push_back("plot_kinmaps.py");
     pyf.open((in->pars().getOutfolder()+"plotscripts/"+scriptnames[3]).c_str());
 
-    pyf << "# This script writes a plot of kinematic maps of model and data \n"
+    pyf << "#######################################################################\n"
+        << "#### This script writes a plot of kinematic maps of model and data ####\n"
+        << "#######################################################################\n"
         << "import numpy as np \n"
         << "import os \n"
         << "import matplotlib as mpl \n"
@@ -2152,7 +1546,6 @@ template int Galfit<double>::plotAll_Python();
 
 template <class T>
 void Galfit<T>::printDetails (Rings<T> *dr, T fmin, long pix, std::ostream& str) {
-
 
     int m=7, n=9;
 

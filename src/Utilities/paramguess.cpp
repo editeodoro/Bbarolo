@@ -80,10 +80,10 @@ void ParamGuess<T>::findAll() {
     // Front-end function to estimate all geometrical and kinematical
     // parameters needed by BBarolo's 3DFIT task
 
-    // Estimating centre position
-    findCentre();
     // Estimating systemic velocity
     findSystemicVelocity();
+    // Estimating centre position
+    findCentre();
     // Estimating position angle
     findPositionAngle();
     // Estimating inclination angle
@@ -100,8 +100,9 @@ void ParamGuess<T>::findCentre() {
     
     /// X-Y centres are estimated from the centroids of the
     /// object detected by the source-finding algorithm.
-    xcentre = (obj->getXcentre()+obj->getXaverage())/2.;
-    ycentre = (obj->getYcentre()+obj->getYaverage())/2.;
+    xcentre = (obj->getXcentre());//+obj->getXaverage())/2.;
+    ycentre = (obj->getYcentre());//+obj->getYaverage())/2.;
+
 }
 
 

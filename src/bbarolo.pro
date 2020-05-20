@@ -23,29 +23,31 @@ SOURCES +=     bbarolo.cpp \
     Map/objectgrower.cpp \
     Map/scan.cpp \
     Map/voxel.cpp \
-    Utilities/allocator.cpp \
-    Utilities/conv2D.cpp \
-    Utilities/converter.cpp \
     Tasks/galfit.cpp \
     Tasks/galfit_errors.cpp \
     Tasks/galfit_min.cpp \
     Tasks/galmod.cpp \
     Tasks/galwind.cpp \
+    Tasks/ringmodel.cpp \
+    Tasks/smooth3D.cpp \
+    Tasks/galfit_out.cpp \
+    Tasks/slitfit.cpp \
+    Tasks/ellprof.cpp \
+    Tasks/moment.cpp \ 
+    Tasks/spacepar.cpp \
     Utilities/interpolation.cpp \
     Utilities/lsqfit.cpp \
     Utilities/progressbar.cpp \
-    Tasks/ringmodel.cpp \
-    Tasks/smooth3D.cpp \
+    Utilities/allocator.cpp \
+    Utilities/conv2D.cpp \
+    Utilities/converter.cpp \
     Utilities/statistics.cpp \
     Utilities/string.cpp \
     Utilities/utils.cpp \
     Utilities/paramguess.cpp \
-    Tasks/galfit_out.cpp \
-    Tasks/slitfit.cpp \
     Utilities/wcsUtils.cpp \
     Utilities/fitsUtils.cpp \
-    Tasks/ellprof.cpp \
-    Tasks/moment.cpp
+
 
 HEADERS += Arrays/cube.hh \
     Arrays/header.hh \
@@ -61,21 +63,21 @@ HEADERS += Arrays/cube.hh \
     Map/objectgrower.hh \
     Map/scan.hh \
     Map/voxel.hh \
-    Utilities/conv2D.hh \
-    Utilities/converter.hh \
     Tasks/galfit.hh \
     Tasks/galmod.hh \
-    Utilities/gnuplot.hh \
-    Utilities/lsqfit.hh \
-    Tasks/moment.hh \
-    Utilities/paramguess.hh \
-    Utilities/progressbar.hh \
-    Tasks/ringmodel.hh \
-    Tasks/smooth3D.hh \
-    Utilities/spacepar.hh \
-    Utilities/utils.hh \
     Tasks/ellprof.hh \
     Tasks/galwind.hh \
+    Tasks/moment.hh \
+    Tasks/ringmodel.hh \
+    Tasks/smooth3D.hh \
+    Tasks/spacepar.hh \
+    Utilities/paramguess.hh \
+    Utilities/progressbar.hh \
+    Utilities/utils.hh \
+    Utilities/conv2D.hh \
+    Utilities/converter.hh \    
+    Utilities/gnuplot.hh \
+    Utilities/lsqfit.hh \
     GUI/consolestream.h \
     GUI/q_streamdebug.h
 
