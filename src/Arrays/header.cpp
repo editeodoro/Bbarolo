@@ -130,8 +130,6 @@ Header& Header::operator=(const Header& h) {
     this->warning   = h.warning;
     
 //    this->wcs = h.wcs;
-    this->wcsIsGood = h.wcsIsGood;
-    if (this->wcsIsGood) {
 #pragma omp critical (wcs_header)
 {
     this->wcs = new struct wcsprm;
@@ -140,9 +138,9 @@ Header& Header::operator=(const Header& h) {
     wcscopy(true, h.wcs, this->wcs);
     wcsset(this->wcs);
     this->nwcs      = h.nwcs;
+    this->wcsIsGood = h.wcsIsGood;
 }
-    }
-    
+
     for (unsigned int i=0; i<h.keys.size(); i++)
         this->keys.push_back(h.keys[i]); 
             
@@ -172,6 +170,7 @@ void Header::setNumAx (int size){
     ctype   = new std::string[numAxes];
     pointAllocated = true;
 
+    wcsini(true, numAxes, wcs);
 }
 
 
@@ -187,7 +186,7 @@ void Header::calcArea () {
 
 bool Header::header_read (std::string fname) {
         
-    fitsfile *fptr;                                 
+    fitsfile *fptr;
     int status=0, nfound;
     char comment[72];
     
@@ -568,8 +567,9 @@ bool Header::header_read (std::string fname) {
 
     char stype[5],scode[5],sname[22],units[8],ptype,xtype;
     int restreq;
-
     status = spctyp(wcs->ctype[wcs->spec],stype,scode,sname,units,&ptype,&xtype,&restreq);
+
+    if((wcs->lng!=-1) && (wcs->lat!=-1)) wcsIsGood = true;
 
     // Close the FITS File
     status=0;
@@ -709,6 +709,7 @@ void Header::headwrite_2d (fitsfile *fptr, bool fullHead) {
     
     fits_report_error(stderr, status);  
 }
+
 
 template <class T>
 bool Header::read_keyword(std::string keyword, T &key, bool err) {

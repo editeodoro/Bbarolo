@@ -58,16 +58,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     // Get the total intensity, velocity and dispersion maps of data
     mkdirp((outfold+"maps/").c_str());
     if (verb) std::cout << "    Extracting "<< randomAdjective(2) << " 2D maps..." << std::flush;
-    MomentMap<T> *totalmap = new MomentMap<T>;
-    totalmap->input(in);
-    totalmap->ZeroMoment(true);
-    totalmap->fitswrite_2d((outfold+"maps/"+object+"_0mom.fits").c_str());
-    MomentMap<T> *field = new MomentMap<T>;
-    field->input(in);
-    field->FirstMoment(true);
-    field->fitswrite_2d((outfold+"maps/"+object+"_1mom.fits").c_str());
-    field->SecondMoment(true);
-    field->fitswrite_2d((outfold+"maps/"+object+"_2mom.fits").c_str());
+    std::vector< MomentMap<T> > allmaps = getAllMoments<T>(in,true,nullptr,"MOMENT");
+    allmaps[0].fitswrite_2d((outfold+"maps/"+object+"_0mom.fits").c_str());
+    allmaps[1].fitswrite_2d((outfold+"maps/"+object+"_1mom.fits").c_str());
+    allmaps[2].fitswrite_2d((outfold+"maps/"+object+"_2mom.fits").c_str());
     if (verb) std::cout << " Done." << std::endl;
 
     // Calculate the total flux inside last ring in data
@@ -101,7 +95,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     }
     if (meanPA>180) std::swap(segments[2], segments[3]);
 
-    Tasks::Ellprof<T> ell(totalmap,outr,nseg,segments);
+    Tasks::Ellprof<T> ell(&allmaps[0],outr,nseg,segments);
     ell.setOptions(mass,distance);  //To set the mass and the distance
     ell.RadialProfile();
     std::string dens_out = outfold+"densprof.txt";
@@ -109,8 +103,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     ell.printProfile(fileo,nseg-1);
     fileo.close();
     //ell.printProfile(std::cout);
-    delete totalmap;
-    delete field;
     
     if (normtype=="AZIM" || normtype=="BOTH") {
         double profmin=FLT_MAX;
@@ -169,15 +161,11 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         if (verb) std::cout << " Done." << std::endl;
 
         if (verb) std::cout << "    Writing " << randomAdjective(2) << " kinematic maps..." << std::flush;
-        MomentMap<T> *map = new MomentMap<T>;
-        map->input(mod->Out());
-        map->ZeroMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_azim_0mom.fits").c_str());
-        map->FirstMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_azim_1mom.fits").c_str());
-        map->SecondMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_azim_2mom.fits").c_str());
-        delete map;
+        std::vector< MomentMap<T> > modmaps = getAllMoments<T>(mod->Out(),false,nullptr,"MOMENT");
+        modmaps[0].fitswrite_2d((outfold+"maps/"+object+"_azim_0mom.fits").c_str());
+        modmaps[1].fitswrite_2d((outfold+"maps/"+object+"_azim_1mom.fits").c_str());
+        modmaps[2].fitswrite_2d((outfold+"maps/"+object+"_azim_2mom.fits").c_str());
+
         if (verb) std::cout << " Done." << std::endl;
     }
 
@@ -218,15 +206,11 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             if (normtype=="BOTH") std::cout << "even more " << std::flush;
             std::cout << randomAdjective(2) << " kinematic maps..." << std::flush;
         }
-        MomentMap<T> *map = new MomentMap<T>;
-        map->input(mod->Out());
-        map->ZeroMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_local_0mom.fits").c_str());
-        map->FirstMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_local_1mom.fits").c_str());
-        map->SecondMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_local_2mom.fits").c_str());
-        delete map;
+        std::vector< MomentMap<T> > modmaps = getAllMoments<T>(mod->Out(),false,nullptr,"MOMENT");
+        modmaps[0].fitswrite_2d((outfold+"maps/"+object+"_local_0mom.fits").c_str());
+        modmaps[1].fitswrite_2d((outfold+"maps/"+object+"_local_1mom.fits").c_str());
+        modmaps[2].fitswrite_2d((outfold+"maps/"+object+"_local_2mom.fits").c_str());
+
         if (verb) std::cout << " Done." << std::endl;
     }
 
@@ -256,15 +240,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         if (verb) std::cout << " Done." << std::endl;
 
         if (verb) std::cout << "    Writing " << randomAdjective(1) << " kinematic maps..." << std::flush;
-        MomentMap<T> *map = new MomentMap<T>;
-        map->input(mod->Out());
-        map->ZeroMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_nonorm_0mom.fits").c_str());
-        map->FirstMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_nonorm_1mom.fits").c_str());
-        map->SecondMoment(false);
-        map->fitswrite_2d((outfold+"maps/"+object+"_nonorm_2mom.fits").c_str());
-        delete map;
+        std::vector< MomentMap<T> > modmaps = getAllMoments<T>(mod->Out(),false,nullptr,"MOMENT");
+        modmaps[0].fitswrite_2d((outfold+"maps/"+object+"_nonorm_0mom.fits").c_str());
+        modmaps[1].fitswrite_2d((outfold+"maps/"+object+"_nonorm_1mom.fits").c_str());
+        modmaps[2].fitswrite_2d((outfold+"maps/"+object+"_nonorm_2mom.fits").c_str());
         if (verb) std::cout << " Done." << std::endl;
         
 /*////////        TO BE REMOVED ////////////////////////////////////////////////////////
@@ -657,19 +636,19 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set yrange [-5:" << maxvel << "]" << endl
         << "set ylabel 'V_c  [km/s]'" << endl
         << "set ytics 50" << endl << "set mytics 5" << endl
-        << "plot '" << outfold << "ringlog1.txt' ";
+        << "plot '" << outfold << "rings_final1.txt' ";
 
     if (nc[VROT]>=0) {
         gnu << "u 2:3:($3+$"+to_string(nc[VROT])+"):($3+$"+to_string(nc[VROT]+1)+") w errorbars ls 1, '"
-            << outfold <<"ringlog1.txt' u 2:3 w lp ls 1";
+            << outfold <<"rings_final1.txt' u 2:3 w lp ls 1";
     }
     else gnu << "u 2:3 w lp ls 1";
 
     if (par.TWOSTAGE) {
-        gnu << ", '" << outfold << "ringlog2.txt' ";
+        gnu << ", '" << outfold << "rings_final2.txt' ";
         if (par.flagERRORS && mpar[VROT]) {
         gnu << "u 2:3:($3+$13):($3+$14) w errorbars ls 2, '"
-            << outfold <<"ringlog2.txt' u 2:3 w lp ls 2";
+            << outfold <<"rings_final2.txt' u 2:3 w lp ls 2";
         }
         else gnu << "u 2:3 w lp ls 2";
     }
@@ -684,16 +663,16 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set yrange [" << mina << ":" << maxa << "]" << endl
         << "set ylabel 'i [deg]'" << endl
         << "set ytics 5" << endl << "set mytics 5" << endl
-        << "plot '" << outfold << "ringlog1.txt' ";
+        << "plot '" << outfold << "rings_final1.txt' ";
 
     if (nc[INC]>=0) {
         gnu << "u 2:5:($5+$"+to_string(nc[INC])+"):($5+$"+to_string(nc[INC]+1)+") w errorbars ls 1, '"
-            << outfold << "ringlog1.txt' u 2:5 w lp ls 1";
+            << outfold << "rings_final1.txt' u 2:5 w lp ls 1";
     }
     else gnu << "u 2:5 w lp ls 1";
 
     if (par.TWOSTAGE)
-        gnu << ", '" << outfold << "ringlog2.txt' u 2:5 w lp ls 2";
+        gnu << ", '" << outfold << "rings_final2.txt' u 2:5 w lp ls 2";
 
     gnu << endl;
 
@@ -708,16 +687,16 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set yrange [" << mina << ":" << maxa << "]" << endl
         << "set ylabel 'P.A. [deg]'" << endl
         << "set ytics 5" << endl << "set mytics 5" << endl
-        << "plot '" << outfold << "ringlog1.txt' ";
+        << "plot '" << outfold << "rings_final1.txt' ";
 
     if (nc[PA]>=0) {
         gnu << "u 2:6:($6+$"+to_string(nc[PA])+"):($6+$"+to_string(nc[PA]+1)+") w errorbars ls 1, '"
-            << outfold << "ringlog1.txt' u 2:6 w lp ls 1";;
+            << outfold << "rings_final1.txt' u 2:6 w lp ls 1";;
     }
     else gnu << "u 2:6 w lp ls 1";
 
     if (par.TWOSTAGE)
-        gnu << ", '" << outfold << "ringlog2.txt' u 2:6 w lp ls 2";
+        gnu << ", '" << outfold << "rings_final2.txt' u 2:6 w lp ls 2";
 
     gnu << endl;
 
@@ -746,19 +725,19 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set yrange [0:"<<maxa<<"]\n"
         << "set ylabel '{/Symbol s} [km/s]'\n"
         << "set ytics 5" << endl << "set mytics 5" << endl
-        << "plot '"<<in->pars().getOutfolder()<<"ringlog1.txt' ";
+        << "plot '"<<in->pars().getOutfolder()<<"rings_final1.txt' ";
 
     if (nc[VDISP]>=0) {
         gnu << "u 2:4:($4+$"+to_string(nc[VDISP])+"):($4+$"+to_string(nc[VDISP]+1)+") w errorbars ls 1, '"
-            << outfold <<"ringlog1.txt' u 2:4 w lp ls 1";
+            << outfold <<"rings_final1.txt' u 2:4 w lp ls 1";
     }
     else gnu << "u 2:4 w lp ls 1";
 
     if (par.TWOSTAGE) {
-        gnu << ", '" << outfold << "ringlog2.txt' ";
+        gnu << ", '" << outfold << "rings_final2.txt' ";
         if (par.flagERRORS && mpar[VDISP]) {
             gnu << "u 2:4:($3+$15):($3+$16) w errorbars ls 2, '"
-                << outfold <<"ringlog2.txt' u 2:4 w lp ls 2";
+                << outfold <<"rings_final2.txt' u 2:4 w lp ls 2";
         }
         else gnu << "u 2:4 w lp ls 2";
     }
@@ -773,16 +752,16 @@ void Galfit<T>::plotPar_Gnuplot () {
     gnu << "@MMARGIN" << endl << "@NOXTICS" << endl
         << "set yrange [" << mina << ":" << maxa << "]" << endl
         << "set ylabel 'V_{sys} [km/s]'" << endl
-        << "plot '" << outfold << "ringlog1.txt' ";
+        << "plot '" << outfold << "rings_final1.txt' ";
 
     if (nc[VSYS]>=0) {
         gnu << "u 2:12:($12+$"+to_string(nc[VSYS])+"):($12+$"+to_string(nc[VSYS]+1)+") w errorbars ls 1, '"
-            << outfold << "ringlog1.txt' u 2:12 w lp ls 1";;
+            << outfold << "rings_final1.txt' u 2:12 w lp ls 1";;
     }
     else gnu << "u 2:12 w lp ls 1";
 
     if (par.TWOSTAGE)
-        gnu << ", '" << outfold << "ringlog2.txt' u 2:12 w lp ls 2";
+        gnu << ", '" << outfold << "rings_final2.txt' u 2:12 w lp ls 2";
     gnu << endl;
 
 
@@ -795,16 +774,16 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set xlabel 'Radius [arcsec]'" << endl
         << "set yrange [" <<mina<<":"<<maxa<<"]\n"
         << "set ylabel 'Scale height [arcsec]'\n"
-        << "plot '" << outfold << "ringlog1.txt'";
+        << "plot '" << outfold << "rings_final1.txt'";
 
     if (nc[Z0]>=0) {
         gnu << "u 2:8:($8+$"+to_string(nc[Z0])+"):($8+$"+to_string(nc[Z0]+1)+") w errorbars ls 1, '"
-            << outfold << "ringlog1.txt' u 2:8 w lp ls 1";
+            << outfold << "rings_final1.txt' u 2:8 w lp ls 1";
     }
     else gnu << "u 2:8 w lp ls 1";
 
     if (par.TWOSTAGE)
-        gnu << ", '" << outfold << "ringlog2.txt' u 2:8 w lp ls 2";
+        gnu << ", '" << outfold << "rings_final2.txt' u 2:8 w lp ls 2";
     gnu << endl;
 
     gnu << "unset multiplot" << endl;
@@ -823,16 +802,16 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set yrange [" <<mina<<":"<<maxa<<"]\n"
         << "set ylabel 'X_c [pix]'\n"
         //<< "set ytics 5" << endl << "set mytics 5" << endl
-        << "plot '" << outfold << "ringlog1.txt' ";
+        << "plot '" << outfold << "rings_final1.txt' ";
 
     if (nc[XPOS]>=0) {
         gnu << "u 2:10:($10+$"+to_string(nc[XPOS])+"):($10+$"+to_string(nc[XPOS]+1)+") w errorbars ls 1, '"
-            << outfold << "ringlog1.txt' u 2:10 w lp ls 1";;
+            << outfold << "rings_final1.txt' u 2:10 w lp ls 1";;
     }
     else gnu << "u 2:10 w lp ls 1";
 
     if (par.TWOSTAGE)
-        gnu << ", '" << outfold << "ringlog2.txt' u 2:10 w lp ls 2";
+        gnu << ", '" << outfold << "rings_final2.txt' u 2:10 w lp ls 2";
     gnu << endl;
 
     // Plotting ycenter
@@ -844,16 +823,16 @@ void Galfit<T>::plotPar_Gnuplot () {
         << "set yrange [" << mina << ":" << maxa << "]" << endl
         << "set ylabel 'Y_c [pix]'" << endl
         //<< "set ytics 5" << endl << "set mytics 5" << endl
-        << "plot '" << outfold << "ringlog1.txt' ";
+        << "plot '" << outfold << "rings_final1.txt' ";
 
     if (nc[YPOS]>=0) {
         gnu << "u 2:11:($11+$"+to_string(nc[YPOS])+"):($11+$"+to_string(nc[YPOS]+1)+") w errorbars ls 1, '"
-            << outfold << "ringlog1.txt' u 2:11 w lp ls 1";;
+            << outfold << "rings_final1.txt' u 2:11 w lp ls 1";;
     }
     else gnu << "u 2:11 w lp ls 1";
 
     if (par.TWOSTAGE)
-        gnu << ", '" << outfold << "ringlog2.txt' u 2:11 w lp ls 2";
+        gnu << ", '" << outfold << "rings_final2.txt' u 2:11 w lp ls 2";
     gnu << endl;
 
 
@@ -866,10 +845,10 @@ void Galfit<T>::plotPar_Gnuplot () {
             << "set xlabel 'Radius [arcsec]'" << endl
             << "set yrange [" <<mina<<":"<<maxa<<"]\n"
             << "set ylabel 'Surface density [10^20 atoms/cm^2]'\n"
-            << "plot '"<<in->pars().getOutfolder()<<"ringlog1.txt' u 2:8 w lp ls 1";
+            << "plot '"<<in->pars().getOutfolder()<<"rings_final1.txt' u 2:8 w lp ls 1";
 
         if (par.TWOSTAGE)
-            gnu << ", '" << outfold << "ringlog2.txt' u 2:8 w lp ls 2";
+            gnu << ", '" << outfold << "rings_final2.txt' u 2:8 w lp ls 2";
         gnu << endl;
     }
 
@@ -990,7 +969,7 @@ int Galfit<T>::plotAll_Python() {
 
     pyf << "# Reading in best-fit parameters \n"
         << "rad_sd, surfdens, sd_err = np.genfromtxt(outfolder+'densprof.txt', usecols=(0,3,4),unpack=True) \n"
-        << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.genfromtxt(outfolder+'ringlog1.txt',usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True) \n";
+        << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.genfromtxt(outfolder+'rings_final1.txt',usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True) \n";
     if (outr->nr==1) pyf << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.array([rad]),np.array([vrot]),np.array([disp]),np.array([inc]),np.array([pa]),np.array([z0]),np.array([xpos]),np.array([ypos]),np.array([vsys]),np.array([vrad])\n";
     pyf << "err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",len(rad))), np.zeros(shape=(" << MAXPAR << ",len(rad)))\n"
         << "color=color2='#B22222' \n"
@@ -999,13 +978,13 @@ int Galfit<T>::plotAll_Python() {
 
     for (int i=0; i<MAXPAR; i++) {
         if (nc[i]>0) {
-            pyf << "err1_l[" << i << "], err1_h[" << i << "] = np.genfromtxt(outfolder+'ringlog1.txt',usecols=("
+            pyf << "err1_l[" << i << "], err1_h[" << i << "] = np.genfromtxt(outfolder+'rings_final1.txt',usecols=("
                 << nc[i] << "," << nc[i]+1 << "),unpack=True) \n";
         }
     }
 
     pyf << "\nif twostage: \n"
-        << "\trad2, vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2, vrad2 = np.genfromtxt(outfolder+'ringlog2.txt',usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True)\n";
+        << "\trad2, vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2, vrad2 = np.genfromtxt(outfolder+'rings_final2.txt',usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True)\n";
     if (outr->nr==1) pyf << "\trad2,vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2,vrad2 = np.array([rad2]),np.array([vrot2]),np.array([disp2]),np.array([inc2]),np.array([pa2]),np.array([z02]),np.array([xpos2]),np.array([ypos2]),np.array([vsys2]),np.array([vrad2])\n";
     pyf << "\terr2_l, err2_h = np.zeros(shape=(" << MAXPAR << ",len(rad2))), np.zeros(shape=(" << MAXPAR << ",len(rad2)))\n"
         << "\tcolor='#A0A0A0' \n"
@@ -1014,7 +993,7 @@ int Galfit<T>::plotAll_Python() {
     for (int i=0; i<MAXPAR; i++) {
         if ((i==0 || i==1 || i==9) && (nc[i]>0)) {
             int ff = i==9 ? 6 : 0;
-            pyf << "\terr2_l[" << i << "], err2_h[" << i << "] = np.genfromtxt(outfolder+'ringlog2.txt',usecols=("
+            pyf << "\terr2_l[" << i << "], err2_h[" << i << "] = np.genfromtxt(outfolder+'rings_final2.txt',usecols=("
                 << nc[i]-ff << "," << nc[i]+1-ff << "),unpack=True) \n";
         }
     }
@@ -1155,8 +1134,8 @@ int Galfit<T>::plotAll_Python() {
         << "twostage = " << par.TWOSTAGE << " \n"
         << "plotmask = " << par.PLOTMASK << " \n"
         << std::endl
-        << "if twostage: xpos,ypos = np.genfromtxt(outfolder+'ringlog2.txt',usecols=(9,10),unpack=True) \n"
-        << "else: xpos,ypos = np.genfromtxt(outfolder+'ringlog1.txt',usecols=(9,10),unpack=True) \n"
+        << "if twostage: xpos,ypos = np.genfromtxt(outfolder+'rings_final2.txt',usecols=(9,10),unpack=True) \n"
+        << "else: xpos,ypos = np.genfromtxt(outfolder+'rings_final1.txt',usecols=(9,10),unpack=True) \n"
         << "xcen_m,ycen_m = np.nanmean((xpos,ypos),axis=1) \n"
         << std::endl
         << "# CHANNEL MAPS: Setting all the needed variables \n"
@@ -1283,8 +1262,8 @@ int Galfit<T>::plotAll_Python() {
         << "plotmask = " << par.PLOTMASK << " \n"
         << "zmin, zmax = " << zmin << ", " << zmax << std::endl
         << std::endl
-        << "if twostage: rad,vrot,inc,pa,vsys = np.genfromtxt(outfolder+'ringlog2.txt',usecols=(1,2,4,5,11),unpack=True) \n"
-        << "else: rad,vrot,inc,pa,vsys = np.genfromtxt(outfolder+'ringlog1.txt',usecols=(1,2,4,5,11),unpack=True) \n"
+        << "if twostage: rad,vrot,inc,pa,vsys = np.genfromtxt(outfolder+'rings_final2.txt',usecols=(1,2,4,5,11),unpack=True) \n"
+        << "else: rad,vrot,inc,pa,vsys = np.genfromtxt(outfolder+'rings_final1.txt',usecols=(1,2,4,5,11),unpack=True) \n"
         << std::endl
         << "files_pva_mod, files_pvb_mod = [], [] \n"
         << "for thisFile in sorted(os.listdir(outfolder+'pvs/')): \n"
@@ -1413,8 +1392,8 @@ int Galfit<T>::plotAll_Python() {
         << "xmin, xmax = " << xmin << ", " << xmax << std::endl
         << "ymin, ymax = " << ymin << ", " << ymax << std::endl
         << std::endl
-        << "if twostage: rad,inc,pa,xpos,ypos,vsys = np.genfromtxt(outfolder+'ringlog2.txt',usecols=(1,4,5,9,10,11),unpack=True) \n"
-        << "else: rad,inc,pa,xpos,ypos,vsys = np.genfromtxt(outfolder+'ringlog1.txt',usecols=(1,4,5,9,10,11),unpack=True) \n"
+        << "if twostage: rad,inc,pa,xpos,ypos,vsys = np.genfromtxt(outfolder+'rings_final2.txt',usecols=(1,4,5,9,10,11),unpack=True) \n"
+        << "else: rad,inc,pa,xpos,ypos,vsys = np.genfromtxt(outfolder+'rings_final1.txt',usecols=(1,4,5,9,10,11),unpack=True) \n"
         << "xcen_m,ycen_m,inc_m,pa_m,vsys_m=np.nanmean((xpos,ypos,inc,pa,vsys),axis=1) \n"
         << "xcen, ycen = xcen_m-xmin, ycen_m-ymin \n"
         << std::endl
@@ -1512,6 +1491,7 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(pa-90)) \n"
         << "\t\t\t\t\taxis.plot(xcen-x_pix,ycen-y_pix,'-',color='grey',lw=1) \n"
         << "\t\t\t\t\taxis.plot(x_pix+xcen,y_pix+ycen,'-',color='grey',lw=1) \n"
+        << "\t\t\t\tif j!=2: axis.contour(to_plot[j][i]*maskmap,levels=[0],colors='green',origin='lower',extent=ext) \n"
         << "\t\t\tif j==0: axis.text(-0.12,0.5,mapname[i],va='center',rotation=90,transform=axis.transAxes,fontsize=15) \n\n"
         << "\t\tcbax = fig.add_axes([ax[i][2].get_position().x0+0.003,ax[i][2].get_position().y0-0.025,x_len-0.003,0.02]) \n"
         << "\t\tcb2 = ColorbarBase(cbax, orientation='horizontal', cmap=cmaps[i], norm=norm) \n"
@@ -1682,7 +1662,7 @@ void Galfit<T>::printInitial (Rings<T> *inr, std::string outfile) {
     std::ofstream initout(outfile.c_str());    
     initout << "#" << setfill('=');
     initout << setw(66) << right << " Initial parameters " << setw(46) << " " << endl;
-    initout << setfill(' ');
+    initout << setfill(' ') << setprecision(3) << fixed;
     initout << left << setw(m) << "#RAD(arcs)"
             << setw(m) << "VROT(km/s)"
             << setw(m) << "DISP(km/s)"

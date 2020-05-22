@@ -31,6 +31,8 @@
 #include <algorithm>
 #include <Arrays/cube.hh>
 #include <Arrays/image.hh>
+#include <Arrays/image.hh>
+#include <Tasks/moment.hh>
 #include <Map/objectgrower.hh>
 #include <Map/detection.hh>
 #include <Utilities/gnuplot.hh>
@@ -858,29 +860,19 @@ void Cube<T>::plotDetections() {
     }
     */
     
-    
-    Image2D<T> *HImap = new Image2D<T>(axisDim);
-    Image2D<T> *Vemap = new Image2D<T>(axisDim);
-    Image2D<T> *Dimap = new Image2D<T>(axisDim);
 
-    ProgressBar bar (" Extracting maps... ", true);
-    bar.setShowbar(par.getShowbar());
-    if (par.isVerbose()) bar.init(axisDim[1]);
-    
-    std::vector<bool> isObj(numPix,false);
-    
+
+    // Getting regions of detections
+    bool *isObj = new bool[numPix];
+    for (int j=0; j<numPix; j++) isObj[j]=false;
     for (int i=0; i<numObj; i++) {
-        typename std::vector<Voxel<T> > voxelList = objectList->at(i).getPixelSet(array, axisDim);
-        typename std::vector<Voxel<T> >::iterator vox;
-        for(vox=voxelList.begin();vox<voxelList.end();vox++){
-            //if(objectList->at(i).isInObject(*vox)){
-                long pos = vox->getX()+vox->getY()*axisDim[0]+vox->getZ()*axisDim[0]*axisDim[1];
-                isObj[pos] = true;
-            //}
+        for(auto &vox : objectList->at(i).getPixelSet(array, axisDim)){
+            long pos = vox.getX()+vox.getY()*axisDim[0]+vox.getZ()*axisDim[0]*axisDim[1];
+            isObj[pos] = true;
         }
     }
 
-    /// Write a datacube with just the detected objects
+    // Writing a datacube with just the detected objects
     Cube<T> *det = new Cube<T>(axisDim);
     for (size_t i=0; i<det->NumPix(); i++) det->Array()[i] = array[i]*isObj[i];
     det->saveHead(head);
@@ -889,158 +881,28 @@ void Cube<T>::plotDetections() {
     det->fitswrite_3d((par.getOutfolder()+"detections.fits").c_str());
     delete det;
 
-    for (int y=0; y<axisDim[1]; y++) {
-        if (par.isVerbose()) bar.update(y+1);
-        for (int x=0; x<axisDim[0]; x++) {
-            float fluxint = 0;
-            float fluxsum = 0;
-            long mappix = x+y*axisDim[0];
-            HImap->Array()[mappix] = 0;
-            Vemap->Array()[mappix] = 0;
-            Dimap->Array()[mappix] = 0;
-            for (int z=0; z<axisDim[2]; z++) {
-                long pix = mappix+z*axisDim[1]*axisDim[0];
-                if (isObj[pix]) {
-                    float flux = FluxtoJy(array[pix],head);
-                    //Pbcor<float>(x,y,z,flux,head);
-                    fluxsum += flux;
-                    float zval = ((z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2));
-                    fluxint += flux*zval;
-                }
-            }
-            HImap->Array()[mappix] = fluxsum*fabs(DeltaVel<T>(head));
-            Vemap->Array()[mappix] = AlltoVel(fluxint/fluxsum, head);
-            
-            T num=0;
-            for (int z=0; z<axisDim[2]; z++) {
-                long pix = mappix+z*axisDim[1]*axisDim[0];
-                if (isObj[pix]) {
-                    float flux = FluxtoJy(array[pix],head);
-                    //Pbcor<float>(x,y,z,flux,head);
-                    float vel = AlltoVel(getZphys(z), head);
-                    T firstmoment = Vemap->Array(mappix);
-                    num += flux*(vel-firstmoment)*(vel-firstmoment);        
-                }               
-            }
-            num *= fabs(DeltaVel<T>(head));
-            Dimap->Array()[mappix]=sqrt(num/HImap->Array(mappix));  
-        }
-    }
-
-
-    std::string name = par.getOutfolder()+head.Obname()+"_mom0th.fits";
-    HImap->copyHeader(head);
-    HImap->Head().setMinMax(0,0);
-    HImap->Head().setBtype("intensity");
-    HImap->Head().setBunit("JY * KM/S");    
-    HImap->fitswrite_2d(name.c_str());
-
-    Vemap->copyHeader(head);
-    Vemap->Head().setMinMax(0,0);
-    Vemap->Head().setBtype("velocity");
-    Vemap->Head().setBunit("KM/S");
-    name = par.getOutfolder()+head.Obname()+"_mom1st.fits";
-    Vemap->fitswrite_2d(name.c_str());
-    
-    Dimap->copyHeader(head);
-    Dimap->Head().setMinMax(0,0);
-    Dimap->Head().setBtype("vdisp");
-    Dimap->Head().setBunit("KM/S");
-    name = par.getOutfolder()+head.Obname()+"_mom2nd.fits";
-    Dimap->fitswrite_2d(name.c_str());
-    
+    // Writing detection map
     Image2D<int> *DetMap = new Image2D<int>(axisDim);
     for (int i=0; i<axisDim[0]*axisDim[1];i++) DetMap->Array()[i] = detectMap[i];
     DetMap->copyHeader(head);
     DetMap->Head().setMinMax(0,0);
     DetMap->Head().setBtype("detected_chan");
-    name = par.getOutfolder()+"DetectMap.fits";
-    DetMap->fitswrite_2d(name.c_str());
-    
+    DetMap->fitswrite_2d((par.getOutfolder()+"DetectMap.fits").c_str());
     delete DetMap;
-    delete HImap;
-    delete Vemap;
-    delete Dimap;
-    
-    if (par.isVerbose()) bar.fillSpace(" OK.\n");
-    
-    std::ofstream fileo;
 
-    for (int i=0; i<numObj; i++) {
-        Detection<T> *obj = pObject(i);
-        float *intSpec = new float[axisDim[2]];
-        obj->calcWCSparams(head);
-        for(int z=0; z<axisDim[2]; z++) intSpec[z]=0;      
-        
-        for (int z=obj->getZmin(); z<=obj->getZmax(); z++) {
-            for (int x=obj->getXmin(); x<=obj->getXmax(); x++) {
-                for (int y=obj->getYmin(); y<=obj->getYmax(); y++) {
-                    if (obj->isInObject(x,y,z)) {
-                        long pix = x+y*axisDim[0]+z*axisDim[1]*axisDim[0];
-                        double flux = array[pix];
-                        Pbcor<double>(x,y,z,flux,head);
-                        intSpec[z] += flux;
-                    }
-                }
-            }
-        
-        }
-        
-        std::string name = par.getOutfolder()+"spectrum"+to_string(i)+".dat";
-        fileo.open(name.c_str());
-        for (int z=0; z<axisDim[2]; z++) {
-            double vel = ((z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2));
-            vel = AlltoVel(vel, head);
-            intSpec[z] = FluxtoJy(intSpec[z],head);
-            fileo << vel << "  " << intSpec[z] << endl;
-        }
-        
-        delete [] intSpec;
-        fileo.close();
-        
-    }
-
-#ifdef HAVE_GNUPLOT     
-    Gnuplot gp; 
+    // Writing kinematic maps
+    std::vector< MomentMap<T> > allmaps = getAllMoments<T>(this,true,isObj,"MOMENT");
+    allmaps[0].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom0th.fits").c_str());
+    allmaps[1].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom1st.fits").c_str());
+    allmaps[2].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom2nd.fits").c_str());
     
-    gp.begin(); 
-    gp.commandln("set terminal postscript eps color");
-    gp.commandln("unset key");
-    gp.commandln("set xlabel 'Velocity [km/s]'");
-    gp.commandln("set ylabel 'Flux density [JY]");
-    gp.commandln("set size square");
-    
-    std::string globalcmd;
-    for (int i=0; i<numObj; i++) {
-        float vmin = objectList->at(i).getVelMin();
-        float vmax = objectList->at(i).getVelMax();
-        float delta = 2*fabs(DeltaVel<float>(head));
-        if (vmin>vmax) std::swap(vmin, vmax);
-        vmin -= delta;
-        vmax += delta;      
-        std::string minn = to_string<int>(vmin);
-        std::string maxx = to_string<int>(vmax);
-        gp.commandln(("set xrange ["+minn+":"+maxx+"]").c_str());
-        std::string titlecmd = "set title 'Individual spectrum for " +to_string(i)+"'";
-        std::string outcmd = "set output '"+par.getOutfolder()+"spectrum #"+to_string(i)+".eps'";
-        std::string plotcmd = "plot '"+par.getOutfolder()+"spectrum"+to_string(i)+".dat"+"' with lp ls 3 lt 7";
-        gp.commandln(titlecmd.c_str());
-        gp.commandln(outcmd.c_str());
-        gp.commandln((plotcmd).c_str());
-    }
-    
-    gp.end();
-#endif
-
-    for (int i=0; i<numObj; i++)
-        remove((par.getOutfolder()+"spectrum"+to_string(i)+".dat").c_str());
-
 }
 template void Cube<short>::plotDetections();
 template void Cube<int>::plotDetections();
 template void Cube<long>::plotDetections();
 template void Cube<float>::plotDetections();
 template void Cube<double>::plotDetections();
+
 
 template <class Type>
 bool Cube<Type>::isDetection(long x, long y, long z) {
@@ -1079,3 +941,149 @@ template Detection<int>* Cube<int>::LargestDetection ();
 template Detection<long>* Cube<long>::LargestDetection ();
 template Detection<float>* Cube<float>::LargestDetection ();
 template Detection<double>* Cube<double>::LargestDetection ();
+
+
+template <class T>
+Cube<T>* Cube<T>::extractCubelet(Detection<T> *obj, int edges, int *starts) {
+
+    /// Extract a sub-cube from a detection
+
+    // Finding boundaries of the cubelet
+    long objmin[3] =  {obj->getXmin(),obj->getYmin(),obj->getZmin()};
+    long objmax[3] =  {obj->getXmax(),obj->getYmax(),obj->getZmax()};
+    int stops[3], newdim[3];
+    for (int i=0; i<3; i++) {
+        starts[i] = objmin[i]-edges>=0 ? objmin[i]-edges : 0;
+        stops[i]  = objmax[i]+edges<axisDim[i] ? objmax[i]+edges : axisDim[i]-1;
+        newdim[i] = stops[i]-starts[i]+1;
+    }
+
+    // Creating the sub-cube and copying data
+    Cube<T> *clet = new Cube<T>(newdim);
+    clet->saveHead(head);
+    clet->saveParam(par);
+
+    for (int z=starts[2]; z<=stops[2]; z++)
+        for (int y=starts[1]; y<=stops[1]; y++)
+            for (int x=starts[0]; x<=stops[0]; x++)
+                clet->Array(x-starts[0],y-starts[1],z-starts[2]) = Array(x,y,z);
+
+    // Upgrading header. WCS is recentred
+    double pix[3] = {obj->getXaverage(),obj->getYaverage(),0}, world[3];
+    pixToWCSSingle(head.WCS(),pix,world);
+    for (int i=0; i<3; i++) {
+        clet->Head().setDimAx(i,newdim[i]);
+        clet->Head().setCrpix(i,pix[i]-starts[i]+1);
+        clet->Head().setCrval(i,world[i]);
+    }
+
+    clet->Head().setMinMax(0,0);
+    clet->Head().Keys().clear();
+    clet->Head().Keys().push_back("HISTORY BBAROLO SOURCE FINDER DATA PRODUCT");
+
+    return clet;
+}
+template Cube<short>* Cube<short>::extractCubelet(Detection<short>*,int,int*);
+template Cube<int>* Cube<int>::extractCubelet(Detection<int>*,int,int*);
+template Cube<long>* Cube<long>::extractCubelet(Detection<long>*,int,int*);
+template Cube<float>* Cube<float>::extractCubelet(Detection<float>*,int,int*);
+template Cube<double>* Cube<double>::extractCubelet(Detection<double>*,int,int*);
+
+
+template <class T>
+void Cube<T>::writeCubelets() {
+
+    /// Write FITS cubelets and separate kinematic maps of all detections
+
+    if (objectList->size()==0) return;
+
+    if (par.isVerbose()) std::cout << " Writing cubelets ..." << std::flush;
+
+    std::string outfold = par.getOutfolder()+"sources/";
+    std::string object  = head.Name();
+    mkdirp(outfold.c_str());
+
+    for (int i=0; i<objectList->size(); i++) {
+        std::string srcname = object+"_"+to_string(i+1);
+        mkdirp((outfold+srcname).c_str());
+
+        Detection<T> *obj = pObject(i);
+        obj->calcWCSparams(head);
+
+        // Writing sub-cube
+        int starts[3];
+        Cube<T> *c = extractCubelet(obj,10,starts);
+        c->Head().setName(srcname);
+        c->fitswrite_3d((outfold+srcname+"/"+srcname+".fits").c_str(),true);
+
+        // Creating a submask for cubelet
+        bool *isObj = new bool[c->NumPix()];
+        for (int j=0; j<c->NumPix(); j++) isObj[j]=false;
+
+        for(auto &v : obj->getPixelSet(array, axisDim)){
+            long pos = c->nPix(v.getX()-starts[0],v.getY()-starts[1],v.getZ()-starts[2]);
+            isObj[pos] = true;
+        }
+
+        // Writing sub-kinematic maps
+        c->pars().setVerbosity(false);
+        // Writing kinematic maps
+        std::vector< MomentMap<T> > allmaps = getAllMoments<T>(c,true,isObj,"MOMENT");
+        allmaps[0].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom0.fits").c_str());
+        allmaps[1].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom1.fits").c_str());
+        allmaps[2].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom2.fits").c_str());
+
+        delete [] isObj;
+
+        // Writing total spectrum to file
+        std::ofstream fileo((outfold+srcname+"/"+srcname+"_spectrum.dat").c_str());
+        fileo << "#Velocity(km/s)     Flux" << std::endl;
+
+        for (int z=0; z<c->DimZ(); z++) {
+            float intSpec = 0;
+            double vel = AlltoVel(c->getZphys(z),c->Head());
+            for (int y=0; y<c->DimY(); y++) {
+                for (int x=0; x<c->DimX(); x++) {
+                    if (obj->isInObject(x+starts[0],y+starts[1],z+starts[2])) {
+                        double flux = c->Array(x,y,z);
+                        Pbcor<double>(x+starts[0],y+starts[1],z+starts[2],flux,head);
+                        intSpec += flux;
+                    }
+                }
+            }
+            fileo << left << setw(18) << vel << "  " << FluxtoJy(intSpec,c->Head()) << endl;
+        }
+
+        fileo.close();
+        delete c;
+
+#ifdef HAVE_GNUPLOT
+        Gnuplot gp;
+
+        gp.begin();
+        gp.commandln("set terminal postscript eps color");
+        gp.commandln("unset key");
+        gp.commandln("set xlabel 'Velocity [km/s]'");
+        gp.commandln("set ylabel 'Flux density'");
+        //gp.commandln("set size square");
+
+        std::string titlecmd = "set title 'Individual spectrum for " +srcname+"'";
+        std::string outcmd = "set output '"+outfold+srcname+"/"+srcname+"_spectrum.eps'";
+        std::string plotcmd = "plot '"+outfold+srcname+"/"+srcname+"_spectrum.dat' with lp ls 3 lt 7";
+        gp.commandln(titlecmd.c_str());
+        gp.commandln(outcmd.c_str());
+        gp.commandln((plotcmd).c_str());
+
+    gp.end();
+#endif
+
+    }
+
+    if (par.isVerbose()) std::cout << " Done." << std::endl;
+
+}
+template void Cube<short>::writeCubelets();
+template void Cube<int>::writeCubelets();
+template void Cube<long>::writeCubelets();
+template void Cube<float>::writeCubelets();
+template void Cube<double>::writeCubelets();

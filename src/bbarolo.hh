@@ -72,7 +72,7 @@ bool BBcore (Param *par) {
     if (par->getCheckCh()) c->CheckChannels();
     
     
-    /// Mask making utility ----------------------------------------
+    // Mask making utility ----------------------------------------
     if (par->getMakeMask()) {
         if (par->getMASK().find("LARGEST")!=std::string::npos) c->BlankMask(NULL,true);
         else c->BlankMask(NULL,false);
@@ -80,7 +80,7 @@ bool BBcore (Param *par) {
     // --------------------------------------------------------------
     
     
-    /// Spatial smoothing utility ------------------------------------------
+    // Spatial smoothing utility ------------------------------------------
     if (par->getflagSmooth()) {
         Smooth3D<BBreal> *sm = new Smooth3D<BBreal>;
         sm->cubesmooth(c);
@@ -90,7 +90,7 @@ bool BBcore (Param *par) {
     // --------------------------------------------------------------
 
 
-    /// Spectral smoothing utility -----------------------------------
+    // Spectral smoothing utility -----------------------------------
     if (par->getflagSmoothSpectral()) {
         SpectralSmooth3D<BBreal> *sm = new SpectralSmooth3D<BBreal>(par->getWindowType(),par->getWindowSize());
         sm->smooth(c);
@@ -100,12 +100,13 @@ bool BBcore (Param *par) {
     // --------------------------------------------------------------
 
 
-    /// Source finding utility --------------------------------------
+    // Source finding utility --------------------------------------
     if (par->getflagSearch()) {
         c->Search();
         c->plotDetections();
         std::ofstream detout((outfolder+"detections.txt").c_str());
         c->printDetections(detout);
+        if (par->getParSE().cubelets) c->writeCubelets();
     }
     // --------------------------------------------------------------
         
@@ -157,19 +158,17 @@ bool BBcore (Param *par) {
 
 
     // 2D tilted-ring fitting task -----------------------------------
-    
     if (par->getFlagRing()) {
         Ringmodel<BBreal> *trmod = new Ringmodel<BBreal>(c);
-        trmod->ringfit();
+        trmod->ringfit(c->pars().getThreads(),c->pars().isVerbose(),c->pars().getShowbar());
         std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_2dtrm.txt";
         std::ofstream fileo(fout.c_str());
-        trmod->printfinal(fileo);
+        trmod->printfinal(fileo,c->Head());
         fileo.close();
-        trmod->printfinal(std::cout);
-        trmod->writeModel(c->pars().getOutfolder()+c->Head().Name()+"_2d_mod.fits");
+        trmod->printfinal(std::cout,c->Head());
+        trmod->writeModel(c->pars().getOutfolder()+c->Head().Name()+"_2d_mod.fits",c->Head());
         delete trmod;
     }
-    
     //-----------------------------------------------------------------
 
 

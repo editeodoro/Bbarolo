@@ -247,11 +247,11 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
     
     /// This function sets all parameters needed to use the Galmod Object. A description
     /// of input is given in the Galmod class definition file (galmod.hh). 
-        
+
     initialize(c, Boxup, Boxlow);
-    
+
     ringIO(rings);
-    
+
     setOptions(LTYPE, CMODE, CDENS, ISEED);
     
     int nvtmp = NV;

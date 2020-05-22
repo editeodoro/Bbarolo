@@ -88,19 +88,21 @@ public:
         
     void hold(const int i) {mask[i]=false;}  /// Hold a parameter fixed
     void free(const int i) {mask[i]=true;}   /// Release a fixed parameter
-    
+    void setMask(const int i, bool v) {mask[i]=v;}   /// set a fixed/free parameter
+
     /// Fitting specific functions:
     
-    void setoption (bool *maskpar, int hside, int wfunc, float freeangle);   
+    void setoption (bool *maskpar, int hside, int wfunc, float freeangle);
+    void setfield (T *Array, int xsize, int ysize);
     void setfield (T *Array, int xsize, int ysize, int *boxup, int *boxlow);
     
-    void ringfit();
+    void ringfit(int nthreads=1, bool verbose=true, bool showbar=true);
     int  rotfit (T ri, T ro, T *p, T *e, int &n, T &q);
     int  getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &w, T *p, T ri, T ro, T &q, int nfr);
     
     void print (std::ostream& Stream);
-    void printfinal (std::ostream& Stream);
-    void writeModel (std::string fname);
+    void printfinal (std::ostream& Stream, Header &h);
+    void writeModel (std::string fname, Header &h);
 
     template <class M>
     friend std::ostream& operator<< (std::ostream& Stream, Ringmodel<M> &r);
@@ -151,7 +153,6 @@ protected:
     bool  fieldAllocated; ///< Has the fitting field been constructed?
 
 private:
-    Cube<T> *in;
     int     blo[2];         ///< Lower edge of box.
     int     bup[2];         ///< Upper edge of box.
     int     side;           ///< Which half of velocity field:

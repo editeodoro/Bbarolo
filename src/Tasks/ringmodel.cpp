@@ -132,6 +132,7 @@ template <class T>
 Ringmodel<T>::Ringmodel (Cube<T> *c)  {
     
     // Reading ring inputs
+    defaults();
     Rings<T> *r = readRings<T>(c->pars().getParGF(),c->Head());
     setfromCube(c,r);
 }
@@ -140,8 +141,7 @@ Ringmodel<T>::Ringmodel (Cube<T> *c)  {
 template <class T>
 void Ringmodel<T>::setfromCube (Cube<T> *c, Rings<T> *r)  { 
 
-    in = c;
-    GALFIT_PAR p = in->pars().getParGF();
+    GALFIT_PAR p = c->pars().getParGF();
 
     int nrings = r->nr-1;
     T *widths = new T[nrings];
@@ -211,9 +211,7 @@ void Ringmodel<T>::setfromCube (Cube<T> *c, Rings<T> *r)  {
     }
     map.fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_1st.fits").c_str());
 
-    int boxlow[2] = {0,0};
-    int boxup[2] = {map.DimX()-1, map.DimY()-1};
-    setfield(map.Array(),map.DimX(),map.DimY(),boxup,boxlow);
+    setfield(map.Array(),map.DimX(),map.DimY());
 }
 
 
@@ -281,12 +279,11 @@ void Ringmodel<T>::set (int nrings, T *radii, T widths, T vsys, T vrot,
                         T vexp, T posang, T incl, T xcenter, T ycenter) {
 
     defaults();
-    
+
     nrad  = nrings;
     xposi = xcenter;
     yposi = ycenter;
-    
-    rads  = radii;
+    rads  = new T [nrings];
     wids  = new T [nrings];
     vsysi = new T [nrings];
     vroti = new T [nrings];
@@ -295,14 +292,13 @@ void Ringmodel<T>::set (int nrings, T *radii, T widths, T vsys, T vrot,
     incli = new T [nrings];
     
     for (int i=0; i<nrad; i++) {
-        
-        wids  [i] = widths;
-        vsysi [i] = vsys;
-        vroti [i] = vrot; 
-        vexpi [i] = vexp;
-        posai [i] = posang;
-        incli [i] = incl;
-
+        rads[i] = radii[i];
+        wids [i] = widths;
+        vsysi[i] = vsys;
+        vroti[i] = vrot;
+        vexpi[i] = vexp;
+        posai[i] = posang;
+        incli[i] = incl;
     }   
 
     vsysf = new T [nrings];
@@ -323,7 +319,7 @@ void Ringmodel<T>::set (int nrings, T *radii, T widths, T vsys, T vrot,
     npts  = new int [nrings];
     chis  = new T [nrings];
     
-    elp = allocate_2D<float>(nrings, 4);        
+    elp = allocate_2D<float>(nrings, 4);
     
     allAllocated = true;
 
@@ -393,14 +389,12 @@ void Ringmodel<T>::setoption (bool *maskpar, int hside, int wfunc, float freeang
 template <class T>
 void Ringmodel<T>::setfield (T *Array, int xsize, int ysize, int *boxup, int *boxlow) {
     
-    int npoints;
-    
     for (int i=0; i<2; i++) {
         bup[i] = boxup[i];
         blo[i] = boxlow[i];
     }
     
-    npoints = (bup[1]-blo[1]+1)*(bup[0]-blo[0]+1);
+    int npoints = (bup[1]-blo[1]+1)*(bup[0]-blo[0]+1);
     
     vfield = new T [npoints];
     fieldAllocated = true;
@@ -413,12 +407,20 @@ void Ringmodel<T>::setfield (T *Array, int xsize, int ysize, int *boxup, int *bo
         }
         
     }
-
 }
 
 
 template <class T>
-void Ringmodel<T>::ringfit() {
+void Ringmodel<T>::setfield (T *Array, int xsize, int ysize) {
+
+    int boxl[2] = {0,0};
+    int boxu[2] = {xsize-1,ysize-1};
+    setfield(Array,xsize,ysize,boxu,boxl);
+}
+
+
+template <class T>
+void Ringmodel<T>::ringfit(int nthreads, bool verbose, bool showbar) {
     
   /// This function makes a loop over all concentric rings 
   /// and do the fit.
@@ -428,16 +430,14 @@ void Ringmodel<T>::ringfit() {
     if (fieldAllocated && allAllocated) {
         
         ProgressBar bar(" Fitting 2D tilted-ring model... ", true);
-        bar.setShowbar(in->pars().getShowbar());        
-        bool verb = in->pars().isVerbose();
-        int nthreads = in->pars().getThreads();
+        bar.setShowbar(showbar);
 
 #pragma omp parallel num_threads(nthreads)
 {
-        if (verb) bar.init(nrad);
+        if (verbose) bar.init(nrad);
 #pragma omp for 
-        for (int ir = 0; ir<nrad; ir++) {        
-            if (verb) bar.update(ir+1);
+        for (int ir=0; ir<nrad; ir++) {
+            if (verbose) bar.update(ir+1);
             
             int n;
             T   e[MAXPAR];
@@ -455,7 +455,8 @@ void Ringmodel<T>::ringfit() {
             T ro    = rads[ir] + 0.5 * wids[ir];
             if (ri<0.0) ri = 0.0;
             
-            if (rotfit(ri, ro, p, e, n, q)>0) {
+            int ret = rotfit(ri, ro, p, e, n, q);
+            if (ret>0) {
                 
                 vsysf[ir] = p[VSYS];
                 if (e[VSYS] < 999.99) vsyse[ir] = e[VSYS];
@@ -496,12 +497,19 @@ void Ringmodel<T>::ringfit() {
                 // Fit did not succeed
                 vsysf[ir]=vrotf[ir]=vexpf[ir]=posaf[ir]=inclf[ir]=xposf[ir]=yposf[ir]=log(-1);
                 vsyse[ir]=vrote[ir]=vexpe[ir]=posae[ir]=incle[ir]=xpose[ir]=ypose[ir]=log(-1);
+                std::string errmsg;
+                if      (ret==-1) errmsg = "Error fitting ring model: Too many free parameters!";
+                else if (ret==-2) errmsg = "Error fitting ring model: No free parameters!";
+                else if (ret==-3) errmsg = "Error fitting ring model: Not enough degrees of freedom!";
+                else if (ret==-4) errmsg = "Error fitting ring model: Maximum number of iterations too small!";
+                else if (ret==-5) errmsg = "Error fitting ring model: Diagonal of matrix contains zeroes!";
+                else if (ret==-6) errmsg = "Error fitting ring model: Deter. of the coeff. matrix is zero!";
+                else if (ret==-7) errmsg = "Error fitting ring model: Square root of negative number!";
+                if (verbose) std::cerr << errmsg << std::endl;
             }
-            
-        }
-            
+        }            
 }    
-        if (verb) bar.fillSpace("Done.\n");
+        if (verbose) bar.fillSpace("Done.\n");
     
     }
     else {
@@ -598,42 +606,7 @@ int Ringmodel<T>::rotfit (T ri, T ro, T *p, T *e, int &n, T &q) {
     if (stop)       ier = h;   // Good fit:  ier = number of big loops.
     else if (nrt<0) ier = nrt; // Error from lsqfit: ier = return code of lsqfit.
     else if (h==t)  ier = -4;  // Maximum number of iterations.
-   
-    switch (ier) {
-        
-        case -1:
-            std::cout << "Error fitting ring model: Too many free parameters!\n";
-            break;
-      
-        case -2: 
-            std::cout << "Error fitting ring model: No free parameters!\n";
-            break;
-      
-        case -3: 
-            std::cout << "Error fitting ring model: Not enough degrees of freedom!\n";
-            break;
-      
-        case -4: 
-            std::cout << "Error fitting ring model: Maximum number of iterations too small!\n";
-            break;
-        
-        case -5: 
-            std::cout << "Error fitting ring model: Diagonal of matrix contains zeroes!\n";
-            break;
-        
-        case -6: 
-            std::cout << "Error fitting ring model: Deter. of the coeff. matrix is zero!\n";
-            break;
-        
-        case -7: 
-            std::cout << "Error fitting ring model: Square root of negative number!\n";
-            break;
-      
-        default: 
-            break;
-      
-    }
-        
+
     // Calculate ellipse parameters.
     if (ier==1 && cor[0]>-1 && cor[1]>-1 ) {
         T a11 = 0.0;
@@ -879,7 +852,7 @@ void Ringmodel<T>::print (std::ostream& Stream) {
 
 
 template <class T>
-void Ringmodel<T>::printfinal (std::ostream& Stream) {
+void Ringmodel<T>::printfinal (std::ostream& Stream, Header &h) {
 
     int m=10;
     Stream  << fixed << setprecision(2);
@@ -906,7 +879,7 @@ void Ringmodel<T>::printfinal (std::ostream& Stream) {
     for (int i=0; i<nrad; i++) {
 
         Stream  << setw(m) << right << setprecision(2) << rads[i]
-                << setw(m) << right << setprecision(2) << rads[i]*in->Head().PixScale()*arcsconv(in->Head().Cunit(0))
+                << setw(m) << right << setprecision(2) << rads[i]*h.PixScale()*arcsconv(h.Cunit(0))
                 << setw(m) << right << setprecision(2) << vsysf[i]
                 << setw(m) << right << setprecision(2) << vrotf[i]
                 << setw(m) << right << setprecision(2) << vexpf[i]
@@ -920,11 +893,11 @@ void Ringmodel<T>::printfinal (std::ostream& Stream) {
 
 
 template <class T>
-void Ringmodel<T>::writeModel (std::string fname) {
+void Ringmodel<T>::writeModel (std::string fname, Header &h) {
     
-    int dim[2] = {in->DimX(),in->DimY()};
+    int dim[2] = {int(h.DimAx(0)),int(h.DimAx(1))};
     Image2D<float> model(dim);
-    model.saveHead(in->Head());
+    model.saveHead(h);
     for (int i=model.NumPix(); i--;) model[i] = log(-1);
 
     const double F = M_PI/180.;

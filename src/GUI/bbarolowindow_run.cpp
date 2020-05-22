@@ -195,8 +195,8 @@ void BBaroloWindow::on_RunpushButton_clicked() {
     out_path = QString::fromStdString(outfolder);
     mkdirp (out_path.toStdString().c_str());
 
-    QFile::remove(out_path+"ringlog1.txt");
-    QFile::remove(out_path+"ringlog2.txt");
+    QFile::remove(out_path+"rings_final1.txt");
+    QFile::remove(out_path+"rings_final2.txt");
 
     QString paramfile = out_path+obj+".par";
     writeParamFile(paramfile);
@@ -935,7 +935,7 @@ void BBaroloWindow::plotParameters(){
 
     for (unsigned j=0; j<nsubplot; j++) {
         std::vector<std::vector<double> > allData;
-        std::string ringlog = out_path.toStdString()+"ringlog"+(QString::number(j+1)).toStdString()+".txt";
+        std::string ringlog = out_path.toStdString()+"rings_final"+(QString::number(j+1)).toStdString()+".txt";
         if (!getData(allData,ringlog,false)) continue;
 
         int nr = allData.size();

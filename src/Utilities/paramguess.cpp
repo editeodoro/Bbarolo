@@ -25,6 +25,7 @@
 #include <Arrays/cube.hh>
 #include <Map/detection.hh>
 #include <Tasks/galmod.hh>
+#include <Tasks/ringmodel.hh>
 #include <Utilities/paramguess.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/lsqfit.hh>
@@ -100,9 +101,8 @@ void ParamGuess<T>::findCentre() {
     
     /// X-Y centres are estimated from the centroids of the
     /// object detected by the source-finding algorithm.
-    xcentre = (obj->getXcentre());//+obj->getXaverage())/2.;
-    ycentre = (obj->getYcentre());//+obj->getYaverage())/2.;
-
+    xcentre = (obj->getXcentre()+obj->getXaverage())/2.;
+    ycentre = (obj->getYcentre()+obj->getYaverage())/2.;
 }
 
 
@@ -217,7 +217,6 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
             if (bestpa<90) posang = 90+bestpa;
             else posang = bestpa-90;
         }
-        
     }
 
     else if (algorithm == 2) {
@@ -361,10 +360,11 @@ void ParamGuess<T>::findInclination(int algorithm) {
         if (OK) {
             Rmax   = p[0][0];
             inclin = p[0][1];
-            //double Axmin = Rmax*cos(inclin/180.*M_PI);
-            //double Axmin_corr = Axmin - in->Head().Bmaj()/in->Head().PixScale();
-            //double Axmaj_corr = Rmax - in->Head().Bmaj()/in->Head().PixScale();
-            //inclin = acos(Axmin_corr/Axmaj_corr)*180/M_PI;
+            // I am adding a correction for rounding due to the beam
+            double Axmin = Rmax*cos(inclin/180.*M_PI);
+            double Axmin_corr = Axmin - in->Head().Bmaj()/in->Head().PixScale();
+            double Axmaj_corr = Rmax; //- in->Head().Bmaj()/in->Head().PixScale();
+            inclin = acos(Axmin_corr/Axmaj_corr)*180/M_PI;
             //posang = parmin[2];
             //xcentre= parmin[3];
             //ycentre= parmin[4];
@@ -404,9 +404,9 @@ T ParamGuess<T>::findAxisLength(float *lpar, int *coords_up, int *coords_low) {
     int Xmin=obj->getXmin(), Ymin=obj->getYmin();
     int Xmax=obj->getXmax(), Ymax=obj->getYmax();
     
-    // Finding axis length
     double p = atan(lpar[0])*180./M_PI;
-    if (p>=180) p -= 180;
+    while (p>=180) p-=180;
+    while (p<0) p+=180;
     if (p>45 && p<135) {
         // If 45 < angle < 135 it is better to loop over y
         for (int y=Ymin; y<=Ymax; y++) {
@@ -468,7 +468,7 @@ void ParamGuess<T>::setAxesLine(T xcen, T ycen, T pa, float *maj, float *min) {
 
     /// Calculate angular coefficients and zero-points for major and minor axis.
     float m = pa - 90;
-    while (m>180) m-=180;
+    while (m>=180) m-=180;
     while (m<0) m+=180;
     maj[0] = tan(m*M_PI/180.);
     maj[1] = ycen-maj[0]*xcen;
@@ -732,7 +732,6 @@ T ParamGuess<T>::funcIncfromMap(T *mypar) {
     bool verbosity = in->pars().isVerbose();
     in->pars().setVerbosity(false);
 
-
     if (mypar[0]<0) mypar[0]=2*radsep;
     if (mypar[0]>1.5*Rmax) mypar[0]=Rmax;
     if (mypar[1]<0) mypar[1]=1;
@@ -742,23 +741,7 @@ T ParamGuess<T>::funcIncfromMap(T *mypar) {
     T inc  = mypar[1];
 
     Rings<T> *rings = new Rings<T>;
-    rings->radsep=radsep/2.;
-    rings->nr = int(RMAX/rings->radsep);
-
-    cout << mypar[0] << " " << mypar[1]<<  "  " << radsep << " " << rings->nr << " " << xcentre << " "<< ycentre << " " << posang <<  endl;
-
-    for (int i=0; i<rings->nr; i++) {
-        rings->radii.push_back(i*rings->radsep+rings->radsep/2.);
-        rings->vrot.push_back(AlltoVel(10*in->Head().Cdelt(2),in->Head()));
-        rings->vdisp.push_back(5);
-        rings->z0.push_back(0);
-        rings->inc.push_back(inc);
-        rings->phi.push_back(posang);
-        rings->xpos.push_back(xcentre);
-        rings->ypos.push_back(ycentre);
-        rings->vsys.push_back(vsystem);
-        rings->dens.push_back(1E20);
-    }
+    rings->setRings(0,RMAX,radsep/2,xcentre,ycentre,vsystem,10*DeltaVel<T>(in->Head()),8,0,0,0,0,1E20,0,inc,posang);
 
     MomentMap<T> *totalmap = new MomentMap<T>;
     totalmap->input(in);
@@ -822,7 +805,62 @@ T ParamGuess<T>::funcIncfromMap(T *mypar) {
 
 
 template <class T>
-int ParamGuess<T>::plotGuess() {
+void ParamGuess<T>::tuneWithTiltedRing() {
+
+    /// This function uses a 2D tilted-ring model to get better estimates of
+    /// the parameters, in particular the centre and the position angle.
+    ///
+    /// N.B.: it must be called after all parameters are already set to some
+    /// value
+
+    // The tilted ring model will extend to Rmax - 2 pixels
+    T rmax = Rmax/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0))) - 2;
+    // It uses a fixed ring width of 2 pixels
+    T rwidth = 2;
+    int nr = rmax/rwidth;
+    // Initializing rings
+    T *radii = new T[nr];
+    for (int i=0; i<nr; i++) radii[i] = 2+i*rwidth;
+
+    // Initializing a Ringmodel instance
+    Ringmodel<T> tr(nr,radii,rwidth,vsystem,vrot,0,posang,inclin,xcentre,ycentre);
+    tr.setfield(Vemap,in->DimX(),in->DimY());
+    // Setting free parameters. Order is VSYS, VROT, VEXP, PA, INC, X0, Y0
+    // Here I keeping Vsys and inc fixed and fit for the center and pa and vrot
+    bool mpar[7] = {true,true,true,true,true,true,true};
+    mpar[VSYS] = false;
+    mpar[VEXP] = false;
+    mpar[INC]  = false;
+    tr.setoption(mpar,3,2,15.);
+    // Fitting a tilted-ring model
+    tr.ringfit(in->pars().getThreads(),false,false);
+    tr.printfinal(std::cout,in->Head());
+
+    std::vector<T> xcen,ycen,vsys,posa,incl;
+    for (int i=1; i<nr; i++) {  // Skipping first ring
+        if (!isNaN(tr.getXposf(i))) xcen.push_back(tr.getXposf(i));
+        if (!isNaN(tr.getYposf(i))) ycen.push_back(tr.getYposf(i));
+        if (!isNaN(tr.getVsysf(i))) vsys.push_back(tr.getVsysf(i));
+        if (!isNaN(tr.getInclf(i))) incl.push_back(tr.getInclf(i));
+        if (!isNaN(tr.getPosaf(i))) posa.push_back(tr.getPosaf(i));
+    }
+
+    // Setting initial estimates to the median of the tilted-ring model
+    if (xcen.size()>1) xcentre = findMedian(xcen,xcen.size());
+    if (ycen.size()>1) ycentre = findMedian(ycen,ycen.size());
+    if (vsys.size()>1) vsystem = findMedian(vsys,vsys.size());
+    if (incl.size()>1) inclin  = findMedian(incl,incl.size());
+    if (posa.size()>1) posang  = findMedian(posa,posa.size());
+
+    // Re-estimating inclination angle with the latest parameters
+    findInclination(2);
+
+    delete [] radii;
+}
+
+
+template <class T>
+int ParamGuess<T>::plotGuess(std::string outfile) {
     
     /// Plotting the initial guesses
 
@@ -916,11 +954,11 @@ int ParamGuess<T>::plotGuess() {
         << "cax1 = fig.add_axes([ax[0].get_position().x0,ax[0].get_position().y1+0.01,0.3,0.02]) \n"
         << "cax2 = fig.add_axes([ax[1].get_position().x0,ax[1].get_position().y1+0.01,0.3,0.02]) \n"
         << std::endl
-        << "im = ax[0].imshow(f,origin='lower',cmap=plt.get_cmap('Spectral_r')) \n"
+        << "im = ax[0].imshow(f,origin='lower',cmap=plt.get_cmap('Spectral_r'),aspect='auto') \n"
         << "cb = plt.colorbar(im,cax=cax1,orientation='horizontal') \n"
         << "cb.set_label('Int flux (std)',labelpad=-50,fontsize=fsize+1) \n"
         << std::endl
-        << "im = ax[1].imshow(v,origin='lower',cmap=plt.get_cmap('RdBu_r',25)) \n"
+        << "im = ax[1].imshow(v,origin='lower',cmap=plt.get_cmap('RdBu_r',25),aspect='auto') \n"
         << "ax[1].contour(v,levels=[vsys],colors='green') \n"
         << "cb = plt.colorbar(im,cax=cax2 ,orientation='horizontal') \n"
         << "cb.set_label(r'V$_\\mathrm{LOS}$ (km/s)',labelpad=-50,fontsize=fsize+1) \n"
@@ -956,12 +994,12 @@ int ParamGuess<T>::plotGuess() {
         << "pstr = [r'X$_\\mathrm{pos}$ = %.2f pix'%xpos, r'Y$_\\mathrm{pos}$ = %.2f pix'%ypos, \n "
         << "        r'$\\alpha$  = %.5f$^\\circ$'%ra, r'$\\delta$ = %.5f$^\\circ$'%dec, \n"
         << "        r'$\\phi$    = %.0f$^\\circ$'%pa,r'inc  = %.1f$^\\circ$'%inc, r'$b/a$ = %.2f'%(axmin/axmaj), \n"
-        << "        r'V$_\\mathrm{sys}$ = %.2f km/s'%vsys, r'W$_{20}$ = %.2f km/s'%(np.fabs(v20max-v20min)/2), \n"
-        << "        r'W$_{50}$ = %.2f km/s'%(np.fabs(v50max-v50min)/2)] \n"
+        << "        r'R$_\\mathrm{max}$ = %.2f pix'%axmaj, r'V$_\\mathrm{sys}$ = %.2f km/s'%vsys, \n"
+           "        r'W$_{20}$ = %.2f km/s'%(np.fabs(v20max-v20min)/2),r'W$_{50}$ = %.2f km/s'%(np.fabs(v50max-v50min)/2)] \n"
         << "for i in range (len(pstr)): \n"
-        << "\tax[2].text(1.1,0.97-i*0.1,pstr[i],va='top',transform=ax[2].transAxes) \n"
+        << "\tax[2].text(1.1,0.97-i*0.08,pstr[i],va='top',transform=ax[2].transAxes) \n"
         << std::endl
-        << "fig.savefig('%s/initial_guesses.pdf'%outdir,bbox_inches='tight') \n"
+        << "fig.savefig('%s/"<< outfile << "'%outdir,bbox_inches='tight') \n"
         << std::endl;
 
     pyf.close();
@@ -971,7 +1009,7 @@ int ParamGuess<T>::plotGuess() {
     remove((outfolder+"pyscript_ig.py").c_str());
 #else
 #ifdef HAVE_GNUPLOT
-    std::string outfile = outfolder+"initial_guesses.eps";
+    std::string outf = outfolder+"initial_guesses.eps";
     std::ofstream gnu((outfolder+"gnuscript.gnu").c_str());
     std::string amaj = to_string(axmaj_pix);
     std::string amin = to_string(axmin_pix);
@@ -1001,7 +1039,7 @@ int ParamGuess<T>::plotGuess() {
         << "unset table\n"
         << "unset parametric\n"
         << "set terminal postscript eps enhanced color font 'Helvetica,14'\n"
-        << "set output '"<<outfile<<"'\n"
+        << "set output '"<< outf <<"'\n"
         << "plot '"+outfolder+"vfield.dat' w image pixels,"
         << " '"+outfolder+"ellipse.tab' w l ls -1 lw 2, f(x) ls 1 lw 2, g(x) ls 3 lw 2,'-' ls 5, '-' ls 7 \n"
         << xcen+" "+ycen << std::endl

@@ -76,8 +76,8 @@ public:
     float*  getBeam() {float *f=new float; f[0]=head.Bmaj(); f[1]=head.Bmin(),f[2]=head.Bpa(); return f;}
     
     bool*   Mask    () {return mask;}
-    bool    Mask    (long npix) {return mask[npix];}
-    bool    Mask    (size_t x,size_t y,size_t z) {return mask[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];}
+    bool&   Mask    (size_t npix) {return mask[npix];}
+    bool&   Mask    (size_t x,size_t y,size_t z) {return mask[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];}
     bool    MaskAll () {return maskAllocated;}
     
     void    printStats() {std::cout << stats << std::endl;}
@@ -136,6 +136,8 @@ public:
     void    printDetections (std::ostream& Stream);      /// An easy way to print the detection list.
     void    plotDetections();
     Detection<T>* LargestDetection ();
+    Cube<T>* extractCubelet(Detection<T> *obj, int edges, int *starts);
+    void    writeCubelets();
 
     /// Blanking and Maps functions.
     

@@ -44,10 +44,11 @@ MomentMap<T>::MomentMap() {
 
 
 template <class T> 
-void MomentMap<T>::input (Cube<T> *c, int *Blo, int *Bhi) {
+void MomentMap<T>::input (Cube<T> *c, int *Blo, int *Bhi, bool *m) {
     
     in = c;
-    
+    mask = m;
+
     for (int i=0; i<3; i++) {
         blo[i] = Blo[i];
         bhi[i] = Bhi[i];
@@ -65,12 +66,12 @@ void MomentMap<T>::input (Cube<T> *c, int *Blo, int *Bhi) {
 
 
 template <class T> 
-void MomentMap<T>::input (Cube<T> *c) {
+void MomentMap<T>::input (Cube<T> *c, bool *m) {
     
     int blo[3] = {0,0,0};
     int bhi[3] = {c->AxesDim(0),c->AxesDim(1),c->AxesDim(2)};
     
-    input(c,blo,bhi);
+    input(c,blo,bhi,m);
     
 }
 
@@ -143,8 +144,11 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
     }
     
     // Creating mask if it does not exist
-    if(msk && !in->MaskAll()) in->BlankMask();
-    
+    if(msk && mask==nullptr) {
+        if (!in->MaskAll()) in->BlankMask();
+        mask = in->Mask();
+    }
+
     std::string barstring;
     if (whichmap==0)      barstring = " Extracting intensity map ";
     else if (whichmap==1) barstring = " Extracting velocity map ";
@@ -306,8 +310,8 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
         if (in->HeadDef()) vels[z] = AlltoVel<T>(in->getZphys(z), in->Head());
                 
         if (msk) {
-            num   += in->Array(npix)*vels[z]*in->Mask(npix);
-            denom += in->Array(npix)*in->Mask(npix);
+            num   += in->Array(npix)*vels[z]*mask[npix];
+            denom += in->Array(npix)*mask[npix];
         }
         else {
             num   += in->Array(npix)*vels[z];
@@ -333,7 +337,7 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
     num = 0;
     for (int z=0; z<nsubs; z++) {
         long npix = in->nPix(x+blo[0],y+blo[1],z+blo[2]);
-        if (msk) num += in->Array(npix)*(vels[z]-moments[1])*(vels[z]-moments[1])*in->Mask(npix);
+        if (msk) num += in->Array(npix)*(vels[z]-moments[1])*(vels[z]-moments[1])*mask[npix];
         else num += in->Array(npix)*(vels[z]-moments[1])*(vels[z]-moments[1]);
     }
     
@@ -363,7 +367,7 @@ bool MomentMap<T>::fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar
     for (int z=0; z<nsubs; z++) {
         ww[z] = 1;
         spectrum[z] = in->Array(x,y,z);
-        if (msk) spectrum[z] *= in->Mask(x,y,z);
+        if (msk) spectrum[z] *= mask[in->nPix(x,y,z)];
         vels[z] = AlltoVel(in->getZphys(z),in->Head());
         // Finding spectrum maximum value and corresponding position
         if (spectrum[z]>smax) {
@@ -513,6 +517,61 @@ template Image2D<int>* PositionVelocity (Cube<int>*,float,float,float);
 template Image2D<long>* PositionVelocity (Cube<long>*,float,float,float);
 template Image2D<float>* PositionVelocity (Cube<float>*,float,float,float);
 template Image2D<double>* PositionVelocity (Cube<double>*,float,float,float);
+
+
+template <class T>
+std::vector< MomentMap<T> > getAllMoments(Cube<T> *c, bool usemask, bool *mask, string mtype) {
+
+    /// This function computes 0th, 1st and 2nd moment maps in a computationally
+    /// efficient way. Maps are stored and returned in a vector of MomentMap
+    /// instances.
+
+    std::vector< MomentMap<T> > allmaps(3);
+
+    // Creating mask if it does not exist
+    if(mask==nullptr && usemask) {
+        if (!c->MaskAll()) c->BlankMask();
+        mask = c->Mask();
+    }
+
+    // Initiliazing all moment maps
+    for (int i=0; i<3; i++) {
+        allmaps[i].input(c,mask);
+        allmaps[i].setHeadDef(allmaps[i].setHead(i));
+    }
+
+    bool isVerbose = c->pars().isVerbose();
+    ProgressBar bar(" Deriving kinematic maps ...", true);
+    bar.setShowbar(c->pars().getShowbar());
+
+    int nthreads = c->pars().getThreads();
+#pragma omp parallel num_threads(nthreads)
+{
+    if (isVerbose) bar.init(c->DimY());
+#pragma omp for
+    for (int y=0; y<c->DimY(); y++) {
+        if (isVerbose) bar.update(y+1);
+        for (int x=0; x<c->DimX(); x++) {
+            double moms[3];
+            if (mtype=="GAUSSIAN") allmaps[0].fitSpectrum(x,y,usemask,moms);
+            else allmaps[0].calculateMoments(x,y,usemask,moms);
+            allmaps[0].Array(x,y) = moms[0];
+            allmaps[1].Array(x,y) = moms[1];
+            allmaps[2].Array(x,y) = moms[2];
+        }
+    }
+}
+
+    if (isVerbose) bar.fillSpace("Done.\n");
+
+    return allmaps;
+}
+template std::vector< MomentMap<short> > getAllMoments(Cube<short>*,bool,bool*,std::string);
+template std::vector< MomentMap<int> > getAllMoments(Cube<int>*,bool,bool*,std::string);
+template std::vector< MomentMap<long> > getAllMoments(Cube<long>*,bool,bool*,std::string);
+template std::vector< MomentMap<float> > getAllMoments(Cube<float>*,bool,bool*,std::string);
+template std::vector< MomentMap<double> > getAllMoments(Cube<double>*,bool,bool*,std::string);
+
 
 
 // Explicit instantiation of the class

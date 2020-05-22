@@ -39,8 +39,8 @@ public:
     MomentMap(const MomentMap &i);      
     MomentMap& operator=(const MomentMap &i);
 
-    void input (Cube<T> *c, int *Blo, int *Bhi);
-    void input (Cube<T> *c);
+    void input (Cube<T> *c, int *Blo, int *Bhi, bool *m=nullptr);
+    void input (Cube<T> *c, bool *m=nullptr);
     void SumMap (bool msk);
     void HIMassDensityMap (bool msk);
     void ZeroMoment  (bool msk, std::string mtype="MOMENT") {storeMap(msk,0,mtype);}
@@ -49,24 +49,28 @@ public:
     void RMSMap (float level=0.1, float sncut = 1.5);
     bool setHead(int type); 
     
+    bool fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar);
+    bool calculateMoments (size_t x, size_t y, bool msk, double *moments);
+    void storeMap(bool msk, int whichmap, std::string map_type);
+
 private:
     Cube<T> *in;
     int blo[3],bhi[3];
     int nsubs;
+    bool *mask = nullptr;
     
     typedef bool (MomentMap<T>::*funcPtr) (size_t, size_t, bool, double*);
     funcPtr map_Type = &MomentMap<T>::calculateMoments;
-    
-    bool fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar);
-    bool calculateMoments (size_t x, size_t y, bool msk, double *moments);
-    void storeMap(bool msk, int whichmap, std::string map_type);
-    
     
 };
 
 
 // A function to extract PV-diagrams
-template <class T> Image2D<T>* PositionVelocity (Cube<T> *c, float x0, float y0, float Phi);
+template <class T>
+Image2D<T>* PositionVelocity (Cube<T> *c, float x0, float y0, float Phi);
 
+// A function to extract all kinematic maps at the same time
+template <class T>
+std::vector< MomentMap<T> > getAllMoments(Cube<T> *c, bool usemask=true, bool *mask=nullptr, std::string mtype="MOMENT");
 
 #endif

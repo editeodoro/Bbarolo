@@ -85,9 +85,9 @@ public:
     
     void setBitpix (int i) {bitpix = i;}
     void setDimAx (int i, long val) {dimAxes[i] = val;}
-    void setCrpix (int i, float val) {crpix[i] = val;}
-    void setCrval (int i, float val) {crval[i] = val;}
-    void setCdelt (int i, float val) {cdelt[i] = val;}
+    void setCrpix (int i, float val) {crpix[i]=wcs->crpix[i]=val; wcsset(wcs);}
+    void setCrval (int i, float val) {crval[i]=wcs->crval[i]=val; wcsset(wcs);}
+    void setCdelt (int i, float val) {cdelt[i]=wcs->cdelt[i]=val; wcsset(wcs);}
     void setDrval3 (double val) {drval3=val;}
     void setDunit3 (std::string s) {dunit3=s;}
     void setBmaj  (float val) {bmaj = val;}
@@ -113,8 +113,8 @@ public:
     void setWave0 (double w) {wave0=w;}
     void setRedshift (double r) {redshift=r;}
 
-    void    Warning(std::string s) {if (warning) std::cout << s << std::endl;}
-    void    addKey(std::string s) {keys.push_back(s);}
+    void Warning(std::string s) {if (warning) std::cout << s << std::endl;}
+    void addKey(std::string s) {keys.push_back(s);}
 
 
     /// Functions defined in header.cpp.

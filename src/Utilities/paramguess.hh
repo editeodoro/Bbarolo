@@ -54,6 +54,8 @@ public:
     T   vrot    = 0;        //< Rotation velocity
     int nrings  = 0;        //< Number of rings
     T   radsep  = 0;        //< Ring width
+    T*      Intmap;         //< Intensity map
+    T*      Vemap;          //< Velocity field
 
     // Constructor and destructor
     ParamGuess(Cube<T> *c, Detection<T> *object);
@@ -69,13 +71,13 @@ public:
     void findInclination(int algorithm=2);
     void findRotationVelocity();
     void findRings();
-    int  plotGuess();
+    void tuneWithTiltedRing();
+    int  plotGuess(std::string outfile="initial_guesses.pdf");
     
 private:
     Cube<T> *in;            //< Pointer to input datacube
     Detection<T> *obj;      //< Pointer to the detection to be analysed
-    T*      Intmap;         //< Intensity map
-    T*      Vemap;          //< Velocity field
+
     
     int     major_max[2];   //< Upper pixel coordinates on the major axis
     int     minor_max[2];   //< Upper pixel coordinates on the minor axis

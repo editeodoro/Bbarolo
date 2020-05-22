@@ -617,8 +617,8 @@ class FitMod3D(Model3D):
         libBB.Galfit_writeModel(self._mod,self._opts['norm'][0].encode('utf-8'),False)
         
         # Loading final rings
-        try: self.bfit = np.genfromtxt(op['outfolder'][0]+"/ringlog2.txt")
-        except: self.bfit = np.genfromtxt(op['outfolder'][0]+"/ringlog1.txt")
+        try: self.bfit = np.genfromtxt(op['outfolder'][0]+"/rings_final2.txt")
+        except: self.bfit = np.genfromtxt(op['outfolder'][0]+"/rings_final1.txt")
         
         # Loading final model
         for fname in os.listdir(op['outfolder'][0]):
@@ -800,7 +800,7 @@ class FitMod2D(Task):
         self._mod = libBB.Fit2D_new(self.inp._cube,self._inri._rings,op['mask'][0].encode('utf-8'),op['free'][0].encode('utf-8'),\
                                     op['side'][0].encode('utf-8'),op['wfunc'][0],int(threads))
         libBB.Fit2D_compute(self._mod)
-        libBB.Fit2D_write(self._mod,'rings.txt'.encode('utf-8'))
+        libBB.Fit2D_write(self._mod,self.inp._cube,'rings.txt'.encode('utf-8'))
         a = np.genfromtxt('rings.txt') 
         try: os.remove('rings.txt')
         except: pass
@@ -826,7 +826,7 @@ class FitMod2D(Task):
         """ Write the best-fit ring model to a text file """
         if self._inri is None or self._mod is None: 
             raise ValueError("%s ERROR: you need to compute the model with compute (...) before calling writeto()."%self.taskname)
-        libBB.Fit2D_write(self._mod,filename.encode('utf-8'))
+        libBB.Fit2D_write(self._mod,self.inp._cube,filename.encode('utf-8'))
 
 
 

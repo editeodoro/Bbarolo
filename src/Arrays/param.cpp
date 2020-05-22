@@ -461,6 +461,7 @@ void Param::setParam(string &parstr) {
         parSE.growthThreshold = readval<float>(ss);
         parSE.flagUserGrowthT  = true;
     }
+    if(arg=="cubelets")          parSE.cubelets = readFlag(ss);
 
     if(arg=="globalprofile")    globprof = readFlag(ss);
     if(arg=="totalmap")         totalmap = readFlag(ss);
@@ -1064,7 +1065,8 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     if (p.getOutfolder()!="" || defaults)
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
     recordParam(Str, "[flagRobustStats]", "Using Robust statistics?", stringize(p.getFlagRobustStats()));
-    
+    if (p.getFlagDebug()) recordParam(Str, "[DEBUG]", "Debugging mode?", stringize(p.getFlagDebug()));
+
     Str  <<"-----------------"<<std::endl;
     
     // PARAMETERS FOR MAKEMASK TASK
@@ -1114,6 +1116,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
                     recordParam(Str, "[growthCut]", "   SNR Threshold for growth", p.getParSE().growthCut);
             }            
         }
+        recordParam(Str, "[CUBELETS]", "   Writing sub-cubes of detections?", stringize(p.getParSE().cubelets));
     }
     
     // PARAMETERS FOR SMOOTH

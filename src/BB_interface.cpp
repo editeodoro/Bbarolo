@@ -108,7 +108,7 @@ Ringmodel<float>* Fit2D_new(Cube<float> *c, Rings<float> *r, const char* mask, c
                      Ringmodel<float> *rm = new Ringmodel<float>(); rm->setfromCube(c,r); return rm;}
 void Fit2D_delete(Ringmodel<float> *rm) {delete rm;}
 void Fit2D_compute(Ringmodel<float> *rm) {signal(SIGINT, signalHandler); rm->ringfit();}
-void Fit2D_write(Ringmodel<float> *rm, const char *fout) {std::ofstream fileo(fout); rm->printfinal(fileo);}
+void Fit2D_write(Ringmodel<float> *rm, Cube<float> *c, const char *fout) {std::ofstream fileo(fout); rm->printfinal(fileo, c->Head());}
 //////////////////////////////////////////////////////////////////////////////////////////
 
 

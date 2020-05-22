@@ -51,19 +51,22 @@ int main (int argc, char *argv[]) {
 
     Param *par = new Param;
     if (!par->getopts(argc, argv)) return EXIT_FAILURE;
-    welcomeMessage();
-    std::cout << *par;
+    bool verbose = par->isVerbose();
+    if (verbose) {
+        welcomeMessage();
+        std::cout << *par;
+    }
 
     for (int im=0; im<par->getListSize(); im++) {
 
-        if (par->getListSize()>1) {
+        if (par->getListSize()>1 && verbose) {
             std::cout << setfill('_') << std::endl;
             std::cout << setw(70) << "" << std::endl << std::endl;
             std::string s = "Working on "+ par->getImage(im)+" ";
             std::cout << setfill(' ') << right << setw(70) << s;
             std::cout << std::endl << left;
-            std::cout << std::endl << " File "<< im+1
-                      << " of " << par->getListSize()<<std::endl<<std::endl;
+            std::cout << std::endl << " File "<< im+1 << " of " 
+                      << par->getListSize()<< std::endl << std::endl;
         }
 
         par->setImageFile(par->getImage(im));
@@ -71,7 +74,6 @@ int main (int argc, char *argv[]) {
         if (!BBcore(par)) {
             if(par->getListSize()-im>1) std::cout << "Skipping to next file...\n";
             else {std::cout << "Exiting ...\n\n"; return EXIT_FAILURE;}
-            continue;
         }
 
     }
@@ -80,8 +82,8 @@ int main (int argc, char *argv[]) {
     
     gettimeofday(&end, NULL);
     double time = (end.tv_sec - begin.tv_sec) + ((end.tv_usec - begin.tv_usec)/1000000.0);
-    std::cout << "\nExecution time: " << int(time/60) 
-              << " min and " << int(time)%60 << " sec.\n";
+    if (verbose)
+        std::cout << "\nExecution time: " << int(time/60) << " min and " << int(time)%60 << " sec.\n";
 
     return EXIT_SUCCESS;
 

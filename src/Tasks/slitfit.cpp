@@ -552,21 +552,21 @@ void Galfit<T>::writeModel_slit() {
         << "set yrange [-5:" << maxvel << "]" << endl
         << "set ylabel 'V_c  [km/s]'" << endl
         << "set ytics 50" << endl << "set mytics 5" << endl
-        << "plot '" << outfold << "ringlog1.txt' ";
+        << "plot '" << outfold << "rings_final1.txt' ";
 
     if (par.flagERRORS && mpar[0]) {
         int nc=err_col;
         for (int i=0; i<nfree; i++) if (free[i]==0) nc+=2*i;
         gnu << "u 2:3:($3+$"+to_string(nc)+"):($3+$"+to_string(nc+1)+") w errorbars ls 1, '"
-            << outfold <<"ringlog1.txt' u 2:3 w lp ls 1";
+            << outfold <<"rings_final1.txt' u 2:3 w lp ls 1";
     }
     else gnu << "u 2:3 w lp ls 1";
 
     if (second) {
-        gnu << ", '" << outfold << "ringlog2.txt' ";
+        gnu << ", '" << outfold << "rings_final2.txt' ";
         if (par.flagERRORS && mpar[0]) {
         gnu << "u 2:3:($3+$13):($3+$14) w errorbars ls 2, '"
-            << outfold <<"ringlog2.txt' u 2:3 w lp ls 2";
+            << outfold <<"rings_final2.txt' u 2:3 w lp ls 2";
         }
         else gnu << "u 2:3 w lp ls 2";
     }
@@ -579,21 +579,21 @@ void Galfit<T>::writeModel_slit() {
         << "set yrange [0:"<<maxa<<"]\n"
         << "set ylabel '{/Symbol s} [km/s]'\n"
         << "set ytics 5" << endl << "set mytics 5" << endl
-        << "plot '"<<in->pars().getOutfolder()<<"ringlog1.txt' ";
+        << "plot '"<<in->pars().getOutfolder()<<"rings_final1.txt' ";
 
     if (par.flagERRORS && mpar[1]) {
         int nc=err_col;
         for (int i=0; i<nfree; i++) if (free[i]==1) nc+=2*i;
         gnu << "u 2:4:($4+$"+to_string(nc)+"):($4+$"+to_string(nc+1)+") w errorbars ls 1, '"
-            << outfold <<"ringlog1.txt' u 2:4 w lp ls 1";
+            << outfold <<"rings_final1.txt' u 2:4 w lp ls 1";
     }
     else gnu << "u 2:4 w lp ls 1";
 
     if (second) {
-        gnu << ", '" << outfold << "ringlog2.txt' ";
+        gnu << ", '" << outfold << "rings_final2.txt' ";
         if (par.flagERRORS && mpar[1]) {
             gnu << "u 2:4:($3+$15):($3+$16) w errorbars ls 2, '"
-                << outfold <<"ringlog2.txt' u 2:4 w lp ls 2";
+                << outfold <<"rings_final2.txt' u 2:4 w lp ls 2";
         }
         else gnu << "u 2:4 w lp ls 2";
     }
@@ -609,10 +609,10 @@ void Galfit<T>::writeModel_slit() {
         << "set yrange [" << mina << ":" << maxa << "]" << endl
         << "set ylabel 'V_{sys} [km/s]'" << endl
         << "set xlabel 'Radius [arcsec]" << endl
-        << "plot '" << outfold << "ringlog1.txt' u 2:12 w lp ls 1";
+        << "plot '" << outfold << "rings_final1.txt' u 2:12 w lp ls 1";
 
     if (second)
-        gnu << ", '" << outfold << "ringlog2.txt' u 2:12 w lp ls 2";
+        gnu << ", '" << outfold << "rings_final2.txt' u 2:12 w lp ls 2";
     gnu << endl;
     gnu << "unset multiplot; reset" << endl;
     gnu.close();

@@ -289,7 +289,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
     
     if (!c->pars().getflagGalMod()) {
         if (!onefile) showInitial(inR, std::cout);
-        else printInitial(inR, c->pars().getOutfolder()+"initial_rings.txt");
+        printInitial(inR, c->pars().getOutfolder()+"rings_initial.txt");
     }
 
 
@@ -456,7 +456,7 @@ void Galfit<T>::galfit() {
     
     static int n=0;
     n = n==1 ? 2 : 1;
-    std::string fileo = in->pars().getOutfolder()+"ringlog"+to_string(n)+".txt";
+    std::string fileo = in->pars().getOutfolder()+"rings_final"+to_string(n)+".txt";
     remove(fileo.c_str());
 
     std::ofstream fileout;
@@ -1347,6 +1347,11 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     if (p->VROT!="-1") ip->vrot = atof(p->VROT.c_str());
     else ip->findRotationVelocity();
 
+    // This performs an additional step with a 2D tilted ring model
+    //if (c->pars().getFlagPlots() && c->pars().getFlagDebug()) ip->plotGuess("initial_guesses1.pdf");
+    ip->tuneWithTiltedRing();
+    if (c->pars().getFlagPlots() && c->pars().getFlagDebug()) ip->plotGuess();
+
     T *init_par = new T[8];
     init_par[0] = ip->nrings;
     init_par[1] = ip->radsep;
@@ -1356,9 +1361,6 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     init_par[5] = ip->vrot;
     init_par[6] = ip->inclin;
     init_par[7] = ip->posang;
-
-    if (c->pars().getFlagPlots()) ip->plotGuess();
-//    std::terminate();
 
     delete ip;
     return init_par;
