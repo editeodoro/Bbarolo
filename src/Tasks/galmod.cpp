@@ -768,10 +768,8 @@ void Galmod<T>::galmod() {
     const int buflen=bsize[0]*bsize[1]*nsubs+1;
     T *datbuf = new T [buflen];
             
-    bool verb = in->pars().isVerbose();
-    ProgressBar bar(" Modeling... ",false);;
-    bar.setShowbar(in->pars().getShowbar());
-    if (verb) bar.init(r->nr);
+    ProgressBar bar(false,in->pars().isVerbose(),in->pars().getShowbar());
+    bar.init(" Modeling... ",r->nr);
     
     int isd = iseed;
 //  Get number of velocity profiles that will be done.
@@ -783,7 +781,7 @@ void Galmod<T>::galmod() {
     
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
-        if (verb) bar.update(ir+1);
+        bar.update(ir+1);
 //      Get radius
         double rtmp = r->radii[ir];
 //      Get number of clouds inside ring.
@@ -920,7 +918,7 @@ void Galmod<T>::galmod() {
             out->Array(pixstart+i)=datbuf[idat+i];
     }
     
-    if (verb) bar.fillSpace("OK.\n");
+    bar.fillSpace("OK.\n");
     
     delete [] datbuf;
 
@@ -1465,20 +1463,18 @@ void Galmod_wind<T>::galmod_wind() {
     int nprof = this->bsize[0]*this->bsize[1];
 //  Convenient random generator functions
     auto fran = std::bind(this->uniform, this->generator);
-    bool verb = this->in->pars().isVerbose();
 
-    ProgressBar bar(" Modeling outflow... ",false);
-    bar.setShowbar(this->in->pars().getShowbar());
+    ProgressBar bar(false,this->in->pars().isVerbose(),this->in->pars().getShowbar());
 
     int nthreads = this->in->pars().getThreads();
 #pragma omp parallel num_threads(nthreads)
 {
-    if (verb) bar.init(s->ns);
+    bar.init(" Modeling outflow... ",s->ns);
     
 #pragma omp for schedule (dynamic)
     // ==>> Loop over standard spherical shells.
     for (int ir=0; ir<s->ns; ir++) {
-        if (verb) bar.update(ir+1);
+        bar.update(ir+1);
 //      Get radius
         double rtmp = s->radii[ir];
 //      Get number of clouds inside ring.
@@ -1557,7 +1553,7 @@ void Galmod_wind<T>::galmod_wind() {
             this->out->Array(pixstart+i)=datbuf[idat+i];
     }
     
-    if (verb) bar.fillSpace("OK.\n");
+    bar.fillSpace("OK.\n");
     delete [] datbuf;
     
     this->modCalculated=true;

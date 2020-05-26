@@ -85,9 +85,9 @@ public:
     
     void setBitpix (int i) {bitpix = i;}
     void setDimAx (int i, long val) {dimAxes[i] = val;}
-    void setCrpix (int i, float val) {crpix[i]=wcs->crpix[i]=val; wcsset(wcs);}
-    void setCrval (int i, float val) {crval[i]=wcs->crval[i]=val; wcsset(wcs);}
-    void setCdelt (int i, float val) {cdelt[i]=wcs->cdelt[i]=val; wcsset(wcs);}
+    void setCrpix (int i, float val) {crpix[i]=val;}
+    void setCrval (int i, float val) {crval[i]=val;}
+    void setCdelt (int i, float val) {cdelt[i]=val;}
     void setDrval3 (double val) {drval3=val;}
     void setDunit3 (std::string s) {dunit3=s;}
     void setBmaj  (float val) {bmaj = val;}
@@ -124,6 +124,9 @@ public:
     bool    header_read (std::string fname);                    /// Read from header of a Fits file.
     void    headwrite_3d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits cube.
     void    headwrite_2d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits image.
+    void    updateWCS();                                        /// Update WCS structure
+    int     wcsToPix(const double *world, double *pix, size_t npts=1);
+    int     pixToWCS(const double *pix, double *world, size_t npts=1);
 
     template <class T>                                          /// Read the request keyword and write on "key".
     bool read_keyword(std::string keyword, T &key, bool err=false); 

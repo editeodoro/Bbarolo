@@ -102,7 +102,7 @@ bool BBcore (Param *par) {
 
     // Source finding utility --------------------------------------
     if (par->getflagSearch()) {
-        c->Search();
+        c->search();
         c->plotDetections();
         std::ofstream detout((outfolder+"detections.txt").c_str());
         c->printDetections(detout);

@@ -34,37 +34,37 @@
 class ProgressBar           /// A class that prints out a progress 
 {                           ///  bar in the form: |###           |      
 public:
-    ProgressBar();                                      ///< Basic constructor
-    ProgressBar(std::string Title, bool Time=false, int nlength=20, std::string ss="#");
-    virtual ~ProgressBar() {}                           ///< Destructor.
-    enum POS {BEG=0,END};                               ///< So that we can record where we are.
+    ProgressBar(bool Time=false, bool Verbose=true, bool Showbar=true,
+                int nlength=20, std::string ss="#");
+    virtual ~ProgressBar() {}                       ///< Destructor.
+    enum POS {BEG=0,END};                           ///< So that we can record where we are.
 
-    void setTitle (std::string t) {title=t;}
     void setShowbar (bool b) {showbar=b;}
+    void setVerbose (bool b) {verbose=b;}
 
-    void init(int size);                                ///< Prints empty bar, defines increment.
-    void update(int num);                               ///< Prints correct number of hashes
-    void rewind();                                      ///< Prints backspaces over bar.
-    void remove();                                      ///< Overwrites bar with blanks
-    void fillSpace(std::string someString);             ///< Overwrites bar with a string.
+    void init(std::string someString, int size);    ///< Prints title, an empty bar, defines increment.
+    void update(int num);                           ///< Prints correct number of hashes
+    void rewind();                                  ///< Prints backspaces over bar.
+    void remove();                                  ///< Overwrites bar with blanks
+    void fillSpace(std::string someString);         ///< Overwrites bar with a string.
     
 private:
-    POS     loc;                                        ///< Are we at the start or end?
+    POS     loc;                                    ///< Are we at the start or end?
     float   stepSize;                               ///< What is the interval between hashes?
-    int     length;                                     ///< What's the maximum number of hashes?
-    int     numVisible;                                 ///< How many hashes are there visible?
+    int     length;                                 ///< What's the maximum number of hashes?
+    int     numVisible;                             ///< How many hashes are there visible?
     int     stepMade;                               ///< How many steps have been completed?
     int     twidth;                                 ///< Left time string width.
     int     backs;                                  ///< Number of backspaces
     bool    ltime;                                  ///< Estimating time to finish;
-    bool    showbar;
+    bool    showbar;                                ///< Whether to show the progress bar
+    bool    verbose;                                ///< Whether to show the title and other messages.
     std::string s;                                  ///< String that fill the bar.
-    std::string title;                              ///< String printed before the bar.
     struct winsize w;                               ///< Getting the size of the shell.
     clock_t start;                                  ///< Time of beginning.
     
     void defaults ();
-    std::string getTimeLeft (clock_t stop);             ///< Estimating the time of the loop.
+    std::string getTimeLeft (clock_t stop);         ///< Estimating the time of the loop.
     void printBackSpaces(int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<<'\b';}
     void printSpaces    (int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<<' ';}
     void printString    (int n, std::ostream &str=std::cout) {for(int i=0;i<n;i++) str<< s;}

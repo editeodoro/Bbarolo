@@ -28,6 +28,7 @@
 #include <Arrays/header.hh>
 #include <Arrays/stats.hh>
 #include <Arrays/param.hh>
+#include <Tasks/search.hh>
 #include <Map/detection.hh>
 
 using namespace Statistics;
@@ -90,61 +91,36 @@ public:
     Param&  pars(){ Param &rpar = par; return rpar;}
     void    showParam(std::ostream &stream){stream << par;}
     void    saveParam(Param &newpar){par = newpar;}
-    long    getNumObj(){return objectList->size();}
-    short*  DetectMap () {return detectMap;}
-    Detection<T>  getObject(long number){return objectList->at(number);}
-    Detection<T>* pObject(long number){return &(objectList->at(number));}
-    std::vector <Detection<T> >  getObjectList(){return *objectList;}
-    std::vector <Detection<T> >  *pObjectList(){return objectList;}
-    std::vector <Detection<T> >  &ObjectList(){std::vector<Detection<T> > &rlist=*objectList; return rlist;}
+    long    getNumObj(){return sources->getNumObj();}
+    Detection<T>* pObject(long n){return sources->pObject(n);}
+    Search<T>* getSources () {return sources;}
     bool getIsSearched () {return isSearched;}
 
 
-    
     /// Functions for Fitsfile I/O:
-    
     void    setCube  (T *input, int *dim);
     bool    readCube (std::string fname);                                   /// Front-end to read array from Fits.
     bool    fitsread_3d ();                                                 /// Read data array from Fits file.                                             
     bool    fitswrite_3d (const char *outfile, bool fullHead=false);        /// Write a Fits cube.                                      
     
     /// Statistics functions:
-    
     void    setCubeStats();                              /// Calculate statistical parameters for cube. 
-    bool    isDetection(long x, long y, long z);         /// Can be a voxel considered a detection ?
+    bool    isDetection(long x, long y, long z) {return stats.isDetection(Array(x,y,z));}         /// Can be a voxel considered a detection ?
 
     /// Searching functions, defined in search.cpp.
-    
-    void    Search();                                    /// Front-end function to search in a 3-D cube.
-    void    Search(std::string searchtype, float snrCut, float threshold, bool adjacent, 
+    void    search();                                    /// Front-end function to search in a 3-D cube.
+    void    search(std::string searchtype, float snrCut, float threshold, bool adjacent,
                    int threshSpatial, int threshVelocity, int minPixels, int minChannels,
                    int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
                    float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage,int NTHREADS);
-    void    CubicSearch();                               /// Front-end to next functions. 
-    std::vector <Detection<T> > search3DArray();         /// Switch functions for spectral or spatial.
-    std::vector <Detection<T> > search3DArraySpectral(); /// Research objects in the 1-D spectra.
-    std::vector <Detection<T> > search3DArraySpatial();  /// Research objects in the 2-D channels maps.
-    void    updateDetectMap();                           /// Update the map of detected pixels.  
-    void    updateDetectMap(Detection<T> obj);           /// Update the map of detected pixels for a Detection.
-    void    ObjectMerger();                              /// Front-end function to mergeList & finaliseList.
-    void    ObjectMergerSimple();                        /// Front-end function to mergeList & finaliseList.
-    void    mergeList(std::vector<Detection<T> > &objList);  /// Merge a list of pixel in a single object.
-    void    finaliseList(std::vector<Detection<T> > &objList);/// Verify if a detection can be considered an object.
-    void    rejectObjects(std::vector<Detection<T> > &objList);/// Verify if a detection can be considered an object.
-    void    mergeIntoList(Detection<T> &object,          /// Add an object in a detection list.
-            std::vector <Detection<T> > &objList); 
     void    printDetections (std::ostream& Stream);      /// An easy way to print the detection list.
     void    plotDetections();
-    Detection<T>* LargestDetection ();
     Cube<T>* extractCubelet(Detection<T> *obj, int edges, int *starts);
     void    writeCubelets();
 
     /// Blanking and Maps functions.
-    
     void    BlankCube (T *Array, size_t size);            /// Blank a input array using Cube::mask.
     void    BlankMask(float *channel_noise=NULL,bool onlyLargest=true);       /// Define Cube::mask;
-
-    //void  WriteFITSMap (T *Array, int T);          /// Write a map in a FITS file.
     
     Cube<T>*    Reduce (int fac,std::string rtype="spatial");
     void    CheckChannels ();
@@ -163,7 +139,6 @@ protected:
     Stats<T>    stats;                      ///< The statistics for the data array.
     bool        statsDefined;               ///< Have been statistics defined?
     Param       par;                        ///< A parameter list.
-    std::vector <Detection<T> > *objectList;    ///< The list of detected objects.
     
 
 private:
@@ -171,38 +146,9 @@ private:
     int         datatype;                   ///< Data type when reading or writing data.
     bool        *mask;                      ///< A mask for blanked cube.
     bool        maskAllocated;              ///< Has mask been allocated?
-    short       *detectMap;                 ///< X,Y locations of detected pixels.
-    bool        mapAllocated;               ///< Has the detection map been allocated?
+    Search<T>   *sources;                   ///< A pointer to the source-finder.
     bool        isSearched;                 ///< Already searched?
 
-};
-
-
-/// Some enumeration types and the FoundObject class
-
-enum STATUS { NONOBJECT,    ///< Pixel not above the threshold.
-              OBJECT,       ///< Pixel above the threshold.
-              COMPLETE,     ///< Object is complete
-              INCOMPLETE    ///< Object not yet complete
-};  
-    
-enum ROW {PRIOR=0, CURRENT};
-    
-enum NULLS { NULLSTART=-1,  ///< Default start/end value, obviously outside valid range.
-             NULLMARKER=45  ///< ASCII 45 = '-', which eases printing for debugging purposes
-}; 
-
-
-enum STATE {AVAILABLE, DETECTED, BLANK, MW};
-
-template <class T>
-class FoundObject           /// Keeps a track of a detection, as well as the start and finish
-{                           /// locations of the detection on the current row.
-public:
-    FoundObject(){start=NULLSTART; end=NULLSTART;}
-    int start;              ///< Pixel on the current row where the detection starts.
-    int end;                ///< Pixel on the current row where the detection finishes.
-    Object2D<T> info;           ///< Collection of detected pixels.
 };
 
 #endif

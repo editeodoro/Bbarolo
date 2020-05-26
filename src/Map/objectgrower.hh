@@ -51,6 +51,8 @@ public:
 
     /// Set up the class with parameters & pointers from the cube
     void define(Cube<T> *theCube);
+    void define(Statistics::Stats<T> stats, T *array, size_t xsize, size_t ysize, size_t zsize,
+                                            std::vector <Detection<T> > *objectList, SEARCH_PAR &p);
     /// Update a Cube's detectMap based on the flag array
     void updateDetectMap(short *map);
     /// Grow an object

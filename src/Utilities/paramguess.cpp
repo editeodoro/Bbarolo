@@ -834,7 +834,7 @@ void ParamGuess<T>::tuneWithTiltedRing() {
     tr.setoption(mpar,3,2,15.);
     // Fitting a tilted-ring model
     tr.ringfit(in->pars().getThreads(),false,false);
-    tr.printfinal(std::cout,in->Head());
+    //tr.printfinal(std::cout,in->Head());
 
     std::vector<T> xcen,ycen,vsys,posa,incl;
     for (int i=1; i<nr; i++) {  // Skipping first ring

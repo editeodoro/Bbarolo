@@ -41,21 +41,21 @@ struct Beam {
 template <class T>
 class Smooth3D 
 {
-// Smooth3D is a class for spatially-smoothing datacubes with a gaussian kernel.
-// NB; All beams are in arcsec, position angles in degrees.
-//
-// The correct way to call the class is the following:
-//
-// 1) call smooth(...) functions: 
-//      -Cube *c:       the Cube object to be smoothed.
-//      -int *Bhi:      an array with upper coordinate box limits.
-//      -int *Blo:      an array with lower coordinate box limits.
-//      -Beam oldbeam:  a Beam object with {oldbmaj, oldbin, oldpa}. 
-//      -Beam newbeam;  the desired beam after the smoothing process.
-//
-//  
-// The smoothed array is written in the 'array' variable. 
-//
+/// Smooth3D is a class for spatially-smoothing datacubes with a gaussian kernel.
+/// NB; All beams are in arcsec, position angles in degrees.
+///
+/// The correct way to call the class is the following:
+///
+/// 1) call smooth(...) functions:
+///      -Cube *c:       the Cube object to be smoothed.
+///      -int *Bhi:      an array with upper coordinate box limits.
+///      -int *Blo:      an array with lower coordinate box limits.
+///      -Beam oldbeam:  a Beam object with {oldbmaj, oldbin, oldpa}.
+///      -Beam newbeam;  the desired beam after the smoothing process.
+///
+///
+/// The smoothed array is written in the 'array' variable.
+///
 public:
     Smooth3D();                                 //< Default constructor.
     virtual ~Smooth3D();                        //< Destructor.
@@ -136,23 +136,23 @@ private:
 template <class T>
 class SpectralSmooth3D
 {
-// SpectralSmooth3D is a class to spectrally smooth datacubes with a filterning window.
-//
-// The correct way to call the class is the following:
-// 
-// 1) call constructor:
-//      - string wtype: Type of filtering window
-//      - size_t wsize: Size of filtering window
-//
-// 2) call smooth(...) functions:
-//      -Cube *c:       the Cube object to be smoothed.
-//                           or
-//      -T *inarray:    the array to be smoothed
-//      -size_T xsize,ysize,zsize: axis dimensions of inarray
-//      -int nthreads:  number of CPUs to use for smoothing
-//
-// The smoothed array is written in the 'array' variable. 
-//
+/// SpectralSmooth3D is a class to spectrally smooth datacubes with a filterning window.
+///
+/// The correct way to call the class is the following:
+///
+/// 1) call constructor:
+///      - string wtype: Type of filtering window
+///      - size_t wsize: Size of filtering window
+///
+/// 2) call smooth(...) functions:
+///      -Cube *c:       the Cube object to be smoothed.
+///                           or
+///      -T *inarray:    the array to be smoothed
+///      -size_T xsize,ysize,zsize: axis dimensions of inarray
+///      -int nthreads:  number of CPUs to use for smoothing
+///
+/// The smoothed array is written in the 'array' variable.
+///
 public:
     SpectralSmooth3D(std::string wtype, size_t wsize);                //< Constructor.
     ~SpectralSmooth3D() {if (arrayAllocated) delete [] array;}        //< Destructor.

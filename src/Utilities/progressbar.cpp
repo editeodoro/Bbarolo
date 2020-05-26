@@ -39,9 +39,9 @@ void ProgressBar::defaults() {
     loc=BEG; 
     numVisible = stepMade = 0;
     s = "#";
-    title = "";
     ltime = false;
     showbar = true;
+    verbose = true;
     backs = 8;
 #ifdef MACOSX
     backs = 7;
@@ -50,31 +50,33 @@ void ProgressBar::defaults() {
 
 }
 
-ProgressBar::ProgressBar() {
-    
-    defaults();
-    
-}
 
+ProgressBar::ProgressBar(bool Time, bool Verbose, bool Showbar, int nlength, std::string ss) {
 
-ProgressBar::ProgressBar(std::string Title, bool Time, int nlength, std::string ss) {
-    
     /// This constructor enables the user to define how many string should
-    /// appear. The number visible is set to 0 and the location to be at the beginning.  
-    /// 
+    /// appear. The number visible is set to 0 and the location to be at the beginning.
+    ///
+    /// \param Title     Initial message to print in the bar
+    /// \param Time      Whether to show countdown.
+    /// \param Verbose   Whether to print messages.
+    /// \param Showbar   Whether to print the bar.
+    /// \param nlength  The new number of char to appear in the bar.
     /// \param nlength  The new number of char to appear in the bar.
     /// \param ss       The character to appear in the bar.
-    
+
     defaults();
-    
-    length = nlength;
+
+    verbose   = Verbose;
+    showbar   = Showbar;
+    length    = nlength;
     s = ss.at(0);
-    title = Title;
-    ltime = Time;
+    ltime     = Time;
+
+    if (!verbose) showbar = false;
 }
 
 
-void ProgressBar::init(int size) { 
+void ProgressBar::init(std::string someString, int size) {
     
     /// This initialises the bar to deal with a loop of a certain size.
     /// This size will imply a certain step size, dependent on the number
@@ -84,6 +86,8 @@ void ProgressBar::init(int size) {
     /// \param size     The maximum number of iterations to be covered by the
     ///                 progress bar.
 
+    if (!verbose) return;
+
 #ifdef _OPENMP
     size = lround(size/omp_get_num_threads());
 #endif
@@ -91,16 +95,17 @@ void ProgressBar::init(int size) {
 #pragma omp master
 {
     stepSize = float(size) / float(length);
-    std::cout << title << std::flush;
-    if (showbar) {std::cout << "|";
+    std::cout << someString << std::flush;
+    if (showbar) {
+        std::cout << "|";
         printSpaces(length);
         std::cout << "|" << std::flush;
         loc = END;
     }
         
-    if (title.size()==0) twidth = 20;
-    else twidth = w.ws_col-length-title.size()-8-2;
-}    
+    if (someString.size()==0) twidth = 20;
+    else twidth = w.ws_col-length-someString.size()-8-2;
+}
 
 }
 
@@ -208,7 +213,9 @@ void ProgressBar::fillSpace(std::string someString) {
     
     /// First remove() the bar and then write out the requested string.
     /// \param someString The string to be written over the bar area.
-    
+
+    if (!verbose) return;
+
     remove();
     std::cout << someString;
     loc=END;
@@ -224,6 +231,11 @@ std::string ProgressBar::getTimeLeft (clock_t stop) {
     
     double timestep = (double(stop-start)/CLOCKS_PER_SEC)/double(stepMade);
     double lefttime = timestep*(stepSize*length-stepMade);
+
+#ifdef _OPENMP
+    lefttime /= omp_get_num_threads();
+    lefttime += 1;
+#endif
 
     if (lefttime/60.>1) {
         if (lefttime/3600.>1) {

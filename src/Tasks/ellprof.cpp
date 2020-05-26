@@ -393,19 +393,17 @@ void Ellprof<T>::RadialProfile () {
 
     /* Start looping over all pixels */
     
-    ProgressBar bar(" Computing radial profile... ", true);
-    bar.setShowbar(im->pars().getShowbar());        
-    bool verb = im->pars().isVerbose();
-    if (verb) bar.init(Bgridhi[0]-Bgridlo[0]);   
+    ProgressBar bar(true,im->pars().isVerbose(),im->pars().getShowbar());
+    bar.init(" Computing radial profile... ",Bgridhi[0]-Bgridlo[0]);
     
     for (size_t x = Bgridlo[0]; x <= Bgridhi[0]; x++) {
-        if (verb) bar.update(x-Bgridlo[0]+1);   
+        bar.update(x-Bgridlo[0]+1);
         for (size_t y = Bgridlo[1]; y <= Bgridhi[1]; y++) {
             processpixel(x, y, im->Array(x,y));
         }
     }
     
-    if (verb) bar.fillSpace("Done.\n");
+    bar.fillSpace("Done.\n");
 
 
     float Sumtotgeo    = 0.0;        /* Sum of all complete rings */

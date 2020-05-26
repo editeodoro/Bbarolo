@@ -429,15 +429,14 @@ void Ringmodel<T>::ringfit(int nthreads, bool verbose, bool showbar) {
 
     if (fieldAllocated && allAllocated) {
         
-        ProgressBar bar(" Fitting 2D tilted-ring model... ", true);
-        bar.setShowbar(showbar);
+        ProgressBar bar(true,verbose,showbar);
 
 #pragma omp parallel num_threads(nthreads)
 {
-        if (verbose) bar.init(nrad);
+        bar.init(" Fitting 2D tilted-ring model... ",nrad);
 #pragma omp for 
         for (int ir=0; ir<nrad; ir++) {
-            if (verbose) bar.update(ir+1);
+            bar.update(ir+1);
             
             int n;
             T   e[MAXPAR];
@@ -509,7 +508,7 @@ void Ringmodel<T>::ringfit(int nthreads, bool verbose, bool showbar) {
             }
         }            
 }    
-        if (verbose) bar.fillSpace("Done.\n");
+        bar.fillSpace("Done.\n");
     
     }
     else {

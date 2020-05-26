@@ -20,7 +20,7 @@ Optional: GNUPLOT, PYTHON with ASTROPY (for output plots), QT Kit (for the GUI)
 Clone the repository:
 
 ````
-git clone https://github.com/editeodoro/Bbarolo
+git clone -b master --single-branch https://github.com/editeodoro/Bbarolo 
 cd Bbarolo
 ````
 
@@ -40,6 +40,6 @@ To compile the GUI (optional):
 
 To install Python wrapper pyBBarolo:
  ````
- python setup.py install
+ make pybbinst
 ````
 

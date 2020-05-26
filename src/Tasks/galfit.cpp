@@ -1305,8 +1305,8 @@ template <class T>
 T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     
     // Running the source finder to detect the source
-    if (!c->getIsSearched()) c->Search();
-    Detection<T> *largest = c->LargestDetection();
+    if (!c->getIsSearched()) c->search();
+    Detection<T> *largest = c->getSources()->LargestDetection();
 
     if (largest==NULL) {
         std::cout << " 3DFIT ERROR: No sources detected in the datacube. Cannot fit!!! \n";

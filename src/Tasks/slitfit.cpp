@@ -44,10 +44,10 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     
     p->getParSE().minChannels = 1;
     p->getParSE().minPix = in->DimX();
-    in->Search();
+    in->search();
         
     
-    int numObj = in->getObjectList().size();
+    int numObj = in->getNumObj();
     if (numObj==0)  {
         std::cout << "SLITFIT error: No lines detected in the datacube. Cannot fit!!! \n";
         exit(EXIT_FAILURE);
@@ -57,7 +57,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         for (int i=0; i<numObj; i++)
             if (in->pObject(i)->getSize()>size) {n=i;size=in->pObject(i)->getSize();}
         for (int i=0; i<numObj; i++)
-            if (i!=n) in->pObjectList()->erase(in->pObjectList()->begin()+i);
+            if (i!=n) in->getSources()->pObjectList()->erase(in->getSources()->pObjectList()->begin()+i);
     }
     
     
@@ -95,7 +95,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         if (diff_w<diff_min) {diff_min=diff_w; chan_s=i;};
     }
 
-    std::cout << in->LargestDetection()->getYaverage()<<"  " << wave_s<< " "<< chan_s <<std::endl;
+    //std::cout << in->LargestDetection()->getYaverage()<<"  " << wave_s<< " "<< chan_s <<std::endl;
 
 
     // Setting spectral broadedning
@@ -105,7 +105,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
 
     // Set the image of the line and continuum subtraction.
     int offset = 50;
-    int spat_s = lround(in->LargestDetection()->getYaverage());
+    int spat_s = lround(in->getSources()->LargestDetection()->getYaverage());
     int minx = (chan_s-offset)>=0 ? chan_s-offset : 0;
     int maxx = (chan_s+offset)<in->DimX() ? chan_s+offset : in->DimX()-1;
     int miny = (spat_s-offset)>=0 ? spat_s-offset : 0;
@@ -136,8 +136,8 @@ void Galfit<T>::slit_init(Cube<T> *c) {
 
 
     // Identification of the line
-    line_im->Search();
-    numObj = line_im->getObjectList().size();
+    line_im->search();
+    numObj = line_im->getNumObj();
     if (numObj==0)  {
         std::cout << "SLITFIT error: No lines detected in the datacube. Cannot fit!!! \n";
         exit(EXIT_FAILURE);
@@ -147,11 +147,11 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         for (int i=0; i<numObj; i++)
             if (line_im->pObject(i)->getSize()>size) {n=i;size=line_im->pObject(i)->getSize();}
         for (int i=0; i<numObj; i++)
-            if (i!=n) line_im->pObjectList()->erase(line_im->pObjectList()->begin()+i);
+            if (i!=n) line_im->getSources()->pObjectList()->erase(line_im->getSources()->pObjectList()->begin()+i);
     }
 
     std::vector<bool> isObj(line_im->NumPix(),false);
-    typename std::vector<Voxel<T> > voxelList = line_im->LargestDetection()->getPixelSet(line_im->Array(), line_im->AxisDim());
+    typename std::vector<Voxel<T> > voxelList = line_im->getSources()->LargestDetection()->getPixelSet(line_im->Array(), line_im->AxisDim());
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxelList.begin();vox<voxelList.end();vox++)
         isObj[line_im->nPix(vox->getX(),vox->getY(),vox->getZ())] = true;
@@ -177,7 +177,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     h.setCdelt(0,pixsize/3600.);
     h.setCunit(0,"DEGREE");
     h.setCtype(0,"RA---SIN");
-    h.setCrpix(1,line_im->LargestDetection()->getYaverage()+1);
+    h.setCrpix(1,line_im->getSources()->LargestDetection()->getYaverage()+1);
     h.setCrval(1,20.);
     h.setCdelt(1,pixsize/3600.);
     h.setCunit(1,"DEGREE");

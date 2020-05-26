@@ -129,15 +129,14 @@ void Spacepar<T>::calculate() {
         T p1min=0, p2min=0;
         T funmin=FLT_MAX;
         
-        ProgressBar bar("   Calculating models...",true);
-        bar.setShowbar(Galfit<T>::in->pars().getShowbar());
+        ProgressBar bar(true,verb,this->in->pars().getShowbar());
 
         int nthreads = Galfit<T>::in->pars().getThreads();
         // Starting loops over parameters
 #pragma omp parallel num_threads(nthreads) shared(funmin,p1min,p2min)
 {
         // NB: THIS LOOP IN PARALLEL CAUSES SOMETIMES SEGFAULT (in fftw_execute)
-        if(verb) bar.init(p1_nsteps);
+        bar.init("   Calculating models...",p1_nsteps);
 #pragma omp for 
         for (int i=0; i<p1_nsteps; i++) {
             if (verb) bar.update(i+1);

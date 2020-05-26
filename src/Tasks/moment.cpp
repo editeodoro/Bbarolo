@@ -162,19 +162,16 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
         map_Type = &MomentMap<T>::calculateMoments;
         barstring += "(MOMENT)... ";
     }
-
-    bool isVerbose = in->pars().isVerbose();
     
-    ProgressBar bar(barstring, true);
-    bar.setShowbar(in->pars().getShowbar());
+    ProgressBar bar(true,in->pars().isVerbose(),in->pars().getShowbar());
 
     int nthreads = in->pars().getThreads();    
 #pragma omp parallel num_threads(nthreads)
 {
-    if (isVerbose) bar.init(this->axisDim[0]);
+    bar.init(barstring,this->axisDim[0]);
 #pragma omp for
     for (int x=0; x<this->axisDim[0]; x++) {
-        if (isVerbose) bar.update(x+1);
+        bar.update(x+1);
         for (int y=0; y<this->axisDim[1]; y++) {
             this->array[x+y*this->axisDim[0]]=log(-1);
             double moms[3];
@@ -184,7 +181,7 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
     }
 }
     
-    if (isVerbose) bar.fillSpace("Done.\n");
+    bar.fillSpace("Done.\n");
     
 }
 
@@ -206,7 +203,6 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
         std::cout<< "MOMENT MAPS warning: cannot create new header.\n";
     }
     
-    bool isVerbose = in->pars().isVerbose();
     int nthreads = in->pars().getThreads();
     bool rob = in->pars().getFlagRobustStats();
     
@@ -214,15 +210,14 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
     size_t xs = in->DimX(), ys = in->DimY(), zs = in->DimZ();
     
     // Progress bar
-    ProgressBar bar(" Computing RMS map... ", true);
-    bar.setShowbar(in->pars().getShowbar());
+    ProgressBar bar(true,in->pars().isVerbose(),in->pars().getShowbar());
     
 #pragma omp parallel num_threads(nthreads)
 {
-    if (isVerbose) bar.init(xs*ys);
+   bar.init(" Computing RMS map... ",xs*ys);
 #pragma omp for
     for (size_t xy=0; xy<xs*ys; xy++) {
-        if (isVerbose) bar.update(xy+1);
+        bar.update(xy+1);
             
         // Getting the spectrum at x,y pixel
         std::vector<float> sp(zs);
@@ -255,8 +250,7 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
         this->array[xy] = orms;
     }
 }
-    if (isVerbose) bar.fillSpace("Done.\n");
-
+    bar.fillSpace("Done.\n");
 
 }
 
@@ -540,17 +534,15 @@ std::vector< MomentMap<T> > getAllMoments(Cube<T> *c, bool usemask, bool *mask, 
         allmaps[i].setHeadDef(allmaps[i].setHead(i));
     }
 
-    bool isVerbose = c->pars().isVerbose();
-    ProgressBar bar(" Deriving kinematic maps ...", true);
-    bar.setShowbar(c->pars().getShowbar());
+    ProgressBar bar(true,c->pars().isVerbose(),c->pars().getShowbar());
 
     int nthreads = c->pars().getThreads();
 #pragma omp parallel num_threads(nthreads)
 {
-    if (isVerbose) bar.init(c->DimY());
+    bar.init(" Deriving kinematic maps ...",c->DimY());
 #pragma omp for
     for (int y=0; y<c->DimY(); y++) {
-        if (isVerbose) bar.update(y+1);
+        bar.update(y+1);
         for (int x=0; x<c->DimX(); x++) {
             double moms[3];
             if (mtype=="GAUSSIAN") allmaps[0].fitSpectrum(x,y,usemask,moms);
@@ -562,7 +554,7 @@ std::vector< MomentMap<T> > getAllMoments(Cube<T> *c, bool usemask, bool *mask, 
     }
 }
 
-    if (isVerbose) bar.fillSpace("Done.\n");
+    bar.fillSpace("Done.\n");
 
     return allmaps;
 }

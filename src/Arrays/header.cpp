@@ -711,116 +711,200 @@ void Header::headwrite_2d (fitsfile *fptr, bool fullHead) {
 }
 
 
+void Header::updateWCS() {
+
+    // Define the wcsprm structure given the entries in the Header
+
+    //wcsvfree(&nwcs,&wcs);
+    //wcsini(true,numAxes,wcs);
+    //wcs->flag = 0;
+    for (short i=0; i<numAxes; i++) {
+        wcs->crpix[i] = crpix[i];
+        wcs->crval[i] = crval[i];
+        wcs->cdelt[i] = cdelt[i];
+        strcpy(&wcs->cunit[i][0],cunit[i].c_str());
+        strcpy(&wcs->ctype[i][0],ctype[i].c_str());
+    }
+
+    int stat[NWCSFIX];
+    int status = wcsfix(1, (const int*)dimAxes, wcs, stat);
+    status = wcsset(wcs);
+    status = wcsfix(1, (const int*)dimAxes, wcs, stat);
+
+    if((wcs->lng!=-1) && (wcs->lat!=-1)) wcsIsGood = true;
+
+}
+
+
+int Header::wcsToPix(const double *world, double *pix, size_t npts) {
+
+    ///  @details
+    ///   Uses wcs to convert the three-dimensional world coordinate position
+    ///   referenced by world to pixel coordinates, which are placed in the
+    ///   array pix[].
+    ///   world is assumed to hold the positions of npts points.
+    ///   Offsets the pixel values by 1 to account for the C arrays being
+    ///   indexed to 0.
+    ///
+    /// \param wcs The wcsprm struct containing the WCS information.
+    /// \param world The array of world coordinates.
+    /// \param pix The returned array of pixel coordinates.
+    /// \param npts The number of distinct pixels in the arrays.
+
+    int naxis=wcs->naxis,status=0;
+    int specAxis = wcs->spec;
+    if(specAxis<0) specAxis=2;
+    if(specAxis>=naxis) specAxis = naxis-1;
+
+    // Test to see if there are other axes present, eg. stokes
+    if(wcs->naxis>naxis) naxis = wcs->naxis;
+
+    // Add entries for any other axes that are present, keeping the
+    //   order of pixel positions the same
+    double *tempworld = new double[naxis*npts];
+    for(int pt=0;pt<npts;pt++){
+        for(int axis=0;axis<naxis;axis++)
+            tempworld[pt*naxis+axis] = wcs->crval[axis];
+        tempworld[pt*naxis + wcs->lng]  = world[pt*3+0];
+        tempworld[pt*naxis + wcs->lat]  = world[pt*3+1];
+        tempworld[pt*naxis + specAxis] = world[pt*3+2];
+    }
+
+    int    *stat   = new int[npts];
+    double *temppix = new double[naxis*npts];
+    double *imgcrd = new double[naxis*npts];
+    double *phi    = new double[npts];
+    double *theta  = new double[npts];
+    status=wcss2p(wcs,npts,naxis,tempworld,phi,theta,
+                  imgcrd,temppix,stat);
+    if(status>0){
+        std::cerr << "\nCannot convert to wcs. WCS error code = " << status
+                  << ": stat="<<stat[0] << " : " << wcs_errmsg[status] << std::endl;
+    }
+    else{
+        // correct from 1-indexed to 0-indexed pixel array
+        //  and return just the spatial/velocity information,
+        //  keeping the order of the pixel positions the same.
+        for(int pt=0;pt<npts;pt++){
+            pix[pt*naxis + 0] = temppix[pt*naxis + wcs->lng] - 1.;
+            pix[pt*naxis + 1] = temppix[pt*naxis + wcs->lat] - 1.;
+            pix[pt*naxis + 2] = temppix[pt*naxis + specAxis] - 1.;
+        }
+    }
+
+    delete [] stat;
+    delete [] imgcrd;
+    delete [] temppix;
+    delete [] phi;
+    delete [] theta;
+    delete [] tempworld;
+    return status;
+}
+
+
+int Header::pixToWCS(const double *pix, double *world, size_t npts) {
+
+    ///   Uses wcs to convert the three-dimensional pixel positions referenced
+    ///   by pix to world coordinates, which are placed in the array world[].
+    ///   pix is assumed to hold the positions of npts points.
+    ///   Offsets these pixel values by 1 to account for the C arrays being
+    ///   indexed to 0.
+    ///
+    ///   \param pix The array of pixel coordinates.
+    ///   \param world The returned array of world coordinates.
+    ///   \param npts The number of distinct pixels in the arrays.
+
+    int naxis=wcs->naxis,status;
+    int specAxis = wcs->spec;
+    if(specAxis<0) specAxis=2;
+    if(specAxis>=naxis) specAxis = naxis-1;
+
+    // correct from 0-indexed to 1-indexed pixel array
+    // Add entries for any other axes that are present,
+    // keeping the order of pixel positions the same
+
+    double *newpix = new double[naxis*npts];
+    for(int pt=0;pt<npts;pt++){
+      for(int i=0;i<naxis;i++) newpix[pt*naxis+i] = 1.;
+      newpix[pt*naxis+wcs->lng]  += pix[pt*3+0];
+      newpix[pt*naxis+wcs->lat]  += pix[pt*3+1];
+      newpix[pt*naxis+specAxis] += pix[pt*3+2];
+    }
+
+    int    *stat      = new int[npts];
+    double *imgcrd    = new double[naxis*npts];
+    double *tempworld = new double[naxis*npts];
+    double *phi       = new double[npts];
+    double *theta     = new double[npts];
+    status=wcsp2s(wcs, npts, naxis, newpix, imgcrd, phi, theta, tempworld, stat);
+
+    if(status>0){
+        std::cerr << "\nCannot convert to wcs. WCS error code = " << status
+                  << ": stat="<<stat[0] << " : " << wcs_errmsg[status] << std::endl;
+    }
+    else {
+        // return just the spatial/velocity information, keeping the
+        // order of the pixel positions the same.
+        for(int pt=0;pt<npts;pt++){
+            world[pt*3+0] = tempworld[pt*naxis + wcs->lng];
+            world[pt*3+1] = tempworld[pt*naxis + wcs->lat];
+            world[pt*3+2] = tempworld[pt*naxis + specAxis];
+        }
+    }
+
+    delete [] stat;
+    delete [] imgcrd;
+    delete [] tempworld;
+    delete [] phi;
+    delete [] theta;
+    delete [] newpix;
+    return status;
+
+}
+
+
 template <class T>
 bool Header::read_keyword(std::string keyword, T &key, bool err) {
     
-    std::cout << "HEADER ERROR: unknown type of keyword "<< keyword << std::endl;
-    return false;
-}
-
-template <>
-bool Header::read_keyword<int>(std::string keyword, int &key, bool err) {
-    
-    fitsfile *fptr;                                 
-    int status=0;
-    char comment[72];   
- 
-    if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-        fits_report_error(stderr, status);
-        return false;
-    }   
-    status = 0;
-    long dum = long(key);
-    if (fits_read_key_lng (fptr, keyword.c_str(), &dum, comment, &status)) {
-        if (err) fits_report_error(stderr, status);
+    int datatype=-1;
+    if (std::is_same<T, int>::value) datatype=TINT;
+    else if (std::is_same<T, long>::value) datatype=TLONG;
+    else if (std::is_same<T, float>::value) datatype=TFLOAT;
+    else if (std::is_same<T, double>::value) datatype=TDOUBLE;
+    else {
+        std::cerr << "Error: unknown type of keyword "<< keyword << std::endl;
         return false;
     }
-    key=dum;
-    
-    status=0;
-    if (fits_close_file(fptr, &status))
-        fits_report_error(stderr, status);
-    
-    return true;
-    
-}
 
-template <>
-bool Header::read_keyword<long>(std::string keyword, long &key, bool err) {
-    
-    fitsfile *fptr;                                 
+    fitsfile *fptr;
     int status=0;
-    char comment[72];   
- 
+    char comment[72];
+
     if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
         fits_report_error(stderr, status);
         return false;
-    }   
+    }
     status = 0;
-    if (fits_read_key_lng (fptr, keyword.c_str(), &key, comment, &status)) {
+    if (fits_read_key(fptr, datatype, keyword.c_str(), &key, comment, &status)) {
         if (err) fits_report_error(stderr, status);
         return false;
     }
     status = 0;
     if (fits_close_file(fptr, &status))
         fits_report_error(stderr, status);
-    
-    return true;
-    
-}
 
-template <>
-bool Header::read_keyword<float>(std::string keyword, float &key, bool err) {
-    
-    fitsfile *fptr;                                 
-    int status=0;
-    char comment[72];   
- 
-    if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-        fits_report_error(stderr, status);
-        return false;
-    }   
-    status = 0;
-    if (fits_read_key_flt (fptr, keyword.c_str(), &key, comment, &status)) {
-        if (err) fits_report_error(stderr, status);
-        return false;
-    }
-    status = 0;
-    if (fits_close_file(fptr, &status))
-        fits_report_error(stderr, status);
-    
     return true;
-    
 }
+template bool Header::read_keyword(std::string,int&,bool);
+template bool Header::read_keyword(std::string,long&,bool);
+template bool Header::read_keyword(std::string,float&,bool);
+template bool Header::read_keyword(std::string,double&,bool);
 
-template <>
-bool Header::read_keyword<double>(std::string keyword, double &key, bool err) {
-    
-    fitsfile *fptr;                                 
-    int status=0;
-    char comment[72];   
- 
-    if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-        fits_report_error(stderr, status);
-        return false;
-    }   
-    status = 0;
-    if (fits_read_key_dbl (fptr, keyword.c_str(), &key, comment, &status)) {
-        if (err) fits_report_error(stderr, status);
-        return false;
-    }
-    status = 0;
-    if (fits_close_file(fptr, &status))
-        fits_report_error(stderr, status);
-    
-    return true;
-    
-}
 
 template <>
 bool Header::read_keyword<std::string>(std::string keyword, std::string &key, bool err) {
     
-    fitsfile *fptr;                                 
+    fitsfile *fptr;
     int status=0;
     char comment[72];
         
@@ -846,27 +930,3 @@ bool Header::read_keyword<std::string>(std::string keyword, std::string &key, bo
     return true;
 }
 
-template <>
-bool Header::read_keyword<char*>(std::string keyword, char* &key, bool err) {
-    
-    fitsfile *fptr;                                 
-    int status=0;
-    char comment[72];
-        
-    if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
-        fits_report_error(stderr, status);
-        return false;
-    }
-    
-    status = 0;
-    if (fits_read_key_str (fptr, keyword.c_str(), key, comment, &status)) {
-        if (err) fits_report_error(stderr, status);
-        return false;
-    }
-    
-    status = 0;
-    if (fits_close_file(fptr, &status))
-        fits_report_error(stderr, status);
-    
-    return true;
-}

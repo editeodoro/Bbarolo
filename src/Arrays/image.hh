@@ -73,7 +73,6 @@ public:
     void    saveParam(Param &newpar){par = newpar;}
     Stats<Type>  getStats() { return stats;}
     Stats<Type>& stat() {Stats<Type> &rstats = stats; return rstats;}
-    void setMinSize(int i){minSize=i;}
     double  getYphys (double y) {return (y+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);}
     double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);}
 
@@ -90,15 +89,6 @@ public:
     void extractSpectrum(Cube<Type> &cube, long pixel);         /// Extract a spectrum from a cube.
     void extractImage(Cube<Type> &cube, long channel);          /// Extract an image from a cube.
     void extractGlobalSpectrum(Cube<Type> *cube);
-
-    /// Detection-related functions:
-    
-    bool isDetection(long x, long y);                           /// A detection test for a pixel location. 
-    std::vector<PixelInfo::Scan<Type> > findSources1D();                /// Front-end function for spectrumDetect.
-    std::vector<PixelInfo::Object2D<Type> > findSources2D();            /// Front-end function for imageDetect.   
-    
-    std::vector<PixelInfo::Scan<Type> > spectrumDetect(std::vector<bool> &arraybool);   /// Detect objects in a 1-D spectrum. 
-    std::vector<PixelInfo::Object2D<Type> > imageDetect(std::vector<bool> &arraybool);   ///Detect objects in a 2-D image. 
     
 protected:
     Type        *array;                     ///< The cube data array.
@@ -111,7 +101,6 @@ protected:
     Stats<Type> stats;                      ///< The statistics for the data array.
     bool        statsDefined;               ///< Have been statitistics defined?
     Param       par;                        ///< A parameter list.
-    unsigned int minSize;                   ///< The minimum number of pixels for a detection to be accepted.
     
     bool fitsread_2d ();
 

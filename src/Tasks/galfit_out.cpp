@@ -907,7 +907,7 @@ int Galfit<T>::plotAll_Python() {
             if (in->pars().getParSE().flagGrowth) cont = in->pars().getParSE().growthCut*in->stat().getSpread();
             else cont = in->pars().getParSE().snrCut*in->stat().getSpread();
         }
-        Detection<T> *larg = in->LargestDetection();
+        Detection<T> *larg = in->getSources()->LargestDetection();
         long ext[4] = {abs(xpos-lround(larg->getXmin()-2*in->Head().Bmaj()/in->Head().PixScale())),
                        abs(xpos-lround(larg->getXmax()+2*in->Head().Bmaj()/in->Head().PixScale())),
                        abs(ypos-lround(larg->getYmin()-2*in->Head().Bmaj()/in->Head().PixScale())),
@@ -1698,7 +1698,7 @@ void Galfit<T>::DensityProfile (T *surf_dens, int *count) {
 
     // -STRONZATEEE-----------------------------------------------------------
 
-    if (!in->getIsSearched()) in->Search();
+    if (!in->getIsSearched()) in->search();
     Detection<T> *obj = in->pObject(0);
     obj->calcFluxes(obj->getPixelSet(in->Array(), in->AxisDim()));
     obj->calcWCSparams(in->Head());

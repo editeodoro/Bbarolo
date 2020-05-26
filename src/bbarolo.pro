@@ -11,7 +11,6 @@ SOURCES +=     bbarolo.cpp \
     Arrays/header.cpp \
     Arrays/image.cpp \
     Arrays/param.cpp \
-    Arrays/search.cpp \
     Arrays/stats.cpp \
     GUI/bbarolowindow.cpp \
     GUI/bbarolowindow_run.cpp \
@@ -35,6 +34,7 @@ SOURCES +=     bbarolo.cpp \
     Tasks/ellprof.cpp \
     Tasks/moment.cpp \ 
     Tasks/spacepar.cpp \
+    Tasks/search.cpp \
     Utilities/interpolation.cpp \
     Utilities/lsqfit.cpp \
     Utilities/progressbar.cpp \
@@ -49,7 +49,8 @@ SOURCES +=     bbarolo.cpp \
     Utilities/fitsUtils.cpp \
 
 
-HEADERS += Arrays/cube.hh \
+HEADERS += bbarolo.hh \
+    Arrays/cube.hh \
     Arrays/header.hh \
     Arrays/image.hh \
     Arrays/param.hh \
@@ -71,6 +72,7 @@ HEADERS += Arrays/cube.hh \
     Tasks/ringmodel.hh \
     Tasks/smooth3D.hh \
     Tasks/spacepar.hh \
+    Tasks/search.hh
     Utilities/paramguess.hh \
     Utilities/progressbar.hh \
     Utilities/utils.hh \
@@ -79,7 +81,7 @@ HEADERS += Arrays/cube.hh \
     Utilities/gnuplot.hh \
     Utilities/lsqfit.hh \
     GUI/consolestream.h \
-    GUI/q_streamdebug.h
+    GUI/q_streamdebug.h \
 
 FORMS += \
     GUI/bbarolowindow.ui

@@ -95,7 +95,7 @@ void Search_search(Cube<float> *c, const char* searchtype, float snrCut, float t
                    int threshSpatial, int threshVelocity, int minPixels, int minChannels,
                    int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
                    float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage,int NTHREADS) 
-                   {signal(SIGINT, signalHandler); c->Search(string(searchtype),snrCut,threshold,
+                   {signal(SIGINT, signalHandler); c->search(string(searchtype),snrCut,threshold,
                     adjacent,threshSpatial,threshVelocity,minPixels,minChannels,minVoxels,maxChannels,
                     maxAngSize,flagGrowth,growthCut,growthThreshold,RejectBefore,TwoStage,NTHREADS);}
 //////////////////////////////////////////////////////////////////////////////////////////

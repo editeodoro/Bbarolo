@@ -462,6 +462,7 @@ void Param::setParam(string &parstr) {
         parSE.flagUserGrowthT  = true;
     }
     if(arg=="cubelets")          parSE.cubelets = readFlag(ss);
+    if(arg=="edges")             parSE.edges = readval<int>(ss);
 
     if(arg=="globalprofile")    globprof = readFlag(ss);
     if(arg=="totalmap")         totalmap = readFlag(ss);
@@ -1117,6 +1118,9 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
             }            
         }
         recordParam(Str, "[CUBELETS]", "   Writing sub-cubes of detections?", stringize(p.getParSE().cubelets));
+        if(p.getParSE().cubelets || defaults)
+            recordParam(Str, "[EDGES]", "     Number of pixels at the edges of cubelets?", p.getParSE().edges);
+
     }
     
     // PARAMETERS FOR SMOOTH

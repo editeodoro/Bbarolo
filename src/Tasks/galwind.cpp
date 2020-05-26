@@ -216,8 +216,7 @@ bool GalWind<T>::compute_cylindrical() {
     // Starting progress bar
     bool verb = in->pars().isVerbose();
     if (verb) in->pars().setVerbosity(false);
-    ProgressBar bar(" Generating outflow model... ",false);
-    bar.setShowbar(in->pars().getShowbar());
+    ProgressBar bar(false,verb,in->pars().getShowbar());
     
     int nthreads = in->pars().getThreads();
 #pragma omp parallel num_threads(nthreads)
@@ -225,12 +224,12 @@ bool GalWind<T>::compute_cylindrical() {
     // Allocating Galmod objects for the two cylinders
     Model::Galmod<T> *con1 = new Model::Galmod<T>;
     Model::Galmod<T> *con2 = new Model::Galmod<T>;
-    if (verb) bar.init(par.NTOT);
+    bar.init(" Generating outflow model... ",par.NTOT);
     
 #pragma omp for schedule(dynamic)
     // Start main loop
     for (size_t k=1; k<(par.NTOT+1); k++){
-        if (verb) bar.update(k);
+        bar.update(k);
 
         // Assign distribution and kinematics to cylinder k
         float Rin  = par.DENSTYPE==2 ? (k-1)*width : 0;         // inner ring
@@ -290,7 +289,7 @@ bool GalWind<T>::compute_cylindrical() {
     delete con2;
 }
 
-    if (verb) bar.fillSpace(" Done.\n");
+    bar.fillSpace(" Done.\n");
     
     in->pars().setVerbosity(verb);
     return true;

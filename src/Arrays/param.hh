@@ -124,6 +124,8 @@ struct SEARCH_PAR {
     bool   flagUserGrowthT   = false;     ///< Whether the user has manually defined a threshold
     float  growthThreshold   = 0;         ///< The threshold for growing objects down to
     bool   cubelets          = false;     ///< If true, produce a sub-cube of each detection.
+    int    edges             = 10;        ///< Number of pixels at the edges of a cubelet.
+
 };
 
 

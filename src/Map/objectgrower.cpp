@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <Map/objectgrower.hh>
 #include <Map/detection.hh>
+#include <Arrays/param.hh>
 #include <Arrays/cube.hh>
 #include <Arrays/stats.hh>
 #include <Map/voxel.hh>
@@ -63,7 +64,7 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     /// them as detected, all blank & "milky-way" pixels to assign
     /// them appropriately, and all others to "available". It is only
     /// the latter that will be considered in the growing function.
-    /// @param theCube A pointer to a duchamp::Cube 
+    /// @param theCube A pointer to a Cube
 
     itsGrowthStats = Statistics::Stats<T>(theCube->stat()); 
     if(theCube->pars().getParSE().flagUserGrowthT)
@@ -88,7 +89,44 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     itsFlagArray = std::vector<STATE>(fullsize,AVAILABLE);
 
     for(int o=0;o<theCube->getNumObj();o++){
-        std::vector<Voxel<T> > voxlist = theCube->getObject(o).getPixelSet();
+        std::vector<Voxel<T> > voxlist = theCube->pObject(o)->getPixelSet();
+        for(size_t i=0; i<voxlist.size(); i++){
+            size_t pos=voxlist[i].getX()+voxlist[i].getY()*itsArrayDim[0]+voxlist[i].getZ()*spatsize;
+            itsFlagArray[pos] = DETECTED;
+        }
+    }
+
+}
+
+
+template <class T>
+void ObjectGrower<T>::define(Statistics::Stats<T> stats, T *array, size_t xsize, size_t ysize, size_t zsize,
+                             std::vector <Detection<T> > *objectList, SEARCH_PAR &p) {
+
+
+    itsGrowthStats = stats;
+    if(p.flagUserGrowthT) itsGrowthStats.setThreshold(p.growthThreshold);
+    else
+        itsGrowthStats.setThresholdSNR(p.growthCut);
+    itsGrowthStats.setUseFDR(false);
+
+    itsFluxArray = array;
+
+    itsArrayDim = std::vector<size_t>(3);
+    itsArrayDim[0]=xsize;
+    itsArrayDim[1]=ysize;
+    itsArrayDim[2]=zsize;
+    size_t spatsize=itsArrayDim[0]*itsArrayDim[1];
+    size_t fullsize=spatsize*itsArrayDim[2];
+
+    if(p.flagAdjacent) itsSpatialThresh = 1;
+    else itsSpatialThresh = int(p.threshSpatial);
+    itsVelocityThresh = int(p.threshVelocity);
+
+    itsFlagArray = std::vector<STATE>(fullsize,AVAILABLE);
+
+    for(int o=0;o<objectList->size();o++){
+        std::vector<Voxel<T> > voxlist = objectList->at(o).getPixelSet();
         for(size_t i=0; i<voxlist.size(); i++){
             size_t pos=voxlist[i].getX()+voxlist[i].getY()*itsArrayDim[0]+voxlist[i].getZ()*spatsize;
             itsFlagArray[pos] = DETECTED;

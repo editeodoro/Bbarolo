@@ -47,9 +47,8 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
     chatty = chatty && (omp_get_num_threads()==1);
 #endif
 
-    ProgressBar bar(" Estimating errors... ", true);
-    bar.setShowbar(in->pars().getShowbar());
-    
+    ProgressBar bar(true,chatty,in->pars().getShowbar());
+
     for (int ii=0; ii<2; ii++) {
         dr->vrot[ii]=outr->vrot[ir];
         dr->vdisp[ii]=outr->vdisp[ir];
@@ -214,13 +213,12 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
             
             
     ///*/// METODO ALL'ACQUA DI ROSE. UN PARAMETRO PER VOLTA
-    
-    
+
     int n_models=100;
     int n_bin = 40;
-    if (chatty) bar.init(n_models*nfree);
     uint cc=1;
-    
+    bar.init(" Estimating errors... ",n_models*nfree);
+
     //default_random_engine generator;  
     
     static std::random_device rd;
@@ -262,7 +260,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
          
 
         for (int nm=n_models;nm--;) {
-            if (chatty) bar.update(cc++);
+            bar.update(cc++);
             var_val[nm] = unifrand(maxv, minv);
             float stddev = 0.25509*min(maxv-midval[nf],midval[nf]-minv);    /// Read: 0.25509=1/(1.386*2*sqrt(2));
             //normal_distribution<double> distribution(midval[nf],stddev);
@@ -480,7 +478,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
     }
     
     //*/    
-    if (chatty) bar.fillSpace("Done.\n");
+    bar.fillSpace("Done.\n");
 
 }
 template void Galfit<float>::getErrors (Rings<float>*,float**,int,float);

@@ -82,9 +82,9 @@ public:
     void   addDetection(Detection &other);
     
     /// Detection related functions
-    bool   canMerge (Detection &other, Param &par);
-    bool   isNear (Detection &other, Param &par);
-    bool   isClose (Detection &other, Param &par);
+    bool   canMerge (Detection &other, SEARCH_PAR &par);
+    bool   isNear (Detection &other, SEARCH_PAR &par);
+    bool   isClose (Detection &other, SEARCH_PAR &par);
     
 
     /// Test whether voxel lists match 

@@ -91,6 +91,8 @@ HEADS = $(BASE)/bbarolo.hh\
 	$(TASKDIR)/ellprof.hh\
 	$(TASKDIR)/moment.hh\
 	$(TASKDIR)/spacepar.hh\
+	$(TASKDIR)/search.hh\
+    
 
 OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/header.o\

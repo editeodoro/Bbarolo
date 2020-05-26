@@ -482,9 +482,7 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
     
     long size = (NdatX+NconX-1)*(NdatY+NconY-1);
         
-    bool verb = in->pars().isVerbose();
-    ProgressBar bar(" Smoothing... ",false);
-    bar.setShowbar(in->pars().getShowbar());
+    ProgressBar bar(false,in->pars().isVerbose(),in->pars().getShowbar());
 
     if (!usescalefac) scalefac=1.0;
     
@@ -492,12 +490,12 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
 
 #pragma omp parallel num_threads(nthreads)
 {
-    if (verb) bar.init(NdatZ);
+    bar.init(" Smoothing... ",NdatZ);
     T *beforeCON = new T[size];
     T *afterCON  = new T[size];
 #pragma omp for
     for (int z=0; z<NdatZ; z++) {
-        if (verb) bar.update(z+1);  
+        bar.update(z+1);
         for (int x=0; x<(NdatX+NconX-1); x++) {
             for (int y=0; y<(NdatY+NconY-1); y++) {
                 long nPix = x+y*(NdatX+NconX-1);
@@ -531,7 +529,7 @@ bool Smooth3D<T>::calculate(T *OldArray, T *NewArray) {
     delete [] beforeCON;
     delete [] afterCON; 
 }
-    if (verb) bar.fillSpace("OK.\n");    
+    bar.fillSpace("OK.\n");
     
     return true;
 }
@@ -545,24 +543,20 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
         return false;
     }
     
-        
-    bool verb = in->pars().isVerbose();
-    ProgressBar bar(" Smoothing... ",false);
-    bar.setShowbar(in->pars().getShowbar());
+    ProgressBar bar(false,in->pars().isVerbose(),in->pars().getShowbar());
     
     if (!usescalefac) scalefac=1.0;
     int nthreads = in->pars().getThreads();
 
 #pragma omp parallel num_threads(nthreads)
 {
-    if (verb) bar.init(NdatZ);
+    bar.init(" Smoothing... ",NdatZ);
     Conv2D conv_fft;
     init_Conv2D(conv_fft,LINEAR_SAME, NdatX, NdatY, NconX, NconY);
     double *beforeCON = new double[NdatX*NdatY];
 #pragma omp for
     for (int z=0; z<NdatZ; z++) {
-
-        if (verb) bar.update(z+1);  
+        bar.update(z+1);
         for (int x=0; x<NdatX; x++) {
             for (int y=0; y<NdatY; y++) {
                 long nPix = x+y*NdatX;
@@ -586,7 +580,7 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
     clear_Conv2D(conv_fft);
 }
 
-    if (verb) bar.fillSpace("Done.\n");
+    bar.fillSpace("Done.\n");
 
     return true;
 }
