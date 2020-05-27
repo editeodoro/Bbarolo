@@ -816,17 +816,14 @@ void Cube<T>::search() {
 
     float PixScale = (fabs(h.Cdelt(0))+fabs(h.Cdelt(1)))/2.;
     int thresS  = p.threshSpatial!=-1  ? p.threshSpatial     : ceil(h.Bmaj()/PixScale);
-    int thresV  = p.threshVelocity!=-1 ? p.threshVelocity   : 3;
-    int minchan = p.minChannels!=-1 ? p.minChannels : 2;
     int minpix  = p.minPix!=-1      ? p.minPix      : ceil(h.BeamArea());
-    int minvox  = p.minVoxels!=-1   ? p.minVoxels   : minchan*minpix;
+    int minvox  = p.minVoxels!=-1   ? p.minVoxels   : p.minChannels*minpix;
     p.threshSpatial = thresS;
-    p.threshVelocity = thresV;
-    p.minChannels = minchan;
     p.minPix = minpix;
     p.minVoxels = minvox;
     p.maxAngSize = p.maxAngSize/(head.PixScale()*arcsconv(head.Cunit(1))/60.);
 
+    if (isSearched) delete sources;
     sources = new Search<T>(p);
     sources->search(array,stats,axisDim[0],axisDim[1],axisDim[2],
                     par.getFlagRobustStats(),par.getThreads(),par.isVerbose(),par.getShowbar());
@@ -1017,7 +1014,7 @@ void Cube<T>::printDetections (std::ostream& Stream) {
 
 
 template <class T>
-void Cube<T>::plotDetections() {
+void Cube<T>::writeDetections() {
 
     int numObj = getNumObj();
     if (numObj==0) return;
@@ -1036,10 +1033,10 @@ void Cube<T>::plotDetections() {
     Cube<T> *det = new Cube<T>(axisDim);
     for (size_t i=0; i<det->NumPix(); i++) det->Array()[i] = array[i]*isObj[i];
     det->saveHead(head);
-    det->saveParam(par);
     det->Head().setMinMax(0,0);
     det->fitswrite_3d((par.getOutfolder()+"detections.fits.gz").c_str());
     delete det;
+
 
     // Writing detection map
     Image2D<int> *DetMap = new Image2D<int>(axisDim);
@@ -1050,11 +1047,14 @@ void Cube<T>::plotDetections() {
     DetMap->fitswrite_2d((par.getOutfolder()+"DetectMap.fits.gz").c_str());
     delete DetMap;
 
+
     // Writing kinematic maps
     std::vector< MomentMap<T> > allmaps = getAllMoments<T>(this,true,isObj,"MOMENT");
     allmaps[0].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom0th.fits").c_str());
     allmaps[1].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom1st.fits").c_str());
     allmaps[2].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom2nd.fits").c_str());
+
+    delete [] isObj;
 
 }
 
@@ -1117,9 +1117,8 @@ void Cube<T>::writeCubelets() {
     std::string object  = head.Name();
     mkdirp(outfold.c_str());
 
-
     ProgressBar bar(true,par.isVerbose(),par.getShowbar());
-    bar.init(" Writing cubelets ...",getNumObj());
+    bar.init(" Writing cubelets... ",getNumObj());
 
     for (int i=0; i<getNumObj(); i++) {
         bar.update(i+1);
@@ -1164,7 +1163,7 @@ void Cube<T>::writeCubelets() {
             for (int y=0; y<c->DimY(); y++) {
                 for (int x=0; x<c->DimX(); x++) {
                     if (obj->isInObject(x+starts[0],y+starts[1],z+starts[2])) {
-                        double flux = c->Array(x,y,z);
+                        double flux = FluxtoJy(c->Array(x,y,z),c->Head());
                         Pbcor<double>(x+starts[0],y+starts[1],z+starts[2],flux,head);
                         intSpec += flux;
                     }
@@ -1203,6 +1202,116 @@ void Cube<T>::writeCubelets() {
 }
 
 
+template <class T>
+int Cube<T>::plotDetections(){
+
+    std::string outfolder = par.getOutfolder()+"sources/";
+    std::ofstream pyf((outfolder+"plot_sources.py").c_str());
+
+    pyf << "#########################################################################\n"
+        << "#### This script writes single/global plots of all detected sources  ####\n"
+        << "#########################################################################\n"
+        << "import os \n"
+        << "import numpy as np \n"
+        << "import matplotlib.pyplot as plt \n"
+        << "from astropy.io import fits \n"
+        << "fsize=10 \n"
+        << "plt.rc('font',family='sans-serif',serif='Helvetica',size=fsize) \n"
+        << std::endl
+        << "outdir = '" << outfolder << "' \n"
+        << "gname  = '" << head.Name() << "' \n"
+        << "single = True \n"
+        << std::endl
+        << std::endl
+        << "def addrowplot(thisfig,nrow): \n"
+        << "\txlen, ylen, xsep, ysep = 0.2,0.2,0.03,0.04 \n"
+        << "\tystart = 1-nrow*(ylen+ysep) \n"
+        << "\tfor i in range(4): \n"
+        << "\t\txstart = i*(xlen+xsep) \n"
+        << "\t\tthisfig.add_axes([xstart,ystart,xlen,ylen]) \n"
+        << "\t\tthisfig.add_axes([xstart,ystart-0.005,xlen,0.015]) \n"
+        << "\tthisfig.delaxes(thisfig.axes[-1]) \n"
+        << std::endl
+        << std::endl
+        << "def plot_source(ax,m0,m1,m2,spec): \n\n"
+        << "\tfor a in ax: \n"
+        << "\t\ta.tick_params(right=True,top=True,labelleft=False,labelbottom=False,direction='in',labelsize=fsize) \n"
+        << "\tcommon = dict(origin='lower',aspect='auto',extent=[-10,10,-10,10],interpolation=None) \n"
+        << std::endl
+        << "\t# Plotting intensity \n"
+        << "\tim = ax[0].imshow(m0,**common,cmap=plt.get_cmap('Spectral_r')) \n"
+        << "\tcb = plt.colorbar(im,cax=ax[1],orientation='horizontal') \n"
+        << "\tax[0].text(-0.1,0.5,'%s'%s,ha='center',va='center',rotation=90,transform=ax[0].transAxes,fontsize=fsize+2) \n"
+        << std::endl
+        << "\t# Plotting velocity \n"
+        << "\tim = ax[2].imshow(m1,**common,cmap=plt.get_cmap('RdBu_r',25)) \n"
+        << "\tcb = plt.colorbar(im,cax=ax[3],orientation='horizontal') \n"
+        << std::endl
+        << "\t# Plotting dispersion \n"
+        << "\tim = ax[4].imshow(m2,**common,cmap=plt.get_cmap('PuOr_r')) \n"
+        << "\tcb = plt.colorbar(im,cax=ax[5],orientation='horizontal') \n"
+        << std::endl
+        << "\t# Plotting spectrum \n"
+        << "\tvel,val = spec \n"
+        << "\tax[6].plot(vel,val,'o-',c='gray',ms=5) \n"
+        << "\tax[6].tick_params(labelright=True,labelbottom=True) \n"
+        << std::endl
+        << "\tfor a in ax[1::2]: a.locator_params(nbins=4) \n"
+        << std::endl
+        << std::endl
+        << "def setaxislabels(ax): \n"
+        << "\tax[0].text(0.5,-0.2,'Int flux (jy*km/s)',ha='center',transform=ax[0].transAxes,fontsize=fsize+1) \n"
+        << "\tax[1].text(0.5,-0.2,'Velocity (km/s)',ha='center',transform=ax[1].transAxes,fontsize=fsize+1) \n"
+        << "\tax[2].text(0.5,-0.2,'Dispersion (km/s)',ha='center',transform=ax[2].transAxes,fontsize=fsize+1) \n"
+        << "\tax[3].text(0.5,-0.2,'Velocity (km/s)',ha='center',transform=ax[3].transAxes,fontsize=fsize+1) \n"
+        << std::endl
+        << std::endl
+        << "# Start plotting \n"
+        << "fig = plt.figure(figsize=(10,10)) \n"
+        << "for i,s in enumerate(sorted(os.listdir(outdir))): \n"
+        << "\tif not os.path.isdir('%s/%s'%(outdir,s)): continue \n"
+        << "\tprefix = '%s/%s/%s'%(outdir,s,s) \n"
+        << std::endl
+        << "\t# Read in necessary files \n"
+        << "\tm0 = fits.open('%s_mom0.fits'%prefix)[0].data \n"
+        << "\tm1 = fits.open('%s_mom1.fits'%prefix)[0].data \n"
+        << "\tm2 = fits.open('%s_mom2.fits'%prefix)[0].data \n"
+        << "\tvel, val = np.genfromtxt('%s_spectrum.dat'%prefix,unpack=True) \n"
+        << std::endl
+        << "\t# Plotting summary plot \n"
+        << "\taddrowplot(fig,i) \n"
+        << "\tax = fig.axes[-7:] \n"
+        << "\tplot_source(ax,m0,m1,m2,(vel,val)) \n"
+        << std::endl
+        << "\tif single: \n"
+        << "\t\t# Plotting for a single source \n"
+        << "\t\tfig_sin = plt.figure(figsize=(10,10)) \n"
+        << "\t\taddrowplot(fig_sin,0) \n"
+        << "\t\tplot_source(fig_sin.axes,m0,m1,m2,(vel,val)) \n"
+        << "\t\tsetaxislabels(fig_sin.axes[-7::2]) \n"
+        << "\t\tfig_sin.savefig('%s.pdf'%prefix,bbox_inches='tight') \n"
+        << "\t\tplt.close(fig_sin) \n"
+        << std::endl
+        << "setaxislabels(fig.axes[-7::2]) \n"
+        << "fig.savefig('%s/%s_sources.pdf'%(outdir,gname),bbox_inches='tight') \n\n";
+
+    pyf.close();
+
+    int ret = 0;
+#ifdef HAVE_PYTHON
+    if (par.getFlagPlots()) {
+        if (par.isVerbose()) std::cout << " Making " << randomAdjective(1) << " plots for sources..." << std::flush;
+        std::string cmd = "python "+outfolder+"plot_sources.py > /dev/null 2>&1";
+        ret = system(cmd.c_str());
+        if (par.isVerbose()) {
+            if (ret==0) std::cout << " Done.\n";
+            else std::cout << " Something went wrong! Check plot_sources.py in the output folder.\n";
+        }
+    }
+#endif
+
+    return ret;
+}
 
 // Explicit instantiation of the class
 template class Cube<short>;

@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.5.2"
+#define BBVERSION "1.5.3"
 
 struct Entry {string name; string descr;};
 
@@ -513,6 +513,7 @@ void Param::setParam(string &parstr) {
     if(arg=="deltainc")  parGF.DELTAINC   = readval<float>(ss);
     if(arg=="deltapa")   parGF.DELTAPHI   = readval<float>(ss);
     if(arg=="deltavrot") parGF.DELTAVROT  = readval<float>(ss);
+    if(arg=="minvdisp")  parGF.MINVDISP   = readval<float>(ss);
     if(arg=="ftype")     parGF.FTYPE      = readval<int>(ss);
     if(arg=="wfunc")     parGF.WFUNC      = readval<int>(ss);
     if(arg=="tol")       parGF.TOL        = readval<double>(ss);
@@ -1214,6 +1215,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         if (isGalfit) recordParam(Str, "[DELTAVROT]", "   Max rot. velocity variation from VROT (km/s)", p.getParGF().DELTAVROT);
         recordParam(Str, "[VRAD]", "   Initial global radial velocity (km/s)", p.getParGF().VRAD);
         recordParam(Str, "[VDISP]", "   Initial global velocity dispersion (km/s)", p.getParGF().VDISP);
+        if (isGalfit) recordParam(Str, "[MINVDISP]", "   Minimum acceptable velocity dispersion (km/s)", p.getParGF().MINVDISP);
         recordParam(Str, "[INC]", "   Initial global inclination (degrees)", p.getParGF().INC);
         if (isGalfit) recordParam(Str, "[DELTAINC]", "   Max inclination variation from INC (degrees)", p.getParGF().DELTAINC);
         recordParam(Str, "[PA]", "   Initial global position angle (degrees)", p.getParGF().PHI);

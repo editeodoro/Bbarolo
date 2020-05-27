@@ -114,9 +114,12 @@ public:
                    int minVoxels, int maxChannels, float maxAngSize, bool flagGrowth,
                    float growthCut, float growthThreshold, bool RejectBefore, bool TwoStage,int NTHREADS);
     void    printDetections (std::ostream& Stream);      /// An easy way to print the detection list.
-    void    plotDetections();
     Cube<T>* extractCubelet(Detection<T> *obj, int edges, int *starts);
     void    writeCubelets();
+    void    writeDetections();
+    int     plotDetections();
+
+
 
     /// Blanking and Maps functions.
     void    BlankCube (T *Array, size_t size);            /// Blank a input array using Cube::mask.

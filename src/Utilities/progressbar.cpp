@@ -89,7 +89,7 @@ void ProgressBar::init(std::string someString, int size) {
     if (!verbose) return;
 
 #ifdef _OPENMP
-    size = lround(size/omp_get_num_threads());
+    size = lround(size/omp_get_num_threads())+1;
 #endif
 
 #pragma omp master
@@ -123,7 +123,7 @@ void ProgressBar::update(int num) {
     ///                 progress bar.
     
     if (!showbar) return;
-    
+
 #pragma omp master
 {
     int numNeeded = 0;

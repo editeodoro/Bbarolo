@@ -144,7 +144,7 @@ double KpcPerArc(double d);
 double VeltoDist(double vsys); 
 double RedtoDist(double redshift);
 
-template <class T> bool isNaN (T n) {volatile T d=n; return d!=d;};
+template <class T> bool isNaN (T n) {volatile T d=n; return d!=d;}
 template <class T> bool isBlank(T n) {return (n==0 || isNaN(n));}
 bool fexists(std::string filename);
 

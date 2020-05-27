@@ -124,7 +124,6 @@ void Search<T>::search(T *Array, Stats<T> &stat, size_t xsize, size_t ysize, siz
     if(verbose)
         std::cout << "\n\nStarting research for possible sources in the cube... " << std::endl;
 
-    //objectList = new std::vector<Detection<T> >;
     *objectList = search3DArray();
 
     if(verbose) std::cout << "  Updating detection map... " << std::flush;
@@ -209,9 +208,9 @@ DetVec<T> Search<T>::search3DArraySpectral() {
                 int npix = y*xSize + x;
                 for(int z=0; z<zSize; z++) spectrum[z] = array[z*xSize*ySize+npix];
 
-                std::vector<Scan<T> > objlist = findSources1D(spectrum,1);
+                ScanVec<T> objlist = findSources1D(spectrum,1);
 
-                typename std::vector<Scan<T> >::iterator obj;
+                typename ScanVec<T>::iterator obj;
                 num += objlist.size();
                 for(obj=objlist.begin();obj<objlist.end();obj++){
                     Detection<T> newObject;
@@ -255,9 +254,11 @@ DetVec<T> Search<T>::search3DArraySpatial() {
 #pragma omp for schedule(dynamic) reduction (+:num)
     for(int z=0; z<zSize; z++) {
         bar.update(z+1);
-        std::vector<Object2D<T> > objlist = findSources2D(&array[z*xSize*ySize],1);
-        typename std::vector<Object2D<T> >::iterator obj;
+
+        Obj2DVec<T> objlist = findSources2D(&array[z*xSize*ySize],1);
+        typename Obj2DVec<T>::iterator obj;
         num += objlist.size();
+
         for(obj=objlist.begin();obj!=objlist.end();obj++){
             Detection<T> newObject;
             newObject.addChannel(z,*obj);
@@ -292,12 +293,8 @@ template <class T>
 Obj2DVec<T> Search<T>::findSources2D(T *image, int minSize) {
 
     std::vector<bool> thresholdedArray(xSize*ySize);
-    for(int y=0; y<ySize; y++) {
-        for(int x=0; x<xSize ; x++) {
-            int loc = x+y*xSize;
-            thresholdedArray[loc] = stats.isDetection(image[loc]);
-        }
-    }
+    for (int i=0; i<xSize*ySize; i++)
+        thresholdedArray[i] = stats.isDetection(image[i]);
     return imageDetect(thresholdedArray,minSize);
 }
 
@@ -651,7 +648,7 @@ void Search<T>::mergeList(DetVec<T> &objList) {
             if(isValid[counter]) goodCounter++;
         }
 
-        std::vector<Detection<T> > newlist(objList.size()-numRemoved);
+        DetVec<T> newlist(objList.size()-numRemoved);
         size_t ct=0;
         for(size_t i=0;i<objList.size();i++){
             if(isValid[i]) newlist[ct++]=objList[i];
@@ -678,7 +675,7 @@ void Search<T>::mergeIntoList(Detection<T> &object, DetVec<T> &objList) {
     /// \param par The Param set, used for testing if merging needs to be done.
 
     bool haveMerged = false;
-    typename std::vector<Detection<T> >::iterator iter;
+    typename DetVec<T>::iterator iter;
 
     for(iter=objList.begin(); (!haveMerged && iter<objList.end()); iter++) {
         if(iter->canMerge(object, par)){
@@ -705,9 +702,9 @@ void Search<T>::rejectObjects(DetVec<T> &objList) {
     int maxchan = par.maxChannels;
     float maxsize = par.maxAngSize;
 
-    std::vector<Detection<T> > newlist;
+    DetVec<T> newlist;
 
-    typename std::vector<Detection<T> >::iterator obj = objList.begin();
+    typename DetVec<T>::iterator obj = objList.begin();
     int numRej=0;
     for(;obj<objList.end();obj++){
         obj->setOffsets();
@@ -751,9 +748,9 @@ void Search<T>::finaliseList(DetVec<T> &objList) {
         std::cout << std::flush;
     }
 
-    std::vector<Detection<T> > newlist;
+    DetVec<T> newlist;
 
-    typename std::vector<Detection<T> >::iterator obj = objList.begin();
+    typename DetVec<T>::iterator obj = objList.begin();
     int numRej=0;
     for(;obj<objList.end();obj++){
         obj->setOffsets();
@@ -790,7 +787,7 @@ void Search<T>::updateDetectMap() {
     ///  cube's list, increments the cube's detection map by the
     ///  required amount at each pixel.
 
-    typename std::vector<Detection<T> >::iterator obj;
+    typename DetVec<T>::iterator obj;
     for(obj=objectList->begin();obj<objectList->end();obj++)
         updateDetectMap(*obj);
 

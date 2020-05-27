@@ -77,7 +77,7 @@ HEADERS += bbarolo.hh \
     Utilities/progressbar.hh \
     Utilities/utils.hh \
     Utilities/conv2D.hh \
-    Utilities/converter.hh \    
+    Utilities/converter.hh \
     Utilities/gnuplot.hh \
     Utilities/lsqfit.hh \
     GUI/consolestream.h \

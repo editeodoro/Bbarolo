@@ -387,7 +387,7 @@ template <class T>
 void ParamGuess<T>::findRings() {
 
     nrings = lround(Rmax/radsep);
-    if (nrings<5) {
+    if (nrings<10) {
         radsep /= 2.;
         nrings = lround(Rmax/radsep);
     }

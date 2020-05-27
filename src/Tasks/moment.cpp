@@ -316,6 +316,8 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
     // If all pixels are masked return all NaNs
     if (denom==0) {
         moments[0] = moments[1] = moments[2] = log(-1);
+        delete [] spectrum;
+        delete [] vels;
         return true;
     }
     
@@ -539,7 +541,7 @@ std::vector< MomentMap<T> > getAllMoments(Cube<T> *c, bool usemask, bool *mask, 
     int nthreads = c->pars().getThreads();
 #pragma omp parallel num_threads(nthreads)
 {
-    bar.init(" Deriving kinematic maps ...",c->DimY());
+    bar.init(" Deriving kinematic maps... ",c->DimY());
 #pragma omp for
     for (int y=0; y<c->DimY(); y++) {
         bar.update(y+1);

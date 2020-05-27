@@ -226,12 +226,12 @@ void printHash(int num) {
 
 
 void checkHome(std::string &s) {
-    
+
     if (s[0]=='~') {
         std::string home = std::getenv("HOME");
         s.erase(0,1);
         s.insert(0, home);
-    }    
+    }
     /*
     if (s.find("./")==0) {
         std::string path = std::getenv("PWD");
@@ -239,7 +239,7 @@ void checkHome(std::string &s) {
         s.insert(0, path);
     }
     */
-    
+
 }
 
 

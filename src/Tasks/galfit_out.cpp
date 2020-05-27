@@ -964,6 +964,7 @@ int Galfit<T>::plotAll_Python() {
         << "params = {'text.usetex': False, 'mathtext.fontset': 'cm', 'mathtext.default': 'regular', 'errorbar.capsize': 0} \n"
         << "plt.rcParams.update(params) \n"
         << std::endl
+        << "gname = '" << in->Head().Name() <<"' \n"
         << "outfolder = '" << in->pars().getOutfolder() <<"' \n"
         << "twostage = " << par.TWOSTAGE << " \n\n";
 
@@ -1067,7 +1068,7 @@ int Galfit<T>::plotAll_Python() {
         << "ax[8].errorbar(rad,vsys, yerr=[err1_l[8],-err1_h[8]],fmt='o', color=color) \n"
         << "if twostage==True: ax[8].errorbar(rad2,vsys2,yerr=[err2_l[8],-err2_h[8]],fmt='o', color=color2) \n"
         << std::endl
-        << "fig.savefig(outfolder+'plot_parameters.pdf',bbox_inches='tight') \n";
+        << "fig.savefig(outfolder+'%s_parameters.pdf'%gname,bbox_inches='tight') \n";
 
     if (par.flagADRIFT) {
         pyf << "\n#Asymmetric drift correction\n"
@@ -1099,7 +1100,7 @@ int Galfit<T>::plotAll_Python() {
             << "ax3.plot(rad,fun,'o', color=color2,label=r'$f_\\mathrm{obs}$',zorder=0)\n"
             << "ax3.plot(rad,funr,'-', color='#0FA45A',label=r'$f_\\mathrm{reg}$',zorder=1)\n"
             << "ax3.legend()\n"
-            << "fig.savefig(outfolder+'asymmetricdrift.pdf',bbox_inches='tight')\n";
+            << "fig.savefig(outfolder+'%s_asymmetricdrift.pdf'%gname,bbox_inches='tight')\n";
     }
 
     pyf.close();
@@ -1134,9 +1135,9 @@ int Galfit<T>::plotAll_Python() {
         << "twostage = " << par.TWOSTAGE << " \n"
         << "plotmask = " << par.PLOTMASK << " \n"
         << std::endl
-        << "if twostage: xpos,ypos = np.genfromtxt(outfolder+'rings_final2.txt',usecols=(9,10),unpack=True) \n"
-        << "else: xpos,ypos = np.genfromtxt(outfolder+'rings_final1.txt',usecols=(9,10),unpack=True) \n"
-        << "xcen_m,ycen_m = np.nanmean((xpos,ypos),axis=1) \n"
+        << "if twostage: xpos,ypos,vsys = np.genfromtxt(outfolder+'rings_final2.txt',usecols=(9,10,11),unpack=True) \n"
+        << "else: xpos,ypos,vsys = np.genfromtxt(outfolder+'rings_final1.txt',usecols=(9,10,11),unpack=True) \n"
+        << "xcen_m,ycen_m,vsys_m = np.nanmean((xpos,ypos,vsys),axis=1) \n"
         << std::endl
         << "# CHANNEL MAPS: Setting all the needed variables \n"
         << "image = fits.open('" << in->pars().getImageFile() << "') \n"
@@ -1185,7 +1186,7 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\t#New matplotlib draws wrong contours when no contours are found. This is a workaround.\n"
         << "\t\t\tif np.all(z_mod<v[0]): z_mod[:,:] =0\n"
         << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
-        << "\t\t\tvelo = ' v = ' + str(int(velo_kms)) + ' km/s' \n"
+        << "\t\t\tvelo = ' v = ' + str(int(velo_kms-vsys_m)) + ' km/s' \n"
         << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
         << "\t\t\tax.set_title(velo, fontsize=10,loc='left') \n"
         << "\t\t\tax.imshow(z,origin='lower',cmap = mpl.cm.Greys,norm=norm,aspect='auto',interpolation='none') \n"
@@ -1215,10 +1216,10 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\t\tax.text(0.01,-0.16,clab,transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
         << "\t\t\tnum = num+1 \n"
         << std::endl
-        << "\toutfile = 'plot_chanmaps.pdf' \n"
-        << "\tif ('azim' in files_mod[k]): outfile = 'plot_chanmaps_azim.pdf' \n"
-        << "\tif ('local' in files_mod[k]): outfile = 'plot_chanmaps_local.pdf' \n"
-        << "\tfig.savefig(outfolder+outfile, orientation = 'portrait', format = 'pdf') \n"
+        << "\toutfile = '%s_chanmaps'%gname \n"
+        << "\tif ('azim' in files_mod[k]): outfile += '_azim' \n"
+        << "\telif ('local' in files_mod[k]): outfile += '_local' \n"
+        << "\tfig.savefig(outfolder+outfile+'.pdf', orientation = 'portrait', format = 'pdf') \n"
         << "\timage_mod.close() \n\n"
         << "image.close() \n";
 
@@ -1351,10 +1352,10 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\taxis2.plot(radius,vlos,'yo') \n"
         << "\t\t\taxis.text(0, 1.1, gname, transform=axis.transAxes,fontsize=22) \n"
         << std::endl
-        << "\toutfile = 'plot_pv.pdf' \n"
-        << "\tif ('azim' in files_pva_mod[k]): outfile = 'plot_pv_azim.pdf' \n"
-        << "\tif ('local' in files_pva_mod[k]): outfile = 'plot_pv_local.pdf' \n"
-        << "\tfig.savefig(outfolder+outfile, bbox_inches='tight') \n"
+        << "\toutfile = '%s_pv'%gname \n"
+        << "\tif ('azim' in files_pva_mod[k]): outfile += '_azim' \n"
+        << "\telif ('local' in files_pva_mod[k]): outfile += '_local' \n"
+        << "\tfig.savefig(outfolder+outfile+'.pdf', bbox_inches='tight') \n"
         << "\timage_mod_maj.close() \n"
         << "\timage_mod_min.close() \n"
         << std::endl
@@ -1501,11 +1502,33 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\tc.solids.set_edgecolor('face') \n"
         << "\t\t\tc.outline.set_linewidth(0) \n"
         << std::endl
-        << "\tif ('azim' in files_mod0[k]): outfile = 'plot_maps_azim.pdf' \n"
-        << "\tif ('local' in files_mod0[k]): outfile = 'plot_maps_local.pdf' \n"
-        << "\tfig.savefig(outfolder+outfile, bbox_inches = 'tight') \n\n";
+        << "\toutfile = '%s_maps'%gname \n"
+        << "\tif ('azim' in files_mod0[k]): outfile += '_azim' \n"
+        << "\telif ('local' in files_mod0[k]): outfile += '_local' \n"
+        << "\tfig.savefig(outfolder+outfile+'.pdf', bbox_inches = 'tight') \n\n";
 
     pyf.close();
+
+    /////////////////////////////////////////////////////////////////////////
+    /// One script to rule them all
+    /////////////////////////////////////////////////////////////////////////
+    pyf.open((in->pars().getOutfolder()+"plotscripts/plot_all.py").c_str());
+    pyf << "########################################################################\n"
+        << "#### This script simply calls all other python scripts for plotting ####\n"
+        << "########################################################################\n"
+        << "import os \n"
+        << std::endl
+        << "scriptdir = '"<< in->pars().getOutfolder() << "plotscripts/' \n"
+        << "cmd = '' \n"
+        << std::endl
+        << "for f in os.listdir(scriptdir): \n"
+        << "\tif '.py' in f and f!='plot_all.py': \n"
+        << "\t\tcmd += 'python %s/%s & '%(scriptdir,f) \n"
+        << std::endl
+        << "os.system(cmd[:-2]) \n";
+
+    pyf.close();
+
 
     int returnValue = 0;
 
@@ -1516,6 +1539,8 @@ int Galfit<T>::plotAll_Python() {
         cmd += "python "+in->pars().getOutfolder()+"plotscripts/"+scriptnames[i]+" > /dev/null 2>&1 & ";
     cmd.erase (cmd.end()-2);
     returnValue = system(cmd.c_str());
+    //cmd = "python "+in->pars().getOutfolder()+"plotscripts/plot_all.py > /dev/null 2>&1";
+    //returnValue = system(cmd.c_str());
 #endif
 
     return returnValue;

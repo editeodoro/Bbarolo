@@ -65,11 +65,12 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   flagGALFIT = false;    ///< Enable task 
     float  DELTAINC   = 5;        ///< Inclination angle variation (degrees).
     float  DELTAPHI   = 15;       ///< Position angle variation (degrees).
-    float  DELTAVROT  = 1000;     ///< Rotation velocity variation (degrees).
+    float  DELTAVROT  = 1000;     ///< Rotation velocity variation (km/s).
+    float  MINVDISP   = 0.1;      ///< Minimum velocity dispersion.
     int    FTYPE      = 2;        ///< Type of function to be minimized;
     int    WFUNC      = 2;        ///< Weighting function.
     double TOL        = 1E-03;    ///< Tolerance for minimization.
-    string NORM       = "LOCAL";  ///< Normalization type: LOCAL, AZIM or NONE.
+    string NORM       = "AZIM";  ///< Normalization type: LOCAL, AZIM or NONE.
     string FREE       = "VROT VDISP INC PA"; ///< Free parameters.
     string SIDE       = "B";      ///< Approaching(A), Receding(R), Both(B), Single(S)
     bool   TWOSTAGE   = true;     ///< Whether fitting a second model after regularization.
@@ -111,8 +112,8 @@ struct SEARCH_PAR {
     bool   UserThreshold     = false;     ///< Whether the user has defined a threshold of their own.
     bool   flagAdjacent      = true;      ///< Use the adjacent criterion for objects merger?
     int    threshSpatial     = -1;        ///< Maximum spatial separation between objects.
-    int    threshVelocity    = -1;        ///< Maximum channels separation between objects.
-    int    minChannels       = -1;        ///< Minimum channels to make an object.
+    int    threshVelocity    = 2;         ///< Maximum channels separation between objects.
+    int    minChannels       = 2;         ///< Minimum channels to make an object.
     bool   RejectBeforeMerge = true;      ///< Whether to reject sources before merging.
     bool   TwoStageMerging   = true;      ///< Whether to do a partial merge during search.
     int    minVoxels         = -1;        ///< Minimum voxels required in an object.

@@ -54,7 +54,7 @@ bool BBcore (Param *par) {
 
     Cube<BBreal> *c = new Cube<BBreal>;
     c->saveParam(*par);
-
+    
     if (!c->readCube(par->getImageFile())) {
         std::cout << par->getImageFile() << " is not a readable FITS file!\n";
         delete c;
@@ -70,7 +70,6 @@ bool BBcore (Param *par) {
     mkdirp(outfolder.c_str());
     
     if (par->getCheckCh()) c->CheckChannels();
-    
     
     // Mask making utility ----------------------------------------
     if (par->getMakeMask()) {
@@ -103,10 +102,13 @@ bool BBcore (Param *par) {
     // Source finding utility --------------------------------------
     if (par->getflagSearch()) {
         c->search();
-        c->plotDetections();
         std::ofstream detout((outfolder+"detections.txt").c_str());
         c->printDetections(detout);
-        if (par->getParSE().cubelets) c->writeCubelets();
+        c->writeDetections();
+        if (par->getParSE().cubelets) {
+            c->writeCubelets();
+            c->plotDetections();
+        }
     }
     // --------------------------------------------------------------
         
@@ -260,7 +262,7 @@ bool BBcore (Param *par) {
         delete ell;
     }
     //-----------------------------------------------------------------
-
+    
     delete c;
 
     return true;
