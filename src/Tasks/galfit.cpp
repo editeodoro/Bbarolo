@@ -54,7 +54,6 @@ void Galfit<T>::defaults() {
     cfieldAllocated = false;
     chan_noiseAllocated = false;
     wpow = 1;
-    anglepar = 3;
     second = false;
     global=false;
     verb = true;
@@ -304,7 +303,7 @@ template Galfit<double>::Galfit(Cube<double>*);
 template <class T>
 Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI, int LTYPE, int FTYPE, 
                    int WFUNC, int BWEIGHT, int NV, double TOL, int CDENS, int STARTRAD, string MASK, 
-                   string NORM, string FREE, string SIDE, bool TWOSTAGE, string POLYN, bool ERRORS, 
+                   string NORM, string FREE, string SIDE, bool TWOSTAGE, string REGTYPE, bool ERRORS,
                    bool SMOOTH, float DISTANCE, double REDSHIFT, double RESTWAVE, string OUTFOLD, int NTHREADS) {
                        
     // Setting all parameters in the GALFIT_PAR container
@@ -322,7 +321,7 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     par.FREE     = FREE;
     par.SIDE     = SIDE;
     par.TWOSTAGE = TWOSTAGE;
-    par.POLYN    = POLYN;
+    par.REGTYPE  = REGTYPE;
     par.SM       = SMOOTH;
     par.DISTANCE = DISTANCE;
     par.REDSHIFT = REDSHIFT;
@@ -383,9 +382,6 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     for (int z=0; z< in->DimZ(); z++) chan_noise[z]=1;
     
     wpow = par.WFUNC;
-    string polyn = makelower(par.POLYN);
-    if (polyn=="bezier") anglepar=-1;
-    else anglepar = 1+atoi(polyn.c_str());
     
     // Read par.FREE and set free parameters
     setFree();
@@ -836,200 +832,53 @@ bool Galfit<T>::SecondStage() {
     second = true;
     if (!in->pars().getFlagSlitfit()) func_norm = &Model::Galfit<T>::norm_local;
 
-    int n = outr->nr;
+    int nr = outr->nr;
     
-    std::vector<T> xx, yy;
-
-    if (anglepar==-1) {
-        // Make a bezier interpolation
-        std::vector<T> x_bez(n), y_bez_inc(n), y_bez_pa(n), y_bez_z0(n);
-        if (mpar[INC]) {
-            for (int i=0; i<n; i++) {
-                xx.push_back(outr->radii[i]);
-                yy.push_back(outr->inc[i]);
-            }
-            bezier_interp(xx,yy,x_bez,y_bez_inc);
-            xx.clear();
-            yy.clear();
-        }
-        if (mpar[PA]) {
-            for (int i=0; i<n; i++) {
-                xx.push_back(outr->radii[i]);
-                yy.push_back(outr->phi[i]);
-            }
-            bezier_interp(xx,yy,x_bez,y_bez_pa);
-            xx.clear();
-            yy.clear();
-        }
-        if (mpar[Z0]) {
-            for (int i=0; i<n; i++) {
-                xx.push_back(outr->radii[i]);
-                yy.push_back(outr->z0[i]);
-            }
-            bezier_interp(xx,yy,x_bez,y_bez_z0);
-            xx.clear();
-            yy.clear();
-        }
-
-        T xpos_av = findMedian(outr->xpos, n);
-        T ypos_av = findMedian(outr->ypos, n);
-        T vsys_av = findMedian(outr->vsys, n);
-
-        *inr = *outr;
-        for (int i=0; i<n; i++) {
-            if (mpar[INC]) inr->inc[i]=y_bez_inc[i];
-            if (mpar[PA])  inr->phi[i]=y_bez_pa[i];
-            if (mpar[Z0])  inr->z0[i]=y_bez_z0[i];
-            inr->xpos[i]=xpos_av;
-            inr->ypos[i]=ypos_av;
-            inr->vsys[i]=vsys_av;
-        }
+    // Deciding how to regularize the parameters
+    std::vector<int> reg = {-3,-3,-3,-3,-3,-3}; // INC PA VSYS XCEN YCEN Z0
+    std::vector<std::string> regstr = {"inc","pa","vsys","xpos","ypos","z0"};
+    stringstream ss(makelower(par.REGTYPE));
+    std::vector<std::string> Polyn = readVec<string>(ss);
+    auto getval = [](std::string s){
+        int nval = -3;                                     // Auto
+        if (isNumber(s))      nval = 1+atoi(s.c_str());    // Polynomical fitting
+        else if (s=="bezier") nval = -1;                   // Bezier
+        else if (s=="median") nval = -2;                   // Median
+        return nval;
+    };
+    auto keys = splitStrings(Polyn,"=");
+    if (Polyn.size()==1 && keys.first.size()==0) {          // If one value, apply to pa and inc
+        reg[0] = reg[1] = getval(Polyn[0]);
     }
     else {
-        // Make a polynomial fit
-        if (n<=anglepar) {
-            std::cout << "3DFIT ERROR - Second stage: too few degree of freedom.\n";
-            return false;
-        }
-    
-        cout << setprecision(4);
-    
-        Statistics::Stats<T> stats;
-        typename std::vector<T>::iterator where;
-        T ww[n], cinc[anglepar], cincout[anglepar];
-        T cpa[anglepar], cpaerr[anglepar];
-        T cz0[anglepar], cz0err[anglepar];
-    
-        bool mp[anglepar];
-        for (int i=0; i<anglepar;i++) mp[i] = true;
-        for (int i=0; i<n; i++) ww[i] = 1;
-                
-        if (mpar[INC]) {
-            for (int i=0; i<n; i++) {
-                xx.push_back(outr->radii[i]);
-                yy.push_back(outr->inc[i]);
-            }
-            if (n-2>anglepar) {
-                where = std::max_element(yy.begin(), yy.end());
-                yy.erase(where);
-                xx.erase(xx.begin()+std::distance(yy.begin(), where));
-                where = std::min_element(yy.begin(), yy.end());
-                yy.erase(where);
-                xx.erase(xx.begin()+std::distance(yy.begin(), where));
-            }
-        
-            stats.calculate(&yy[0], yy.size());
-
-            Lsqfit<T> lsq(&xx[0],1,&yy[0],ww,xx.size(),cinc,cincout,mp,anglepar,&polyn,&polynd);
-            int nrt = lsq.fit();
-            if (nrt<0) {
-                std::cout << "3DFIT error: cannot least-square fit the inclination.\n";
-                par.TWOSTAGE = false;
-                return false;
-            }
-            if (verb) {
-                cout << "  Best parameters for inclination:\n";
-                for (int i=0; i<anglepar; i++) {
-                    string a = "a"+to_string<int>(i)+" = ";
-                    cout << setw(43) << right << a << setw(9) << cinc[i] << setw(4)
-                         << " ±" << setw(9) << cincout[i] << endl;
-                }
-            }
-            xx.clear();
-            yy.clear();
-        }
-        if (mpar[PA]) {
-            for (int i=0; i<n; i++) {
-                xx.push_back(outr->radii[i]);
-                yy.push_back(outr->phi[i]);
-            }
-            if (n-2>anglepar) {
-                where = std::max_element(yy.begin(), yy.end());
-                yy.erase(where);
-                xx.erase(xx.begin()+std::distance(yy.begin(), where));
-                where = std::min_element(yy.begin(), yy.end());
-                yy.erase(where);
-                xx.erase(xx.begin()+std::distance(yy.begin(), where));
-            }
-            Lsqfit<T> lsq(&xx[0],1,&yy[0],ww,xx.size(),cpa,cpaerr,mp,anglepar,&polyn,&polynd);
-            int nrt = lsq.fit();
-            if (nrt<0) {
-                std::cout << "3DFIT error: cannot least-square fit the position angle.\n";
-                par.TWOSTAGE = false;
-                return false;
-            }
-            if (verb) {
-                cout << "  Best parameters for position angle:\n";
-                for (int i=0; i<anglepar; i++) {
-                    std::string a = "a"+to_string<int>(i)+" = ";
-                    cout << setw(43) << right << a << setw(9) << cpa[i] << setw(4)
-                         << " ±" << setw(9) << cpaerr[i] << endl;
-                }
-            }
-            xx.clear();
-            yy.clear();
-        }
-        if (mpar[Z0]) {
-            for (int i=0; i<n; i++) {
-                xx.push_back(outr->radii[i]);
-                yy.push_back(outr->z0[i]);
-            }
-            if (n-2>anglepar) {
-                where = std::max_element(yy.begin(), yy.end());
-                yy.erase(where);
-                xx.erase(xx.begin()+std::distance(yy.begin(), where));
-                where = std::min_element(yy.begin(), yy.end());
-                yy.erase(where);
-                xx.erase(xx.begin()+std::distance(yy.begin(), where));
-            }
-            Lsqfit<T> lsq(&xx[0],1,&yy[0],ww,xx.size(),cz0,cz0err,mp,anglepar,&polyn,&polynd);
-            int nrt = lsq.fit();
-            if (nrt<0) {
-                std::cout << "3DFIT error: cannot least-square fit the thickness.\n";
-                par.TWOSTAGE = false;
-                return false;
-            }
-            if (verb) {
-                cout << "  Best parameters for thickness:\n";
-                for (int i=0; i<anglepar; i++) {
-                    std::string a = "a"+to_string<int>(i)+" = ";
-                    cout << setw(43) << right << a << setw(9) << cz0[i] << setw(4)
-                         << " ±" << setw(9) << cz0err[i] << endl;
-                }
-            }
-            xx.clear();
-            yy.clear();
-        }
-
-        T xpos_av = findMedian(outr->xpos, n);
-        T ypos_av = findMedian(outr->ypos, n);
-        T vsys_av = findMedian(outr->vsys, n);
-    
-        *inr = *outr;
-        for (int i=0; i<n; i++) {
-            if (mpar[INC]) {
-                inr->inc[i]=0;
-                for (int j=0; j<anglepar; j++)
-                    inr->inc[i] += cinc[j]*std::pow(double(inr->radii[i]),j);
-            }
-            if (mpar[PA]) {
-                inr->phi[i]=0;
-                for (int j=0; j<anglepar; j++)
-                    inr->phi[i] += cpa[j]*std::pow(double(inr->radii[i]),j);
-            }
-            if (mpar[Z0]) {
-                inr->z0[i]=0;
-                for (int j=0; j<anglepar; j++)
-                    inr->z0[i] += cz0[j]*std::pow(double(inr->radii[i]),j);
-            }
-            inr->xpos[i]=xpos_av;
-            inr->ypos[i]=ypos_av;
-            inr->vsys[i]=vsys_av;
+        for (int i=0; i<keys.first.size(); i++) {
+            for (int j=0; j<reg.size(); j++)
+                if (keys.first[i]==regstr[j]) reg[j] = getval(keys.second[i]);
         }
     }
 
-    cout << setprecision(2);
-    
+    for (int i=0; i<reg.size(); i++) {
+        if (reg[i]==-3) {
+            // If 'auto' mode is selected, choosing an appropriate regularization
+            if (i<2) {                          // For INC and PA:
+                if (nr<3) reg[i] = 1;           // Constant
+                else if (nr<10) reg[i] = 2;     // Line
+                else reg[i] = -1;               // Bezier
+            }
+            else reg[i] = -2;                   // For any other: take the Median
+        }
+    }
+
+
+    *inr = *outr;
+    bool proceed = true;
+    if (mpar[INC])   proceed *= regularizeParams(inr->radii,inr->inc,inr->inc,reg[0]);
+    if (mpar[PA])    proceed *= regularizeParams(inr->radii,inr->phi,inr->phi,reg[1]);
+    if (mpar[VSYS])  proceed *= regularizeParams(inr->radii,inr->vsys,inr->vsys,reg[2]);
+    if (mpar[XPOS])  proceed *= regularizeParams(inr->radii,inr->xpos,inr->xpos,reg[3]);
+    if (mpar[YPOS])  proceed *= regularizeParams(inr->radii,inr->ypos,inr->ypos,reg[4]);
+    if (mpar[Z0])    proceed *= regularizeParams(inr->radii,inr->z0,inr->z0,reg[5]);
+
     bool oldmpar[MAXPAR];
     for (int i=MAXPAR; i--;) oldmpar[i]=mpar[i];
     int oldnfree =nfree;
@@ -1038,7 +887,11 @@ bool Galfit<T>::SecondStage() {
     mpar[XPOS]= mpar[YPOS] = mpar[Z0] = false;
     nfree = mpar[VROT]+mpar[VDISP]+mpar[VRAD];
 
-    galfit();
+    if (proceed) galfit();
+    else {
+        if (verb) std::cerr << "3DFIT ERROR: Regularization failed."
+                               " I will not proceed to second fitting stage. \n";
+    }
     
     for (int i=MAXPAR; i--;) mpar[i]=oldmpar[i];
     nfree = oldnfree;
@@ -1047,6 +900,84 @@ bool Galfit<T>::SecondStage() {
 }
 template bool Galfit<float>::SecondStage();
 template bool Galfit<double>::SecondStage();
+
+
+template <class T>
+bool Galfit<T>::regularizeParams(std::vector<T> x, std::vector<T> y, std::vector<T> &yout, int rtype) {
+
+    int n = x.size();
+
+    // Determinig what parameter we are regularizing
+    std::string whichpar;
+    if      (&yout==&inr->inc)  whichpar="inclination";
+    else if (&yout==&inr->phi)  whichpar="position angle";
+    else if (&yout==&inr->vsys) whichpar="systemic velocity";
+    else if (&yout==&inr->xpos) whichpar="X center";
+    else if (&yout==&inr->ypos) whichpar="Y center";
+    else if (&yout==&inr->z0)   whichpar="disk thickness";
+
+    if (rtype==-2) {                            // Take the median
+        T val = findMedian<T>(y,n);
+        for (int i=n; i--;) yout[i] = val;
+    }
+    else if (rtype==-1) {                        // Bezier interpolation
+        std::vector<T> x_bez(n), y_bez(n);
+        if (!bezier_interp(x,y,x,yout)) {
+            if (verb) std::cerr << "3DFIT ERROR: cannot find a bezier interpolation for "<< whichpar << ".\n";
+            return false;
+        }
+    }
+    else  {                                     // Polynomial interpolation
+
+        if (n<=rtype) {
+            if (verb) std::cerr << "3DFIT WARNING - Second stage: too few degree of freedom. Using a constant value.\n";
+            rtype = 1;
+        }
+
+        if (n-2>rtype) {
+            // Deleting maximum and minimum values for the fit
+            auto where = std::max_element(y.begin(), y.end());
+            y.erase(where);
+            x.erase(x.begin()+std::distance(y.begin(), where));
+            where = std::min_element(y.begin(), y.end());
+            y.erase(where);
+            x.erase(x.begin()+std::distance(y.begin(), where));
+        }
+
+        bool mp[rtype];
+        for (int i=0; i<rtype;i++) mp[i] = true;
+        std::vector<T> ww(n,1);
+        T coeff[rtype], coefferr[rtype];
+
+        Lsqfit<T> lsq(&x[0],1,&y[0],&ww[0],x.size(),coeff,coefferr,mp,rtype,&polyn,&polynd);
+        if (lsq.fit()<0) {
+            if (verb) std::cerr << "3DFIT ERROR: cannot least-square fit " << whichpar << ".\n";
+            return false;
+        }
+
+        // Filling output vector with polynomial values.
+        for (int i=0; i<n; i++) {
+            yout[i]=0;
+            for (int j=0; j<rtype; j++)
+                yout[i] += coeff[j]*std::pow(double(x[i]),j);
+        }
+
+        if (verb) {
+            // Printing best-fit coefficients
+            std::cout << "  Best parameters for " << whichpar << ":\n";
+            for (int i=0; i<rtype; i++) {
+                std::cout << setprecision(4);
+                string a = "a"+to_string<int>(i)+" = ";
+                std::cout << setw(43) << right << a << setw(9) << coeff[i]
+                          << setw(4) << " ±" << setw(9) << coefferr[i] << std::endl;
+            }
+        }
+    }
+
+    return true;
+}
+template bool Galfit<float>::regularizeParams(std::vector<float>,std::vector<float>,std::vector<float>&,int);
+template bool Galfit<double>::regularizeParams(std::vector<double>,std::vector<double>,std::vector<double>&,int);
 
 
 template <class T> 

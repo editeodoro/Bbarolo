@@ -972,7 +972,8 @@ int Galfit<T>::plotAll_Python() {
         << "rad_sd, surfdens, sd_err = np.genfromtxt(outfolder+'densprof.txt', usecols=(0,3,4),unpack=True) \n"
         << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.genfromtxt(outfolder+'rings_final1.txt',usecols=(1,2,3,4,5,7,9,10,11,12),unpack=True) \n";
     if (outr->nr==1) pyf << "rad,vrot,disp,inc,pa,z0,xpos,ypos,vsys,vrad = np.array([rad]),np.array([vrot]),np.array([disp]),np.array([inc]),np.array([pa]),np.array([z0]),np.array([xpos]),np.array([ypos]),np.array([vsys]),np.array([vrad])\n";
-    pyf << "err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",len(rad))), np.zeros(shape=(" << MAXPAR << ",len(rad)))\n"
+    pyf << "try: err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",len(rad))), np.zeros(shape=(" << MAXPAR << ",len(rad)))\n"
+        << "except: err1_l, err1_h = np.zeros(shape=(" << MAXPAR << ",1)), np.zeros(shape=(" << MAXPAR << ",1))\n"
         << "color=color2='#B22222' \n"
         << "max_vrot,max_vdisp = np.nanmax(vrot),np.nanmax(disp) \n"
         << "max_rad = 1.1*np.nanmax(rad) \n";
@@ -1429,6 +1430,8 @@ int Galfit<T>::plotAll_Python() {
         << "y = np.tan(np.radians(pa_m-90))*(x-xcen)+ycen \n"
         << "ext = [0,xmax-xmin,0, ymax-ymin] \n"
         << "rad_pix = rad/"<< in->Head().PixScale()*arcconv << std::endl
+        << "try: nr = len(rad_pix) \n"
+        << "except: nr = 1 \n"
         << "interval = PercentileInterval(99.5) \n"
         << std::endl
         << "for k in range (len(files_mod0)): \n"
@@ -1472,8 +1475,8 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\tif i==0: \n"
         << "\t\t\t\taxis.text(0.5,1.05,titles[j],ha='center',transform=axis.transAxes,fontsize=15) \n"
         << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
-        << "\t\t\t\tif j==1 and len(rad_pix)>3:  \n"
-        << "\t\t\t\t\taxmaj = rad_pix[-1]+rad_pix[-1]-rad_pix[-2]  \n"
+        << "\t\t\t\tif j!=2 and nr>3:  \n"
+        << "\t\t\t\t\taxmaj = rad_pix[-1] \n"
         << "\t\t\t\t\taxmin = axmaj*np.cos(np.radians(inc_m))  \n"
         << "\t\t\t\t\tposa = np.radians(pa_m-90)  \n"
         << "\t\t\t\t\tt = np.linspace(0,2*np.pi,100)  \n"
@@ -1482,12 +1485,12 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\t\t\taxis.plot(xt,yt,'-',c='k',lw=0.8)  \n"
         << "\t\t\telif i==1: \n"
         << "\t\t\t\taxis.plot(x,y,'--',color='k',linewidth=1) \n"
-        << "\t\t\t\tif len(rad_pix)<10: \n"
+        << "\t\t\t\tif nr<10: \n"
         << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(pa_m-90)) \n"
         << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(pa_m-90)) \n"
         << "\t\t\t\t\taxis.scatter(x_pix+xcen,y_pix+ycen,c='grey',s=12) \n"
         << "\t\t\t\t\taxis.scatter(xcen-x_pix,ycen-y_pix,c='grey',s=12) \n"
-        << "\t\t\t\tif len(rad_pix)>5 and not all(np.diff(pa)==0): \n"
+        << "\t\t\t\tif nr>5 and not all(np.diff(pa)==0): \n"
         << "\t\t\t\t\tx_pix = rad_pix*np.cos(np.radians(pa-90)) \n"
         << "\t\t\t\t\ty_pix = rad_pix*np.sin(np.radians(pa-90)) \n"
         << "\t\t\t\t\taxis.plot(xcen-x_pix,ycen-y_pix,'-',color='grey',lw=1) \n"

@@ -523,7 +523,8 @@ void Param::setParam(string &parstr) {
     if(arg=="twostage")  parGF.TWOSTAGE   = readFlag(ss);
     if(arg=="flagerrors")parGF.flagERRORS = readFlag(ss);
     if(arg=="norm")      parGF.NORM       = makeupper(readFilename(ss));
-    if(arg=="polyn")     parGF.POLYN      = readFilename(ss);
+    if(arg=="polyn")     parGF.REGTYPE    = makelower(readFilename(ss));
+    if(arg=="regtype")   parGF.REGTYPE    = makelower(readFilename(ss));
     if(arg=="startrad")  parGF.STARTRAD   = readval<int>(ss);
     if(arg=="distance")  parGF.DISTANCE   = readval<float>(ss);
     if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
@@ -580,7 +581,7 @@ void Param::setParam(string &parstr) {
 bool Param::checkPars() {
     
     bool good = true;
-    
+
     if(imageList!="NONE") {
         std::ifstream file(imageList.c_str());
         if(!file) { 
@@ -761,6 +762,42 @@ bool Param::checkPars() {
                 parGF.SIDE = "B";
             }
 
+            // Checking string for REGTYPE
+            stringstream ss(parGF.REGTYPE);
+            vector<string> polyn = readVec<string>(ss);
+            for (auto &w : polyn) {
+                string key, val;
+                if(splitString(w,"=",key,val)) {
+                    // Check that key is acceptable
+                    bool isOk = key=="inc" || key=="pa" || key=="vsys" || key=="xpos" || key=="ypos" || key=="z0";
+                    if (!isOk) {
+                        std::cerr << "3DFIT warning: invalid REGTYPE key of '"<< key << "'. I will ignore it. \n";
+                        parGF.REGTYPE.erase(parGF.REGTYPE.find(key),key.size()+val.size()+2);
+                        continue;
+                    }
+                }
+                else {
+                    val = key = w;
+                    if (polyn.size()!=1) {
+                        std::cerr << "3DFIT warning: invalid REGTYPE key of '"<< w << "'. I will ignore it. \n";
+                        parGF.REGTYPE.erase(parGF.REGTYPE.find(w),w.size()+1);
+                        continue;
+                    }
+                }
+                // Check that val is acceptable
+                bool isnumber = isNumber(val);
+                if (!isnumber && !(val=="bezier" || val=="median" || val=="auto")) {
+                    std::cerr << "3DFIT warning: invalid REGTYPE value of '"<< val << "' for " << key
+                              << ". Changing it to 'auto'. \n";
+                    if (val==key) parGF.REGTYPE.replace(parGF.REGTYPE.find(val),val.size(), "auto");
+                    else parGF.REGTYPE.replace(parGF.REGTYPE.find(key+"="+val)+key.size()+1,val.size(), "auto");
+                }
+            }
+            // Recheck to see if anything is left
+            parGF.REGTYPE = deblank(parGF.REGTYPE);
+            ss = stringstream(parGF.REGTYPE);
+            polyn = readVec<string>(ss);
+            if (polyn.size()==0) parGF.REGTYPE = "auto";
         }
 
         if (parGF.LTYPE<1 || parGF.LTYPE>5) {
@@ -999,8 +1036,8 @@ void Param::createTemplate() {
     parf << "// OPTIONAL: Using a two stages minimization (default is " << stringize(parGF.TWOSTAGE) << "):\n";
     parf << setw(m) << left << "TWOSTAGE" << setw(m) << left << "false\n"<< endl;
     
-    parf << "// OPTIONAL: Degree of polynomial fitting angles (default is " << parGF.POLYN << "):\n";
-    parf << setw(m) << left << "POLYN" << setw(m) << left << "3\n"<< endl;
+    parf << "// OPTIONAL: Type of regularization to use for second stage (default is " << parGF.REGTYPE << "):\n";
+    parf << setw(m) << left << "REGTYPE" << setw(m) << left << "3\n"<< endl;
     
     parf << "// OPTIONAL: Enabling error estimation (default is " << stringize(parGF.flagERRORS) << "):\n";
     parf << setw(m) << left << "flagErrors" << setw(m) << left << "false\n"<< endl;
@@ -1258,7 +1295,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
             recordParam(Str, "[SIDE]", "   What side of the galaxy to be used", (p.getParGF().SIDE)); 
             recordParam(Str, "[TWOSTAGE]", "   Two stages minimization?", stringize(p.getParGF().TWOSTAGE));
             if (p.getParGF().TWOSTAGE || defaults)
-                recordParam(Str, "[POLYN]", "     Degree of polynomial fitting angles?", p.getParGF().POLYN);
+                recordParam(Str, "[REGTYPE]", "     Degree of polynomial fitting angles?", p.getParGF().REGTYPE);
             recordParam(Str, "[FLAGERRORS]", "   Estimating errors?", stringize(p.getParGF().flagERRORS));
         
             recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));

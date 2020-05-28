@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <algorithm>
 #include <Utilities/utils.hh>
 
 
@@ -121,6 +122,7 @@ template std::vector<int> readVec(std::stringstream&);
 template std::vector<long> readVec(std::stringstream&);
 template std::vector<float> readVec(std::stringstream&);
 template std::vector<double> readVec(std::stringstream&);
+template std::vector<std::string> readVec(std::stringstream&);
 
 
 std::string removeLeadingBlanks(std::string s) {
@@ -232,14 +234,45 @@ void checkHome(std::string &s) {
         s.erase(0,1);
         s.insert(0, home);
     }
-    /*
-    if (s.find("./")==0) {
-        std::string path = std::getenv("PWD");
-        s.erase(0,1);
-        s.insert(0, path);
-    }
-    */
 
+//    if (s.find("./")==0) {
+//        std::string path = std::getenv("PWD");
+//        s.erase(0,1);
+//        s.insert(0, path);
+//    }
+
+
+}
+
+bool isNumber (std::string w) {
+    // Check if a string is a number.
+    return !w.empty() && std::all_of(w.begin(), w.end(), ::isdigit);
+}
+
+
+bool splitString (std::string s, std::string delimiter ,std::string &key, std::string &val) {
+    // Split the string s based on a delimiter and write the substring to key and val
+    // Return false if delimiter is not found.
+    int found = s.find(delimiter);
+    if (found==std::string::npos) return false;
+    key = s.substr(0,found);
+    val = s.substr(found+1,s.size()-found);
+    return true;
+}
+
+
+std::pair<StrVec,StrVec> splitStrings (StrVec s, std::string delimiter) {
+
+    StrVec keys;
+    StrVec vals;
+    for (auto &w : s) {
+        std::string key, val;
+        if (splitString(w,delimiter,key,val)) {
+            keys.push_back(key);
+            vals.push_back(val);
+        }
+    }
+    return std::make_pair(keys,vals);
 }
 
 

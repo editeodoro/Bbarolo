@@ -74,7 +74,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     string FREE       = "VROT VDISP INC PA"; ///< Free parameters.
     string SIDE       = "B";      ///< Approaching(A), Receding(R), Both(B), Single(S)
     bool   TWOSTAGE   = true;     ///< Whether fitting a second model after regularization.
-    string POLYN      = "bezier"; ///< Degree of polynomials fitting INC e PA.
+    string REGTYPE    = "auto";   ///< Regularazation type for second stage
     int    BWEIGHT    = 1;        ///< Power of the weighting function for Blank pixels.
     int    STARTRAD   = 0;        ///< Starting radius
     bool   flagERRORS = false;    ///< Whether estimating errors.

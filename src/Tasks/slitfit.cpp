@@ -318,9 +318,6 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     setFree();
 
     wpow = 0;
-    string polyn = makelower(par.POLYN);
-    if (polyn=="bezier") anglepar=-1;
-    else anglepar = 1+atoi(polyn.c_str());    
 
     setup(in, inr, &par);
 

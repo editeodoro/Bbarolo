@@ -365,7 +365,7 @@ template double* MatrixProduct (double*,int*, double*, int*);
 
 
 template <class T>
-void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
+bool bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
                    std::vector<T> &x_out, std::vector<T> &y_out,
                    int fp, int np, int ns) {
 
@@ -380,7 +380,7 @@ void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
 
     if (x_in.size()!=y_in.size()) {
         std::cout << "BEZIER Error: x_in & y_in have different dimensions.\n";
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     if (np==-1) np=x_in.size();
@@ -388,12 +388,12 @@ void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
 
     if (np>x_in.size()-fp) {
         std::cout << "BEZIER Error: number of datapoints is greater than the size of input vectors.\n";
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     if (x_out.size()!=ns || y_out.size()!=ns) {
         std::cout << "BEZIER Error: The dimensions of output bezier vector must be = n_samples.\n";
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     double *bc = cp_binomial(np);
@@ -427,9 +427,10 @@ void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
        }
 
     delete [] bc;
+    return true;
 }
-template void bezier_interp(std::vector<float>,std::vector<float>,std::vector<float>&, std::vector<float>&,int,int,int);
-template void bezier_interp(std::vector<double>,std::vector<double>,std::vector<double>&, std::vector<double>&,int,int,int);
+template bool bezier_interp(std::vector<float>,std::vector<float>,std::vector<float>&, std::vector<float>&,int,int,int);
+template bool bezier_interp(std::vector<double>,std::vector<double>,std::vector<double>&, std::vector<double>&,int,int,int);
 
 
 double *cp_binomial(int points) {

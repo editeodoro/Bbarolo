@@ -44,6 +44,7 @@
 // Macro for debugging purposes
 #define watch(x) cout << (#x) << " is " << (x) << endl
 
+using StrVec = std::vector<std::string>;
 
 /// Functions to allocate/deallocate multidimensional arrays. Defined in "allocator.cpp".
 template <class Type> Type **allocate_2D (int xdim, int ydim);
@@ -89,7 +90,10 @@ void printSpace(std::ostream &stream, int num);
 void printSpace(int num);
 void printHash(std::ostream &stream, int num);
 void printHash(int num);
-void checkHome(std::string &s); 
+void checkHome(std::string &s);
+bool isNumber (std::string w);
+bool splitString (std::string s, std::string delimiter, std::string &key, std::string &val);
+std::pair<StrVec,StrVec> splitStrings (StrVec s, std::string delimiter);
 std::string randomAdjective (int type);
 std::string randomQuoting ();
 
@@ -107,7 +111,7 @@ template <class Type> void derv_gauss (Type *x, Type *p, Type *dyda, int numpar)
 template <class T> double** RotMatrices (T alpha, T beta, T gamma);
 template <class T> double* MatrixProduct (T *M1, int *size1, T *M2, int *size2);
 double *cp_binomial(int points);
-template <class T> void bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
+template <class T> bool bezier_interp(std::vector<T> x_in,  std::vector<T> y_in,
                                       std::vector<T> &x_out,std::vector<T> &y_out,
                                       int fp=0, int np=-1, int ns=-1);
 
@@ -124,7 +128,7 @@ int  listhead(int argc, char *argv[]);
 int  fitscopy(int argc, char *argv[]);
 int  fitsarith(int argc, char *argv[]);
 
-// WCS Utilities, defined in wcsUtils.cpp
+/// WCS Utilities, defined in wcsUtils.cpp
 int pixToWCSSingle(struct wcsprm *wcs, const double *pix, double *world);
 int wcsToPixSingle(struct wcsprm *wcs, const double *world, double *pix);
 
@@ -146,6 +150,7 @@ double RedtoDist(double redshift);
 
 template <class T> bool isNaN (T n) {volatile T d=n; return d!=d;}
 template <class T> bool isBlank(T n) {return (n==0 || isNaN(n));}
+
 bool fexists(std::string filename);
 
 double arcsconv(std::string cunit);

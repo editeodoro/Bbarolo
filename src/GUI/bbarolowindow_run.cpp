@@ -305,8 +305,8 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
 
         ui->SecondstagecheckBox->setChecked(p.TWOSTAGE);
         if (p.TWOSTAGE) {
-            if (makelower(p.POLYN)=="bezier") ui->PolynspinBox->setValue(-1);
-            else ui->PolynspinBox->setValue(atoi(p.POLYN.c_str()));
+            if (makelower(p.REGTYPE)=="bezier") ui->PolynspinBox->setValue(-1);
+            else ui->PolynspinBox->setValue(atoi(p.REGTYPE.c_str()));
         }
 
         if (p.flagERRORS) ui->ErrorsradioButton->setChecked(true);
@@ -468,8 +468,8 @@ void BBaroloWindow::writeParamFile(QString file) {
             if (ui->SecondstagecheckBox->isChecked()) {
                 out << setw(n) << "TWOSTAGE" << "true" << endl;
                 if (ui->PolynspinBox->value()==-1)
-                    out << setw(n) << "POLYN" << "bezier" << endl;
-                else out << setw(n) << "POLYN" << ui->PolynspinBox->value() << endl;
+                    out << setw(n) << "REGTYPE" << "bezier" << endl;
+                else out << setw(n) << "REGTYPE" << ui->PolynspinBox->value() << endl;
             }
             else out << setw(n) << "TWOSTAGE" << "false" << endl;
             if (ui->ErrorsradioButton->isChecked())

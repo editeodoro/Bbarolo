@@ -48,11 +48,11 @@ public:
     Galfit() {defaults();}
     Galfit(Cube<T> *c);
     Galfit(Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {setup(c,inrings,p);}
-    Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC=5, float DELTAPHI=15, 
-            int LTYPE=1, int FTYPE=2, int WFUNC=1, int BWEIGHT=1, int NV=-1, double TOL=1E-03, 
-            int CDENS=10, int STARTRAD=0, std::string MASK="SMOOTH", std::string NORM="LOCAL", 
-            std::string FREE="VROT VDISP INC PA", std::string SIDE="B", bool TWOSTAGE=true, 
-            std::string POLYN="bezier", bool ERRORS=false, bool SMOOTH=true, float DISTANCE=-1, 
+    Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC=5, float DELTAPHI=15,
+            int LTYPE=1, int FTYPE=2, int WFUNC=1, int BWEIGHT=1, int NV=-1, double TOL=1E-03,
+            int CDENS=10, int STARTRAD=0, std::string MASK="SMOOTH", std::string NORM="LOCAL",
+            std::string FREE="VROT VDISP INC PA", std::string SIDE="B", bool TWOSTAGE=true,
+            std::string REGTYPE="bezier", bool ERRORS=false, bool SMOOTH=true, float DISTANCE=-1,
             double redshift=-1, double RESTWAVE=-1, std::string OUTFOLD="./", int THREADS=1);
     virtual ~Galfit();
     Galfit(const Galfit &g) {operator=(g);}     //< Copy constructor.
@@ -100,7 +100,6 @@ protected:
     int      NconX;             //< Convolution field X-dimension.
     int      NconY;             //< Convolution field Y-dimensione 
     int      wpow;              //< Weighing function power.
-    int      anglepar;          //< Number of parameter for polynomial fit of angles.
     bool     second;
     bool     verb;
     Cube<T>  *line_im;          //< Line Image;
@@ -118,6 +117,8 @@ protected:
     void defaults ();
     bool setCfield ();
     void setFree();
+    bool regularizeParams(std::vector<T> x, std::vector<T> y, std::vector<T> &yout, int rtype);
+
 
     /// Functions defined in galfit_min.cpp
     bool   minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoFar=NULL);

@@ -306,7 +306,7 @@ void ParamGuess<T>::findInclination(int algorithm) {
     setAxesLine(xcentre,ycentre,posang,pmaj,pmin);
     T axmaj = findAxisLength(pmaj, major_max, major_min);
     T axmin = findAxisLength(pmin, minor_max, minor_min);
-    
+
     if (axmin>axmaj) {
         std::cout << "---------------> WARNING - Finding initial parameters <--------------\n"
                   << " The major axis is shorter than the minor axis. They will be swapped\n"
@@ -403,7 +403,7 @@ T ParamGuess<T>::findAxisLength(float *lpar, int *coords_up, int *coords_low) {
     double axis_r_l=0., axis_r_r=0;
     int Xmin=obj->getXmin(), Ymin=obj->getYmin();
     int Xmax=obj->getXmax(), Ymax=obj->getYmax();
-    
+
     double p = atan(lpar[0])*180./M_PI;
     while (p>=180) p-=180;
     while (p<0) p+=180;
@@ -412,8 +412,8 @@ T ParamGuess<T>::findAxisLength(float *lpar, int *coords_up, int *coords_low) {
         for (int y=Ymin; y<=Ymax; y++) {
             // Calculating (x,y) coordinates to sample velocity field
             int x = lround((y-lpar[1])/lpar[0]);
-            if (p==90.) x = lround(xcentre);
-            long npix = y*in->DimX()+x; 
+            if (fabs(90.-p)<0.1) x = lround(xcentre);
+            long npix = y*in->DimX()+x;
             bool isOK = x>=Xmin && x<=Xmax && !isNaN<T>(Vemap[npix]);
             if (!isOK) continue;
             double r = sqrt(pow(double(x-xcentre),2.)+pow(double(y-ycentre),2.));
@@ -607,11 +607,15 @@ bool ParamGuess<T>::fitSimplex(int ndim, T **p) {
 template <class T>
 T ParamGuess<T>::funcEllipse(T *mypar) {
     
+    if (mypar[0]< 0) mypar[0]= fabs(mypar[0]);
+    if (mypar[1]>90) mypar[1]= 180 - mypar[1];
+
     T R   = mypar[0]/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
     T inc = mypar[1]*M_PI/180.;
     T phi = posang*M_PI/180.;//mypar[2];
     T x0  = xcentre;//mypar[3];
     T y0  = ycentre;//mypar[4];
+
 
     double func = 0;
     for (int x=0; x<in->DimX(); x++) {
