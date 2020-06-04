@@ -9,6 +9,7 @@
 #include<Tasks/ringmodel.hh>
 #include<Tasks/ellprof.hh>
 #include<Tasks/smooth3D.hh>
+#include<Utilities/paramguess.hh>
 
 
 using namespace Model;
@@ -26,7 +27,7 @@ extern "C" {
 // Interface for the Cube class ///////////////////////////////////////////////////////
 Cube<float>* Cube_new(const char* fname) {return new Cube<float>(string(fname));}
 void Cube_delete (Cube<float> *c) {delete c;}
-int* Cube_axisdim(Cube<float> *c) {return c->AxisDim();};
+int* Cube_axisdim(Cube<float> *c) {return c->AxisDim();}
 float* Cube_array(Cube<float> *c) {return c->Array();}
 void Cube_setBeam(Cube<float> *c, float bmaj, float bmin, float bpa) {c->setBeam(bmaj,bmin,bpa);}
 float* Cube_getBeam(Cube<float> *c) {return c->getBeam();}
@@ -35,7 +36,7 @@ float* Cube_getBeam(Cube<float> *c) {return c->getBeam();}
 
 
 // Interface for the Rings struct //////////////////////////////////////////////////////
-Rings<float>* Rings_new() {return new Rings<float>;};
+Rings<float>* Rings_new() {return new Rings<float>;}
 void Rings_set(Rings<float>* r, int size, float* radii, float* xpos, float* ypos, float* vsys, float* vrot, float* vdisp, 
                float* vrad, float* vvert, float* dvdz, float* zcyl, float* dens, float* z0, float* inc, float* phi)
                    {r->setRings(size,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi);}
@@ -63,12 +64,12 @@ Galfit<float>* Galfit_new_all(Cube<float> *c, Rings<float> *inrings, float DELTA
                               return new Galfit<float>(c,inrings,DELTAINC,DELTAPHI,LTYPE,FTYPE,WFUNC,BWEIGHT,NV,TOL,
                               CDENS,STARTRAD,string(MASK),string(NORM),string(FREE),string(SIDE),TWOSTAGE,string(POLYN),
                               ERRORS,SMOOTH,DISTANCE,REDSHIFT,RESTWAVE,string(OUTFOLD),NTHREADS);}
-                              
 void Galfit_delete(Galfit<float> *g) {delete g;}
 float* Galfit_initialGuesses(Cube<float> *c, const char* xpos, const char* ypos, const char* inc, const char* pa) {
                              GALFIT_PAR p; p.XPOS=string(xpos); p.YPOS=string(ypos); p.INC=string(inc); p.PHI=string(pa);
-                             Galfit<float> *gf = new Galfit<float>; float *ret = gf->EstimateInitial(c,&p); delete gf; return ret;}
-
+                             Galfit<float> *gf = new Galfit<float>; ParamGuess<float> *ip = gf->EstimateInitial(c,&p);
+                             float *r =  new float[8]; r[0]=ip->nrings; r[1]=ip->radsep; r[2]=ip->xcentre; r[3]=ip->ycentre;
+                             r[4]=ip->vsystem; r[5]=ip->vrot; r[6]=ip->inclin; r[7]=ip->posang; delete gf; delete ip; return r;}
 bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit(); return true;}
 bool Galfit_secondStage(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->SecondStage();}
 void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(SIGINT, signalHandler); g->writeModel(string(norm),plots);}

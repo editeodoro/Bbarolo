@@ -38,7 +38,6 @@ SOURCES +=     bbarolo.cpp \
     Utilities/interpolation.cpp \
     Utilities/lsqfit.cpp \
     Utilities/progressbar.cpp \
-    Utilities/allocator.cpp \
     Utilities/conv2D.cpp \
     Utilities/converter.cpp \
     Utilities/statistics.cpp \
@@ -72,7 +71,9 @@ HEADERS += bbarolo.hh \
     Tasks/ringmodel.hh \
     Tasks/smooth3D.hh \
     Tasks/spacepar.hh \
-    Tasks/search.hh
+    Tasks/search.hh \
+    Utilities/allocator.hpp \
+    Utilities/optimization.hh
     Utilities/paramguess.hh \
     Utilities/progressbar.hh \
     Utilities/utils.hh \

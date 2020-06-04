@@ -61,7 +61,8 @@ public:
     float       getXcentre(std::string centreType="centroid");
     float       getYcentre(std::string centreType="centroid");
     float       getZcentre(std::string centreType="centroid");
-    
+    float       getVsys();
+
     /// Add a single voxel to the pixel list.
     void   addPixel(long x, long y, long z){Object3D<T>::addPixel(x,y,z);}
     void   addPixel(PixelInfo::Voxel<T> point);
@@ -111,6 +112,9 @@ public:
     void calcVelWidths(T *fluxArray, long *dim, Header &head);
     /// Calculate the 20%/50% peak flux widths 
     void calcVelWidths(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head);
+
+    /// Calculate systemic velocity
+    void calcVsys();
 
     /// Get the location of the spatial borders. 
     std::vector<int> getVertexSet();
@@ -188,7 +192,6 @@ public:
     float       getMinorAxis(){return minorAxis;}
     float       getPositionAngle(){return posang;}
     float       getVel(){return vel;}
-    float       getVsys() {return vsys;}
     float       getVelWidth(){return velWidth;}
     float       getVelMin(){return velMin;}
     float       getVelMax(){return velMax;}
@@ -201,25 +204,13 @@ public:
     int         getID(){return id;}
     void        setID(int i){id = i;}
     //
-    int         getPosPrec(){return posPrec;}
-    void        setPosPrec(int i){posPrec=i;}
-    int         getXYZPrec(){return xyzPrec;}
-    void        setXYZPrec(int i){xyzPrec=i;}
-    int         getFintPrec(){return fintPrec;}
-    void        setFintPrec(int i){fintPrec=i;}
-    int         getFpeakPrec(){return fpeakPrec;}
-    void        setFpeakPrec(int i){fpeakPrec=i;}
-    int         getVelPrec(){return velPrec;}
-    void        setVelPrec(int i){velPrec=i;}
-    int         getSNRPrec(){return snrPrec;}
-    void        setSNRPrec(int i){snrPrec=i;}
     float       getMass () {return mass;}
     void        setMass (float val) {mass=val; haveMass=true;}
     bool        getHavemass() {return haveMass;}
     void        setHavemass(bool flag) {haveMass=flag;}
     float       getSFR () {return SFR;}
     void        setSFR (float v) {SFR=v;}
-   
+
   protected:
     // Subsection offsets
     long           xSubOffset;     ///< The x-offset, from subsectioned cube
@@ -260,7 +251,6 @@ public:
     std::string    lngtype;        ///< Type of longitude axis (RA/GLON)
     std::string    lattype;        ///< Type of latitude axis (DEC/GLAT)
     float          vel;            ///< Central velocity (from zCentre)
-    float          vsys;           ///< Systemic velocity from velocity widths
     float          velWidth;       ///< Full velocity width
     float          velMin;         ///< Minimum velocity
     float          velMax;         ///< Maximum velocity
@@ -270,22 +260,13 @@ public:
     float          v50min;         ///< Minimum velocity at 50% of peak flux
     float          v50max;         ///< Maximum velocity at 50% of peak flux
     float          w50;            ///< Velocity width at 50% of peak flux  
-    ///  The next six are the precision of values printed in the headers of the spectral plots
-    /// 
-    ///
-    int            posPrec;        ///< Precision of WCS positional values 
-    int            xyzPrec;        ///< Precision of pixel positional values
-    int            fintPrec;       ///< Precision of F_int/F_tot values
-    int            fpeakPrec;      ///< Precision of F_peak values
-    int            velPrec;        ///< Precision of velocity values.
-    int            snrPrec;        ///< Precision of S/N_max values.
  
   };
 
   //==========================================================================
 
   //////////////////////////////////////////////////////
-  // Prototypes for functions that use above classes
+  /// Prototypes for functions that use above classes
   //////////////////////////////////////////////////////
 
   //----------------

@@ -239,12 +239,9 @@ bool BBcore (Param *par) {
     if (par->getFlagSlitfit()) {
         Model::Galfit<BBreal> *sfit = new Model::Galfit<BBreal>;
         sfit->slit_init(c);
-        //sfit->galfit();
-        //if (par->getParGF().TWOSTAGE) {
-        //    sfit->SecondStage();
-        //    sfit->writeModel_slit();
-        //}
-        //else sfit->writeModel_slit();
+        sfit->galfit();
+        if (par->getParGF().TWOSTAGE) sfit->SecondStage();
+        sfit->writeModel_slit();
     }
     //-----------------------------------------------------------------
 

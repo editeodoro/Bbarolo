@@ -65,7 +65,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   flagGALFIT = false;    ///< Enable task 
     float  DELTAINC   = 5;        ///< Inclination angle variation (degrees).
     float  DELTAPHI   = 15;       ///< Position angle variation (degrees).
-    float  DELTAVROT  = 1000;     ///< Rotation velocity variation (km/s).
+    float  DELTAVROT  = 600;     ///< Rotation velocity variation (km/s).
     float  MINVDISP   = 0.1;      ///< Minimum velocity dispersion.
     int    FTYPE      = 2;        ///< Type of function to be minimized;
     int    WFUNC      = 2;        ///< Weighting function.
@@ -107,7 +107,7 @@ struct GALWIND_PAR : GALMOD_PAR {
 struct SEARCH_PAR {
     bool   flagSearch        = false;     ///< Should search for sources in cube?
     string searchType        = "spatial"; ///< "Spectral" or "Spatial" search?
-    float  snrCut            = 5;         ///< Signal to Noise for detection when sigma-clipping.
+    float  snrCut            = 4;         ///< Signal to Noise for detection when sigma-clipping.
     float  threshold         = 0;         ///< What the threshold is (when sigma-clipping).
     bool   UserThreshold     = false;     ///< Whether the user has defined a threshold of their own.
     bool   flagAdjacent      = true;      ///< Use the adjacent criterion for objects merger?
@@ -121,7 +121,7 @@ struct SEARCH_PAR {
     int    maxChannels       = -1;        ///< Maximum channels to accept an object.
     float  maxAngSize        = -1;        ///< Maximum angular size in the object in arcmin.
     bool   flagGrowth        = true;      ///< Are we growing objects once they are found?
-    float  growthCut         = 3;         ///< The SNR that we are growing objects down to.
+    float  growthCut         = 2.5;       ///< The SNR that we are growing objects down to.
     bool   flagUserGrowthT   = false;     ///< Whether the user has manually defined a threshold
     float  growthThreshold   = 0;         ///< The threshold for growing objects down to
     bool   cubelets          = false;     ///< If true, produce a sub-cube of each detection.
@@ -235,9 +235,8 @@ public:
     
 
     bool    getFlagSlitfit () {return flagSlitfit;}
-    string  getWavefile () {return wavefile;}
-    string  getIvarfile () {return ivarfile;}
-    string  getLine() {return linetofit;}
+    float   getSlitWidth () {return slitwidth;}
+
 
     bool    getFlagPV() {return flagPV;}
     float   getXPOS_PV() {return XPOS_PV;}
@@ -317,11 +316,9 @@ private:
     size_t          window_size;        ///< Type of smoothing window
 
     bool            flagSlitfit;        ///< Fitting a 3D model to a slit observation.
-    string          wavefile;           ///< Fitsfile containing the wavelegths.
-    string          ivarfile;           ///< Fitsfile containing the inverse-variance or a value.
-    string          linetofit;          ///< Line to fit: Ha, Hb, OIII etc...
+    float           slitwidth;          ///< Width of the slit in arcsec
     
-    bool            flagPV;                 ///< Extracting a position-velocity diagram.
+    bool            flagPV;             ///< Extracting a position-velocity diagram.
     float           XPOS_PV;
     float           YPOS_PV;
     float           PA_PV;

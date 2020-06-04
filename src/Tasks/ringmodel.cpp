@@ -37,6 +37,7 @@
 #include <Utilities/lsqfit.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/progressbar.hh>
+#include <Utilities/allocator.hpp>
 
 
 #define nint(x)     (x>0.0?(int)(x+0.5):(int)(x-0.5))
@@ -238,17 +239,29 @@ void Ringmodel<T>::set (int nrings, T *radii, T *widths, T *vsys, T *vrot,
                       T *vexp, T *posang, T *incl, T xcenter, T ycenter) {
                           
     defaults();
-    
+
     nrad  = nrings;
-    rads  = radii;
-    wids  = widths;
-    vsysi = vsys;
-    vroti = vrot; 
-    vexpi = vexp;
-    posai = posang;
-    incli = incl;
     xposi = xcenter;
     yposi = ycenter;
+
+    rads  = new T [nrings];
+    wids  = new T [nrings];
+    vsysi = new T [nrings];
+    vroti = new T [nrings];
+    vexpi = new T [nrings];
+    posai = new T [nrings];
+    incli = new T [nrings];
+
+    for (int i=0; i<nrad; i++) {
+        rads[i]  = radii[i];
+        wids[i]  = widths[i];
+        vsysi[i] = vsys[i];
+        vroti[i] = vrot[i];
+        vexpi[i] = vexp[i];
+        posai[i] = posang[i];
+        incli[i] = incl[i];
+    }
+
     vsysf = new T [nrings];
     vsyse = new T [nrings];
     vrotf = new T [nrings];
@@ -270,7 +283,7 @@ void Ringmodel<T>::set (int nrings, T *radii, T *widths, T *vsys, T *vrot,
     elp = allocate_2D<float>(nrings, 4);
     
     allAllocated = true;
-    
+
 }
 
 
@@ -678,7 +691,7 @@ int Ringmodel<T>::getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &
     int mup    = std::min(bup[1], nint(y0+b*ro)+1);
 
     if ((llo > lup) || (mlo > mup)) {
-        std::cout << "Ring is outside the map!"<<std::endl;
+        //std::cout << "Ring is outside the map!"<<std::endl;
         q = FLT_MAX;
         return 0;
     }

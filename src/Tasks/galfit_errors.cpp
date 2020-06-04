@@ -30,6 +30,8 @@
 #include <Utilities/utils.hh>
 #include <Utilities/lsqfit.hh>
 #include <Utilities/progressbar.hh>
+#include <Utilities/allocator.hpp>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif

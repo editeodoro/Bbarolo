@@ -117,9 +117,7 @@ void Param::defaultValues() {
     window_size         = 3;
     
     flagSlitfit         = false;
-    wavefile            = "NONE";
-    ivarfile            = "NONE";
-    linetofit           = "Ha";
+    slitwidth           = -1;
 
     flagSpace           = false;
     P1                  = "VROT";
@@ -213,9 +211,7 @@ Param& Param::operator= (const Param& p) {
     this->window_size       = p.window_size;
     
     this->flagSlitfit       = p.flagSlitfit;
-    this->wavefile          = p.wavefile;
-    this->ivarfile          = p.ivarfile;
-    this->linetofit         = p.linetofit;
+    this->slitwidth         = p.slitwidth;
 
     this->flagPV            = p.flagPV;
     this->XPOS_PV           = p.XPOS_PV;
@@ -565,9 +561,7 @@ void Param::setParam(string &parstr) {
     if(arg=="window_size") window_size = readval<int>(ss);
 
     if(arg=="slitfit")    flagSlitfit = readFlag(ss);
-    if(arg=="wavefile")   wavefile = readFilename(ss);
-    if(arg=="ivarfile")   ivarfile = readFilename(ss);
-    if(arg=="linetofit")  linetofit = readFilename(ss);
+    if(arg=="slitwidth")  slitwidth = readval<float>(ss);
     
     if (arg=="flagpv")    flagPV = readFlag(ss);
     if (arg=="pv")        flagPV = readFlag(ss);
@@ -807,12 +801,18 @@ bool Param::checkPars() {
             parGF.LTYPE = 1;
         }
         
-        if (flagSlitfit & parGF.flagGALFIT) {
-            checkHome(wavefile);
-            checkHome(ivarfile);
-            cout<< "3DFIT WARNING: Galfit and Slitfit cannot be run at the same time. "
+        if (flagSlitfit) {
+            if (parGF.flagGALFIT) {
+                cerr << "3DFIT WARNING: Galfit and Slitfit cannot be run at the same time. "
                      << "Switching off Slitfit. \n";
-            flagSlitfit = false;
+                flagSlitfit = false;
+            }
+            else {
+                if (slitwidth<0) {
+                    cerr << "SLITFIT WARNING: SLITWIDTH has to be specified and > 0. \n";
+                    good = false;
+                }
+            }
         }
         
         if (parGF.RESTWAVE.size()==0) parGF.RESTWAVE.push_back(-1);

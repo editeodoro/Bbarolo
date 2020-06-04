@@ -337,11 +337,11 @@ bool Galmod<T>::smooth(bool usescalefac) {
     
     //Beam oldbeam = {pixsize[0]*60, pixsize[1]*60, 0};
     Beam oldbeam = {0., 0., 0};    
-    Beam newbeam = {in->Head().Bmaj()*arcmconv*60,
-                    in->Head().Bmin()*arcmconv*60,
+    Beam newbeam = {in->Head().Bmaj()*3600.,
+                    in->Head().Bmin()*3600.,
                     in->Head().Bpa()};
-    
-    Smooth3D<T> *smoothed = new Smooth3D<T>;    
+
+    Smooth3D<T> *smoothed = new Smooth3D<T>;
     smoothed->setUseScalefac(usescalefac);
     smoothed->setUseBlanks(false);
     if(!smoothed->smooth(out, oldbeam, newbeam, out->Array(), out->Array()))
@@ -427,17 +427,17 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 
         if (cunit[i]=="DEGREE" || cunit[i]=="DEGREES" || cunit[i]=="DEG" ||
             cunit[i]=="degree" || cunit[i]=="degrees" || cunit[i]=="deg") 
-                arcmconv = 60;
+                arcmconv = 60.;
         else if (cunit[i]=="ARCSEC" || cunit[i]=="ARCS" ||
-                 cunit[i]=="arcsec" || cunit[i]=="arcs") 
-                arcmconv = 1/60;
+                 cunit[i]=="arcsec" || cunit[i]=="arcs")
+                arcmconv = 1/60.;
         else if (cunit[i]=="ARCMIN" || cunit[i]=="ARCM" ||
                  cunit[i]=="arcmin" || cunit[i]=="arcm") 
-                arcmconv = 1;
+                arcmconv = 1.;
         else {
-            std::cout << "GALMOD error (unknown CUNIT for RA-DEC): ";
-            std::cout << "cannot convert to ARCMIN.\n";
-            std::cout << cunit[i];
+            std::cerr << "GALMOD error (unknown CUNIT for RA-DEC): ";
+            std::cerr << "cannot convert to ARCMIN.\n";
+            std::cerr << cunit[i];
             std::terminate(); 
         }
         cdelt[i]   = cdelt[i]*arcmconv;
@@ -445,7 +445,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         bsize[i]   = bhi[i]-blo[i]; 
     }
     pixarea=pixsize[0]*pixsize[1];
-    
+
     crota2=in->Head().Crota();
     crota2=crota2*M_PI/180.;
     
@@ -522,8 +522,8 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         else if (cunit3=="mhz") hzconv = 1.0E06;
         else if (cunit3=="ghz") hzconv = 1.0E09;
         else {
-            std::cout << "GALMOD error (unknown CUNIT3): cannot convert to Hz.\n";
-            std::cout << cunit3;
+            std::cerr << "GALMOD error (unknown CUNIT3): cannot convert to Hz.\n";
+            std::cerr << cunit3;
             std::terminate(); 
         }
         
@@ -534,8 +534,8 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         freq0 = c->Head().Freq0()/(1+c->Head().Redshift());
         if (freq0==0) {
             freq0 = 0.1420405751786E10;
-            std::cout << "Header item FREQ0 not found. Assuming " << freq0;
-            std::cout << std::endl; 
+            std::cerr << "Header item FREQ0 not found. Assuming " << freq0;
+            std::cerr << std::endl;
         }
         
         double crvalfreq = c->Head().Crval(2)*hzconv;
@@ -560,8 +560,8 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         else if (cunit3=="km/s") msconv = 1.0E03;
         else if ("cm/s") msconv = 1.0E-03;
         else {
-            std::cout << "GALMOD error (unknown CUNIT3): cannot convert to M/S.\n";
-            std::cout << cunit3;
+            std::cerr << "GALMOD error (unknown CUNIT3): cannot convert to M/S.\n";
+            std::cerr << cunit3;
             std::terminate(); 
         }
         
@@ -569,8 +569,8 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         freq0 = c->Head().Freq0()/(1+c->Head().Redshift());      
         if (freq0==0) {
             freq0 = 0.1420405751786E10;
-            std::cout << "Header item FREQ0 not found. Assuming " << freq0;
-            std::cout << std::endl; 
+            std::cerr << "Header item FREQ0 not found. Assuming " << freq0;
+            std::cerr << std::endl;
         }
         
         crval3=crval3*msconv;
@@ -580,7 +580,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         
     }
     else { 
-        std::cout << "Unknown axis type: no velocities along spectral axis.\n";
+        std::cerr << "Unknown axis type: no velocities along spectral axis.\n";
         std::terminate();
     }
     
@@ -629,11 +629,11 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         uradii[i]=rings->radii[i]/60.;
         if (uradii[i-1]+r->radsep>=uradii[i]) {
             if (uradii[i-1]>uradii[i]) {
-                std::cout << "GALMOD error: Radii not in increasing order.\n";
+                std::cerr << "GALMOD error: Radii not in increasing order.\n";
                 std::terminate();
             }
             else {
-                std::cout << "GALMOD error: Radius separation too small.\n";
+                std::cerr << "GALMOD error: Radius separation too small.\n";
                 std::terminate();
             }
         }
@@ -657,20 +657,20 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         
         uvdisp[i] = rings->vdisp[i]*1000;
         if (uvdisp[i]<0) {
-            std::cout << "GALMOD error: Negative velocity dispersion not allowed.\n";
+            std::cerr << "GALMOD error: Negative velocity dispersion not allowed.\n";
             std::terminate();
         }
         
         udens[i]=rings->dens[i]/1.0E20;
 
         if (udens[i]<0) {
-            std::cout << "GALMOD error: Negative column-density not allowed.\n";
+            std::cerr << "GALMOD error: Negative column-density not allowed.\n";
             std::terminate(); 
         }
         
         uz0[i]=rings->z0[i]/60.;
         if (uz0[i]<0) {
-            std::cout << "GALMOD error: Negative scale height not allowed.\n";
+            std::cerr << "GALMOD error: Negative scale height not allowed.\n";
             std::terminate(); 
         }
         
@@ -682,7 +682,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         uypos[i]  = rings->ypos[i]+1;
         uvsys[i]  = rings->vsys[i]*1000;
     }
-    
+
     if (uradii[0]!=0 && empty) r->radii.push_back(uradii[0]+r->radsep/2.0);
     else {
         r->radii.push_back(r->radsep/2.0);
@@ -703,7 +703,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
             r->radii.push_back(r->radii.back()+r->radsep);
         }
     }
-    
+
     for (int i=1; i<nur; i++) {
         T dur       = uradii[i]-uradii[i-1];
         T dvrotdr   = (uvrot[i]-uvrot[i-1])/dur;
@@ -738,7 +738,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
             r->radii.push_back(r->radii.back()+r->radsep);
         }
     }
-    
+
     r->radii.pop_back();
     r->nr=r->radii.size();      
     

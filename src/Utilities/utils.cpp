@@ -40,6 +40,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <Utilities/allocator.hpp>
 
 
 std::string get_currentpath() {

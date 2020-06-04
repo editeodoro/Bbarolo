@@ -34,6 +34,7 @@
 #include <Tasks/galfit.hh>
 #include <Tasks/galmod.hh>
 #include <Tasks/smooth3D.hh>
+#include <Tasks/ringmodel.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/lsqfit.hh>
 #include <Utilities/progressbar.hh>
@@ -153,8 +154,9 @@ Galfit<T>::Galfit(Cube<T> *c) {
     // This constructor reads all needed parameters from the Cube object.
     // Cube object must contain a Param method with all information.
     
-    par = c->pars().getParGF();
-    
+    par  = c->pars().getParGF();
+    verb = c->pars().isVerbose();
+
     c->checkBeam();
 
     // Building Rings object 
@@ -191,29 +193,28 @@ Galfit<T>::Galfit(Cube<T> *c) {
                         par.XPOS=="-1" || par.YPOS=="-1" || par.VSYS=="-1" ||
                         par.VROT=="-1" || par.PHI=="-1"  || par.INC=="-1";
 
+    ParamGuess<T> *ip = nullptr;
+
     if (toEstimate) {
 
-        if (verb) std::cout << "\n Estimating initial parameters... " << std::flush;
-        T *init_par = EstimateInitial(c,&par);
-        if (verb) std::cout << "Done." << std::endl;
-        
+        ip = EstimateInitial(c,&par);
+
         string pos[2] = {par.XPOS, par.YPOS};
         double *pixs = getCenterCoordinates(pos, c->Head());
-        
-        nr    = par.NRADII!=-1 ? par.NRADII : init_par[0];
-        radsep= par.RADSEP!=-1 ? par.RADSEP : init_par[1];
-        xpos  = par.XPOS!="-1" ? pixs[0] : init_par[2];
-        ypos  = par.YPOS!="-1" ? pixs[1] : init_par[3];
-        vsys  = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : init_par[4];
+
+        nr    = par.NRADII!=-1 ? par.NRADII :  ip->nrings;
+        radsep= par.RADSEP!=-1 ? par.RADSEP : ip->radsep;
+        xpos  = par.XPOS!="-1" ? pixs[0] : ip->xcentre;
+        ypos  = par.YPOS!="-1" ? pixs[1] : ip->ycentre;
+        vsys  = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : ip->vsystem;
         if (distance==-1) distance = VeltoDist(fabs(vsys));
-        vrot  = par.VROT!="-1" ? atof(par.VROT.c_str()) : init_par[5];
+        vrot  = par.VROT!="-1" ? atof(par.VROT.c_str()) : ip->vrot;
         vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;// default is 8 km/s
         z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.; // default is infinitely thin disk
         dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
-        inc   = par.INC!="-1" ? atof(par.INC.c_str()) : init_par[6];
-        pa    = par.PHI!="-1" ? atof(par.PHI.c_str()) : init_par[7];
+        inc   = par.INC!="-1" ? atof(par.INC.c_str()) : ip->inclin;
+        pa    = par.PHI!="-1" ? atof(par.PHI.c_str()) : ip->posang;
         vrad  = par.VRAD!="-1" ? atof(par.VRAD.c_str()) : 0.;
-        delete [] init_par;
     }
     else {
         nr    = par.NRADII;
@@ -286,11 +287,53 @@ Galfit<T>::Galfit(Cube<T> *c) {
         else inR->zcyl.push_back(zcyl);
     }
     
-    if (!c->pars().getflagGalMod()) {
-        if (!onefile) showInitial(inR, std::cout);
-        printInitial(inR, c->pars().getOutfolder()+"rings_initial.txt");
+
+    // A little trick: fit a 2D model first to get better PA variation
+    if (toEstimate && makelower(par.FREE).find("pa")!=std::string::npos && inR->nr>=5) {
+
+        double topix = c->Head().PixScale()*arcsconv(c->Head().Cunit(0));
+        // Initializing rings
+        T *radii = new T[nr];
+        T *wids  = new T[nr];
+
+        for (int i=0; i<nr; i++) {
+            radii[i] = inR->radii[i]/topix;
+            wids[i]  = inR->radsep/topix;
+        }
+        // Initializing a Ringmodel instance
+        Ringmodel<T> tr(inR->nr,radii,wids,&inR->vsys[0],&inR->vrot[0],&inR->vrad[0],
+                       &inR->phi[0],&inR->inc[0],inR->xpos[0],inR->ypos[0]);
+
+        tr.setfield(ip->Vemap,c->DimX(),c->DimY());
+        // Setting free parameters. Order is VSYS, VROT, VEXP, PA, INC, X0, Y0
+        // Fitting only VROT and PA
+        bool mpar[7] = {false,true,false,true,false,false,false};
+        tr.setoption(mpar,3,2,15.);
+        // Fitting a tilted-ring model
+        tr.ringfit(c->pars().getThreads(),false,false);
+        // Writing this model to a file
+        std::ofstream fileo(c->pars().getOutfolder()+c->Head().Name()+"_2drings.txt");
+        tr.printfinal(fileo,c->Head());
+        //tr.printfinal(std::cout,c->Head());
+
+        // Updating initial rings
+        for (int i=1; i<nr; i++) {
+            if (!isNaN(tr.getPosaf(i))) inR->phi[i] = tr.getPosaf(i);
+            if (!isNaN(tr.getVrotf(i)) && tr.getVrotf(i)>0) inR->vrot[i] = tr.getVrotf(i);
+        }
+        inR->phi[0] = inR->phi[1];
+        //inR->vrot[0] = inR->vrot[1];
+
+        delete [] radii;
+        delete [] wids;
     }
 
+    if (ip!=nullptr) delete ip;
+
+    if (!c->pars().getflagGalMod()) {
+        if (!onefile && verb) showInitial(inR, std::cout);
+        printInitial(inR, c->pars().getOutfolder()+"rings_initial.txt");
+    }
 
     // Setup all needed parameters
     setup(c,inR,&par);
@@ -356,6 +399,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     inr = new Rings<T>;
     *inr = *inrings;
     inDefined = true;
+    verb = c->pars().isVerbose();
 
     // Check that radii are ok.
     for (int ir=0; ir<inr->nr-1; ir++) {
@@ -448,8 +492,7 @@ template <class T>
 void Galfit<T>::galfit() {
 
     using namespace std;
-    verb = in->pars().isVerbose();
-    
+
     static int n=0;
     n = n==1 ? 2 : 1;
     std::string fileo = in->pars().getOutfolder()+"rings_final"+to_string(n)+".txt";
@@ -593,7 +636,6 @@ void Galfit<T>::galfit() {
         dring->addRings(2,drads,inr->xpos[ir],inr->ypos[ir],inr->vsys[ir],inr->vrot[ir],inr->vdisp[ir],inr->vrad[ir],
                         inr->vvert[ir],inr->dvdz[ir],inr->zcyl[ir],inr->dens[ir],inr->z0[ir],inr->inc[ir],inr->phi[ir]);
         
-            
         if (cumulative && dring->radii[0]!=0) {
             ///////////////////////////////////////////////////////
             // The following is for taking into account rings fitted so far
@@ -629,8 +671,16 @@ void Galfit<T>::galfit() {
         else
             fitok[ir] = minimize(dring, minimum, pmin, NULL);
         
-        if (!fitok[ir]) continue;
-        
+        if (!fitok[ir]) {
+            if (verb) {
+                cout <<"\n ======================== 3DFIT WARNING ========================\n"
+                     << " Can not achieve convergence in ring #"<< ir+1 << ". I'll keep going, but \n"
+                     << " parameters for this ring are wrong! Please, try to change initial \n"
+                     << " conditions and/or the function to minimize.\n"
+                     << " ================================================================\n\n";
+            }
+            continue;
+        }
         
         int k=0;
         if (mpar[VROT])  outr->vrot[ir]=pmin[k++];
@@ -643,6 +693,22 @@ void Galfit<T>::galfit() {
         if (mpar[YPOS])  outr->ypos[ir]=pmin[k++];
         if (mpar[VSYS])  outr->vsys[ir]=pmin[k++];
         if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
+
+        // Check that VROT is within limit of cube
+        double maxv = fabs(AlltoVel<T>(in->getZphys(in->DimZ()-1),in->Head())-outr->vsys[ir]);
+        double minv = fabs(AlltoVel<T>(in->getZphys(0),in->Head())-outr->vsys[ir]);
+        double maxvrot = std::max(maxv/sin(outr->inc[ir]*M_PI/180.),minv/sin(outr->inc[ir]*M_PI/180.));
+        if (outr->vrot[ir]>maxvrot) {
+            if (verb) {
+                cout <<"\n ======================== 3DFIT WARNING ========================\n"
+                     << " Ring #"<< ir+1 << " does not look good. I will ignore it and treat it as a   \n"
+                     << " non-converged fit.\n"
+                     << " =================================================================\n\n";
+            }
+            std::cout << outr->vrot[ir] << " " << maxvrot << std::endl;
+            fitok[ir] = false;
+            continue;
+        }
 
         if (verb) {
 #pragma omp critical (galfit_outmsg)
@@ -862,10 +928,20 @@ bool Galfit<T>::SecondStage() {
             // If 'auto' mode is selected, choosing an appropriate regularization
             if (i<2) {                          // For INC and PA:
                 if (nr<3) reg[i] = 1;           // Constant
-                else if (nr<10) reg[i] = 2;     // Line
-                else reg[i] = -1;               // Bezier
+                else {
+                    // Calculating scatter of inc/pa
+                    std::vector<T> myvec = i==0 ? outr->inc : outr->phi;
+                    T median = findMedian<T>(myvec,myvec.size());
+                    T madfm  = findMADFM(&myvec[0],myvec.size(),median,false);
+                    // If scatter is > 3 degrees, it is worth tracing the change
+                    if (madfmToSigma(madfm)>3) {
+                        if (nr<10) reg[i] = 2;     // Line
+                        else reg[i] = -1;          // Bezier
+                    }
+                    else reg[i] = -2;              // Median
+                }
             }
-            else reg[i] = -2;                   // For any other: take the Median
+            else reg[i] = -2;                      // For any other: take the Median
         }
     }
 
@@ -934,14 +1010,15 @@ bool Galfit<T>::regularizeParams(std::vector<T> x, std::vector<T> y, std::vector
             rtype = 1;
         }
 
+        std::vector<T> xx = x, yy = y;
         if (n-2>rtype) {
             // Deleting maximum and minimum values for the fit
-            auto where = std::max_element(y.begin(), y.end());
-            y.erase(where);
-            x.erase(x.begin()+std::distance(y.begin(), where));
-            where = std::min_element(y.begin(), y.end());
-            y.erase(where);
-            x.erase(x.begin()+std::distance(y.begin(), where));
+            auto where = std::max_element(yy.begin(), yy.end());
+            yy.erase(where);
+            xx.erase(xx.begin()+std::distance(yy.begin(), where));
+            where = std::min_element(yy.begin(), yy.end());
+            yy.erase(where);
+            xx.erase(xx.begin()+std::distance(yy.begin(), where));
         }
 
         bool mp[rtype];
@@ -949,7 +1026,7 @@ bool Galfit<T>::regularizeParams(std::vector<T> x, std::vector<T> y, std::vector
         std::vector<T> ww(n,1);
         T coeff[rtype], coefferr[rtype];
 
-        Lsqfit<T> lsq(&x[0],1,&y[0],&ww[0],x.size(),coeff,coefferr,mp,rtype,&polyn,&polynd);
+        Lsqfit<T> lsq(&xx[0],1,&yy[0],&ww[0],xx.size(),coeff,coefferr,mp,rtype,&polyn,&polynd);
         if (lsq.fit()<0) {
             if (verb) std::cerr << "3DFIT ERROR: cannot least-square fit " << whichpar << ".\n";
             return false;
@@ -989,8 +1066,8 @@ bool Galfit<T>::setCfield() {
     //Beam Old = {pixsizeX, pixsizeY, 0};
     Beam Old = {0, 0, 0};
 
-    Beam New = {in->Head().Bmaj()*arcconv,
-                in->Head().Bmin()*arcconv,
+    Beam New = {in->Head().Bmaj()*3600.,        // Beam always in degrees
+                in->Head().Bmin()*3600.,
                 in->Head().Bpa()};
 /*
     if (Old.bmaj<Old.bmin) {
@@ -1233,11 +1310,14 @@ template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,in
 
 
 template <class T>
-T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
+ParamGuess<T>* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     
     // Running the source finder to detect the source
     if (!c->getIsSearched()) c->search();
     Detection<T> *largest = c->getSources()->LargestDetection();
+
+    c->pars().setVerbosity(false);
+    if (verb) std::cout << "\n Estimating initial parameters... " << std::flush;
 
     if (largest==NULL) {
         std::cout << " 3DFIT ERROR: No sources detected in the datacube. Cannot fit!!! \n";
@@ -1265,8 +1345,8 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
 
     // Estimating rotation velocity angle if not given
     // In findInclination: 1=axis ratio, 2=ellipse, 3=totalmap
+    ip->findInclination(2);
     if (p->INC!="-1") ip->inclin = atof(p->INC.c_str());
-    else ip->findInclination(2);
 
     // Estimating rings if not given
     if (p->NRADII!=-1 && p->RADSEP!=-1) {
@@ -1279,25 +1359,16 @@ T* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     else ip->findRotationVelocity();
 
     // This performs an additional step with a 2D tilted ring model
-    //if (c->pars().getFlagPlots() && c->pars().getFlagDebug()) ip->plotGuess("initial_guesses1.pdf");
+    if (c->pars().getFlagPlots()) ip->plotGuess("initialguesses2_"+c->Head().Name()+".pdf");
     ip->tuneWithTiltedRing();
-    if (c->pars().getFlagPlots()) ip->plotGuess();
+    if (c->pars().getFlagPlots()) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
 
-    T *init_par = new T[8];
-    init_par[0] = ip->nrings;
-    init_par[1] = ip->radsep;
-    init_par[2] = ip->xcentre;
-    init_par[3] = ip->ycentre;
-    init_par[4] = ip->vsystem;
-    init_par[5] = ip->vrot;
-    init_par[6] = ip->inclin;
-    init_par[7] = ip->posang;
-
-    delete ip;
-    return init_par;
+    if (verb) std::cout << "Done." << std::endl;
+    c->pars().setVerbosity(verb);
+    return ip;
 }
-template float* Galfit<float>::EstimateInitial(Cube<float>*,GALFIT_PAR*);
-template double* Galfit<double>::EstimateInitial(Cube<double>*,GALFIT_PAR*);
+template ParamGuess<float>* Galfit<float>::EstimateInitial(Cube<float>*,GALFIT_PAR*);
+template ParamGuess<double>* Galfit<double>::EstimateInitial(Cube<double>*,GALFIT_PAR*);
 
 
 }

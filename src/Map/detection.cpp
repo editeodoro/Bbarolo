@@ -164,12 +164,6 @@ Detection<T>& Detection<T>::operator= (const Detection<T>& d) {
     this->w50          = d.w50;
     this->v50min       = d.v50min;
     this->v50max       = d.v50max;
-    this->posPrec      = d.posPrec;
-    this->xyzPrec      = d.xyzPrec;
-    this->fintPrec     = d.fintPrec;
-    this->fpeakPrec    = d.fpeakPrec;
-    this->velPrec      = d.velPrec;
-    this->snrPrec      = d.snrPrec;
     return *this;
 }
 
@@ -214,6 +208,23 @@ float Detection<T>::getZcentre(std::string centreType) {
     else return zCentroid;
 }
 
+template <class T>
+float Detection<T>::getVsys() {
+
+    float vsys;
+    if (w20>1.5*w50) {
+        // If W20 and W50 differ a lot, there is something weird. Just use W20
+        vsys = (v20max+v20min)/2.;
+    }
+    else {
+        float Vsys_20 = (v20max+v20min)/2.;
+        float Vsys_50 = (v50max+v50min)/2.;
+        vsys = (Vsys_20+Vsys_50)/2.;
+    }
+
+    return vsys;
+
+}
 
 template <class T>
 void Detection<T>::setOffsets(long Xoffset, long Yoffset, long Zoffset) {
@@ -846,11 +857,6 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
 
     w20 = fabs(v20min-v20max);
     w50 = fabs(v50min-v50max);
-    float Vsys_20 = (v20max+v20min)/2.;
-    float Vsys_50 = (v50max+v50min)/2.;
-    vsys = (Vsys_20+Vsys_50)/2.;
-
-
 }
   //--------------------------------------------------------------------
 
@@ -870,30 +876,22 @@ void Detection<T>::calcVelWidths(T *fluxArray, long *dim, Header &head) {
     ///  \param head FitsHeader object that contains the WCS information.
 
     if(dim[2]>2){
-
         float *intSpec = new float[dim[2]];
         long size=dim[0]*dim[1]*dim[2];
         std::vector<bool> mask(size,true); 
         getIntSpec(*this,fluxArray,dim,mask,1.,intSpec);
-    
         calcVelWidths(dim[2],intSpec,head);
-
         delete [] intSpec;
-
     }
     else{
         v50min = v20min = velMin;
         v50max = v20max = velMax;
         w20 = fabs(v20min-v20max);
         w50 = fabs(v50min-v50max);
-        float Vsys_20 = (v20max+v20min)/2.;
-        float Vsys_50 = (v50max+v50min)/2.;
-        vsys = (Vsys_20+Vsys_50)/2.;
     }
-
-
-
 }
+
+
   //--------------------------------------------------------------------
 
 

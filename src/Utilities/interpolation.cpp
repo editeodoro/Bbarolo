@@ -26,6 +26,7 @@
 #include <cmath>
 #include <assert.h>
 #include <Utilities/utils.hh>
+#include <Utilities/allocator.hpp>
 
 
 template <class Type>

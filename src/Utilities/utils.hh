@@ -46,12 +46,6 @@
 
 using StrVec = std::vector<std::string>;
 
-/// Functions to allocate/deallocate multidimensional arrays. Defined in "allocator.cpp".
-template <class Type> Type **allocate_2D (int xdim, int ydim);
-template <class Type> void deallocate_2D (Type **array2d, int xdim);
-template <class Type> Type ***allocate_3D (int xdim, int ydim, int zdim);
-template <class Type> void deallocate_3D (Type ***array3d, int xdim, int ydim);
-
 
 /// Functions to calculate statistical parameters. Defined in "statistics.cpp".
 template <class T> T absval(T value);

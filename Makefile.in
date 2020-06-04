@@ -83,6 +83,8 @@ HEADS = $(BASE)/bbarolo.hh\
 	$(UTILDIR)/conv2D.hh\
 	$(UTILDIR)/utils.hh\
 	$(UTILDIR)/converter.hh\
+	$(UTILDIR)/allocator.hpp\
+	$(UTILDIR)/optimization.hh\
 	$(TASKDIR)/galmod.hh\
 	$(TASKDIR)/ringmodel.hh\
 	$(TASKDIR)/galfit.hh\
@@ -119,7 +121,6 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/ringmodel.o\
 	 $(OBJDIR)/progressbar.o\
 	 $(OBJDIR)/ellprof.o\
-	 $(OBJDIR)/allocator.o\
 	 $(OBJDIR)/string.o\
 	 $(OBJDIR)/statistics.o\
 	 $(OBJDIR)/interpolation.o\

@@ -22,6 +22,7 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 #include <sstream>
 #include <cmath>
@@ -512,6 +513,7 @@ bool Header::header_read (std::string fname) {
             }
         }
         if (bmaj!=0 && bmin!=0) {
+            std::cout << std::setprecision(5);
             std::cout << "\n--------> WARNING: beam information found in HISTORY keywords: <--------\n"
                       << " BMAJ = " << bmaj << " " << cunit[0]
                       << "  BMIN = " << bmin << " " << cunit[0]

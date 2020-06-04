@@ -24,11 +24,6 @@
 #include <Utilities/gnuplot.hh>
 
 
-#define Ha  6562.81
-#define Hb  4861.33
-
-#define pixsize 0.1185
-#define slitsize 1.
 
 namespace Model {
 
@@ -36,17 +31,136 @@ template <class T>
 void Galfit<T>::slit_init(Cube<T> *c) {
 
     defaults();
-    in = c;
-    Param *p = &c->pars();
-    par = p->getParGF();
-    
-    
-    
-    p->getParSE().minChannels = 1;
-    p->getParSE().minPix = in->DimX();
+    Param &p = c->pars();
+    par = p.getParGF();
+
+
+    // Creating a dummy datacube needed in input for the fit
+    int axisdim[3] = {c->DimY(),c->DimY(),c->DimX()};
+    in = new Cube<T>(axisdim);
+    in->saveParam(c->pars());
+
+    Header &h = in->Head();
+    h.setNumAx(3);
+    h.setDimAx(0,axisdim[0]);
+    h.setDimAx(1,axisdim[1]);
+    h.setDimAx(2,axisdim[2]);
+
+    h.setCrpix(0,in->DimX()/2.+1);
+    h.setCrval(0,0.);
+    h.setCdelt(0,-fabs(c->Head().Cdelt(1)));
+    h.setCunit(0,c->Head().Cunit(1));
+    h.setCtype(0,"RA---SIN");
+    h.setCrpix(1,in->DimY()/2.+1);
+    h.setCrval(1,0.);
+    h.setCdelt(1,fabs(c->Head().Cdelt(1)));
+    h.setCunit(1,c->Head().Cunit(1));
+    h.setCtype(1,"DEC--SIN");
+    h.setCrpix(2,c->Head().Crpix(0));
+    h.setCrval(2,c->Head().Crval(0));
+    h.setCdelt(2,c->Head().Cdelt(0));
+    h.setCunit(2,c->Head().Cunit(0));
+    h.setCtype(2,c->Head().Ctype(0));
+
+    h.setName(c->Head().Name());
+
+    h.setFreq0(0.1420405751786E10);
+    h.setMinMax(0.,0.);
+    in->saveHead(h);
+
+    Rings<T> *inR = readRings<T>(c->pars().getParGF(),c->Head());
+
+    // Setup all needed parameters
+    bool isVerbose = p.isVerbose();
+    in->pars().setVerbosity(false);
+    setup(in,inR,&par);
+    in->pars().setVerbosity(isVerbose);
+
+
+    wpow = 0;
+    par.NORMALCUBE = false;
+    par.NV = 100;
+
+    func_norm = &Model::Galfit<T>::slitfunc;
+
+    showInitial(inr, std::cout);
+
+
+    // Now defining the line images
+    line_im = new Cube<T>(c->AxisDim());
+    line_imDefined = true;
+    line_im->saveHead(c->Head());
+    line_im->saveParam(c->pars());
+    for (int i=0; i<c->NumPix(); i++) line_im->Array(i) = c->Array(i);
+
+
+/*
+    // Continuum subctration.
+    int w = 11;
+    for (int y=0; y<line_im->DimY(); y++) {
+        T val0 = findMean(&line_im->Array()[line_im->nPix(0,y,0)],2);
+        T val1 = findMean(&line_im->Array()[line_im->nPix(line_im->DimX()-w-1,y,0)],w);
+        if (val0==0 && val1==0) continue;
+        int x0 = floor(w/2.);
+        int x1 = line_im->DimX()-ceil(w/2.);
+        T slope = (val1-val0)/(x1-x0);
+        T intercept = -slope*x0+val0;
+        for (int x=0;x<line_im->DimX();x++) (*line_im)(x,y,0)-= (slope*x+intercept);
+    }
+*/
+
+    // Identification of the line
+    line_im->pars().getParSE().minChannels = 1;
+    line_im->pars().getParSE().minPix = 10;
+    line_im->search();
+    int numObj = line_im->getNumObj();
+    if (numObj==0)  {
+        std::cout << "SLITFIT error: No lines detected in the datacube. Cannot fit!!! \n";
+        exit(EXIT_FAILURE);
+    }
+    else if (numObj>1) {
+        uint n=0, size=0;
+        for (int i=0; i<numObj; i++)
+            if (line_im->pObject(i)->getSize()>size) {n=i;size=line_im->pObject(i)->getSize();}
+        for (int i=0; i<numObj; i++)
+            if (i!=n) line_im->getSources()->pObjectList()->erase(line_im->getSources()->pObjectList()->begin()+i);
+    }
+/*
+    std::vector<bool> isObj(line_im->NumPix(),false);
+    typename std::vector<Voxel<T> > voxelList = line_im->getSources()->LargestDetection()->getPixelSet(line_im->Array(), line_im->AxisDim());
+    typename std::vector<Voxel<T> >::iterator vox;
+    for(vox=voxelList.begin();vox<voxelList.end();vox++)
+        isObj[line_im->nPix(vox->getX(),vox->getY(),vox->getZ())] = true;
+
+    for (int i=0; i<line_im->NumPix(); i++) line_im->Array(i)*=isObj[i];
+*/
+    line_im->fitswrite_3d((p.getOutfolder()+in->Head().Name()+".fits").c_str());
+
+
+
+
+
+
+
+      /*
+    line_im->Head().setCrpix(0,h.Crpix(2));
+    line_im->Head().setCrpix(1,h.Crpix(1));
+    line_im->Head().setCrval(0,h.Crval(2));
+    line_im->Head().setCrval(1,0.);
+    line_im->Head().setCdelt(0,h.Cdelt(2));
+    line_im->Head().setCdelt(1,h.Cdelt(1));
+    line_im->Head().setCunit(0,h.Cunit(2));
+    line_im->Head().setCunit(1,h.Cunit(1));
+    line_im->Head().setCtype(0,h.Ctype(2));
+    line_im->Head().setCtype(1,"Offset");
+    line_im->Head().setMinMax(0.,0.);
+
+    in = fcube;
+
+
+
     in->search();
-        
-    
+
     int numObj = in->getNumObj();
     if (numObj==0)  {
         std::cout << "SLITFIT error: No lines detected in the datacube. Cannot fit!!! \n";
@@ -159,65 +273,8 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     for (int i=0; i<line_im->NumPix(); i++) (*line_im)(i)*=isObj[i];
 
 
-    // Setting a fake cube needed in input for the fit
-    axisdim[0]=line_im->DimY();
-    axisdim[1]=line_im->DimY();
-    axisdim[2]=line_im->DimX();
-    Cube<T> *fcube = new Cube<T>(axisdim);
-    fcube->saveParam(in->pars());
+    ///////////////////////////////////
 
-    Header &h = fcube->Head();
-    h.setNumAx(3);
-    h.setDimAx(0,axisdim[0]);
-    h.setDimAx(1,axisdim[1]);
-    h.setDimAx(2,axisdim[2]);
-
-    h.setCrpix(0,line_im->DimY()/2.+1);
-    h.setCrval(0,50.);
-    h.setCdelt(0,pixsize/3600.);
-    h.setCunit(0,"DEGREE");
-    h.setCtype(0,"RA---SIN");
-    h.setCrpix(1,line_im->getSources()->LargestDetection()->getYaverage()+1);
-    h.setCrval(1,20.);
-    h.setCdelt(1,pixsize/3600.);
-    h.setCunit(1,"DEGREE");
-    h.setCtype(1,"DEC--SIN");
-    h.setFreq0(0.1420405751786E10);
-
-    T cdelt2=0;
-    for (int i=minx; i<maxx; i++) {
-        cdelt2 += (wave[i]-wave[i-1]);
-    }
-    cdelt2 /= (line_im->DimX()-1);
-    T crpix2 = (wave_s-wave[minx])/cdelt2;
-
-    h.setCrpix(2,crpix2+1);
-    h.setCrval(2,wave_s);
-    h.setCdelt(2,cdelt2);
-    h.setCunit(2,"ang");
-    T cdelt2_kms = DeltaVel<T>(h);
-    h.setCrval(2,0.);
-    h.setCdelt(2,cdelt2_kms);
-    h.setCunit(2,"KM/S");
-    h.setCtype(2,"VELO-HEL");
-
-    h.setDrval3(wave_s);
-    h.setDunit3("WAVE");
-    h.setMinMax(0.,0.);
-
-    line_im->Head().setCrpix(0,h.Crpix(2));
-    line_im->Head().setCrpix(1,h.Crpix(1));
-    line_im->Head().setCrval(0,h.Crval(2));
-    line_im->Head().setCrval(1,0.);
-    line_im->Head().setCdelt(0,h.Cdelt(2));
-    line_im->Head().setCdelt(1,h.Cdelt(1));
-    line_im->Head().setCunit(0,h.Cunit(2));
-    line_im->Head().setCunit(1,h.Cunit(1));
-    line_im->Head().setCtype(0,h.Ctype(2));
-    line_im->Head().setCtype(1,"Offset");
-    line_im->Head().setMinMax(0.,0.);
-
-    in = fcube;
     arcconv = arcsconv(in->Head().Cunit(0));
     distance = RedtoDist(p->getRedshift());
 
@@ -317,7 +374,6 @@ void Galfit<T>::slit_init(Cube<T> *c) {
 
     setFree();
 
-    wpow = 0;
 
     setup(in, inr, &par);
 
@@ -330,7 +386,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     delete [] wave;
 
     showInitial(inr, std::cout);
-
+    */
 }
 template void Galfit<float>::slit_init(Cube<float> *);
 template void Galfit<double>::slit_init(Cube<double> *);
@@ -339,10 +395,11 @@ template void Galfit<double>::slit_init(Cube<double> *);
 template <class T>
 double Galfit<T>::slitfunc(Rings<T> *dring, T *array, int *bhi, int *blo) {
 
+
     double minfunc = 0;
+    double pixScale = in->Head().PixScale()*arcconv;
 
-    float slitwidth = slitsize/pixsize;
-
+    float slitwidth = in->pars().getSlitWidth()/pixScale;
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
     T *slit = new T[bsize[1]*in->DimZ()];
     int xcenter = lround(dring->xpos.back()-blo[0]);
@@ -360,10 +417,7 @@ double Galfit<T>::slitfunc(Rings<T> *dring, T *array, int *bhi, int *blo) {
     }
 
     int numBlanks=0, numPix_tot=0;
-    int ftype = par.FTYPE;
-    int bweight = par.BWEIGHT;
 
-    double pixScale = in->Head().PixScale()*arcconv;
     double r1 = dring->radii.front()/pixScale;
     double r2 = dring->radii.back()/pixScale;
     double y0 = dring->ypos.back()-blo[1];
@@ -393,30 +447,29 @@ double Galfit<T>::slitfunc(Rings<T> *dring, T *array, int *bhi, int *blo) {
             }
 
             numPix_tot++;
-
-            switch(ftype) {
+            switch(par.FTYPE) {
                 case 1:
                     minfunc += std::pow(mod-obs,2)/std::sqrt(obs);
                     break;
-
                 case 2:
                     minfunc += fabs(mod-obs);
                     break;
-
                 case 3:
                     minfunc += fabs(mod-obs)/(mod+obs);
                     break;
-
                 case 4:
                     minfunc += std::pow(mod-obs,2);
                     break;
+                default:
+                    break;
             }
+
         }
     }
 
 
     delete [] slit;
-    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+    return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/((numPix_tot-numBlanks));
 }
 template double Galfit<float>::slitfunc(Rings<float>*,float*,int*,int*);
 template double Galfit<double>::slitfunc(Rings<double>*,double*,int*,int*);
@@ -425,14 +478,17 @@ template double Galfit<double>::slitfunc(Rings<double>*,double*,int*,int*);
 template <class T>
 void Galfit<T>::writeModel_slit() {
 
+
     std::string outfold = in->pars().getOutfolder();
     std::string object = in->Head().Name();
+    double pixScale = in->Head().PixScale()*arcconv;
 
     Model::Galmod<T> *mod = getModel();
 
     Cube<T> *modc = mod->Out();
+    modc->fitswrite_3d((outfold+object+"_3dmod.fits").c_str());
 
-    float slitwidth = slitsize/pixsize;
+    float slitwidth = in->pars().getSlitWidth()/pixScale;
     int axis[2] = {in->DimZ(),in->DimY()};
     Image2D<T> *slit = new Image2D<T>(axis);
     line_im->Head().setCrpix(1,findMean(&outr->ypos[0],outr->nr)+1);
@@ -465,10 +521,8 @@ void Galfit<T>::writeModel_slit() {
         for (int zx=0;zx<in->DimZ();zx++) (*slit)(zx,y) *= factor;
 
     }
-
     slit->fitswrite_2d((outfold+object+"mod.fits").c_str());
 
-    line_im->fitswrite_3d((outfold+object+".fits").c_str());
 
     std::ofstream outpv_m((outfold+"pv_mod.txt").c_str());
     std::ofstream outpv_o((outfold+"pv.txt").c_str());
@@ -513,7 +567,7 @@ void Galfit<T>::writeModel_slit() {
     std::string mfile = outfold+"gnuscript.gnu";
     gnu.open(mfile.c_str());
 
-    float xtics = lround(outr->nr/5.);
+    float xtics = lround(outr->nr/5.)+1;
     xtics *= outr->radsep;
     while (outr->radii.back()/xtics>5) xtics*=2;
     while (outr->radii.back()/xtics<2) xtics/=2;
@@ -677,6 +731,7 @@ void Galfit<T>::writeModel_slit() {
     remove ((outfold+"pv.gnu").c_str());
 
     delete slit;
+
 }
 template void Galfit<float>::writeModel_slit();
 template void Galfit<double>::writeModel_slit();

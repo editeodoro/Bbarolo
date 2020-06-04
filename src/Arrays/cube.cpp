@@ -166,7 +166,7 @@ void Cube<T>::checkBeam() {
         else bmaj = bmin = par.getBeamFWHM();   // Try BEAMFWHM (is already in deg)
         
         std::cout << "\n WARNING: Beam not available in the header: using a "
-                  << bmaj*3600. << "x" << bmin*3600. << " arcsec (BPA=" << bpa 
+                  << bmaj*3600. << "x" << bmin*3600. << " arcsec (BPA=" << bpa
                   << "). You can set the beam with BMAJ/BMIN/BPA or BeamFWHM params (in arcsec).\n\n";
         head.setBmaj(bmaj);
         head.setBmin(bmin);
@@ -1074,6 +1074,10 @@ Cube<T>* Cube<T>::extractCubelet(Detection<T> *obj, int edges, int *starts) {
         stops[i]  = objmax[i]+edges<axisDim[i] ? objmax[i]+edges : axisDim[i]-1;
         newdim[i] = stops[i]-starts[i]+1;
     }
+    // Always ten channels in spectral domain
+    starts[2] = objmin[2]-10>=0 ? objmin[2]-10 : 0;
+    stops[2]  = objmax[2]+10<axisDim[2] ? objmax[2]+10 : axisDim[2]-1;
+    newdim[2] = stops[2]-starts[2]+1;
 
     // Creating the sub-cube and copying data
     Cube<T> *clet = new Cube<T>(newdim);

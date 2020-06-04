@@ -30,6 +30,7 @@
 #include <Tasks/galfit.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/conv2D.hh>
+#include <Utilities/allocator.hpp>
 
 namespace Model {
 
@@ -135,7 +136,6 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     delete [] point;
     delete [] dels;
 
-
     T psum[ndim], x[ndim];
     T *y = new T[mpts];
 
@@ -184,11 +184,6 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
         }
 
         if (nfunc>=NMAX) {
-            std::cout <<"\n ========================== 3DFIT ERROR ==========================\n"
-                     << " Can not achieve convergence in this ring. I'll keep going on, but \n"
-                     << " parameters for this ring are wrong! Please, try to change initial \n"
-                     << " conditions and/or the function to minimize.\n"
-                     << " =================================================================\n\n";
             deallocate_2D(p,ndim+1);
             delete [] y;
             return false;
@@ -315,6 +310,11 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
                     if (zpar[np]>maxv) vrot[j]= maxv - fran()*par.DELTAVROT;
                     else if (zpar[np]<minv) vrot[j]= minv + fran()*par.DELTAVROT;
                     else vrot[j] = zpar[np];
+                    // Maximum rotation velocity inside the datacube
+                    //maxv = fabs(AlltoVel<T>(in->getZphys(in->DimZ()-1),in->Head())-vsys[j]);
+                    //minv = fabs(AlltoVel<T>(in->getZphys(0),in->Head())-vsys[j]);
+                    //double maxvrot = std::max(maxv*sin(inc[j]*M_PI/180.),minv*sin(inc[j]*M_PI/180.));
+                    //if (zpar[np]>maxvrot) vrot[j] = maxvrot-fran()*maxvrot;
                     zpar[np++] = vrot[j];
                 }
                 break;
@@ -468,11 +468,6 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
     if (out_of_boundaries) return FLT_MAX;
 */
 
-	/// Maximum rotation velocity inside the datacube
-    //T maxvrot_r = fabs(AlltoVel<T>(in->getZphys(in->DimZ()-1),in->Head().Cunit(2), in->Head().Freq0())-vsys);
-    //T maxvrot_l = fabs(AlltoVel<T>(in->getZphys(0),in->Head().Cunit(2),in->Head().Freq0())-vsys);
-    //T maxvrot   = std::max(maxvrot_r*sin(inc*M_PI/180.),maxvrot_l*sin(inc*M_PI/180.))+20;
-    //if (vrot>maxvrot && mpar[VROT]) vrot = zpar[VROT] = maxvrot;
 
     for (int i=0,j=0; i<dring->nr; i++) {
         j=i*global;
@@ -486,7 +481,7 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
         dring->ypos[i]	= ypos[j];
         dring->vsys[i]	= vsys[j];
         dring->vrad[i]	= vrad[j];
-	}
+    }
 
     return getFuncValue(dring,modsoFar);
 
@@ -870,8 +865,8 @@ void Galfit<T>::getModelSize(Rings<T> *dring, int *blo, int *bhi,int* bsize) {
     blo[1] = ypos-ydis;
     bhi[0] = xpos+xdis;
     bhi[1] = ypos+ydis;
-    if (blo[0]<0) blo[0] = 0;	
-    if (blo[1]<0) blo[1] = 0;	
+    if (blo[0]<0) blo[0] = 0;
+    if (blo[1]<0) blo[1] = 0;
     if (bhi[0]>in->DimX()) bhi[0] = in->DimX();	
     if (bhi[1]>in->DimY()) bhi[1] = in->DimY();
     bsize[0] = bhi[0]-blo[0];
@@ -883,7 +878,7 @@ template void Galfit<double>::getModelSize(Rings<double>*,int*,int*,int*);
 
 
 template <class T> 
-inline bool Galfit<T>::IsIn (int x, int y, int *blo, Rings<T> *dr, double &th) {
+bool Galfit<T>::IsIn (int x, int y, int *blo, Rings<T> *dr, double &th) {
 
     // This function verifies that we are inside the rings.
     // Return also the value of azimutal angle th of (x,y) coordinates.

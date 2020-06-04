@@ -22,16 +22,19 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
+#include <functional>
 #include <Arrays/cube.hh>
 #include <Map/detection.hh>
 #include <Tasks/galmod.hh>
 #include <Tasks/ringmodel.hh>
+#include <Tasks/moment.hh>
+#include <Tasks/ellprof.hh>
 #include <Utilities/paramguess.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/lsqfit.hh>
 #include <Utilities/gnuplot.hh>
-#include <Tasks/moment.hh>
-#include <Tasks/ellprof.hh>
+#include <Utilities/optimization.hh>
+
 
 
 template <class T>
@@ -120,7 +123,8 @@ void ParamGuess<T>::findRotationVelocity() {
     
     /// Rotation velocity is estimated from the W50 of spectrum of
     /// the object detected by the source-finding algorithm.
-    vrot=fabs(obj->getW50()/2.)/sin(inclin*M_PI/180.);  
+    vrot=fabs(obj->getW50()/2.);
+    if (inclin>40) vrot /= sin(inclin*M_PI/180.);
 }
 
 
@@ -168,8 +172,8 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
                     // Collecting the absolute difference from the VSYS
                     vdev.push_back(fabs(Vemap[npix]-vsystem));
                     // Getting info on which side we have the highest velocity
-                    if (p==90) {
-                        if (y>ycentre) sumleft += Vemap[npix]-vsystem;
+                    if (p<=90) {
+                        if (y<ycentre) sumleft += Vemap[npix]-vsystem;
                         else sumright += Vemap[npix]-vsystem;
                     }
                     else {
@@ -194,7 +198,7 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
                     else sumright += Vemap[npix]-vsystem;
                 }
             }
-            
+
             // Calculating the median deviation from VSYS
             T median = findMedian<T>(vdev, vdev.size());
             // If the median is so far the highest, assign best pa
@@ -207,7 +211,7 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
 
             p+=0.5;
         }
-    
+
         // Rotate the PA to conform to BBarolo's definition.
         if (vl<vr) {
             if (bestpa<90) posang = 270+bestpa;
@@ -330,14 +334,9 @@ void ParamGuess<T>::findInclination(int algorithm) {
         // Algorithm 3 minimizes the difference between a model intensity map
         // and the observed intensity map.
         
-        if (algorithm==2) func = &ParamGuess<T>::funcEllipse;
-        else func = &ParamGuess<T>::funcIncfromMap;
-        
-        int ndim=2; 
+        int ndim=2;
     
-        T point[ndim], dels[ndim];
-        T **p = allocate_2D<T>(ndim+1,ndim);
-        
+        std::vector<double> point(ndim), dels(ndim);
         point[0] = Rmax;
         point[1] = inclin;
         //point[2] = posang;
@@ -347,33 +346,35 @@ void ParamGuess<T>::findInclination(int algorithm) {
         // Determine the initial simplex.
         for (int i=0; i<ndim; i++) {
             dels[i]  = 0.1*point[i]; 
-            point[i] = point[i]-0.05*point[i];      
-        }
-    
-        for (int i=0; i<ndim+1; i++) {
-            for (int j=0; j<ndim; j++) p[i][j]=point[j];
-            if (i!=0) p[i][i-1] += dels[i-1];
+            point[i] = point[i]-0.05*point[i];
         }
 
-        bool OK = fitSimplex(ndim, p);
-        
-        if (OK) {
-            Rmax   = p[0][0];
-            inclin = p[0][1];
-            // I am adding a correction for rounding due to the beam
-            double Axmin = Rmax*cos(inclin/180.*M_PI);
-            double Axmin_corr = Axmin - in->Head().Bmaj()/in->Head().PixScale();
-            double Axmaj_corr = Rmax; //- in->Head().Bmaj()/in->Head().PixScale();
-            inclin = acos(Axmin_corr/Axmaj_corr)*180/M_PI;
-            //posang = parmin[2];
-            //xcentre= parmin[3];
-            //ycentre= parmin[4];
-            deallocate_2D(p,ndim+1);
+        // Deciding what function to pass to the optimizer, depending on chosen algorithm.
+        auto func2 = std::bind(funcEllipse<T>, std::placeholders::_1, in, posang, xcentre, ycentre, Vemap);
+        auto func3 = std::bind(funcIncfromMap<T>, std::placeholders::_1, in, radsep, Rmax, posang, xcentre, ycentre, vsystem, Intmap, totflux_obs);
+
+        NelderMead optimizer;
+
+        double *mymin;
+        try {
+            if (algorithm==3) mymin = optimizer.minimize(point,dels,func3);
+            else mymin = optimizer.minimize(point,dels,func2);
         }
-        else {
+        catch (...) {
             std::cerr << "PARAMGUESS ERROR: Error while estimating inclination." << std::endl;
             std::terminate();
         }
+
+        Rmax   = mymin[0];
+        inclin = mymin[1];
+        // I am adding a correction for rounding due to the beam
+        double Axmin = Rmax*cos(inclin/180.*M_PI);
+        double Axmin_corr = Axmin - in->Head().Bmaj()/in->Head().PixScale();
+        double Axmaj_corr = Rmax; //- in->Head().Bmaj()/in->Head().PixScale();
+        inclin = acos(Axmin_corr/Axmaj_corr)*180/M_PI;
+        //posang = mymin[2];
+        //xcentre= mymin[3];
+        //ycentre= mymin[4];
     }
     else {
         std::cerr << "PARAMGUESS ERROR: unknown algorithm value " << algorithm << std::endl;
@@ -387,7 +388,7 @@ template <class T>
 void ParamGuess<T>::findRings() {
 
     nrings = lround(Rmax/radsep);
-    if (nrings<10) {
+    if (nrings<20) {
         radsep /= 2.;
         nrings = lround(Rmax/radsep);
     }
@@ -417,7 +418,7 @@ T ParamGuess<T>::findAxisLength(float *lpar, int *coords_up, int *coords_low) {
             bool isOK = x>=Xmin && x<=Xmax && !isNaN<T>(Vemap[npix]);
             if (!isOK) continue;
             double r = sqrt(pow(double(x-xcentre),2.)+pow(double(y-ycentre),2.));
-            if (p==90) {    // Special case for PA=90
+            if (p-90<0.5) {    // Special case for PA=90
                 if (r>axis_r_l && y<=ycentre) {
                     axis_r_l = r;
                     coords_up[0] = x; coords_up[1] = y;
@@ -478,337 +479,6 @@ void ParamGuess<T>::setAxesLine(T xcen, T ycen, T pa, float *maj, float *min) {
 
 
 template <class T>
-bool ParamGuess<T>::fitSimplex(int ndim, T **p) {
-    
-    const int NMAX=5000;
-    const double TINY=1.0e-10;
-    const double tol =1.E-03;
-    
-    int mpts=ndim+1;    
-    T minimum;
-    
-    T psum[ndim], x[ndim];
-    T *y = new T[mpts];
-    
-    for (int i=0; i<mpts; i++) {
-        for (int j=0; j<ndim; j++) x[j]=p[i][j];
-        y[i]=(this->*func)(x); 
-    }
-    
-    int nfunc=0;
-    for (int j=0; j<ndim; j++) {
-        T sum=0.0;
-        for (int i=0; i<mpts; i++) sum += p[i][j];
-        psum[j]=sum;
-    }
-    
-    bool Ok = false;
-    for (;;) {
-        int ihi, inhi;
-        int ilo=0;
-        ihi = y[0]>y[1] ? (inhi=1,0) : (inhi=0,1);
-        for (int i=0; i<mpts; i++) {
-            if (y[i]<=y[ilo]) ilo=i;
-            if (y[i]>y[ihi]) {
-                inhi=ihi;
-                ihi=i;
-            } 
-            else if (y[i]>y[inhi] && i!=ihi) inhi=i;
-        }
-        
-        double rtol=2.0*fabs(y[ihi]-y[ilo])/(fabs(y[ihi])+fabs(y[ilo])+TINY);
-        
-        if (rtol<tol) {     
-            std::swap(y[0],y[ilo]);
-            for (int i=0; i<ndim; i++) {
-                std::swap(p[0][i],p[ilo][i]);
-            }
-            minimum=y[0];
-            delete [] y;
-            Ok = true;
-            break;
-        }
-        
-        if (nfunc>=NMAX) {
-            delete [] y;
-            Ok = false;
-            break;
-        }
-        nfunc += 2;
-        
-        double fac=-1.0;
-        double fac1=(1.0-fac)/ndim;
-        double fac2=fac1-fac;
-        T ptry[ndim];
-        for (int j=0; j<ndim; j++) ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
-        T ytry=(this->*func)(ptry);         
-        if (ytry<y[ihi]) {  
-            y[ihi]=ytry;
-            for (int j=0; j<ndim; j++) {
-                psum[j] += ptry[j]-p[ihi][j];
-                p[ihi][j]=ptry[j];
-            }
-        }
-        
-        
-        if (ytry<=y[ilo]) {
-            fac=2.0;
-            fac1=(1.0-fac)/ndim;
-            fac2=fac1-fac;
-            for (int j=0; j<ndim; j++) ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
-            ytry=(this->*func)(ptry);           
-            if (ytry<y[ihi]) {  
-                y[ihi]=ytry;
-                for (int j=0; j<ndim; j++) {
-                    psum[j] += ptry[j]-p[ihi][j];
-                    p[ihi][j]=ptry[j];
-                }
-            }
-        }   
-        else if (ytry>=y[inhi]) {
-            T ysave=y[ihi];
-            fac=0.5;
-            fac1=(1.0-fac)/ndim;
-            fac2=fac1-fac;
-            for (int j=0; j<ndim; j++) ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
-            ytry=(this->*func)(ptry);           
-            if (ytry<y[ihi]) {  
-                y[ihi]=ytry;
-                for (int j=0; j<ndim; j++) {
-                    psum[j] += ptry[j]-p[ihi][j];
-                    p[ihi][j]=ptry[j];
-                }
-            }
-            if (ytry>=ysave) {      
-                for (int i=0; i<mpts; i++) {
-                    if (i!=ilo) {
-                        for (int j=0; j<ndim; j++)
-                            p[i][j]=psum[j]=0.5*(p[i][j]+p[ilo][j]);
-                        y[i]=(this->*func)(psum);
-                    }
-                }
-                
-                nfunc += ndim;  
-                
-                for (int j=0;j<ndim;j++) {
-                    T sum=0.0;
-                    for (int i=0; i<mpts; i++) sum += p[i][j];
-                    psum[j]=sum;
-                }
-            }
-        } 
-        else --nfunc; 
-    }
-    
-    return Ok;
-}
-
-
-template <class T>
-T ParamGuess<T>::funcEllipse(T *mypar) {
-    
-    if (mypar[0]< 0) mypar[0]= fabs(mypar[0]);
-    if (mypar[1]>90) mypar[1]= 180 - mypar[1];
-
-    T R   = mypar[0]/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
-    T inc = mypar[1]*M_PI/180.;
-    T phi = posang*M_PI/180.;//mypar[2];
-    T x0  = xcentre;//mypar[3];
-    T y0  = ycentre;//mypar[4];
-
-
-    double func = 0;
-    for (int x=0; x<in->DimX(); x++) {
-        for (int y=0; y<in->DimY(); y++) {
-            T xr =  -(x-x0)*sin(phi)+(y-y0)*cos(phi);
-            T yr = (-(x-x0)*cos(phi)-(y-y0)*sin(phi))/cos(inc);
-            T r = sqrt(xr*xr+yr*yr);
-            bool isIn = r<=R;
-            if (!isIn) continue;
-            if (isNaN(Vemap[x+y*in->DimX()])) func++;
-            else func--;
-        }
-    }
-    
-    return func;
-
-}
-
-
-template <class T> 
-T ParamGuess<T>::funcIncfromMap(T *mypar) {
-        
-    /*
-        if (mypar[0]<0) mypar[0]=1;
-        if (mypar[0]>90) mypar[0]=89;
-        
-        T inc = mypar[0];
-                
-        Rings<T> *rings = new Rings<T>;     
-        rings->radsep=radsep;
-        rings->nr = int(Rmax/radsep);
-        
-        T *prof = new T[rings->nr];
-        int *counter = new int[rings->nr];
-
-        cout << mypar[0] << " " << radsep << " " << rings->nr << " " << xcentre << " "<< ycentre << " " << posang <<  endl;
-        
-        for (int i=0; i<rings->nr; i++) {
-            rings->radii.push_back(i*rings->radsep);
-            float r1 = rings->radii[i]/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
-            float r2 = (i+1)*rings->radsep/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
-            prof[i]=counter[i]=0.;
-        }
-
-        for (int x=0; x<in->DimX();x++) {
-            for (int y=0; y<in->DimY(); y++) {
-                float xr = -(x-xcentre)*sin(posang*M_PI/360.)+(y-ycentre)*cos(posang*M_PI/360.);
-                float yr = (-(x-xcentre)*cos(posang*M_PI/360.)-(y-ycentre)*sin(posang*M_PI/360.))/cos(inc*M_PI/360.);
-                float rad = sqrt(xr*xr+yr*yr);
-                for (int i=0; i<rings->nr; i++) {
-                    float r1 = rings->radii[i]/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
-                    float r2 = (i+1)*rings->radsep/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0)));
-                    if (rad>=r1 && rad<r2) {
-                        //cout << Intmap[x+y*in->DimX()] << endl;
-                        prof[i]+=fabs(Intmap[x+y*in->DimX()]);
-                        counter[i]++;
-                    }
-                }
-            }
-        }       
-
-        for (int i=0; i<rings->nr; i++) prof[i]/=float(counter[i]);
-        
-        float minval = *min_element(&prof[0],&prof[0]+rings->nr);
-        float mulfac = pow(10,-int(log10(minval)));
-
-        for (int i=0; i<rings->nr; i++) {
-            if (counter[i]!=0) {
-                cout << setprecision(10);
-                cout << prof[i] << " " << std::flush;
-                prof[i]*= mulfac;
-                cout << prof[i] << " " << counter[i] <<endl;
-            }
-            rings->vrot.push_back(AlltoVel(10*in->Head().Cdelt(2),in->Head()));
-            rings->vdisp.push_back(8);
-            rings->z0.push_back(0);
-            rings->dens.push_back(prof[i]*1E20);
-            rings->inc.push_back(inc);
-            rings->phi.push_back(posang);
-            rings->xpos.push_back(xcentre);
-            rings->ypos.push_back(ycentre);
-            rings->vsys.push_back(vsystem);
-        }
-
-        
-        Model::Galmod<T> *mod = new Model::Galmod<T>;
-
-        mod->input(in,rings,1);
-        mod->calculate();
-        mod->smooth();
-
-        delete rings;
-        delete [] prof;
-        
-        T *map_mod = new T[in->DimX()*in->DimY()];
-        
-        float totflux_mod=0;
-        for (int x=0; x<in->DimX(); x++){
-            for (int y=0; y<in->DimY(); y++){
-                map_mod[x+y*in->DimX()]=0;
-                for (int z=0; z<in->DimZ(); z++)
-                    map_mod[x+y*in->DimX()]+=mod->Out()->Array(x,y,z);
-                totflux_mod += map_mod[x+y*in->DimX()];
-            }           
-        }
-        
-                
-        float factor = totflux_obs/totflux_mod;
-
-        float res_sum=0;
-        for (int i=0; i<in->DimX()*in->DimY();i++) {
-            if (map_mod[i]!=0) res_sum += fabs(Intmap[i]-map_mod[i]*factor);    
-        }
-
-        return res_sum;
-        */
-
-    bool verbosity = in->pars().isVerbose();
-    in->pars().setVerbosity(false);
-
-    if (mypar[0]<0) mypar[0]=2*radsep;
-    if (mypar[0]>1.5*Rmax) mypar[0]=Rmax;
-    if (mypar[1]<0) mypar[1]=1;
-    if (mypar[1]>90) mypar[1]=89;
-    
-    T RMAX = mypar[0];
-    T inc  = mypar[1];
-
-    Rings<T> *rings = new Rings<T>;
-    rings->setRings(0,RMAX,radsep/2,xcentre,ycentre,vsystem,10*DeltaVel<T>(in->Head()),8,0,0,0,0,1E20,0,inc,posang);
-
-    MomentMap<T> *totalmap = new MomentMap<T>;
-    totalmap->input(in);
-    totalmap->SumMap(true);
-    for (int i=0; i<totalmap->NumPix();i++) totalmap->Array()[i] = Intmap[i];
-    Tasks::Ellprof<T> ell(totalmap,rings);
-    ell.RadialProfile();
-    delete totalmap;
-
-    double profmin=FLT_MAX;
-    for (int i=0; i<rings->nr; i++) {
-        double mean = ell.getMean(i);
-        if (!isNaN(mean) && profmin>mean && mean>0) profmin = mean;
-    }
-    float factor = 1;
-    while(profmin<0.1) {
-        profmin*=10;
-        factor *=10;
-    }
-    while (profmin>10) {
-        profmin /= 10;
-        factor /= 10;
-    }
-    for (int i=0; i<rings->nr; i++) {
-        rings->dens[i]=factor*fabs(ell.getMean(i))*1E20;
-        if (rings->dens[i]==0) rings->dens[i]=profmin*1E20;
-    }
-
-    Model::Galmod<T> *mod = new Model::Galmod<T>;
-    mod->input(in,rings);
-    mod->calculate();
-    mod->smooth();
-
-    delete rings;
-
-    T *map_mod = new T[in->DimX()*in->DimY()];
-
-    float totflux_mod=0;
-    for (int x=0; x<in->DimX(); x++){
-        for (int y=0; y<in->DimY(); y++){
-            map_mod[x+y*in->DimX()]=0;
-            for (int z=0; z<in->DimZ(); z++)
-                map_mod[x+y*in->DimX()]+=mod->Out()->Array(x,y,z);
-            totflux_mod += map_mod[x+y*in->DimX()];
-        }
-    }
-
-    factor = totflux_obs/totflux_mod;
-
-    float res_sum=0;
-    for (int i=0; i<in->DimX()*in->DimY();i++) {
-        res_sum += fabs(Intmap[i]-map_mod[i]*factor);
-    }
-
-    delete [] map_mod;
-
-    in->pars().setVerbosity(verbosity);
-
-    return res_sum;
-}
-
-
-template <class T>
 void ParamGuess<T>::tuneWithTiltedRing() {
 
     /// This function uses a 2D tilted-ring model to get better estimates of
@@ -820,8 +490,9 @@ void ParamGuess<T>::tuneWithTiltedRing() {
     // The tilted ring model will extend to Rmax - 2 pixels
     T rmax = Rmax/(in->Head().PixScale()*arcsconv(in->Head().Cunit(0))) - 2;
     // It uses a fixed ring width of 2 pixels
-    T rwidth = 2;
+    T rwidth = 1;
     int nr = rmax/rwidth;
+
     // Initializing rings
     T *radii = new T[nr];
     for (int i=0; i<nr; i++) radii[i] = 2+i*rwidth;
@@ -832,12 +503,21 @@ void ParamGuess<T>::tuneWithTiltedRing() {
     // Setting free parameters. Order is VSYS, VROT, VEXP, PA, INC, X0, Y0
     // Here I keeping Vsys and inc fixed and fit for the center and pa and vrot
     bool mpar[7] = {true,true,true,true,true,true,true};
-    mpar[VSYS] = false;
+    mpar[VSYS] = true;
     mpar[VEXP] = false;
     mpar[INC]  = false;
+
     tr.setoption(mpar,3,2,15.);
     // Fitting a tilted-ring model
     tr.ringfit(in->pars().getThreads(),false,false);
+    //tr.printfinal(std::cout,in->Head());
+    std::ofstream fileo(in->pars().getOutfolder()+in->Head().Name()+"_2drings.txt");
+    tr.printfinal(fileo,in->Head());
+
+    //tr.set(nr,radii,rwidth,tr.getVsysf(0),tr.getVrotf(0),0,tr.getPosaf(0),tr.getInclf(0),tr.getXposf(0),tr.getYposf(0));
+    //mpar[PA] = false;
+    //tr.setoption(mpar,3,2,15.);
+    //tr.ringfit(in->pars().getThreads(),false,false);
     //tr.printfinal(std::cout,in->Head());
 
     std::vector<T> xcen,ycen,vsys,posa,incl;
@@ -858,7 +538,7 @@ void ParamGuess<T>::tuneWithTiltedRing() {
 
     // Re-estimating inclination angle with the latest parameters
     findInclination(2);
-
+    findRotationVelocity();
     delete [] radii;
 }
 
@@ -948,6 +628,7 @@ int ParamGuess<T>::plotGuess(std::string outfile) {
         << minor_min[1]-ystart << "," << minor_max[1]-ystart << "] \n"
         << "vel, sp = np.genfromtxt('%s/spec.dat'%outdir,usecols=(0,1),unpack=True) \n"
         << "v20min, v20max = " << obj->getV20Min() << " , " << obj->getV20Max() << "\n"
+        << "v50min, v50max = " << obj->getV50Min() << " , " << obj->getV50Max() << "\n"
         << "v50min, v50max = " << obj->getV50Min() << " , " << obj->getV50Max() << "\n"
         << std::endl
         << "fig = plt.figure(figsize=(10,10)) \n"
@@ -1071,6 +752,115 @@ int ParamGuess<T>::plotGuess(std::string outfile) {
 
     return ret;
 }
+
+
+template <class T>
+double funcEllipse(std::vector<double> &mypar, Cube<T> *c, double pa, double xcen, double ycen, T* Vf) {
+
+    if (mypar[0]<0)  mypar[0]= fabs(mypar[0]);
+    if (mypar[1]>90) mypar[1]= 180 - mypar[1];
+
+    T R   = mypar[0]/(c->Head().PixScale()*arcsconv(c->Head().Cunit(0)));
+    T inc = mypar[1]*M_PI/180.;
+    pa   *= M_PI/180.;//mypar[2];
+    //T x0  = mypar[3];
+    //T y0  = mypar[4];
+
+    double func = 0;
+    for (int x=0; x<c->DimX(); x++) {
+        for (int y=0; y<c->DimY(); y++) {
+            T xr =  -(x-xcen)*sin(pa)+(y-ycen)*cos(pa);
+            T yr = (-(x-xcen)*cos(pa)-(y-ycen)*sin(pa))/cos(inc);
+            T r = sqrt(xr*xr+yr*yr);
+            bool isIn = r<=R;
+            if (!isIn) continue;
+            if (isNaN(Vf[x+y*c->DimX()])) func++;
+            else func--;
+        }
+    }
+    return func;
+}
+
+
+template <class T>
+double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, double Rmax,
+                      double pa, double xcen, double ycen, double vsys, T* Imap, double totflux) {
+
+
+    bool verbosity = c->pars().isVerbose();
+    c->pars().setVerbosity(false);
+
+    if (mypar[0]<0) mypar[0]=2*radsep;
+    if (mypar[0]>1.5*Rmax) mypar[0]=Rmax;
+    if (mypar[1]<0) mypar[1]=1;
+    if (mypar[1]>90) mypar[1]=89;
+
+    T RMAX = mypar[0];
+    T inc  = mypar[1];
+
+    Rings<T> *rings = new Rings<T>;
+    rings->setRings(0,RMAX,radsep/2,xcen,ycen,vsys,10*DeltaVel<T>(c->Head()),8,0,0,0,0,1E20,0,inc,pa);
+
+    MomentMap<T> *totalmap = new MomentMap<T>;
+    totalmap->input(c);
+    totalmap->SumMap(true);
+    for (int i=0; i<totalmap->NumPix();i++) totalmap->Array()[i] = Imap[i];
+    Tasks::Ellprof<T> ell(totalmap,rings);
+    ell.RadialProfile();
+    delete totalmap;
+
+    double profmin=FLT_MAX;
+    for (int i=0; i<rings->nr; i++) {
+        double mean = ell.getMean(i);
+        if (!isNaN(mean) && profmin>mean && mean>0) profmin = mean;
+    }
+    float factor = 1;
+    while(profmin<0.1) {
+        profmin*=10;
+        factor *=10;
+    }
+    while (profmin>10) {
+        profmin /= 10;
+        factor /= 10;
+    }
+    for (int i=0; i<rings->nr; i++) {
+        rings->dens[i]=factor*fabs(ell.getMean(i))*1E20;
+        if (rings->dens[i]==0) rings->dens[i]=profmin*1E20;
+    }
+
+    Model::Galmod<T> *mod = new Model::Galmod<T>;
+    mod->input(c,rings);
+    mod->calculate();
+    mod->smooth();
+
+    delete rings;
+
+    T *map_mod = new T[c->DimX()*c->DimY()];
+
+    float totflux_mod=0;
+    for (int x=0; x<c->DimX(); x++){
+        for (int y=0; y<c->DimY(); y++){
+            map_mod[x+y*c->DimX()]=0;
+            for (int z=0; z<c->DimZ(); z++)
+                map_mod[x+y*c->DimX()]+=mod->Out()->Array(x,y,z);
+            totflux_mod += map_mod[x+y*c->DimX()];
+        }
+    }
+
+    factor = totflux/totflux_mod;
+
+    float res_sum=0;
+    for (int i=0; i<c->DimX()*c->DimY();i++) {
+        res_sum += fabs(Imap[i]-map_mod[i]*factor);
+    }
+
+    delete [] map_mod;
+
+    c->pars().setVerbosity(verbosity);
+
+    return res_sum;
+}
+
 
 
 // Explicit instantiation of the class

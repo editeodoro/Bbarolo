@@ -87,15 +87,16 @@ private:
 
     void  setAxesLine(T xcen, T ycen, T pa, float *maj, float *min);
     T     findAxisLength(float *lpar, int *coords_up, int *coords_low);
-    T     funcEllipse(T *mypar);
-    T     funcIncfromMap(T *mypar);
-    bool  fitSimplex(int ndim, T **p);  
+    bool  fitSimplex(int ndim, double **p);
     
-    typedef T (ParamGuess<T>::*funcPtr) (T *);
-    funcPtr func = &ParamGuess<T>::funcEllipse;
 };
 
+// Function to minimize to find inclination with algorithm 2
+template <class T>
+double funcEllipse(std::vector<double> &mypar, Cube<T> *c, double pa, double xcen, double ycen, T* Vf);
 
-
-
+// Function to minimize to find inclination with algorithm 3
+template <class T>
+double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, double Rmax,
+                      double pa, double xcen, double ycen, double vsys, T* Imap, double totflux);
 #endif

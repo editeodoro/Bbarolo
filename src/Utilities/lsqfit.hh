@@ -36,8 +36,9 @@ public:
     
     ~Lsqfit ();
     
-    void hold(const int i, const T val) {mpar[i]=false; fpar[i]=val;};      /// Hold a parameter fixed
-    void free(const int i) {mpar[i]=true;};                                 /// Release a fixed parameter
+    double getChi(){return chi;}
+    void hold(const int i, const T val) {mpar[i]=false; fpar[i]=val;}      /// Hold a parameter fixed
+    void free(const int i) {mpar[i]=true;}                                 /// Release a fixed parameter
 
     int fit ();                                 /// Make the fit.
     int getvec ();                              /// Get correction vector.
@@ -46,7 +47,6 @@ public:
 
 
 private:
-
     T       *xdat;                  ///< X values.
     int      xdim;                  ///< How many dimensions for X?
     T       *ydat;                  ///< Y values.
@@ -72,6 +72,50 @@ private:
     void    (*derv)(T *c, T *p, T *d, int numpar);      ///< Parameters derivatives.
     
 };
+
+
+// Some fitting functions
+template <class T>
+T coreExp (T *c, T *p, int npar) {
+    return p[0]*(p[1]+1)/(p[1]+exp(c[0]/p[2]));
+}
+
+
+template <class T>
+void coreExpd (T *c, T *p, T *d, int npar) {
+    T expn = exp(c[0]/p[2]);
+    T denm = p[1]+expn;
+    d[0] = (p[1]+1)/denm;
+    d[1] = p[0]*(expn-1)/(denm*denm);
+    d[2] = p[0]*c[0]*(p[1]+1)*expn/(p[2]*p[2]*denm*denm);
+}
+
+
+template <class T>
+T polyn (T *c, T *p, int npar) {
+    T value=0;
+    for (int i=0; i<npar; i++) value += p[i]*std::pow(double(c[0]),double(i));
+    return value;
+}
+
+
+template <class T>
+void polynd (T *c, T *p, T *d, int npar) {
+    for (int i=0; i<npar; i++) d[i]=std::pow(double(c[0]),double(i));
+}
+
+
+template <class T>
+void fpolyn (T x, T *p, int npar, T &y, T *dydp) {
+
+    T value=0;
+    for (int i=0; i<npar; i++) {
+        value += p[i]*std::pow(double(x),double(i));
+        dydp[i]=std::pow(double(x),double(i));
+    }
+    y = value;
+}
+
 
 #include "lsqfit.cpp"
 
