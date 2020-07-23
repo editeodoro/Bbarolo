@@ -76,6 +76,7 @@ void Param::defaultValues() {
     imageFile           = "";
     imageList           = "NONE";
     outFolder           = "";
+    logFile             = false;
     verbose             = true;
     showbar             = true;
     plots               = true;
@@ -84,7 +85,7 @@ void Param::defaultValues() {
     flagRobustStats     = true;
 
     makeMask            = false;
-    MaskType            = "SMOOTH";
+    MaskType            = "SEARCH";
     
     globprof            = false;
     massdensmap         = false;
@@ -134,6 +135,7 @@ void Param::defaultValues() {
     flagEllProf         = false;
 
     debug               = false;    
+    AUTO                = false;
     threads             = 1;
 #ifdef _OPENMP
     threads = std::thread::hardware_concurrency();
@@ -156,6 +158,7 @@ Param& Param::operator= (const Param& p) {
     for (unsigned int i=0; i<images.size(); i++) 
         this->images[i]     = p.images[i];
     this->outFolder         = p.outFolder;
+    this->logFile           = p.logFile;
     this->beamFWHM          = p.beamFWHM;
     this->checkChannels     = p.checkChannels;
     this->verbose           = p.verbose; 
@@ -192,9 +195,9 @@ Param& Param::operator= (const Param& p) {
         this->P2p[i]        = p.P2p[i];
     }   
         
-    this->flagSmooth            = p.flagSmooth;
+    this->flagSmooth        = p.flagSmooth;
     this->flagFFT           = p.flagFFT;
-    this->bmaj              = p.bmaj;                       
+    this->bmaj              = p.bmaj;
     this->bmin              = p.bmin;
     this->bpa               = p.bpa;
     this->obmaj             = p.obmaj;
@@ -222,6 +225,7 @@ Param& Param::operator= (const Param& p) {
     
     this->threads           = p.threads;
     this->debug             = p.debug;
+    this->AUTO              = p.debug;
 
     return *this;
 }
@@ -283,7 +287,7 @@ bool Param::getopts(int argc, char **argv) {
             case 'f':                    // Fits file provided
                 file = optarg;
                 imageFile = file;
-                parGF.flagGALFIT=true;
+                AUTO = true;
                 returnValue = true;
                 break;
                 
@@ -421,13 +425,15 @@ void Param::setParam(string &parstr) {
     if(arg=="fitslist")         imageList = readFilename(ss);
     if(arg=="verbose")          verbose   = readFlag(ss);
     if(arg=="outfolder")        outFolder = readFilename(ss);
+    if(arg=="logfile")          logFile   = readFlag(ss);
     if(arg=="threads")          threads   = readval<int>(ss);
     if(arg=="debug")            debug     = readFlag(ss);
     if(arg=="showbar")          showbar   = readFlag(ss);
     if(arg=="plots")            plots     = readFlag(ss);
     if(arg=="beamfwhm")         beamFWHM  = readval<float>(ss);
     if(arg=="checkchannels")    checkChannels = readFlag(ss);
-    
+    if(arg=="auto")             AUTO = readFlag(ss);
+
     if(arg=="makemask")         makeMask  = readFlag(ss);
     if(arg=="mask")             MaskType  = readFilename(ss);
     
@@ -504,7 +510,8 @@ void Param::setParam(string &parstr) {
     if(arg=="restfreq")  parGM.RESTFREQ = parGF.RESTFREQ           = readVec<double>(ss);
     if(arg=="relint")    parGM.RELINT = parGF.RELINT               = readVec<double>(ss);
     if(arg=="noiserms")  parGM.NOISERMS = parGF.NOISERMS           = readval<double>(ss);
-    
+    if(arg=="ringfile")  parGM.ringfile = parGF.ringfile           = readFilename(ss);
+
     // 3DFIT ONLY PARAMETERS
     if(arg=="deltainc")  parGF.DELTAINC   = readval<float>(ss);
     if(arg=="deltapa")   parGF.DELTAPHI   = readval<float>(ss);
@@ -514,7 +521,7 @@ void Param::setParam(string &parstr) {
     if(arg=="wfunc")     parGF.WFUNC      = readval<int>(ss);
     if(arg=="tol")       parGF.TOL        = readval<double>(ss);
     if(arg=="free")      parGF.FREE       = readFilename(ss);
-    if(arg=="side")      parGF.SIDE       = readFilename(ss);
+    if(arg=="side")      parGF.SIDE       = makeupper(readFilename(ss));
     if(arg=="bweight")   parGF.BWEIGHT    = readval<int>(ss);
     if(arg=="twostage")  parGF.TWOSTAGE   = readFlag(ss);
     if(arg=="flagerrors")parGF.flagERRORS = readFlag(ss);
@@ -525,8 +532,9 @@ void Param::setParam(string &parstr) {
     if(arg=="distance")  parGF.DISTANCE   = readval<float>(ss);
     if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
     if(arg=="plotmask")  parGF.PLOTMASK   = readFlag(ss);
-    if(arg=="cumulative")parGF.CUMULATIVE = readFlag(ss);
+    if(arg=="reverse")   parGF.REVERSE    = makelower(readFilename(ss));
     if(arg=="normalcube")parGF.NORMALCUBE = readFlag(ss);
+
 
     // GALWIND ONLY PARAMETERS
     if(arg=="htot")      parGW.HTOT       = readval<float>(ss);
@@ -672,7 +680,7 @@ bool Param::checkPars() {
             parGM.flagGALMOD = false;
         }
 
-        if (parGM.flagGALMOD) {
+        if (parGM.flagGALMOD && parGM.ringfile.empty()) {
             if (parGF.NRADII==-1 && parGF.RADII=="-1")  {
                 cout << "3DFIT error: NRADII or RADII" << str << std::endl;
                 good = false;
@@ -826,6 +834,14 @@ bool Param::checkPars() {
         if (parGF.RESTFREQ[0]!=-1 && parGF.RELINT.size()!=parGF.RESTFREQ.size()) {
             std::cerr << "3DFIT ERROR: RESTFREQ and RELINT must have same size.";
             good = false;
+        }
+
+        if (parGF.REVERSE.find("auto")==std::string::npos &&
+            parGF.REVERSE.find("true")==std::string::npos &&
+            parGF.REVERSE.find("false")==std::string::npos){
+                std::cerr <<  parGF.REVERSE << std::endl;
+                std::cerr << "3DFIT ERROR: accepted values for REVERSE are 'true', 'false' or 'auto'. Setting it to 'auto'.";
+                parGF.REVERSE = "auto";
         }
     }
     
@@ -1103,6 +1119,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     recordParam(Str, "[VERBOSE]", "Printing output messages?", stringize(p.isVerbose()));
     if (p.getOutfolder()!="" || defaults)
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
+    recordParam(Str, "[LOGFILE]", "Redirect output messages to a file?", stringize(p.getLogFile()));
     recordParam(Str, "[flagRobustStats]", "Using Robust statistics?", stringize(p.getFlagRobustStats()));
     if (p.getFlagDebug()) recordParam(Str, "[DEBUG]", "Debugging mode?", stringize(p.getFlagDebug()));
 
@@ -1231,7 +1248,9 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
             for (unsigned i=0; i<p.getParGF().RELINT.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RELINT[i],2) + " ";
             recordParam(Str, "[RELINT]", "   Relative intensities of lines?", rstr);
         }
-        
+
+        recordParam(Str, "[RINGFILE]", "   A BB output file with rings", p.getParGF().ringfile);
+
         if (defaults) {
             recordParam(Str, "[RADII]", "   Radii for rings", p.getParGF().RADII);
             recordParam(Str, "[NRADII]", "   Number of radii", p.getParGF().NRADII);
@@ -1300,11 +1319,12 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         
             recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));
             recordParam(Str, "[PLOTMASK]", "   Overlaying mask to output plots?", stringize(p.getParGF().PLOTMASK));
-            recordParam(Str, "[CUMULATIVE]", "   Using cumulative rings during the fit?", stringize(p.getParGF().CUMULATIVE));
+            recordParam(Str, "[REVERSE]", "   Using reverse-cumulative fitting?", p.getParGF().REVERSE);
             recordParam(Str, "[NORMALCUBE]", "   Normalizing cube to help convergence?", stringize(p.getParGF().NORMALCUBE));
+
         }
 
-        recordParam(Str, "[NOISERMS]", "   RMS noise to add to the model", stringize(p.getParGF().NOISERMS));
+        recordParam(Str, "[NOISERMS]", "   RMS noise to add to the model", p.getParGF().NOISERMS);
     
         // PARAMETERS FOR SPACEPAR
 

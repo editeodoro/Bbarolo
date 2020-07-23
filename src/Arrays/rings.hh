@@ -79,8 +79,8 @@ public:
     std::vector<T> pa;
     int id;                     // ID of the ring (for 3dFIT)
     
-    Rings() {nr=radsep=0;};
-    ~Rings() {ClearAll();};
+    Rings() {nr=radsep=0;}
+    ~Rings() {ClearAll();}
     
     void ClearAll () {
         xpos.clear(); ypos.clear(); vsys.clear(); radii.clear(); vrot.clear(); vdisp.clear();
@@ -147,6 +147,27 @@ public:
     }
 
     
+    void deleteRing(int nring) {
+
+        this->radii.erase(this->radii.begin()+nring);
+        this->xpos.erase(this->xpos.begin()+nring);
+        this->ypos.erase(this->ypos.begin()+nring);
+        this->vsys.erase(this->vsys.begin()+nring);
+        this->vrot.erase(this->vrot.begin()+nring);
+        this->vdisp.erase(this->vdisp.begin()+nring);
+        this->vrad.erase(this->vrad.begin()+nring);
+        this->vvert.erase(this->vvert.begin()+nring);
+        this->dvdz.erase(this->dvdz.begin()+nring);
+        this->zcyl.erase(this->zcyl.begin()+nring);
+        this->dens.erase(this->dens.begin()+nring);
+        this->z0.erase(this->z0.begin()+nring);
+        this->inc.erase(this->inc.begin()+nring);
+        this->phi.erase(this->phi.begin()+nring);
+        this->pa.erase(this->pa.begin()+nring);
+
+        this->nr = this->radii.size();
+    }
+
     void printRing(int nring, ostream& theStream = cout) {
         
         int m=8, n=11;

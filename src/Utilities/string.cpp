@@ -283,12 +283,13 @@ std::string randomAdjective (int type) {
     std::vector<std::string> good = {
         "trustful","awesome","stunning","creative","flabbergasting","fabulous","gorgeous",
         "unbelievable","extraordinary","breathtaking","astonishing","stonking","brilliant",
-        "marvelous","ungodly","incredible","wondrous","magnificent","glorious","splendiferous",
+        "marvellous","ungodly","incredible","wondrous","magnificent","glorious","splendiferous",
         "wonderful","phantasmagoric","phenomenal","excellent","exceptional","refulgent",
         "ambitious","exuberant","frank","witty","amiable","fearless","honest","ineffable",
         "arcadian","didactic","efficacious","judicious","propitious","sagacious",
         "zealous","flamboyant","sincere","exuberant","charming","communicative","enthusiastic",
-        "pioneering","astonishing","enlightnening","edifying","illuminating","homiletic"
+        "pioneering","astonishing","enlightening","edifying","illuminating","homiletic","indescribable",
+        "bucolic","dazzling","thrilling","superior","outstanding","empyrean","sublime","breezy"
     }; 
     
     std::vector<std::string> bad = {
@@ -299,7 +300,7 @@ std::string randomAdjective (int type) {
         "preposterous","brazen","aberrant","abortive","barbarous","bilious","brash","capricious",
         "ridiculous","pointless","ludicrous","impudent","acrimonious","outmoded","inelegant","frowzy",
         "egregious","discourteous","malapert","scornful","bamboozled","disastrous","ruinous","woeful",
-        "deplorable","grevious","flagitious","deleterious","detrimental","insalubrious"
+        "deplorable","grievous","flagitious","deleterious","detrimental","insalubrious"
     };
     
 

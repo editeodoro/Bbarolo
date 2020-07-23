@@ -782,6 +782,7 @@ void Galmod<T>::galmod() {
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
         bar.update(ir+1);
+        if (r->dens[ir]==0) continue;
 //      Get radius
         double rtmp = r->radii[ir];
 //      Get number of clouds inside ring.

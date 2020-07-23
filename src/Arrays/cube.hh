@@ -84,7 +84,7 @@ public:
     void    printStats() {std::cout << stats << std::endl;}
     Stats<T>  getStats(){ return stats;}
     Stats<T>& stat(){Stats<T> &rstats = stats; return rstats;}
-    void    saveStats(Stats<T> newStats){stats = newStats;}
+    void    saveStats(Stats<T> newStats){stats = newStats; statsDefined=true;}
     bool    StatsDef () {return statsDefined;}
     int     getopts(int argc, char **argv){return par.getopts(argc,argv);}
     Param   getParam(){return par;}
@@ -94,7 +94,9 @@ public:
     long    getNumObj(){return sources->getNumObj();}
     Detection<T>* pObject(long n){return sources->pObject(n);}
     Search<T>* getSources () {return sources;}
-    bool getIsSearched () {return isSearched;}
+    bool    getIsSearched () {return isSearched;}
+    void    saveSources (Search<T> &s) {if (isSearched) delete sources; sources = new Search<T>(s); isSearched=true;}
+
 
 
     /// Functions for Fitsfile I/O:
@@ -118,6 +120,7 @@ public:
     void    writeCubelets();
     void    writeDetections();
     int     plotDetections();
+
 
 
 

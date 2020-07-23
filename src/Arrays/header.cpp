@@ -35,6 +35,7 @@
 #include <wcslib/wcshdr.h>
 #include <wcslib/wcsfix.h>
 #include <Arrays/header.hh>
+#include <Utilities/utils.hh>
 
 Header::Header () {
     
@@ -303,7 +304,7 @@ bool Header::header_read (std::string fname) {
         if (numAxes>0) cunit[0] = "DEGREE";
         if (numAxes>1) cunit[1] = "DEGREE";
         if (numAxes>2) {
-            if (ctype[2]=="FREQ" || ctype[2]=="freq" || ctype[2]=="Freq") {
+            if (makelower(ctype[2]).find("freq")!=std::string::npos) {
                 cunit[2] = "HZ";
                 Warning("HEADER WARNING: CUNITs keywords not found. Assuming [DEGREE,DEGREE,HZ]");
             }
@@ -512,7 +513,7 @@ bool Header::header_read (std::string fname) {
                 bpa = strtod(pEnd,NULL);
             }
         }
-        if (bmaj!=0 && bmin!=0) {
+        if (bmaj!=0 && bmin!=0 && warning) {
             std::cout << std::setprecision(5);
             std::cout << "\n--------> WARNING: beam information found in HISTORY keywords: <--------\n"
                       << " BMAJ = " << bmaj << " " << cunit[0]

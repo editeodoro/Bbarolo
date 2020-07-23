@@ -125,7 +125,7 @@ public:
     void   RadialProfile ();
     void   printProfile (ostream& theStream=std::cout, int seg=0);
     void   writeMap (std::string fname) {im->fitswrite_2d(fname.c_str());}
-    
+
 
     // Inline functions to access class members.
     size_t getNrad () {return Nrad;}

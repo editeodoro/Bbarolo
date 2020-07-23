@@ -63,8 +63,7 @@ TASKDIR = $(BASE)/Tasks
 PYBBDIR = $(BASE)/../pyBBarolo
 OBJDIR = $(BASE)/Build
 
-HEADS = $(BASE)/bbarolo.hh\
-	$(ARRAYDIR)/param.hh\
+HEADS = $(ARRAYDIR)/param.hh\
 	$(ARRAYDIR)/header.hh\
 	$(ARRAYDIR)/cube.hh\
 	$(ARRAYDIR)/image.hh\

@@ -46,7 +46,7 @@ public:
     // 2) Give an object Cube with parameters recorded in c->pars()
     // 3) Give an object Cube + Rings + a GALWIND_PAR structure
     // 4) Give all paramaters separately
-    Galfit() {defaults();}
+    Galfit() {}
     Galfit(Cube<T> *c);
     Galfit(Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {setup(c,inrings,p);}
     Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC=5, float DELTAPHI=15,
@@ -84,48 +84,51 @@ public:
     template <class Type> friend class Galmod;
 
 protected:
-    Cube<T>  *in;               //< A pointer to the input cube.
-    Rings<T> *inr;              //< A pointer to the initial rings.
-    Rings<T> *outr;             //< Output rings.
-    bool     inDefined;         //< Wheter inr have been defined inside Galfit.
-    bool     outDefined;        //< Whether the output rings have been defined.
-    bool     *mpar;             //< Mask for parameters to be used.
-    bool     *mask;             //< Mask for areas to be used for chi2 calculation.
-    double   arcconv;           //< Conversion factor to arcsec.
-    int      nfree;             //< Number of free parameters.
-    float    distance;          //< Distance of the galaxy in Mpc.  
-    T        *maxs;             //< Maximum values allowed for parameters.
-    T        *mins;             //< Minimum values allowed for parameters.
-    double   *cfield;           //< Convolution field.  
-    bool     cfieldAllocated;
-    int      NconX;             //< Convolution field X-dimension.
-    int      NconY;             //< Convolution field Y-dimensione 
-    int      wpow;              //< Weighing function power.
-    bool     second;
-    bool     verb;
-    Cube<T>  *line_im;          //< Line Image;
-    bool     line_imDefined;
-    float    *chan_noise;        //< Noise in each channel map.
-    bool     chan_noiseAllocated;
-    bool     global;             //< Whether to fit all parameters at once.
+    GALFIT_PAR par;                         //< Container for GALFIT parameters
+    Cube<T>  *in;                           //< A pointer to the input cube.
+    Rings<T> *inr;                          //< A pointer to the initial rings.
+    Rings<T> *outr;                         //< Output rings.
+    bool     inDefined = false;             //< Wheter inr have been defined inside Galfit.
+    bool     outDefined = false;            //< Whether the output rings have been defined.
+    bool     mpar[MAXPAR];                  //< Mask for parameters to be used.
+    bool     *mask;                         //< Mask for areas to be used for chi2 calculation.
+    bool     *mask2D = nullptr;             //< Mask for derived maps.
+    double   arcconv;                       //< Conversion factor to arcsec.
+    int      nfree;                         //< Number of free parameters.
+    float    distance;                      //< Distance of the galaxy in Mpc.
+    T        maxs[MAXPAR];                  //< Maximum values allowed for parameters.
+    T        mins[MAXPAR];                  //< Minimum values allowed for parameters.
+    double   *cfield;                       //< Convolution field.
+    bool     cfieldAllocated = false;
+    int      NconX;                         //< Convolution field X-dimension.
+    int      NconY;                         //< Convolution field Y-dimensione
+    int      wpow = 1;                      //< Weighing function power.
+    bool     second = false;
+    Cube<T>  *line_im;                      //< Line Image;
+    bool     line_imDefined = false;
+    float    *chan_noise;                   //< Noise in each channel map.
+    bool     chan_noiseAllocated = false;
+    bool     global = false;                //< Whether to fit all parameters at once.
+    bool     reverse = false;               //< Using reverse cumulative fitting
+    bool     verb = true;
 
-    GALFIT_PAR par;             // Container for GALFIT parameters
 
     /// Pointer to the function to be minimized (3d or 2d slit)
     typedef double (Galfit<T>::*funcPtr) (Rings<T> *, T *, int*, int*);
-    funcPtr func_norm;
+    funcPtr func_norm = &Model::Galfit<T>::norm_local;
     
-    void defaults ();
     bool setCfield ();
     void setFree();
+    void fit_straight(T ***errors, bool *fitok, ostream &fout);
+    void fit_reverse(T ***errors, bool *fitok, ostream &fout);
     bool regularizeParams(std::vector<T> x, std::vector<T> y, std::vector<T> &yout, int rtype);
 
 
     /// Functions defined in galfit_min.cpp
-    bool   minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoFar=NULL);
-    T      mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar=NULL);
-    T      func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar=NULL);
-    T      getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar=NULL);
+    bool   minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoFar=nullptr);
+    T      mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar=nullptr);
+    T      func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar=nullptr);
+    T      getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar=nullptr);
     void   Convolve(T *array, int *bsize);
     void   Convolve_fft(T *array, int *bsize);
     double norm_local(Rings<T> *dring, T *array, int *bhi, int *blo);
@@ -136,7 +139,7 @@ protected:
     double slitfunc  (Rings<T> *dring, T *array, int *bhi, int *blo);
     bool IsIn (int x, int y, int *blo, Rings<T> *dr, double &th);
     inline bool getSide (double theta);
-    inline double getFuncValue(T obs, T mod, double weight, double noise_weight);
+    inline double getResValue(T obs, T mod, double weight, double noise_weight);
     std::vector<Pixel<T> >* getRingRegion (Rings<T> *dring, int *bhi, int *blo);
 
     /// Functions defined in galfit_out.cpp
@@ -154,6 +157,15 @@ protected:
 
 };
 
+
+/// Some function to conveniently write Galfit rings
+void writeHeader(std::ostream &fout, bool *mpar, bool writeErrors);
+template <class T>
+void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, bool writeErrors, T ***errors);
+template <class T>
+void printRing(std::ostream &fout, Rings<T> *r, int i, double minimum, double toKpc, bool *mpar, int nthreads);
+
+void WarningMessage(std::ostream &fout, std::string msg);
 }
 
 #endif

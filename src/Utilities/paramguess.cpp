@@ -58,7 +58,7 @@ ParamGuess<T>::ParamGuess(Cube<T> *c, Detection<T> *object) {
         int x = vox.getX();
         int y = vox.getY();
         int z = vox.getZ();
-        float flux = FluxtoJy(in->Array(x,y,z),in->Head());
+        float flux = in->Array(x,y,z);
         fluxsum[x+y*in->DimX()] += flux;
         fluxint[x+y*in->DimX()] += flux*in->getZphys(z);
         Intmap[x+y*in->DimX()] += flux;
@@ -367,11 +367,22 @@ void ParamGuess<T>::findInclination(int algorithm) {
 
         Rmax   = mymin[0];
         inclin = mymin[1];
+
         // I am adding a correction for rounding due to the beam
         double Axmin = Rmax*cos(inclin/180.*M_PI);
-        double Axmin_corr = Axmin - in->Head().Bmaj()/in->Head().PixScale();
-        double Axmaj_corr = Rmax; //- in->Head().Bmaj()/in->Head().PixScale();
-        inclin = acos(Axmin_corr/Axmaj_corr)*180/M_PI;
+        double Axmin_corr = Axmin - in->Head().Bmaj()*3600.;
+        double Axmaj_corr = Rmax - in->Head().Bmaj()*3600.;
+        if (inclin<75) {
+            bool isok = Axmin_corr/(in->Head().Bmaj()*3600.) > 1;
+            if (Axmin_corr>0 && Axmaj_corr>0 && isok)
+                inclin = acos(Axmin_corr/Axmaj_corr)*180/M_PI;
+        }
+        else {
+            bool isok = Axmin_corr/(in->Head().Bmaj()*3600.) > 1 &&  Axmaj_corr/(in->Head().Bmaj()*3600.) > 9;
+            if (isok) inclin = acos(Axmin_corr/Axmaj_corr)*180/M_PI;
+        }
+
+        if (2*Axmin<in->Head().Bmaj()*3600.) inclin = 80;
         //posang = mymin[2];
         //xcentre= mymin[3];
         //ycentre= mymin[4];
@@ -381,6 +392,8 @@ void ParamGuess<T>::findInclination(int algorithm) {
         std::terminate();
     }
     
+    if (inclin<10) inclin=25;
+
 }
 
 
@@ -392,6 +405,7 @@ void ParamGuess<T>::findRings() {
         radsep /= 2.;
         nrings = lround(Rmax/radsep);
     }
+    if (nrings>4) nrings -= 1;
 }
 
 
@@ -492,6 +506,7 @@ void ParamGuess<T>::tuneWithTiltedRing() {
     // It uses a fixed ring width of 2 pixels
     T rwidth = 1;
     int nr = rmax/rwidth;
+    if (nr<4) return;
 
     // Initializing rings
     T *radii = new T[nr];
@@ -591,7 +606,8 @@ int ParamGuess<T>::plotGuess(std::string outfile) {
     float minvel = *min_element(&vec[0], &vec[0]+vec.size());
 
     double pix[3] = {xcentre, ycentre, 0}, world[3];
-    pixToWCSSingle(in->Head().WCS(),pix,world);
+    if (pixToWCSSingle(in->Head().WCS(),pix,world)) world[0]=world[1]=0;
+
 
 #ifdef HAVE_PYTHON
     setAxesLine(xcentre-xstart,ycentre-ystart,posang,maj,min);
@@ -628,7 +644,6 @@ int ParamGuess<T>::plotGuess(std::string outfile) {
         << minor_min[1]-ystart << "," << minor_max[1]-ystart << "] \n"
         << "vel, sp = np.genfromtxt('%s/spec.dat'%outdir,usecols=(0,1),unpack=True) \n"
         << "v20min, v20max = " << obj->getV20Min() << " , " << obj->getV20Max() << "\n"
-        << "v50min, v50max = " << obj->getV50Min() << " , " << obj->getV50Max() << "\n"
         << "v50min, v50max = " << obj->getV50Min() << " , " << obj->getV50Max() << "\n"
         << std::endl
         << "fig = plt.figure(figsize=(10,10)) \n"
@@ -799,7 +814,7 @@ double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, dou
     T inc  = mypar[1];
 
     Rings<T> *rings = new Rings<T>;
-    rings->setRings(0,RMAX,radsep/2,xcen,ycen,vsys,10*DeltaVel<T>(c->Head()),8,0,0,0,0,1E20,0,inc,pa);
+    rings->setRings(0,RMAX,radsep,xcen,ycen,vsys,10*DeltaVel<T>(c->Head()),8,0,0,0,0,1E20,0,inc,pa);
 
     MomentMap<T> *totalmap = new MomentMap<T>;
     totalmap->input(c);

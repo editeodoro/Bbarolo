@@ -58,6 +58,7 @@ struct GALMOD_PAR {
     vector<double> RELINT   = {1}; ///< Relative intensities of lines.
     bool   SM         = true;   /// If false, disable smoothing.
     double NOISERMS   = 0;      /// RMS noise to be added to the cube.
+    string ringfile;            /// A BBarolo output ring file.
 };
 
 // Container for input parameters for GALFIT (fit a 3D galaxy model)
@@ -81,7 +82,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
     bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.
     bool   PLOTMASK   = false;    ///< Whether to show the mask in output plots
-    bool   CUMULATIVE = false;    ///< Whether to show the mask in output plots
+    string REVERSE    = "auto";   ///< Whether to use a reverse cumulative fitting.
     bool   NORMALCUBE = true;     ///< Whether to normalize the input flux values.
     
 };
@@ -107,7 +108,7 @@ struct GALWIND_PAR : GALMOD_PAR {
 struct SEARCH_PAR {
     bool   flagSearch        = false;     ///< Should search for sources in cube?
     string searchType        = "spatial"; ///< "Spectral" or "Spatial" search?
-    float  snrCut            = 4;         ///< Signal to Noise for detection when sigma-clipping.
+    float  snrCut            = 4.0;       ///< Signal to Noise for detection when sigma-clipping.
     float  threshold         = 0;         ///< What the threshold is (when sigma-clipping).
     bool   UserThreshold     = false;     ///< Whether the user has defined a threshold of their own.
     bool   flagAdjacent      = true;      ///< Use the adjacent criterion for objects merger?
@@ -121,11 +122,11 @@ struct SEARCH_PAR {
     int    maxChannels       = -1;        ///< Maximum channels to accept an object.
     float  maxAngSize        = -1;        ///< Maximum angular size in the object in arcmin.
     bool   flagGrowth        = true;      ///< Are we growing objects once they are found?
-    float  growthCut         = 2.5;       ///< The SNR that we are growing objects down to.
+    float  growthCut         = 3.0;       ///< The SNR that we are growing objects down to.
     bool   flagUserGrowthT   = false;     ///< Whether the user has manually defined a threshold
     float  growthThreshold   = 0;         ///< The threshold for growing objects down to
     bool   cubelets          = false;     ///< If true, produce a sub-cube of each detection.
-    int    edges             = 10;        ///< Number of pixels at the edges of a cubelet.
+    int    edges             = 20;        ///< Number of pixels at the edges of a cubelet.
 
 };
 
@@ -150,14 +151,17 @@ public:
     void    setImage (std::string fname) {images.push_back(fname);}
     string  getOutfolder () {return outFolder;}
     void    setOutfolder (std::string s) {if (s!="" && s[s.size()-1]!='/') s.append("/"); outFolder=s;}
+    bool    getLogFile () {return logFile;}
     bool    isVerbose () {return verbose;}
     void    setVerbosity (bool f) {verbose=f;}
     bool    getShowbar () {return showbar;}
+    void    setShowbar (bool s) {showbar = s;}
     int     getThreads () {return threads;}
     void    setThreads (int t) {threads=t;}
     bool    getFlagDebug() {return debug;}
     bool    getFlagPlots() {return plots;}
-    
+    bool    getFlagAuto() {return AUTO;}
+
     bool    getMakeMask() {return makeMask;}
     string  getMASK() {return MaskType;}
     void    setMASK(string s) {MaskType=s;}
@@ -263,6 +267,7 @@ private:
     string          imageList;          ///< A file with list of images to be analized.
     vector<string>  images;             ///< A vector with single images in the list.
     string          outFolder;          ///< Folder where saving output files.
+    bool            logFile;            ///< A log file to redirect std::cout and std::cerr.
     bool            verbose;            ///< Is verbosity activated?
     bool            showbar;            ///< Show progress bar?
     bool            checkChannels;      ///< Checking for bad channels in the cube?
@@ -326,6 +331,8 @@ private:
     bool            flagEllProf;
     int             threads;
     bool            debug;
+    bool            AUTO;               ///< Whether it is an automated run.
+
 };
 
   /// Write out info on a parameter to e.g. the results file.

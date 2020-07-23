@@ -165,7 +165,7 @@ void Cube<T>::checkBeam() {
         else if (bmaj>0 && bmin<0) bmin = bmaj;
         else bmaj = bmin = par.getBeamFWHM();   // Try BEAMFWHM (is already in deg)
         
-        std::cout << "\n WARNING: Beam not available in the header: using a "
+        std::cout << "\n WARNING: Beam not available in the header: using a " << setprecision(5)
                   << bmaj*3600. << "x" << bmin*3600. << " arcsec (BPA=" << bpa
                   << "). You can set the beam with BMAJ/BMIN/BPA or BeamFWHM params (in arcsec).\n\n";
         head.setBmaj(bmaj);
@@ -212,10 +212,25 @@ bool Cube<T>::readCube (std::string fname) {
     // The FREQ0 can be in the header. Override if given by the user.
     if (par.getRestfreq()!=-1) head.setFreq0(par.getRestfreq());
     axisDim = new int [numAxes];
-    axisDimAllocated = true; 
+    axisDimAllocated = true;
     for (short i=0; i<numAxes; i++) axisDim[i] = head.DimAx(i);
     if (head.NumAx()<3) axisDim[2] = 1;
     if (head.NumAx()<2) axisDim[1] = 1;
+
+    // Workaround for cubes with third axis = STOKES and forth axis = Spectral
+    if (head.NumAx()>3 && makelower(head.Ctype(2))=="stokes") {
+        std::string cunit3 = head.Cunit(3), ctype3 = head.Ctype(3);
+        double crval3 = head.Crval(3), crpix3 = head.Crpix(3), cdelt3 = head.Cdelt(3);
+        head.setCrpix(2,crpix3);
+        head.setCrval(2,crval3);
+        head.setCdelt(2,cdelt3);
+        head.setCtype(2,ctype3);
+        head.setCunit(2,cunit3);
+        head.updateWCS();
+        head.setDimAx(2,head.DimAx(3));
+        axisDim[2] = head.DimAx(2);
+    }
+
     numPix = axisDim[0]*axisDim[1]*axisDim[2];
     if (!fitsread_3d()) return false;
     return true;
@@ -1090,8 +1105,9 @@ Cube<T>* Cube<T>::extractCubelet(Detection<T> *obj, int edges, int *starts) {
                 clet->Array(x-starts[0],y-starts[1],z-starts[2]) = Array(x,y,z);
 
     // Upgrading header. WCS is recentred
-    double pix[3] = {round(obj->getXaverage()),round(obj->getYaverage()),0}, world[3];
+    double pix[3] = {round(obj->getXaverage()),round(obj->getYaverage()),round(starts[2])}, world[3];
     int status = head.pixToWCS(pix,world);
+    world[2] = getZphys(starts[2]);
     for (int i=0; i<3; i++) {
         clet->Head().setDimAx(i,newdim[i]);
         if (status==0) {
@@ -1127,6 +1143,7 @@ void Cube<T>::writeCubelets() {
     for (int i=0; i<getNumObj(); i++) {
         bar.update(i+1);
         std::string srcname = object+"_"+to_string(i+1);
+        if (getNumObj()==1) srcname = object;
         mkdirp((outfold+srcname).c_str());
 
         Detection<T> *obj = sources->pObject(i);
@@ -1208,6 +1225,8 @@ void Cube<T>::writeCubelets() {
 
 template <class T>
 int Cube<T>::plotDetections(){
+
+    if (getNumObj()==0) return 1;
 
     std::string outfolder = par.getOutfolder()+"sources/";
     std::ofstream pyf((outfolder+"plot_sources.py").c_str());
@@ -1316,6 +1335,7 @@ int Cube<T>::plotDetections(){
 
     return ret;
 }
+
 
 // Explicit instantiation of the class
 template class Cube<short>;

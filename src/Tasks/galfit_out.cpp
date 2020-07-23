@@ -98,11 +98,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     Tasks::Ellprof<T> ell(&allmaps[0],outr,nseg,segments);
     ell.setOptions(mass,distance);  //To set the mass and the distance
     ell.RadialProfile();
-    std::string dens_out = outfold+"densprof.txt";
-    std::ofstream fileo(dens_out.c_str());
-    ell.printProfile(fileo,nseg-1);
-    fileo.close();
-    //ell.printProfile(std::cout);
     
     if (normtype=="AZIM" || normtype=="BOTH") {
         double profmin=FLT_MAX;
@@ -120,10 +115,18 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             factor /= 10;
         }
         for (auto i=0; i<outr->nr; i++) {
+            if (outr->dens[i]==0) {
+                continue;
+            }
             outr->dens[i]=factor*fabs(ell.getMean(i))*1E20;
-            if (outr->dens[i]==0) outr->dens[i]=profmin*1E20;
+            //if (outr->dens[i]==0) outr->dens[i]=profmin*1E20;
         }
     }
+    std::string dens_out = outfold+"densprof.txt";
+    std::ofstream fileo(dens_out.c_str());
+    ell.printProfile(fileo,nseg-1);
+    fileo.close();
+    //ell.printProfile(std::cout);
     if (verb) std::cout << " Done." << std::endl;
 
     if (verb) std::cout << "    Calculating the very last model..." << std::flush;
@@ -139,15 +142,19 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         // thus just need to rescale the model to the total flux of data inside last ring.
 
         // Calculate total flux of model within last ring
+        totflux_data = 0;
         for (auto i=0; i<in->DimX()*in->DimY(); i++) {
             if (!isNaN(ringreg[i])) {
-                for (auto z=0; z<in->DimZ(); z++) 
-                    totflux_model += outarray[i+z*in->DimY()*in->DimX()]*in->Mask()[i+z*in->DimY()*in->DimX()];
+                for (auto z=0; z<in->DimZ(); z++) {
+                    long npix = i+z*in->DimY()*in->DimX();
+                    totflux_model += outarray[npix]*in->Mask(npix);
+                    totflux_data  += in->Array(npix)*in->Mask(npix);
+                }
             }
-            else {
+            //else {
                  // for (size_t z=0; z<in->DimZ(); z++)
                    //      outarray[i+z*in->DimY()*in->DimX()]=0;
-              }
+            //  }
         }
 
         double factor = totflux_data/totflux_model;

@@ -30,7 +30,6 @@ namespace Model {
 template <class T>
 void Galfit<T>::slit_init(Cube<T> *c) {
 
-    defaults();
     Param &p = c->pars();
     par = p.getParGF();
 

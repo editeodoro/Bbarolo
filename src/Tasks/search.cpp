@@ -81,13 +81,14 @@ Search<T>& Search<T>::operator=(const Search<T> &s) {
     this->showbar   = s.showbar;
     this->nthreads  = s.nthreads;
 
+    std::cout << "QUI !" << std::endl;
     this->mapAllocated = s.mapAllocated;
     if(this->mapAllocated) {
         this->detectMap = new short[this->xSize*this->ySize];
         for(int i=0;i<(this->xSize*this->ySize);i++) this->detectMap[i] = s.detectMap[i];
     }
 
-    this->objectList = new DetVec<T>;
+    this->objectList = new DetVec<T>(s.objectList->size());
     for (int i=0; i<s.objectList->size(); i++)
         this->objectList->at(i) = s.objectList->at(i);
 

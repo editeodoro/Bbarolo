@@ -85,6 +85,7 @@ public:
     DetVec<T>     getObjectList(){return *objectList;}
     DetVec<T>     *pObjectList(){return objectList;}
     DetVec<T>     &ObjectList(){DetVec<T> &rlist=*objectList; return rlist;}
+    void          addObject(Detection<T> &obj){objectList->push_back(obj);}
 
     // Front-end functions to search in an array.
     void search(T *Array, Stats<T> &stat, size_t xsize, size_t ysize=1, size_t zsize=1,

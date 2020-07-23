@@ -313,7 +313,7 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
                     // Maximum rotation velocity inside the datacube
                     //maxv = fabs(AlltoVel<T>(in->getZphys(in->DimZ()-1),in->Head())-vsys[j]);
                     //minv = fabs(AlltoVel<T>(in->getZphys(0),in->Head())-vsys[j]);
-                    //double maxvrot = std::max(maxv*sin(inc[j]*M_PI/180.),minv*sin(inc[j]*M_PI/180.));
+                    //double maxvrot = std::max(maxv/sin(inc[j]*M_PI/180.),minv/sin(inc[j]*M_PI/180.));
                     //if (zpar[np]>maxvrot) vrot[j] = maxvrot-fran()*maxvrot;
                     zpar[np++] = vrot[j];
                 }
@@ -495,7 +495,8 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
 
     // Getting the sizes of model cube based on last ring
     int blo[2], bhi[2], bsize[2];
-    getModelSize(dring,blo,bhi,bsize);
+    if (reverse) getModelSize(outr,blo,bhi,bsize);
+    else getModelSize(dring,blo,bhi,bsize);
 
     int nv = par.NV<0 ? in->DimZ() : par.NV;
 
@@ -506,7 +507,7 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
 
     // Adding up the "sofar" model, if requested
     T *modp = mod->Out()->Array();
-    if (modsoFar!=NULL && dring->id!=0) {
+    if (modsoFar!=nullptr) {
         for (auto i=mod->Out()->NumPix(); i--;) modp[i] += modsoFar->Out()->Array()[i];
     }
     
@@ -620,7 +621,6 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    //int bweight = second ? 0 : par.BWEIGHT;
     int bweight = par.BWEIGHT;
 
     for (uint y=bsize[1]; y--;) {
@@ -658,7 +658,7 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
                 }
 
                 numPix_tot++;
-                minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
+                minfunc += getResValue(obs,mod,wi,chan_noise[z]);
             }
         }
     }
@@ -676,6 +676,7 @@ template double Galfit<double>::norm_local(Rings<double>*,double*,int*,int*);
 template <class T>
 double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
+    std::cout << "AOCOOADC" << std::endl;
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
     if (!in->StatsDef()) in->setCubeStats();
@@ -684,7 +685,6 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    //int bweight = second ? 0 : par.BWEIGHT;
     int bweight = par.BWEIGHT;
 
     typename std::vector<Pixel<T> >::iterator pix;
@@ -724,7 +724,7 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
             }
 
             numPix_tot++;
-            minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
+            minfunc += getResValue(obs,mod,wi,chan_noise[z]);
 
         }
     }
@@ -792,7 +792,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
                 }
 
                 numPix_tot++;
-                minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
+                minfunc += getResValue(obs,mod,wi,chan_noise[z]);
             }
         }
     }
@@ -840,7 +840,7 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
                 }
 
                 numPix_tot++;
-                minfunc += getFuncValue(obs,mod,wi,chan_noise[z]);
+                minfunc += getResValue(obs,mod,wi,chan_noise[z]);
             }
         }
     }
@@ -916,7 +916,7 @@ template bool Galfit<double>::getSide(double);
 
 
 template <class T>
-inline double Galfit<T>::getFuncValue(T obs, T mod, double weight, double noise_weight) {
+inline double Galfit<T>::getResValue(T obs, T mod, double weight, double noise_weight) {
 
     double value = 0;
     switch(par.FTYPE) {
@@ -938,8 +938,8 @@ inline double Galfit<T>::getFuncValue(T obs, T mod, double weight, double noise_
     return value;
 
 }
-template double Galfit<float>::getFuncValue(float,float,double,double);
-template double Galfit<double>::getFuncValue(double,double,double,double);
+template double Galfit<float>::getResValue(float,float,double,double);
+template double Galfit<double>::getResValue(double,double,double,double);
 
 
 template <class T>

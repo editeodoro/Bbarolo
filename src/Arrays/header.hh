@@ -38,6 +38,7 @@ class Header
 {
 public: 
     Header();                                           /// Default constructor.
+    Header(std::string f) : Header() {header_read(f);}  /// Alternative constructor.
     virtual ~Header();                                  /// Default destructor.
     Header(const Header& h);                            /// Copy constructor.
     Header& operator= (const Header& h);                /// Assignement operator.
