@@ -76,7 +76,8 @@ HEADERS += \
     Utilities/optimization.hh \
     Utilities/paramguess.hh \
     Utilities/progressbar.hh \
-    Utilities/utils.hh
+    Utilities/utils.hh \
+    Tasks/rendering3D.hh
 
 FORMS += \
     GUI/bbarolowindow.ui

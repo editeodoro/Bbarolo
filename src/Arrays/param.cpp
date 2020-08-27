@@ -54,6 +54,7 @@ vector<Entry> tasksList = {
     {"VELOCITYMAP",   "Compute a velocity field from a datacube."},
     {"DISPERSIONMAP", "Compute a velocity dispersion field from a datacube."},
     {"PV",            "Extracting a position-velocity slice from a datacube."},
+    {"REND3D",        "Writing a 3D view of a datacube."},
 };
 
 // A list and description of available FITS utilities 
@@ -79,7 +80,7 @@ void Param::defaultValues() {
     logFile             = false;
     verbose             = true;
     showbar             = true;
-    plots               = true;
+    plots               = 1;
     beamFWHM            = 30.;
     checkChannels       = false;
     flagRobustStats     = true;
@@ -133,6 +134,9 @@ void Param::defaultValues() {
     PA_PV               = 0;
     
     flagEllProf         = false;
+
+    flagRend3D          = false;
+    rendangle           = 360.;
 
     debug               = false;    
     AUTO                = false;
@@ -222,10 +226,13 @@ Param& Param::operator= (const Param& p) {
     this->PA_PV             = p.PA_PV;
     
     this->flagEllProf       = p.flagEllProf;
+
+    this->flagRend3D        = p.flagRend3D;
+    this->rendangle         = p.rendangle;
     
     this->threads           = p.threads;
     this->debug             = p.debug;
-    this->AUTO              = p.debug;
+    this->AUTO              = p.AUTO;
 
     return *this;
 }
@@ -576,6 +583,9 @@ void Param::setParam(string &parstr) {
     if (arg=="xpos_pv")   XPOS_PV = readval<float>(ss);
     if (arg=="ypos_pv")   YPOS_PV = readval<float>(ss);
     if (arg=="pa_pv")     PA_PV = readval<float>(ss);
+
+    if (arg=="rend3d")    flagRend3D = readFlag(ss);
+    if (arg=="rendangle") rendangle = readval<float>(ss);
     
 }
 
@@ -1267,17 +1277,24 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[XPOS]", "   X center of the galaxy (pixel)", p.getParGF().XPOS);
         recordParam(Str, "[YPOS]", "   Y center of the galaxy (pixel)", p.getParGF().YPOS);
         recordParam(Str, "[VSYS]", "   Systemic velocity of the galaxy (km/s)", p.getParGF().VSYS);
-        recordParam(Str, "[VROT]", "   Initial global rotation velocity (km/s)", p.getParGF().VROT);
+        recordParam(Str, "[VROT]", "   Initial rotation velocity (km/s)", p.getParGF().VROT);
         if (isGalfit) recordParam(Str, "[DELTAVROT]", "   Max rot. velocity variation from VROT (km/s)", p.getParGF().DELTAVROT);
-        recordParam(Str, "[VRAD]", "   Initial global radial velocity (km/s)", p.getParGF().VRAD);
-        recordParam(Str, "[VDISP]", "   Initial global velocity dispersion (km/s)", p.getParGF().VDISP);
+        recordParam(Str, "[VRAD]", "   Initial radial velocity (km/s)", p.getParGF().VRAD);
+        recordParam(Str, "[VDISP]", "   Initial velocity dispersion (km/s)", p.getParGF().VDISP);
         if (isGalfit) recordParam(Str, "[MINVDISP]", "   Minimum acceptable velocity dispersion (km/s)", p.getParGF().MINVDISP);
-        recordParam(Str, "[INC]", "   Initial global inclination (degrees)", p.getParGF().INC);
+        recordParam(Str, "[INC]", "   Initial inclination (degrees)", p.getParGF().INC);
         if (isGalfit) recordParam(Str, "[DELTAINC]", "   Max inclination variation from INC (degrees)", p.getParGF().DELTAINC);
-        recordParam(Str, "[PA]", "   Initial global position angle (degrees)", p.getParGF().PHI);
+        recordParam(Str, "[PA]", "   Initial position angle (degrees)", p.getParGF().PHI);
         if (isGalfit) recordParam(Str, "[DELTAPA]", "   Max position angle variation from PA (degrees)", p.getParGF().DELTAPHI);
         recordParam(Str, "[Z0]", "   Scale height of the disk (arcsec)", p.getParGF().Z0);
-        recordParam(Str, "[DENS]", "   Global column density of gas (atoms/cm2)", p.getParGF().DENS);
+        recordParam(Str, "[DENS]", "   Gas column density (atoms/cm2)", p.getParGF().DENS);
+        if (isGalmod) {
+            recordParam(Str, "[VVERT]", "   Vertical velocity (km/s)", p.getParGM().VVERT);
+            recordParam(Str, "[DVDZ]", "   Vertical gradient of rotation velocity (km/s/arcs)", p.getParGM().DVDZ);
+            recordParam(Str, "[ZCYL]", "   Height where the gradient begins (arcs)", p.getParGM().ZCYL);
+
+        }
+
         if (isGalfit) recordParam(Str, "[FREE]", "   Parameters to be minimized", p.getParGF().FREE);
         recordParam(Str, "[MASK]", "   Type of mask", p.getMASK());
         recordParam(Str, "[NORM]", "   Type of normalization", (p.getParGF().NORM));
@@ -1294,21 +1311,22 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         else if (t==5) typ = "box";
         recordParam(Str, "[LTYPE]", "   Layer type along z direction", typ);
         
-        typ = "";
-        t = p.getParGF().FTYPE;
-        if (t==1)      typ = "chi-squared";
-        else if (t==2) typ = "|m-o|";
-        else if (t==3) typ = "|m-o|/|m+o|";
-        else if (t==4) typ = "(m-o)^2";
-        recordParam(Str, "[FTYPE]", "   Residuals to minimize", typ);
-        
-        typ = "";
-        t = p.getParGF().WFUNC;
-        if (t==0)      typ = "uniform";
-        else if (t==1) typ = "|cos(θ)|";
-        else if (t==2) typ = "cos(θ)^2";
         if (isGalfit) {
+            typ = "";
+            t = p.getParGF().FTYPE;
+            if (t==1)      typ = "chi-squared";
+            else if (t==2) typ = "|m-o|";
+            else if (t==3) typ = "|m-o|/|m+o|";
+            else if (t==4) typ = "(m-o)^2";
+            recordParam(Str, "[FTYPE]", "   Residuals to minimize", typ);
+
+            typ = "";
+            t = p.getParGF().WFUNC;
+            if (t==0)      typ = "uniform";
+            else if (t==1) typ = "|cos(θ)|";
+            else if (t==2) typ = "cos(θ)^2";
             recordParam(Str, "[WFUNC]", "   Weighting function", typ);
+
             recordParam(Str, "[BWEIGHT]", "   Weight for blank pixels", p.getParGF().BWEIGHT); 
             recordParam(Str, "[TOL]", "   Minimization tolerance", p.getParGF().TOL); 
             recordParam(Str, "[SIDE]", "   What side of the galaxy to be used", (p.getParGF().SIDE)); 
@@ -1449,6 +1467,12 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[YPOS_PV]", "   Position angle of the slice", p.getPA_PV());
     }
     
+    toPrint = isAll || p.getFlagRend3D() || (defaults && whichtask=="REND3D");
+    if (toPrint) {
+        recordParam(Str, "[REND3D]", "Writing a 3D rendering of a datacube?", stringize(p.getFlagRend3D()));
+        recordParam(Str, "[RENDANGLE]", "   Maximum azimuthal angle for rendering", p.getRendAngle());
+    }
+
     Str  << std::endl <<"-----------------------------";
     Str  << "----------------------------------\n\n";
     Str  << std::setfill(' ');

@@ -246,7 +246,8 @@ bool Cube<T>::fitsread_3d() {
     if (par.isVerbose()) { 
         std::cout << "\nOpening file "<< par.getImageFile() << std::endl;
         std::cout << "Reading "<<axisDim[0]<<" x "<<axisDim[1]<<" x "<<axisDim[2]
-                  << " pixels FITS file... ";
+                  << " pixels FITS file (" << fixed << setprecision(1)
+                  << sizeof(T)*numPix/1048576. << " MB)... " << std::flush;
     }
 
     // Open the FITS file
@@ -257,7 +258,7 @@ bool Cube<T>::fitsread_3d() {
     }
 
     // Read elements from the FITS data array    
-    if (!arrayAllocated) array = new T[numPix];                     
+    if (!arrayAllocated) array = new T[numPix];
     arrayAllocated = true;
     fpixel=1;
 
@@ -277,7 +278,7 @@ bool Cube<T>::fitsread_3d() {
         if (isNaN(array[i])) array[i] = 0;
     ///////////////////////////////////////////////////////////////////////////////
 
-    if (par.isVerbose()) std::cout << "Done.\n" << std::endl;
+    if (par.isVerbose()) std::cout << "Done \n\n";
 
     return true;
 }

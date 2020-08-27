@@ -81,7 +81,6 @@ Search<T>& Search<T>::operator=(const Search<T> &s) {
     this->showbar   = s.showbar;
     this->nthreads  = s.nthreads;
 
-    std::cout << "QUI !" << std::endl;
     this->mapAllocated = s.mapAllocated;
     if(this->mapAllocated) {
         this->detectMap = new short[this->xSize*this->ySize];

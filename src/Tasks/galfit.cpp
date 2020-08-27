@@ -1350,9 +1350,9 @@ ParamGuess<T>* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     else ip->findRotationVelocity();
 
     // This performs an additional step with a 2D tilted ring model
-    if (c->pars().getFlagPlots()) ip->plotGuess("initialguesses_"+c->Head().Name()+"_0.pdf");
+    if (c->pars().getFlagPlots()==3) ip->plotGuess("initialguesses_"+c->Head().Name()+"_0.pdf");
     if (ip->nrings>3) ip->tuneWithTiltedRing();
-    if (c->pars().getFlagPlots()) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
+    if (c->pars().getFlagPlots()==2) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
 
     if (verb) std::cout << "Done." << std::endl;
     c->pars().setVerbosity(verb);

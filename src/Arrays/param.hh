@@ -237,15 +237,16 @@ public:
     string  getWindowType () {return window_type;}
     size_t  getWindowSize () {return window_size;}
     
-
     bool    getFlagSlitfit () {return flagSlitfit;}
     float   getSlitWidth () {return slitwidth;}
-
 
     bool    getFlagPV() {return flagPV;}
     float   getXPOS_PV() {return XPOS_PV;}
     float   getYPOS_PV() {return YPOS_PV;}
     float   getPA_PV() {return PA_PV;}
+
+    bool    getFlagRend3D() {return flagRend3D;}
+    float   getRendAngle() {return rendangle;}
 
     bool    getFlagEllProf() {return flagEllProf;}
     
@@ -273,7 +274,7 @@ private:
     bool            checkChannels;      ///< Checking for bad channels in the cube?
     float           beamFWHM;           ///< Beam to adopt if any information in header.
     bool            flagRobustStats;    ///< Whether to use robust statistics.
-    bool            plots;              ///< Whether producing output plots.
+    int             plots;              ///< Whether producing output plots.
     
     bool            makeMask;           ///< Whether to write a mask.
     string          MaskType;           ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE, SMOOTH&SEARCH or NONE.
@@ -332,6 +333,9 @@ private:
     int             threads;
     bool            debug;
     bool            AUTO;               ///< Whether it is an automated run.
+
+    bool            flagRend3D;         ///< Whether to perform 3D rendering.
+    float           rendangle;          ///< Azimuth angle for 3D rendering.
 
 };
 

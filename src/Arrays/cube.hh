@@ -47,9 +47,9 @@ public:
     void defaults();
 
     // Overloadad () operator for easy access the main array. No controls on the index.
-    inline T& operator() (size_t x, size_t y, size_t z) {return array[x+y*axisDim[0]+z*axisDim[0]*axisDim[1]];}
-    inline T& operator() (size_t i) {return array[i];}
-    inline T& operator[] (size_t i) {return array[i];}
+    inline T& operator() (size_t x, size_t y, size_t z) {return *(array+nPix(x,y,z));}
+    inline T& operator() (size_t i) {return *(array+i);}
+    inline T& operator[] (size_t i) {return *(array+i);}
     
     /// Obvious inline functions to access a private member of class:
     int     NumAx () {return numAxes;}

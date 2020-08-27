@@ -39,6 +39,7 @@
 #include <Tasks/galwind.hh>
 #include <Tasks/ellprof.hh>
 #include <Tasks/spacepar.hh>
+#include <Tasks/rendering3D.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/paramguess.hh>
 
@@ -47,6 +48,7 @@ using BBreal = double;
 #else
 using BBreal = float;
 #endif
+
 
 bool BBcore (Param *par);
 
@@ -160,7 +162,10 @@ bool BBcore (Param *par) {
     }
 
     // Fully automated run
-    if (par->getFlagAuto()) return BBauto(c);
+    if (par->getFlagAuto()) {
+        //return BBauto(c);
+        par->getParGF().flagGALFIT = true;
+    }
 
 
     if (par->getCheckCh()) c->CheckChannels();
@@ -351,6 +356,17 @@ bool BBcore (Param *par) {
         ell->writeMap(c->pars().getOutfolder()+c->Head().Name()+"_densmap.fits");
         fileo.close();
         delete ell;
+    }
+    //-----------------------------------------------------------------
+
+
+
+    // 3D Rendering ---------------------------------------------------
+    if (par->getFlagRend3D()) {
+        Rendering3D<BBreal> *r3d = new Rendering3D<BBreal>(c);
+        r3d->compute(par->getRendAngle());
+        r3d->writefits();
+        delete r3d;
     }
     //-----------------------------------------------------------------
 

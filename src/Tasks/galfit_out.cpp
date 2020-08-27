@@ -152,9 +152,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
                 }
             }
             //else {
-                 // for (size_t z=0; z<in->DimZ(); z++)
-                   //      outarray[i+z*in->DimY()*in->DimX()]=0;
-            //  }
+            //      for (size_t z=0; z<in->DimZ(); z++)
+            //             outarray[i+z*in->DimY()*in->DimX()]=0;
+            //}
         }
 
         double factor = totflux_data/totflux_model;
@@ -997,6 +997,7 @@ int Galfit<T>::plotAll_Python() {
     if (outr->nr==1) pyf << "\trad2,vrot2,disp2,inc2,pa2,z02,xpos2,ypos2,vsys2,vrad2 = np.array([rad2]),np.array([vrot2]),np.array([disp2]),np.array([inc2]),np.array([pa2]),np.array([z02]),np.array([xpos2]),np.array([ypos2]),np.array([vsys2]),np.array([vrad2])\n";
     pyf << "\terr2_l, err2_h = np.zeros(shape=(" << MAXPAR << ",len(rad2))), np.zeros(shape=(" << MAXPAR << ",len(rad2)))\n"
         << "\tcolor='#A0A0A0' \n"
+        << "\tmax_rad = 1.1*np.nanmax(rad2) \n"
         << "\tmax_vrot,max_vdisp = np.maximum(max_vrot,np.nanmax(vrot2)),np.maximum(max_vdisp,np.nanmax(disp2)) \n";
 
     for (int i=0; i<MAXPAR; i++) {
@@ -1211,7 +1212,7 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\t\tax.annotate('', xy=(4.5, 1.4), xycoords='axes fraction', xytext=(5, 1.4),arrowprops=dict(arrowstyle='<->', color='k'))\n"
         << "\t\t\t\tax.text(4.75,1.50,ltex,transform=ax.transAxes,fontsize=11, ha='center')\n"
         << "\t\t\t\tbmaj, bmin, bpa = " << bmaj << "/float(xmax-xmin), " << bmin << "/float(ymax-ymin)," << bpa << std::endl
-        << "\t\t\t\tbeam = mpl.patches.Ellipse((3.5, 1.4), bmaj, bmin, bpa, color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
+        << "\t\t\t\tbeam = mpl.patches.Ellipse((3.5, 1.4), bmaj, bmin, bpa+90, color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
         << "\t\t\t\tax.add_artist(beam) \n"
         << "\t\t\t\tax.text(3.6+bmaj/1.8,1.4,'Beam',transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
         << "\t\t\tax = plt.subplot(grid[j][1,i]) \n"
