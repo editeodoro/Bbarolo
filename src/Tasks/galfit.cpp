@@ -543,7 +543,7 @@ void Galfit<T>::galfit() {
     }
 
     *outr = *inr;
-    writeHeader(fout,mpar,par.flagERRORS);
+    writeHeader(fout,mpar,par.flagERRORS, par.flagBADOUT);
 
     // Normalizing input data cube such that the maximum value is =10.
     // This helps the convergence of the algorithm and
@@ -616,9 +616,10 @@ void Galfit<T>::galfit() {
     if (in->pars().getThreads()>1 || usereverse) {
         double toKpc = KpcPerArc(distance);
         fout.open(fileo.c_str());
-        writeHeader(fout,mpar,par.flagERRORS);
+        writeHeader(fout,mpar,par.flagERRORS, par.flagBADOUT);
         for (int ir=0; ir<inr->nr; ir++) {
-            if (fitok[ir]) writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors);
+	  if (fitok[ir] || par.flagBADOUT)
+	    writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors, par.flagBADOUT, fitok[ir]);
         }
         fout.close();
     }
@@ -720,6 +721,8 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                                   " conditions and/or the function to minimize.";
                 WarningMessage(cout,msg);
             }
+	    if (par.flagBADOUT)
+	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -746,6 +749,8 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                 WarningMessage(cout,msg);
             }
             fitok[ir] = false;
+	    if (par.flagBADOUT)
+	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -753,7 +758,7 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
 
         if (par.flagERRORS) getErrors(dring,errors[ir],ir,minimum);
 
-        writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors);
+        writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
 
         delete dring;
     }
@@ -836,6 +841,8 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
                                   " conditions and/or the function to minimize.";
                 WarningMessage(cout,msg);
             }
+	    if (par.flagBADOUT)
+	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -862,6 +869,8 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
                 WarningMessage(cout,msg);
             }
             fitok[ir] = false;
+	    if (par.flagBADOUT)
+	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -869,7 +878,7 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
 
         if (par.flagERRORS) getErrors(dring,errors[ir],ir,minimum);
 
-        writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors);
+        writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors, par.flagBADOUT, fitok[ir]);
 
         delete dring;
     }
@@ -1365,7 +1374,7 @@ template ParamGuess<double>* Galfit<double>::EstimateInitial(Cube<double>*,GALFI
 /////////////////////////////////////////////////////////////////////
 /// Functions to write GALFIT rings
 ////////////////////////////////////////////////////////////////////
-void writeHeader(std::ostream &fout, bool *mpar, bool writeErrors) {
+void writeHeader(std::ostream &fout, bool *mpar, bool writeErrors, bool writeBadRings) {
 
     int m = 10;
     fout << left << setw(m) << "#RAD(Kpc)"
@@ -1395,12 +1404,15 @@ void writeHeader(std::ostream &fout, bool *mpar, bool writeErrors) {
         if (mpar[VRAD])  fout << setw(m) << "E_VRAD1" << setw(m) << "E_VRAD2";
     }
 
+    if (writeBadRings)
+      fout << setw(m) << "FITOK";
+
     fout << endl;
 }
 
 
 template <class T>
-void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, bool writeErrors, T ***errors) {
+void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, bool writeErrors, T ***errors, bool writeBadRings, bool fitOK) {
 
     int m=10;
 #pragma omp critical (galfit_write)
@@ -1425,6 +1437,9 @@ void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, 
     if (writeErrors)
         for (int kk=0; kk<nfree; kk++)
             fout << setw(m) << errors[i][0][kk] << setw(m) << errors[i][1][kk];
+
+    if (writeBadRings)
+      fout << setw(m) << fitOK;
 
     fout << endl;
 }

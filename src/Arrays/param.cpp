@@ -541,6 +541,7 @@ void Param::setParam(string &parstr) {
     if(arg=="plotmask")  parGF.PLOTMASK   = readFlag(ss);
     if(arg=="reverse")   parGF.REVERSE    = makelower(readFilename(ss));
     if(arg=="normalcube")parGF.NORMALCUBE = readFlag(ss);
+    if(arg=="badout")    parGF.flagBADOUT     = readFlag(ss);
 
 
     // GALWIND ONLY PARAMETERS
@@ -1339,6 +1340,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
             recordParam(Str, "[PLOTMASK]", "   Overlaying mask to output plots?", stringize(p.getParGF().PLOTMASK));
             recordParam(Str, "[REVERSE]", "   Using reverse-cumulative fitting?", p.getParGF().REVERSE);
             recordParam(Str, "[NORMALCUBE]", "   Normalizing cube to help convergence?", stringize(p.getParGF().NORMALCUBE));
+	    recordParam(Str, "[BADOUT]", "   Write unconverged rings in output (with flag)?", stringize(p.getParGF().flagBADOUT));
 
         }
 
