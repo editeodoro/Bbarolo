@@ -159,9 +159,9 @@ protected:
 
 
 /// Some function to conveniently write Galfit rings
-void writeHeader(std::ostream &fout, bool *mpar, bool writeErrors);
+void writeHeader(std::ostream &fout, bool *mpar, bool writeErrors, bool writeBadRings);
 template <class T>
-void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, bool writeErrors, T ***errors);
+void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, bool writeErrors, T ***errors, bool writeBadRings, bool fitOK);
 template <class T>
 void printRing(std::ostream &fout, Rings<T> *r, int i, double minimum, double toKpc, bool *mpar, int nthreads);
 

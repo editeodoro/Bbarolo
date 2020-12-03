@@ -84,6 +84,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   PLOTMASK   = false;    ///< Whether to show the mask in output plots
     string REVERSE    = "auto";   ///< Whether to use a reverse cumulative fitting.
     bool   NORMALCUBE = true;     ///< Whether to normalize the input flux values.
+    bool   flagBADOUT = false;    ///< Whether to write bad rings (with flag) in output.
     
 };
 
