@@ -64,7 +64,7 @@ BBaroloWindow::BBaroloWindow(QWidget *parent) :
     ui->plot4->setInteraction(QCP::iRangeZoom, true);
 
     Hide_All_3DFit_file(true);
-    ui->Logolabel->setPixmap(QPixmap(currentPath.path()+"/BBaroloGUI.app/Contents/Resources/Bbarolo.tiff"));
+    ui->Logolabel->setPixmap(QPixmap(":resources/bbarolo.png"));
     ui->AutocheckBox->setHidden(true);
     ui->MaskThreshSpinBox->setHidden(true);
 

@@ -10,12 +10,12 @@ MAKEFILE      = Makefile
 
 ####### Compiler, tools and options
 
-CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
-CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
+CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
+CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
 DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -stdlib=libc++ -O2 -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I. -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers/ -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
+CXXFLAGS      = -pipe -O2 -Wall -W -fPIC $(DEFINES)
+INCPATH       = -I. -isystem /usr/local/include -I.. -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I../Build -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/AGL.framework/Headers/ -I. -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -F/Users/edt/Programs/QT/5.7/clang_64/lib
 QMAKE         = /Users/edt/Programs/QT/5.7/clang_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -34,7 +34,7 @@ TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = BBaroloGUI1.0.0
 DISTDIR = /Users/edt/Dropbox/Codex/BBarolo/src/Build/BBaroloGUI1.0.0
-LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp
+LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
 LFLAGS        = -headerpad_max_install_names -Wl,-rpath,/Users/edt/Programs/QT/5.7/clang_64/lib
 LIBS          = $(SUBLIBS) -F/Users/edt/Programs/QT/5.7/clang_64/lib -L/usr/local/lib -lfftw3 -lcfitsio -lwcs -lm -static-libgcc -static-libstdc++ -framework QtPrintSupport -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL 
 AR            = ar cq
@@ -58,7 +58,8 @@ SOURCES       = main.cpp \
 		../Arrays/header.cpp \
 		../Utilities/interpolation.cpp \
 		../Utilities/fitsUtils.cpp \
-		qcustomplot.cpp ../Build/moc_bbarolowindow.cpp \
+		qcustomplot.cpp qrc_resources.cpp \
+		../Build/moc_bbarolowindow.cpp \
 		../Build/moc_qcustomplot.cpp
 OBJECTS       = ../Build/main.o \
 		../Build/bbarolowindow.o \
@@ -71,6 +72,7 @@ OBJECTS       = ../Build/main.o \
 		../Build/interpolation.o \
 		../Build/fitsUtils.o \
 		../Build/qcustomplot.o \
+		../Build/qrc_resources.o \
 		../Build/moc_bbarolowindow.o \
 		../Build/moc_qcustomplot.o
 DIST          = /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/spec_pre.prf \
@@ -205,13 +207,13 @@ DIST          = /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/spec_pre.pr
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/default_post.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/mac/default_post.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/mac/objective_c.prf \
-		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/warn_on.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/qt.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/resources.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/moc.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/unix/opengl.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/uic.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/unix/thread.prf \
+		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/warn_on.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/file_copies.prf \
 		BbaroloGUI.pro bbarolowindow.h \
 		../Arrays/header.hh \
@@ -372,15 +374,16 @@ Makefile: BbaroloGUI.pro /Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang/
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/default_post.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/mac/default_post.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/mac/objective_c.prf \
-		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/warn_on.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/qt.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/resources.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/moc.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/unix/opengl.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/uic.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/unix/thread.prf \
+		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/warn_on.prf \
 		/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/file_copies.prf \
 		BbaroloGUI.pro \
+		resources.qrc \
 		/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/QtPrintSupport.prl \
 		/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/QtWidgets.prl \
 		/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/QtGui.prl \
@@ -518,15 +521,16 @@ Makefile: BbaroloGUI.pro /Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang/
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/default_post.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/mac/default_post.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/mac/objective_c.prf:
-/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/warn_on.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/qt.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/resources.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/moc.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/unix/opengl.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/uic.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/unix/thread.prf:
+/Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/warn_on.prf:
 /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/file_copies.prf:
 BbaroloGUI.pro:
+resources.qrc:
 /Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/QtPrintSupport.prl:
 /Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/QtWidgets.prl:
 /Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/QtGui.prl:
@@ -548,10 +552,10 @@ qmake_all: FORCE
 	@test -d ../../BBaroloGUI.app/Contents || mkdir -p ../../BBaroloGUI.app/Contents
 	@$(DEL_FILE) ../../BBaroloGUI.app/Contents/Info.plist
 	@sed -e "s,@SHORT_VERSION@,1.0,g" -e "s,@FULL_VERSION@,1.0.0,g" -e "s,@TYPEINFO@,????,g" -e "s,@BUNDLEIDENTIFIER@,com.yourcompany.BBaroloGUI,g" -e "s,@ICON@,Bbarolo.icns,g" -e "s,@EXECUTABLE@,BBaroloGUI,g" -e "s,@LIBRARY@,BBaroloGUI,g" -e "s,@TYPEINFO@,????,g" /Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang/Info.plist.app >../../BBaroloGUI.app/Contents/Info.plist
-../../BBaroloGUI.app/Contents/Resources/Bbarolo.icns: Bbarolo.icns
+../../BBaroloGUI.app/Contents/Resources/Bbarolo.icns: resources/Bbarolo.icns
 	@test -d ../../BBaroloGUI.app/Contents/Resources/ || mkdir -p ../../BBaroloGUI.app/Contents/Resources/
 	@$(DEL_FILE) ../../BBaroloGUI.app/Contents/Resources/Bbarolo.icns
-	@$(COPY_FILE) Bbarolo.icns ../../BBaroloGUI.app/Contents/Resources/Bbarolo.icns
+	@$(COPY_FILE) resources/Bbarolo.icns ../../BBaroloGUI.app/Contents/Resources/Bbarolo.icns
 
 all: Makefile \
 		../../BBaroloGUI.app/Contents/PkgInfo \
@@ -565,6 +569,7 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
+	$(COPY_FILE) --parents resources.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.h ../Arrays/header.hh ../Arrays/param.hh ../Utilities/utils.hh qcustomplot.h $(DISTDIR)/
 	$(COPY_FILE) --parents main.cpp bbarolowindow.cpp bbarolowindow_run.cpp ../Arrays/param.cpp ../Utilities/utils.cpp ../Utilities/wcsUtils.cpp ../Utilities/string.cpp ../Arrays/header.cpp ../Utilities/interpolation.cpp ../Utilities/fitsUtils.cpp qcustomplot.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.ui $(DISTDIR)/
@@ -587,19 +592,26 @@ mocclean: compiler_moc_header_clean compiler_moc_source_clean
 
 mocables: compiler_moc_header_make_all compiler_moc_source_make_all
 
-compiler_rcc_make_all:
+compiler_rcc_make_all: qrc_resources.cpp
 compiler_rcc_clean:
+	-$(DEL_FILE) qrc_resources.cpp
+qrc_resources.cpp: resources.qrc \
+		/Users/edt/Programs/QT/5.7/clang_64/bin/rcc \
+		resources/bbarolo.png \
+		resources/Bbarolo.icns
+	/Users/edt/Programs/QT/5.7/clang_64/bin/rcc -name resources resources.qrc -o qrc_resources.cpp
+
 compiler_moc_header_make_all: ../Build/moc_bbarolowindow.cpp ../Build/moc_qcustomplot.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) ../Build/moc_bbarolowindow.cpp ../Build/moc_qcustomplot.cpp
 ../Build/moc_bbarolowindow.cpp: ../Arrays/param.hh \
 		bbarolowindow.h \
 		/Users/edt/Programs/QT/5.7/clang_64/bin/moc
-	/Users/edt/Programs/QT/5.7/clang_64/bin/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -I/Users/edt/Dropbox/Codex/BBarolo/src/GUI -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I/usr/include/c++/6.2.1 -I/usr/include/c++/6.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/6.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include-fixed -I/usr/include -F/Users/edt/Programs/QT/5.7/clang_64/lib bbarolowindow.h -o ../Build/moc_bbarolowindow.cpp
+	/Users/edt/Programs/QT/5.7/clang_64/bin/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -I/Users/edt/Dropbox/Codex/BBarolo/src/GUI -I/usr/local/include -I/Users/edt/Dropbox/Codex/BBarolo/src -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I/usr/include/c++/6.2.1 -I/usr/include/c++/6.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/6.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include-fixed -I/usr/include -F/Users/edt/Programs/QT/5.7/clang_64/lib bbarolowindow.h -o ../Build/moc_bbarolowindow.cpp
 
 ../Build/moc_qcustomplot.cpp: qcustomplot.h \
 		/Users/edt/Programs/QT/5.7/clang_64/bin/moc
-	/Users/edt/Programs/QT/5.7/clang_64/bin/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -I/Users/edt/Dropbox/Codex/BBarolo/src/GUI -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I/usr/include/c++/6.2.1 -I/usr/include/c++/6.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/6.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include-fixed -I/usr/include -F/Users/edt/Programs/QT/5.7/clang_64/lib qcustomplot.h -o ../Build/moc_qcustomplot.cpp
+	/Users/edt/Programs/QT/5.7/clang_64/bin/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -I/Users/edt/Programs/QT/5.7/clang_64/mkspecs/macx-clang -I/Users/edt/Dropbox/Codex/BBarolo/src/GUI -I/usr/local/include -I/Users/edt/Dropbox/Codex/BBarolo/src -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtPrintSupport.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtWidgets.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtGui.framework/Headers -I/Users/edt/Programs/QT/5.7/clang_64/lib/QtCore.framework/Headers -I/usr/include/c++/6.2.1 -I/usr/include/c++/6.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/6.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include-fixed -I/usr/include -F/Users/edt/Programs/QT/5.7/clang_64/lib qcustomplot.h -o ../Build/moc_qcustomplot.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -611,7 +623,7 @@ ui_bbarolowindow.h: bbarolowindow.ui \
 		qcustomplot.h
 	/Users/edt/Programs/QT/5.7/clang_64/bin/uic bbarolowindow.ui -o ui_bbarolowindow.h
 
-compiler_clean: compiler_moc_header_clean compiler_uic_clean 
+compiler_clean: compiler_rcc_clean compiler_moc_header_clean compiler_uic_clean 
 
 ####### Compile
 
@@ -655,6 +667,9 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ../Build/qcustomplot.o: qcustomplot.cpp qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/qcustomplot.o qcustomplot.cpp
+
+../Build/qrc_resources.o: qrc_resources.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/qrc_resources.o qrc_resources.cpp
 
 ../Build/moc_bbarolowindow.o: ../Build/moc_bbarolowindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/moc_bbarolowindow.o ../Build/moc_bbarolowindow.cpp

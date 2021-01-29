@@ -82,7 +82,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
     bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.
     bool   PLOTMASK   = false;    ///< Whether to show the mask in output plots
-    string REVERSE    = "auto";   ///< Whether to use a reverse cumulative fitting.
+    string REVERSE    = "false";  ///< Whether to use a reverse cumulative fitting.
     bool   NORMALCUBE = true;     ///< Whether to normalize the input flux values.
     bool   flagBADOUT = false;    ///< Whether to write bad rings (with flag) in output.
     

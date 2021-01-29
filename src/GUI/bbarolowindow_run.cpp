@@ -30,8 +30,7 @@
 #include "../Utilities/utils.hh"
 
 
-void BBaroloWindow::on_FitslineEdit_editingFinished()
-{
+void BBaroloWindow::on_FitslineEdit_editingFinished() {
 
     QString filename = ui->FitslineEdit->text().trimmed();
     static QString lastFilename = "";
@@ -111,8 +110,9 @@ void BBaroloWindow::on_FitslineEdit_editingFinished()
     lastFilename = filename;
 }
 
-void BBaroloWindow::on_FitspushButton_clicked()
-{
+
+void BBaroloWindow::on_FitspushButton_clicked() {
+    
     QString filename = QFileDialog::getOpenFileName(this, tr("Open FITSFILE"), QDir::currentPath(), tr("FITS files (*.fit *.fits *.FITS *.FIT);; All files (*.*)"), 0, QFileDialog::DontUseNativeDialog);
     if (!filename.isNull()) {
         ui->FitslineEdit->setText(filename);
@@ -120,8 +120,9 @@ void BBaroloWindow::on_FitspushButton_clicked()
     }
 }
 
-void BBaroloWindow::on_ParampushButton_clicked()
-{
+
+void BBaroloWindow::on_ParampushButton_clicked() {
+    
     QString filename = QFileDialog::getOpenFileName(this, tr("Open parameter file"), QDir::currentPath(), tr("Parameter files (*.par *.txt *.dat)"), 0, QFileDialog::DontUseNativeDialog);
     if( !filename.isNull()) {
         resetGUI();
@@ -130,8 +131,9 @@ void BBaroloWindow::on_ParampushButton_clicked()
     }
 }
 
-void BBaroloWindow::on_OutfolderpushButton_clicked()
-{
+
+void BBaroloWindow::on_OutfolderpushButton_clicked() {
+    
     QString outdir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),QDir::currentPath(),QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if(!outdir.isNull()) {
         outdir.append("/");
@@ -140,8 +142,9 @@ void BBaroloWindow::on_OutfolderpushButton_clicked()
     }
 }
 
-void BBaroloWindow::updateText()
-{
+
+void BBaroloWindow::updateText() {
+    
     QString appendText(proc->readAll());
     ui->LogtextEdit->insertPlainText (appendText);
     ui->LogtextEdit->moveCursor (QTextCursor::End);
@@ -149,8 +152,9 @@ void BBaroloWindow::updateText()
     if (get3DFitFlag()) plotParameters();
 }
 
-void BBaroloWindow::updateExit()
-{
+
+void BBaroloWindow::updateExit() {
+    
     ui->RunpushButton->setEnabled(true);
     enable_All();
     
@@ -168,8 +172,9 @@ void BBaroloWindow::updateExit()
 
 }
 
-void BBaroloWindow::on_KillpushButton_clicked()
-{
+
+void BBaroloWindow::on_KillpushButton_clicked(){ 
+    
     if (proc->state()==2) {
         proc->terminate();
         QTimer::singleShot(2000, proc, SLOT(kill()));
@@ -177,6 +182,7 @@ void BBaroloWindow::on_KillpushButton_clicked()
         ui->RunpushButton->setEnabled(true);
     }
 }
+
 
 void BBaroloWindow::on_RunpushButton_clicked() {
 
@@ -219,6 +225,7 @@ void BBaroloWindow::on_RunpushButton_clicked() {
     proc->start(cmd);
     
 }
+
 
 void BBaroloWindow::readParamFromFile(std::string filein) {
 
@@ -424,6 +431,7 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
     }
 }
 
+
 void BBaroloWindow::writeParamFile(QString file) {
 
     using namespace std;
@@ -593,6 +601,7 @@ void BBaroloWindow::writeParamFile(QString file) {
     out << setw(n) << "showBar" << "false" << endl;
     out.close();
 }
+
 
 void BBaroloWindow::readModelParam(Param *p) {
 
@@ -809,6 +818,7 @@ void BBaroloWindow::readModelParam(Param *p) {
     if (par.flagADRIFT) ui->AdriftcheckBox->setChecked(true);
 }
 
+
 void BBaroloWindow::writeModelParam(std::ofstream &out) {
 
     int n=20;
@@ -927,6 +937,7 @@ void BBaroloWindow::writeModelParam(std::ofstream &out) {
 
     if (ui->AdriftcheckBox->isChecked()) out << setw(n) << "ADRIFT" << "true";
 }
+
 
 void BBaroloWindow::plotParameters(){
 

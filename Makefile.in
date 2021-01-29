@@ -233,26 +233,24 @@ cleangui:
 gui :
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \
 	cp BbaroloGUI.or BbaroloGUI.pro && \
-	echo "LIBS += $(LIBS) -static-libgcc -static-libstdc++" >> BbaroloGUI.pro && \
-	echo "QMAKE_FLAGS += $(OPT) $(CINC)" >> BbaroloGUI.pro && \
-	echo "QMAKE_FLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
+	echo "QMAKE_CC = $(CC) $(OPT) " >> BbaroloGUI.pro &&\
+	echo "QMAKE_CXX = $(CXX) $(OPT) " >> BbaroloGUI.pro &&\
+	echo "QMAKE_LINK = $(CXX) $(OPT) " >> BbaroloGUI.pro &&\
 	echo "QMAKE_LFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
-	echo "QMAKE_CC = $(CC)" >> BbaroloGUI.pro &&\
-	echo "QMAKE_CXX = $(CXX)" >> BbaroloGUI.pro &&\
-	echo "QMAKE_LINK = $(CXX)" >> BbaroloGUI.pro &&\
+	echo "QMAKE_CFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
+	echo "QMAKE_CXXFLAGS -= -stdlib=libc++" >> BbaroloGUI.pro && \
+	echo "LIBS += $(LIBS) -static-libgcc -static-libstdc++" >> BbaroloGUI.pro && \
 	qmake && \
 	rm BbaroloGUI.pro && mv BbaroloGUI.or BbaroloGUI.pro && \
 	make
 ifeq ($(OPS),MACOSX)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
-	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
 endif
 
 justgui : 
 	cd ./src/GUI && make
 ifeq ($(OPS),MACOSX)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
-	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
 endif
     
 all: 
@@ -263,8 +261,7 @@ static: builddir $(OBJECTS)
 
 guistatic :
 	rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
-	macdeployqt ./BBaroloGUI.app/ -no-plugins
-	cp $(BASE)/GUI/Bbarolo.tiff ./BBaroloGUI.app/Contents/Resources/
+	macdeployqt ./BBaroloGUI.app
 	$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
 
 guistaticlinux :

@@ -4,6 +4,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = BBaroloGUI
 TEMPLATE = app
 
+CONFIG += qt
+
 DESTDIR= ../../
 OBJECTS_DIR= ../Build
 MOC_DIR= ../Build
@@ -67,4 +69,9 @@ HEADERS  += bbarolowindow.h \
 
 FORMS    += bbarolowindow.ui
 
-ICON = Bbarolo.icns
+ICON = resources/Bbarolo.icns
+
+RESOURCES += \
+    resources.qrc
+
+INCLUDEPATH += /usr/local/include ../
