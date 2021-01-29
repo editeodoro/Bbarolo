@@ -58,7 +58,6 @@ SOURCES       = main.cpp \
 		../Arrays/header.cpp \
 		../Utilities/interpolation.cpp \
 		../Utilities/fitsUtils.cpp \
-		../Utilities/allocator.cpp \
 		qcustomplot.cpp ../Build/moc_bbarolowindow.cpp \
 		../Build/moc_qcustomplot.cpp
 OBJECTS       = ../Build/main.o \
@@ -71,7 +70,6 @@ OBJECTS       = ../Build/main.o \
 		../Build/header.o \
 		../Build/interpolation.o \
 		../Build/fitsUtils.o \
-		../Build/allocator.o \
 		../Build/qcustomplot.o \
 		../Build/moc_bbarolowindow.o \
 		../Build/moc_qcustomplot.o
@@ -229,7 +227,6 @@ DIST          = /Users/edt/Programs/QT/5.7/clang_64/mkspecs/features/spec_pre.pr
 		../Arrays/header.cpp \
 		../Utilities/interpolation.cpp \
 		../Utilities/fitsUtils.cpp \
-		../Utilities/allocator.cpp \
 		qcustomplot.cpp
 QMAKE_TARGET  = BBaroloGUI
 DESTDIR       = ../../
@@ -569,7 +566,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.h ../Arrays/header.hh ../Arrays/param.hh ../Utilities/utils.hh qcustomplot.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp bbarolowindow.cpp bbarolowindow_run.cpp ../Arrays/param.cpp ../Utilities/utils.cpp ../Utilities/wcsUtils.cpp ../Utilities/string.cpp ../Arrays/header.cpp ../Utilities/interpolation.cpp ../Utilities/fitsUtils.cpp ../Utilities/allocator.cpp qcustomplot.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp bbarolowindow.cpp bbarolowindow_run.cpp ../Arrays/param.cpp ../Utilities/utils.cpp ../Utilities/wcsUtils.cpp ../Utilities/string.cpp ../Arrays/header.cpp ../Utilities/interpolation.cpp ../Utilities/fitsUtils.cpp qcustomplot.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents bbarolowindow.ui $(DISTDIR)/
 
 
@@ -624,8 +621,7 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ../Build/bbarolowindow.o: bbarolowindow.cpp bbarolowindow.h \
 		../Arrays/param.hh \
-		ui_bbarolowindow.h \
-		qcustomplot.h
+		ui_bbarolowindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/bbarolowindow.o bbarolowindow.cpp
 
 ../Build/bbarolowindow_run.o: bbarolowindow_run.cpp bbarolowindow.h \
@@ -656,9 +652,6 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ../Build/fitsUtils.o: ../Utilities/fitsUtils.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/fitsUtils.o ../Utilities/fitsUtils.cpp
-
-../Build/allocator.o: ../Utilities/allocator.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/allocator.o ../Utilities/allocator.cpp
 
 ../Build/qcustomplot.o: qcustomplot.cpp qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ../Build/qcustomplot.o qcustomplot.cpp

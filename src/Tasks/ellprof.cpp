@@ -46,7 +46,6 @@ void Ellprof<T>::defaults() {
     Range[1] = FLT_MAX;
     Rmax=0;
     subpix[0]=subpix[1]=2;
-    Mass = Distance = 0;
 }
 
 
@@ -54,7 +53,6 @@ template <class T>
 void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
 
     Radius = new T [nrad];
-    Radius_kpc = new T [nrad];
     Width = new T [nrad];
     Phi = new T [nrad];
     Inc = new T [nrad];
@@ -81,8 +79,6 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
     Blankarea = new double*[nrad];
     Surfdens = new double*[nrad];
     Surfdens_Bl = new double*[nrad];
-    Mass_Surfdens = new double[nrad];
-    Mass_Surfdens_Bl = new double[nrad];
 
     medianArray = new std::vector<double>*[nrad];
 
@@ -141,7 +137,6 @@ void Ellprof<T>::deallocateArrays () {
     }
 
     delete [] Radius;
-    delete [] Radius_kpc;
     delete [] Width;
     delete [] Phi;
     delete [] Inc;
@@ -168,8 +163,6 @@ void Ellprof<T>::deallocateArrays () {
     delete [] Blankarea;
     delete [] Surfdens;
     delete [] Surfdens_Bl;
-    delete [] Mass_Surfdens;
-    delete [] Mass_Surfdens_Bl;
 
     delete [] medianArray;
 
@@ -247,18 +240,6 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
     
     init(im, inR, nseg, segments);
 
-    // If distance is given, calculate also Mass profile
-    float dist = c->pars().getParGF().DISTANCE;
-    if (dist<0) dist = 0.01;
-    float totflux = 0;
-    T *ringreg = RingRegion(inR, c->Head());
-    for (long i=0; i<im->NumPix(); i++) {
-        if (!isNaN(ringreg[i]) && !isNaN(im->Array(i))) totflux += FluxtoJy(im->Array(i),im->Head());
-    }
-    // totflux should be already in Jy * km/s
-    float mass = 2.365E5*dist*dist*totflux;
-    setOptions(mass,dist); 
-    //im->fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_0th.fits").c_str());
 }
 
 
@@ -294,8 +275,9 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
 
         Cosinc[r] = cos(Inc[r]*M_PI/180.);
         if (fabs(Cosinc[r]) <= 0.0001) {
-            std::cerr << "ELLPROF ERROR: " << r+1 << "th inclination (" << Inc[r] << ") is illegal! (COS(inc) = 0). Exiting...\n";
-            abort();
+            //std::cerr << "ELLPROF ERROR: " << r+1 << "th inclination (" << Inc[r] << ") is illegal! (COS(inc) = 0). Setting to 89...\n";
+            Inc[r] = 89.;
+            Cosinc[r] = cos(Inc[r]*M_PI/180.);
          }
 
         Annuli[r][0] = max(Radius[r] - 0.5*Width[r], 0.0);
@@ -362,13 +344,6 @@ void Ellprof<T>::setOptions (bool overlap, float *range, float *subp) {
 
 
 template <class T>
-void Ellprof<T>::setOptions (float mass, float distance) {
-    Mass = mass;         // In Msun
-    Distance = distance; // In Mpc
-}
-
-
-template <class T>
 void Ellprof<T>::RadialProfile () {
 
     for (size_t i=0; i<Nrad; i++) {
@@ -381,7 +356,6 @@ void Ellprof<T>::RadialProfile () {
             Datamax[i][s]=-FLT_MAX;
             Surfdens[i][s]=Surfdens_Bl[i][s]=0.;
         }
-        Mass_Surfdens[i]=Mass_Surfdens_Bl[i]=0.;
     }
 
 
@@ -408,8 +382,6 @@ void Ellprof<T>::RadialProfile () {
 
     float Sumtotgeo    = 0.0;        /* Sum of all complete rings */
     float Sumtotgeo_bl = 0.0;
-    float Masstot      = 0.0;
-    float Masstot_bl   = 0.0;
     for (size_t n=0; n<Nrad; n++) {
         /* We need the sum of of the contributions for each ring. Each contribution is */
         /* multiplied by the area between two radii. The contributions are the corrected means.      */
@@ -480,34 +452,6 @@ void Ellprof<T>::RadialProfile () {
             Surfdens_Bl[i][m] = surfdens_bl;
         }
 
-        // Now calculating the Mass surface density in Msun/pc2
-        /*--------------------------------------------------*/
-        /* x = physical size at distance D                  */
-        /* a = angle                                        */
-        /*                                                  */
-        /* x(pc)          = Distance(pc) * tan(a)           */
-        /*                =~ D(pc) * a(rad)                 */
-        /*                = D(Mpc)*10^6 * a(")*4.848.10^-6  */
-        /*                = 4.848 * D(Mpc) * a(")           */
-        /*--------------------------------------------------*/
-
-        float      PCsqr = ((4.848 * Distance)*(4.848 * Distance));
-        float      ringmassdens, ringmassdens_bl;
-
-        if (Sumtotgeo == 0.0) ringmassdens = 0.0;
-        else ringmassdens = Mass * face_on_surfdens_tot  / (Sumtotgeo * PCsqr);
-
-        if (Sumtotgeo_bl == 0.0) ringmassdens_bl = 0.0;
-        else ringmassdens_bl = Mass * face_on_surfdens_bl_tot  / (Sumtotgeo_bl * PCsqr);
-
-        float geometricalarea = M_PI * (Annuli[i][1]*Annuli[i][1] - Annuli[i][0]*Annuli[i][0]);
-        float Realmass    = Mass * (face_on_surfdens_tot*geometricalarea)/Sumtotgeo;
-        float Realmass_bl = Mass * (face_on_surfdens_bl_tot*geometricalarea)/Sumtotgeo_bl;
-        Masstot    += Realmass;
-        Masstot_bl += Realmass_bl;
-        Radius_kpc[i] = (4.848 * Distance * Radius[i])/1000.;
-        Mass_Surfdens[i] = ringmassdens;
-        Mass_Surfdens_Bl[i] = ringmassdens_bl;
     }
     
 }
@@ -714,20 +658,14 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     
     theStream << "# ELLPROF results for " << im->Head().Name() << std::endl;
     
-    if (Mass!=0 && Distance>1) {
-        theStream << "# Galaxy mass: " << scientific << Mass << "Msun" << std::endl;
-        theStream << "# Galaxy distance: " << fixed << Distance << " Mpc" << std::endl;
-        theStream << "#" << std::endl;
-    }
-    
     theStream << "#\n# Map units: unit = " << unit << std::endl;
     theStream << "# Pixel area: " << fabs(Dx*Dy) << " arcs2" << std::endl << "#\n";
     theStream << "# Columns 2-6  : ring stats (sum, mean, median, standard deviation and median absolute deviation from the median).\n";
-    theStream << "# Column  7    : number of pixels within the ring.\n";
+    theStream << "# Column  7    : number of valid pixels within the ring.\n";
     theStream << "# Columns 8-10 : surface density, its error and face-on surface density (inclination corrected).\n";
     
     if (isJy)
-        theStream << "# Columns 11-12: face-on (inclination corrected) mass surface densities with two different techniques.\n";
+        theStream << "# Columns 11-13 (ONLY FOR HI DATA!): face-on (inclination corrected) number surface density and mass surface densities with two different techniques.\n";
     
     int m=11;
     theStream << "#\n#" << setw(m-1) << "RADIUS" << " "
@@ -741,7 +679,8 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
               << setw(m+1) << "ERR_SD" << " "
               << setw(m+1) << "SURFDENS_FO" << " ";
     if (isJy)
-        theStream << setw(m) << "MSURFDENS" << " "
+        theStream << setw(m) << "SURFDENS_FO" << " "
+                  << setw(m) << "MSURFDENS" << " "
                   << setw(m) << "MSURFDENS2" << " ";    
 
     theStream << "\n#" << setw(m-1) << "arcsec" << " "
@@ -755,19 +694,20 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
               << setw(m+1) << "unit/arcs2" << " " 
               << setw(m+1) << "unit/arcs2" << " ";
     if (isJy)
-        theStream << setw(m) << "Msun/pc2" << " "
+        theStream << setw(m) << "1E20/cm2" << " "
+                  << setw(m) << "Msun/pc2" << " "
                   << setw(m) << "Msun/pc2" << " ";    
               
     theStream << std::endl << "#" << std::endl;
 
-    // Calculating Mass surface density with Roberts75 formula.
     // This works only if units of map are JY/B * KM/S or JY * KM/S
     double barea = im->Head().Bmaj()*im->Head().Bmin();
+    const double arctorad = 1/3600.*M_PI/180.;
     barea *= abs(arcsconv(im->Head().Cunit(0))*arcsconv(im->Head().Cunit(1))); 
     if (!(unit_l.find("/b")!=std::string::npos)) barea /= im->Head().BeamArea();
     
     for (size_t i=0; i<Nrad; i++) {
-        double massd = 8794*Mean[i][seg]/barea*Cosinc[i];
+        
         // Writing 
         theStream << fixed << setprecision(3) << setw(m) << Radius[i] << " "
                   << scientific << setw(m) << Sum[i][seg] << " "
@@ -779,9 +719,19 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
                   << setw(m+1) << Surfdens[i][seg] << " "
                   << setw(m+1) << sqrt(fabs(Var[i][seg]))/fabs(Dx*Dy) << " "
                   << setw(m+1) << getSurfDensFaceOn(i,seg) << " ";
-        if (isJy)
-            theStream << setw(m) << Mass_Surfdens[i] << " "
-                      << setw(m) << massd << " ";
+        if (isJy) {
+            // This simply calculates mass surface density for HI data
+            double massdsurfdens  = 2.36E-07*getSurfDensFaceOn(i,seg)/(arctorad*arctorad);
+            // Calculating Mass surface density with Roberts75 formula.
+            double massdsurfdens2 = 8794*Mean[i][seg]/barea*Cosinc[i];
+            // Calculating number density in 1E20 cm^{-2}
+            double numberdens = massdsurfdens/(8.41185687E-02*3.0857*3.0857);
+            //totmass_req  = 3.0856*3.0856*8.41185687e-22*totmass_req;
+            
+            theStream << setw(m) << numberdens << " "
+                      << setw(m) << massdsurfdens << " "
+                      << setw(m) << massdsurfdens2 << " ";
+        }
         theStream << std::endl;
     }
 }

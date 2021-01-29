@@ -160,7 +160,7 @@ public:
     int     getThreads () {return threads;}
     void    setThreads (int t) {threads=t;}
     bool    getFlagDebug() {return debug;}
-    bool    getFlagPlots() {return plots;}
+    int     getFlagPlots() {return plots;}
     bool    getFlagAuto() {return AUTO;}
 
     bool    getMakeMask() {return makeMask;}

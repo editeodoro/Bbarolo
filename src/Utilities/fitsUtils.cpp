@@ -222,6 +222,49 @@ int modhead(int argc, char *argv[]) {
 }
 
 
+int remhead(int argc, char *argv[]) {
+    
+    // This function remove a keyword from a FITS file
+    
+    fitsfile *fptr;
+    char card[FLEN_CARD];
+    int status = 0;
+
+    if (argc!=4) {
+        std::cout << "\n BBarolo's REMHEAD FITS utility: \n\n"
+                  << " Delete a header keyword from a FITS file.\n\n"
+                  << " Usage:\n   BBarolo --remhead filename[ext] keyword \n\n"
+                  << " Examples: \n"
+                  << "   BBarolo --remhead in.fits object      (remove the OBJECT keyword)\n\n"
+                  << " NOTE: it may be necessary to enclose the input file name in single \n"
+                  << " quote characters on some Unix shells.\n\n";
+        return 0;
+    }
+
+    if (!fits_open_file(&fptr, argv[2], READWRITE, &status)) {
+        if (fits_read_card(fptr,argv[3],card, &status)) {
+            std::cerr << "Keyword " << makeupper(std::string(argv[3])) << " does not exist.\n";
+            status = 0;
+        }
+        else {
+            // Check if this is a protected keyword that can not be deleted 
+            if (*card && fits_get_keyclass(card) == TYP_STRUC_KEY) 
+                std::cerr << "Protected keyword " << makeupper(std::string(argv[3])) << " cannot be deleted.\n";
+            else {
+                // Delete keyword
+                if (!fits_delete_key(fptr, argv[3], &status))
+                    std::cout << "Keyword " << makeupper(std::string(argv[3])) << " has been deleted.\n";
+            }
+        }
+        fits_close_file(fptr, &status);
+    } 
+    
+    // If error occured, print out error message 
+    if (status) fits_report_error(stderr, status);
+    return status ;
+}
+
+
 int listhead(int argc, char *argv[]) {
     
     // This function is modified from "listhead" FITS utility from NASA

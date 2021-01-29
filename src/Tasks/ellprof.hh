@@ -38,15 +38,11 @@
 //      - Area:           Area covered per ring per segment.
 //      - Surfdens:       Surface density per ring per segment.
 //                        sd =  Sum / Area in map unit / arcsec2.
-//      - Mass_Surfdens:  Mass surface density in Msun/pc2
-//                        NEED TO SET Mass and Distance(see below)
-//                        or it returns all NaN values!
 //
 //      - NumBlanks:       Number of blank pixels (NaN) per ring/seg.
 //      - BlankArea:       Area covered by blank pixels (NaN).
 //      - Surfdens_Bl:     as Surfdens but taking into account blanks.
 //                         sd =  Sum / (Area+BlankArea).
-//      -Mass_Surfdens_Bl: Mass surface density with blanks areas
 //
 //
 //
@@ -57,7 +53,7 @@
 //      -MomentMap *image:  the image from which the profile is built.
 //                          it should have NaN as blank pixels.
 //      -Rings *rings:      a Rings object containing the input rings.
-//                          In input, distances have to be in ARCSEC,
+//                          In input, radii have to be in ARCSEC,
 //                          angles in DEGREE. Required quantities are nr,
 //                          radsep, radii, inc and phi.
 //      -int nseg:          an array with upper coordinate limits.
@@ -84,10 +80,6 @@
 //                          in x and y per pixel. DEFAULT [2,2]
 //                          Make a better approximation of the true area in a
 //                          ring by dividing a pixel into subpixels.
-//       - float *mass:     Mass of the gas enclosed in the last ring in Msun.
-//                          NEEDED if you want the mass density profile!
-//       - float *distance: Distance in Mpc.
-//                          NEEDED if you want the mass density profile!
 //
 // 3) call RadialProfile()
 //
@@ -121,17 +113,14 @@ public:
     
     void   setFromCube(Cube<T> *c, Rings<T> *inR);
     void   setOptions (bool overlap, float *range, float *subp);
-    void   setOptions (float mass, float distance);
     void   RadialProfile ();
     void   printProfile (ostream& theStream=std::cout, int seg=0);
     void   writeMap (std::string fname) {im->fitswrite_2d(fname.c_str());}
-
 
     // Inline functions to access class members.
     size_t getNrad () {return Nrad;}
     size_t getNseg () {return Nseg;}
     float  getRadius (int i) {return Radius[i];}
-    float  getRadiusKpc (int i) {return Radius_kpc[i];}
     float  getWidth (int i) {return Width[i];}
     float  getPhi (int i) {return Phi[i];}
     float  getInc (int i) {return Inc[i];}
@@ -160,14 +149,11 @@ private:
     size_t  Nrad;
     size_t  Nseg;
     T       *Radius;        /* Radii */
-    T       *Radius_kpc;    /* Radii in kpc (need distance)*/
     T       *Width;         /* Ring widths */
     T       *Phi;           /* Pos. angle of major axis */
     T       *Inc;           /* Inclination of object */
     T       **Annuli;       /* Inner and outer radius of ring */
     T       Position[2];    /* Central position of all ellipses */
-    float   Mass;           /* Mass of galaxy in Msun */
-    float   Distance;       /* Distance to galaxy in Mpc */
     float   Range[2];       /* Min/max value for a pixel to be accepted */
     float   *Segments;            /* An array of size 2*Nseg with angle intervals */
 
@@ -187,8 +173,6 @@ private:
     double  **Blankarea;          /* Areas covered by BLANK pixels */
     double  **Surfdens;           /* Surface density in BUNIT / arcsec2 */
     double  **Surfdens_Bl;        /* Same as above, but averaging on blank too */
-    double  *Mass_Surfdens;       /* Mass surface density in Msun/pc2 knowing the total mass*/
-    double  *Mass_Surfdens_Bl;    /* Same as above, but averaging on blank too */
 
     // Working parameters
     double *Cosphi;

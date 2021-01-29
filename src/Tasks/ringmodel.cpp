@@ -155,42 +155,24 @@ void Ringmodel<T>::setfromCube (Cube<T> *c, Rings<T> *r)  {
     set(r->nr-1,radii,widths,&r->vsys[0],&r->vrot[0],&r->vrad[0],
         &r->phi[0],&r->inc[0],r->xpos[0],r->ypos[0]);
     
-
+    // Determining free parameters
+    std::string f = makelower(p.FREE);
     bool mpar[MAXPAR];
-    for (int i=0; i<MAXPAR; i++) mpar[i]=false;
-    std::string FREE = p.FREE;
-    FREE = makelower(FREE);
 
-    int found = FREE.find("vsys");
-    if (found<0) mpar[VSYS]=false;
-    else mpar[VSYS]=true;
+    // Set everything to fixed
+    for (int i=0; i<MAXPAR; i++) mpar[i] = false;
 
-    found = FREE.find("vrot");
-    if (found<0) mpar[VROT]=false;
-    else mpar[VROT]=true;
-    
-    found = FREE.find("pa");
-    if (found<0) {
-        found = FREE.find("phi");
-        if (found<0) mpar[PA]=false;
-        else mpar[PA]=true;
-    }
-    else mpar[PA]=true;
-
-    found = FREE.find("inc");
-    if (found<0) mpar[INC]=false;
-    else mpar[INC]=true;
-
-    found = FREE.find("xpos");
-    if (found<0) mpar[X0]=false;
-    else mpar[X0]=true;
-
-    found = FREE.find("ypos");
-    if (found<0) mpar[Y0]=false;
-    else mpar[Y0]=true;
-
-    found = FREE.find("all");
-    if (found>=0)
+    // Detect requested free parameters
+    if (f.find("vrot")!=std::string::npos) mpar[VROT] = true;
+    if (f.find("inc")!=std::string::npos)  mpar[INC]  = true;
+    if (f.find("pa")!=std::string::npos)   mpar[PA]   = true;
+    if (f.find("phi")!=std::string::npos)  mpar[PA]   = true;
+    if (f.find("xpos")!=std::string::npos) mpar[X0]   = true;
+    if (f.find("ypos")!=std::string::npos) mpar[Y0]   = true;
+    if (f.find("vsys")!=std::string::npos) mpar[VSYS] = true;
+    if (f.find("vrad")!=std::string::npos) mpar[VEXP] = true;
+    if (f.find("vexp")!=std::string::npos) mpar[VEXP] = true;
+    if (f.find("all")!=std::string::npos)
         for (int i=0; i<MAXPAR; i++) mpar[i] = true;
 
     int hside;
@@ -200,7 +182,10 @@ void Ringmodel<T>::setfromCube (Cube<T> *c, Rings<T> *r)  {
 
     int wfunc = p.WFUNC;
 
-    setoption (mpar,hside,wfunc,15.);
+    // I am using DVDZ to input the free angle...need to be changed!
+    float freeang = p.DVDZ=="-1" ? 15. : atof(p.DVDZ.c_str());
+
+    setoption (mpar,hside,wfunc,freeang);
 
     // Calculating 1st moment map
     MomentMap<T> map;
@@ -1038,9 +1023,9 @@ T func (T *c, T *p, int npar) {
    
     if (p[INC] != inc) {                    // Inclination.
         inc = p[INC];   
-        double factor = M_PI/180.;           
-        cosi1 = cos(factor*inc);                            
-        sini1 = sin (factor*inc);               
+        double factor = M_PI/180.;
+        cosi1 = cos(factor*inc);
+        sini1 = sin (factor*inc);
     }
    
     x = c[0] - p[X0];                       // Calculate X. 

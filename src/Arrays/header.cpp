@@ -354,8 +354,9 @@ bool Header::header_read (std::string fname) {
         bunit = "NONE";
     }
     else bunit = Bunit;
-    if (bunit.find("beam-1 Jy")!=std::string::npos ||
-        bunit.find("Jy beam-1")!=std::string::npos) 
+
+    if (makelower(bunit).find("beam-1")!=std::string::npos &&
+        makelower(bunit).find("jy")!=std::string::npos)
             bunit = "JY/BEAM";
     
     status=0;

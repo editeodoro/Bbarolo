@@ -760,9 +760,11 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
     delete [] uvsys;
 }
 
-///*
+/*
 template <class T>
 void Galmod<T>::galmod() {
+
+    std::cout << "GALMOD PROTO" << std::endl;
 
     const double twopi = 2*M_PI;
     const int buflen=bsize[0]*bsize[1]*nsubs+1;
@@ -801,7 +803,7 @@ void Galmod<T>::galmod() {
         //double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr-(chwidth*chwidth)/12.);
         double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr);
         double vsystmp = r->vsys[ir];
-        double z0tmp   = r->z0[ir];
+        double z0tmp   = 0;//r->z0[ir];
         double dvdztmp = r->dvdz[ir];
         double zcyltmp = r->zcyl[ir];
         double sinc    = sin(r->inc[ir]);
@@ -810,102 +812,71 @@ void Galmod<T>::galmod() {
         double cpa     = cos(r->phi[ir])*cos(crota2)-sin(r->phi[ir])*sin(crota2);
         double nvtmp   = nv[ir];
         float  fluxsc  = r->dens[ir]*twopi*rtmp*r->radsep/(nc*nvtmp);
-           
-// ==>> Loop over clouds inside each ring.
-        for (int ic=0; ic<nc; ic++) {
-//          Get radius inside ring. The range includes the inner boundary,
-//          excludes the outer boundary. The probability of a radius inside
-//          a ring is proportional to the total radius and thus the 
-//          surface density of the clouds is constant over the area of the ring.
-            double ddum = fabs(fran());                        // STD library
-            //double ddum = double(iran(isd))/double(nran);       // Classic galmod
-            double R    = sqrt(pow((rtmp-0.5*r->radsep),2)+2*r->radsep*rtmp*ddum);
-//          Get azimuth and its sine and cosine.
-            double az   = twopi*fabs(fran());                 // STD library
-            //double az   = twopi*double(iran(isd))/double(nran); // Classic galmod
-            double saz  = sin(az); 
-            double caz  = cos(az); 
-//          Get height above the plane of the ring using a random deviate
-//          drawn from density profile of the layer.
-            double z    = fdev(isd)*z0tmp;
-//          Get position in the plane of the sky with respect to the major
-//          and minor axes of the spiral galaxy.
-            double x    = R*caz;
-            double y    = R*saz*cinc-z*sinc;                                                 
-//          Get grid of this position, check if it is inside area of box.
-            long grid[2] = {lround(r->xpos[ir]+(x*spa-y*cpa)/cdelt[0]),
-                            lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};             
-            if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
-            if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
 
-//            /////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//            float rr, theta;
-//            float xr = (-(grid[0]-r->pos[0])*spa+(grid[1]-r->pos[1])*cpa);
-//            float yr = (-(grid[0]-r->pos[0])*cpa-(grid[1]-r->pos[1])*spa)/cinc;
-//            rr = sqrt(xr*xr+yr*yr);
-//            if (rr<0.1) theta = 0.0;            
-//            else theta = atan2(yr, xr)/M_PI*180;    
-//                
-//            int side = 1;
-//            bool use;
-//            switch (side) {                     // Which side of galaxy.                    
-//                case 1:                         //< Receding half.                              
-//                    use = (fabs(theta)<=90.0);      
-//                    break;
-//                case 2:                         //< Approaching half. 
-//                    use = (fabs(theta)>=90.0);
-//                    break;
-//                case 3:                         //< Both halves.
-//                    use = 1;
-//                    break;
-//                default: 
-//                    break;  
-//            }
-//                
-//            if (!use) continue;
-                  
-//          //////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//              
-//          Get profile number of current pixel and check if position is in
-//          range of positions of profiles that are currently being done.
-//          If outside any of the ranges, jump to next cloud.
-            int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0];
-//          Get systematic velocity of cloud.
-            double vsys = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
-//          Adding vertical rotational gradient after zcyl
-            if (abs(z)>zcyltmp) vsys = vsystmp+((vrottmp-dvdztmp*(abs(z)-zcyltmp))*caz+vradtmp*saz)*sinc;
-//          Adding vertical velocity
-            if (z>0.) vsys += vverttmp*cinc;
-            else vsys -= vverttmp*cinc;     // <--- The sign here depends on the meaning of vvert
+
+//        double zs = 0.14*rtmp;
+        double zs = 2*pow(rtmp/20,0.5);
+
+        double zstart[2] = {r->z0[ir],-r->z0[ir]};
+        //double zstart[2] = {zs,-zs};
+
+        //std::cout << rtmp << " "  << zstart[0] << "  " << zstart[1] << std::endl;
+
+        for (int kk=0; kk<2; kk++) {
+            if (kk==1) fluxsc /= 2;
+
+            // ==>> Loop over clouds inside each ring.
+            for (int ic=0; ic<nc; ic++) {
+                //          Get radius inside ring. The range includes the inner boundary,
+                //          excludes the outer boundary. The probability of a radius inside
+                //          a ring is proportional to the total radius and thus the
+                //          surface density of the clouds is constant over the area of the ring.
+                double ddum = fabs(fran());                        // STD library
+                //double ddum = double(iran(isd))/double(nran);       // Classic galmod
+                double R    = sqrt(pow((rtmp-0.5*r->radsep),2)+2*r->radsep*rtmp*ddum);
+                //          Get azimuth and its sine and cosine.
+                double az   = twopi*fabs(fran());                 // STD library
+                //double az   = twopi*double(iran(isd))/double(nran); // Classic galmod
+                double saz  = sin(az);
+                double caz  = cos(az);
+                //          Get height above the plane of the ring using a random deviate
+                //          drawn from density profile of the layer.
+                double z    = zstart[kk]+fdev(isd)*z0tmp;
+                //          Get position in the plane of the sky with respect to the major
+                //          and minor axes of the spiral galaxy.
+                double x    = R*caz;
+                double y    = R*saz*cinc-z*sinc;
+                //          Get grid of this position, check if it is inside area of box.
+                long grid[2] = {lround(r->xpos[ir]+(x*spa-y*cpa)/cdelt[0]),
+                                lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};
+                if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
+                if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
+
+                //
+                //          Get profile number of current pixel and check if position is in
+                //          range of positions of profiles that are currently being done.
+                //          If outside any of the ranges, jump to next cloud.
+                int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0];
+                //          Get systematic velocity of cloud.
+                double vsys = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
+                //          Adding vertical rotational gradient after zcyl
+                if (abs(z)>zcyltmp) vsys = vsystmp+((vrottmp-dvdztmp*(abs(z)-zcyltmp))*caz+vradtmp*saz)*sinc;
+                //          Adding vertical velocity
+                if (z>0.) vsys += vverttmp*cinc;
+                else vsys -= vverttmp*cinc;     // <--- The sign here depends on the meaning of vvert
                 
-                    
-//          ORIGINAL GALMOD BUILDING PROFILES
-// ==>>     Build velocity profile.
-//            for (int iv=0; iv<nvtmp; iv++) {
-//              Get deviate drawn from gaussian velocity profile and add
-//              to the systematic velocity.
-//                double v     = vsys+gasdev(isd)*vdisptmp;
-//              Get grid of velocity along FREQ-OHEL or VELO axis.
-//              If a grid is not in the range, jump to next velocity profile.
-//                int isubs = lround(velgrid(v)+crpix3-1);
-//                if (isubs<0 || isubs>=nsubs) continue;                  
-//               int idat  = iprof+isubs*nprof;
-//              Convert HI atom flux per pixel to flux per pixel of 21cm
-//              radiation expressed in W.U. and add subcloud to the data
-//              buffer.
-//                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
-//            }
 
-//          MODIFIED BUILDING PROFILE FOR MULTIPLE LINES
-            for (int iv=0; iv<nvtmp; iv++) {
-                double vdev = gaussia(generator)*vdisptmp;        // STD library
-                //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
-                for (int nl=0; nl<nlines; nl++) {
-                    double v     = vsys+vdev+relvel[nl];
-                    int isubs = lround(velgrid(v)+crpix3-1);
-                    if (isubs<0 || isubs>=nsubs) continue;
-                    int idat  = iprof+isubs*nprof;
-                    datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
+                //          MODIFIED BUILDING PROFILE FOR MULTIPLE LINES
+                for (int iv=0; iv<nvtmp; iv++) {
+                    double vdev = gaussia(generator)*vdisptmp;        // STD library
+                    //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
+                    for (int nl=0; nl<nlines; nl++) {
+                        double v     = vsys+vdev+relvel[nl];
+                        int isubs = lround(velgrid(v)+crpix3-1);
+                        if (isubs<0 || isubs>=nsubs) continue;
+                        int idat  = iprof+isubs*nprof;
+                        datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
+                    }
                 }
             }
         }
@@ -926,7 +897,175 @@ void Galmod<T>::galmod() {
     modCalculated=true;
 
 }
-//*/  
+*/
+
+///*
+template <class T>
+void Galmod<T>::galmod() {
+
+    const double twopi = 2*M_PI;
+    const int buflen=bsize[0]*bsize[1]*nsubs+1;
+    T *datbuf = new T [buflen];
+
+    ProgressBar bar(false,in->pars().isVerbose(),in->pars().getShowbar());
+    bar.init(" Modeling... ",r->nr);
+
+    int isd = iseed;
+//  Get number of velocity profiles that will be done.
+    int nprof = bsize[0]*bsize[1];
+//  Initialize data buffer on zero.
+    for (int i=0; i<buflen; i++) datbuf[i]=0.0;
+//  Convenient random generator functions
+    auto fran = std::bind(uniform, generator);
+
+    // ==>> Loop over standard rings.
+    for (int ir=0; ir<r->nr; ir++) {
+        bar.update(ir+1);
+        if (r->dens[ir]==0) continue;
+//      Get radius
+        double rtmp = r->radii[ir];
+//      Get number of clouds inside ring.
+        int nc = lround(cdens*pow(r->dens[ir],cmode)*twopi*rtmp*r->radsep/pixarea);
+        if (nc==0) {
+            std::cerr << " GALMOD ERROR: No clouds used. Choose higher CDENS " << std::endl;
+            std::terminate();
+//          Do next ring, jump to end of loop for rings.
+            continue;
+        }
+//      Get values of ir-radius.
+        double vrottmp = r->vrot[ir];
+        double vradtmp = r->vrad[ir];
+        double vverttmp= r->vvert[ir];
+        //  The VDISP should be such that VDISP^2 + chwidth^2 / 12 = sig_instr^2 + sig_v^2
+        //double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr-(chwidth*chwidth)/12.);
+        double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr);
+        double vsystmp = r->vsys[ir];
+        double z0tmp   = r->z0[ir];
+        double dvdztmp = r->dvdz[ir];
+        double zcyltmp = r->zcyl[ir];
+        double sinc    = sin(r->inc[ir]);
+        double cinc    = cos(r->inc[ir]);
+        double spa     = sin(r->phi[ir])*cos(crota2)+cos(r->phi[ir])*sin(crota2);
+        double cpa     = cos(r->phi[ir])*cos(crota2)-sin(r->phi[ir])*sin(crota2);
+        double nvtmp   = nv[ir];
+        float  fluxsc  = r->dens[ir]*twopi*rtmp*r->radsep/(nc*nvtmp);
+
+// ==>> Loop over clouds inside each ring.
+        for (int ic=0; ic<nc; ic++) {
+//          Get radius inside ring. The range includes the inner boundary,
+//          excludes the outer boundary. The probability of a radius inside
+//          a ring is proportional to the total radius and thus the
+//          surface density of the clouds is constant over the area of the ring.
+            double ddum = fabs(fran());                        // STD library
+            //double ddum = double(iran(isd))/double(nran);       // Classic galmod
+            double R    = sqrt(pow((rtmp-0.5*r->radsep),2)+2*r->radsep*rtmp*ddum);
+//          Get azimuth and its sine and cosine.
+            double az   = twopi*fabs(fran());                 // STD library
+            //double az   = twopi*double(iran(isd))/double(nran); // Classic galmod
+            double saz  = sin(az);
+            double caz  = cos(az);
+//          Get height above the plane of the ring using a random deviate
+//          drawn from density profile of the layer.
+            double z    = fdev(isd)*z0tmp;
+//          Get position in the plane of the sky with respect to the major
+//          and minor axes of the spiral galaxy.
+            double x    = R*caz;
+            double y    = R*saz*cinc-z*sinc;
+//          Get grid of this position, check if it is inside area of box.
+            long grid[2] = {lround(r->xpos[ir]+(x*spa-y*cpa)/cdelt[0]),
+                            lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};
+            if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
+            if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
+
+//            /////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//            float rr, theta;
+//            float xr = (-(grid[0]-r->pos[0])*spa+(grid[1]-r->pos[1])*cpa);
+//            float yr = (-(grid[0]-r->pos[0])*cpa-(grid[1]-r->pos[1])*spa)/cinc;
+//            rr = sqrt(xr*xr+yr*yr);
+//            if (rr<0.1) theta = 0.0;
+//            else theta = atan2(yr, xr)/M_PI*180;
+//
+//            int side = 1;
+//            bool use;
+//            switch (side) {                     // Which side of galaxy.
+//                case 1:                         //< Receding half.
+//                    use = (fabs(theta)<=90.0);
+//                    break;
+//                case 2:                         //< Approaching half.
+//                    use = (fabs(theta)>=90.0);
+//                    break;
+//                case 3:                         //< Both halves.
+//                    use = 1;
+//                    break;
+//                default:
+//                    break;
+//            }
+//
+//            if (!use) continue;
+
+//          //////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//
+//          Get profile number of current pixel and check if position is in
+//          range of positions of profiles that are currently being done.
+//          If outside any of the ranges, jump to next cloud.
+            int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0];
+//          Get systematic velocity of cloud.
+            double vsys = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
+//          Adding vertical rotational gradient after zcyl
+            if (abs(z)>zcyltmp) vsys = vsystmp+((vrottmp-dvdztmp*(abs(z)-zcyltmp))*caz+vradtmp*saz)*sinc;
+//          Adding vertical velocity
+            if (z>0.) vsys += vverttmp*cinc;
+            else vsys -= vverttmp*cinc;     // <--- The sign here depends on the meaning of vvert
+
+
+//          ORIGINAL GALMOD BUILDING PROFILES
+// ==>>     Build velocity profile.
+//            for (int iv=0; iv<nvtmp; iv++) {
+//              Get deviate drawn from gaussian velocity profile and add
+//              to the systematic velocity.
+//                double v     = vsys+gasdev(isd)*vdisptmp;
+//              Get grid of velocity along FREQ-OHEL or VELO axis.
+//              If a grid is not in the range, jump to next velocity profile.
+//                int isubs = lround(velgrid(v)+crpix3-1);
+//                if (isubs<0 || isubs>=nsubs) continue;
+//               int idat  = iprof+isubs*nprof;
+//              Convert HI atom flux per pixel to flux per pixel of 21cm
+//              radiation expressed in Jy and add subcloud to the data
+//              buffer.
+//                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
+//            }
+
+//          MODIFIED BUILDING PROFILE FOR MULTIPLE LINES
+            for (int iv=0; iv<nvtmp; iv++) {
+                double vdev = gaussia(generator)*vdisptmp;        // STD library
+                //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
+                for (int nl=0; nl<nlines; nl++) {
+                    double v     = vsys+vdev+relvel[nl];
+                    int isubs = lround(velgrid(v)+crpix3-1);
+                    if (isubs<0 || isubs>=nsubs) continue;
+                    int idat  = iprof+isubs*nprof;
+                    datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
+                }
+            }
+        }
+    }
+
+//  Write data to output Cube.
+    for (int isubs=0; isubs<nsubs; isubs++) {
+        int pixstart=isubs*bsize[0]*bsize[1];
+        int idat=1+isubs*nprof;
+        for (int i=0; i<nprof; i++)
+            out->Array(pixstart+i)=datbuf[idat+i];
+    }
+
+    bar.fillSpace("OK.\n");
+
+    delete [] datbuf;
+
+    modCalculated=true;
+
+}
+//*/
 
 /*
 // GALMOD FOR SMC
@@ -1180,9 +1319,9 @@ void Galmod<T>::NHItoRAD(){
 /// The column density of the HI is in units of 1E20 atoms per cm2.
 /// Velocities are in M/S and frequencies in HZ. Solid angle is in steradians.
 /// Intensity is flux per one steradian solid angle. It is defined
-/// as the flux per beam of one square arcminute in W.U..
+/// as the flux per beam of one square arcminute in Jy.
 
-    double const wu = 5E-29;             // Conversion factor to W.U.
+    double const jy = 1E-26;             // Conversion factor to Jy
     double const K  = 1.3806488E-23;     // Boltzmann constant in Joule/Kelvin 
     
     for (int isubs=0; isubs<nsubs; isubs++) {
@@ -1204,12 +1343,12 @@ void Galmod<T>::NHItoRAD(){
             fac = 1.823E-05;       // This is 1.823E13 / 1E20 * 1E02
         } 
 
-        double ddum = 2*(K/wu)/(fac*(labsubs*labsubs))/fabs(cdelt3);
+        double ddum = 2*(K/jy)/(fac*(labsubs*labsubs))/fabs(cdelt3);
         // Following line removes dependency from lambda
-        //double ddum=2*(K/wu)/fac/fabs(cdelt3);
+        //double ddum=2*(K/jy)/fac/fabs(cdelt3);
         // The solid angle in the definition of the intensity is 
         // in steradians, thus convert it to square arcminutes.
-        cd2i[isubs]=ddum*pow((M_PI/(180.0*60.0)),2);
+        cd2i[isubs]= ddum*pow((M_PI/(180.0*60.0)),2);
     }
 
 }
@@ -1484,7 +1623,7 @@ void Galmod_wind<T>::galmod_wind() {
             std::cerr << " GALMOD ERROR: No clouds used. Choose higher CDENS " << std::endl;
             std::terminate();
         }
-//      Get values of ir-radius.            
+//      Get values of ir-radius.
         double vrottmp = s->vrot[ir];
         double vsphtmp = s->vsph[ir];
         double opentmp = s->openang[ir]/2.;

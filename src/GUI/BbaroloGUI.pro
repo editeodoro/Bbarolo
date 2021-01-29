@@ -38,7 +38,6 @@ SOURCES += main.cpp\
 #    ../Utilities/galfit.cpp \
 #    ../Utilities/conv2D.cpp \
     ../Utilities/fitsUtils.cpp \
-    ../Utilities/allocator.cpp \
     qcustomplot.cpp
 
 HEADERS  += bbarolowindow.h \

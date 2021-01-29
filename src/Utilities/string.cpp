@@ -88,6 +88,17 @@ bool readFlag(std::stringstream& ss) {
 }
 
 
+int readFlagorInt(std::stringstream& ss) {
+
+    std::string val;
+    ss >> val;
+    bool isBool = makelower(val).find("true")!=std::string::npos ||
+                  makelower(val).find("false")!=std::string::npos;
+    if (isBool) return boolify(val);
+    else return atoi(val.c_str());
+}
+
+
 template <class T>
 T readval(std::stringstream& ss) {
   
@@ -278,7 +289,7 @@ std::pair<StrVec,StrVec> splitStrings (StrVec s, std::string delimiter) {
 
 std::string randomAdjective (int type) {
     
-    // Return a random good (type=1) a bad (type=2) adjective, or a wise man (type 3)
+    // Return a random good (type=1) a bad (type=2) adjective
         
     std::vector<std::string> good = {
         "trustful","awesome","stunning","creative","flabbergasting","fabulous","gorgeous",
@@ -300,7 +311,7 @@ std::string randomAdjective (int type) {
         "preposterous","brazen","aberrant","abortive","barbarous","bilious","brash","capricious",
         "ridiculous","pointless","ludicrous","impudent","acrimonious","outmoded","inelegant","frowzy",
         "egregious","discourteous","malapert","scornful","bamboozled","disastrous","ruinous","woeful",
-        "deplorable","grievous","flagitious","deleterious","detrimental","insalubrious"
+        "deplorable","grievous","flagitious","deleterious","detrimental","insalubrious","inconsequential"
     };
     
 
@@ -344,10 +355,14 @@ std::string randomQuoting () {
          "BBarolo takes you into a magical, undiscovered world","Can't think of anything better than BBarolo!",
          "Astronomy will be a better science thanks to BBarolo","Simply "+randomAdjective(1)+"!",
          "And now we have pyBBarolo too!","Don't waste your time with 2D models, go straight to 3D with BBarolo",
-         "I was so anxious because of beam smearing, BBarolo changed my life","BBarolo is a dream come true",
+         "I was so depressed because of beam smearing, BBarolo changed my life","BBarolo is a dream come true",
          "Luckily BBarolo is free, because it would be priceless","BBarolo, not a regular code",
          "Emission-line data have no secrets for BBarolo!","BBarolo should be installed on any modern computer",
          "3D modelling is the new 2D","If you feel flat, try 3D-Barolo","BBarolo is not for the faint-hearted!",
+         "History should be divided in two epochs: Before BBarolo (BBB) and After BBarolo (ABB)",
+         "BBarolo is the medicine for beam-smearing anxiety","And now you can even ask BBarolo for random quotes!",
+         "I have been told that BBarolo is full of Easter eggs...", "Take everything from me, but leave me BBarolo!",
+         "BBarolo has been ranked amongst the top 10 most influential codes ever written"
     };
     
     std::vector<std::string> wise = 
@@ -355,14 +370,14 @@ std::string randomQuoting () {
          "Nikola Tesla","Archimedes","Steve Vai","Michael Schumacher","Plato","Marie Curie","Pythagoras",
          "Johann Sebastian Bach","Charles Darwin","Alan Turing","Hippocrates","Friedrich Nietzsche","Euclid",
          "Immanuel Kant","Confucius","Homer","Blaise Pascal","Sun Tzu","Voltaire","Leo Tolstoy","Enrico Fermi",
-         "Dante Alighieri","Louis Pasteur","Niccolo Machiavelli","Isaac Asimov","Democritus","Sophocles",
+         "Dante Alighieri","Louis Pasteur","Niccolò Machiavelli","Isaac Asimov","Democritus","Sophocles",
          "Buddha","Epicurus","Ptolemy","Arthur Schopenhauer","Reinhold Messner", "Bertrand Russell","Augustus",
          "Frederic Chopin","Hypathia","Marcus Tullius Cicero","Henry Ford","Guglielmo Marconi","Aeschylus",
          "Maria De Filippi","Rosseau","Carl Linnaeus","Giordano Bruno","Giacomo Leopardi","Marco Polo",
          "Napoleon","Lao Tsu","Franz Schubert","Franz Liszt","Caravaggio","Franz Kafka","Plutarch","Popeye",
          "Aristarchus of Samos","Kakaroth","Amerigo Vespucci","Donald Duck","Charlie Brown","Cleopatra",
          "Enrico Di Teodoro","Santa Claus","Easter Bunny","Mohammed Ali","Averroes","Louis Cauchy",
-         "Leonhard Euler","Carl Friedrich Gauss","Don Matteo",
+         "Leonhard Euler","Carl Friedrich Gauss","Don Matteo","Edmond Dantès","Filippo Fraternali",
     };
     
     static auto const seed = std::random_device()();

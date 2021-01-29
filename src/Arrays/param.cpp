@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.5.3"
+#define BBVERSION "1.6"
 
 struct Entry {string name; string descr;};
 
@@ -60,7 +60,8 @@ vector<Entry> tasksList = {
 // A list and description of available FITS utilities 
 vector<Entry> fitsUtilsList = {
   {"listhead",  "List header keywords in a FITS file."},
-  {"modhead",   "Modify/print a keyword in a FITS file."},
+  {"modhead",   "Modify/print a header keyword in a FITS file."},
+  {"remhead",   "Delete a header keyword in a FITS file."},
   {"fitscopy",  "Copy a input file to a new FITS file with filtering."},
   {"fitsarith", "Arithmetic operations with FITS files."},
 };
@@ -269,6 +270,7 @@ bool Param::getopts(int argc, char **argv) {
                 // Fits Utilities
                 {"fitsutils", no_argument,       nullptr, 'F'},
                 {"modhead",   no_argument,       nullptr, 'M'},
+                {"remhead",   no_argument,       nullptr, 'R'},
                 {"listhead",  no_argument,       nullptr, 'L'},
                 {"fitscopy",  no_argument,       nullptr, 'C'},
                 {"fitsarith", no_argument,       nullptr, 'A'},
@@ -329,6 +331,10 @@ bool Param::getopts(int argc, char **argv) {
                     
             case 'M':                    // Modify header
                 modhead(argc,argv);
+                break;
+            
+            case 'R':                    // Delete keyword in header
+                remhead(argc,argv);
                 break;
 
             case 'L':                    // List header keywords
@@ -436,7 +442,7 @@ void Param::setParam(string &parstr) {
     if(arg=="threads")          threads   = readval<int>(ss);
     if(arg=="debug")            debug     = readFlag(ss);
     if(arg=="showbar")          showbar   = readFlag(ss);
-    if(arg=="plots")            plots     = readFlag(ss);
+    if(arg=="plots")            plots     = readFlagorInt(ss);
     if(arg=="beamfwhm")         beamFWHM  = readval<float>(ss);
     if(arg=="checkchannels")    checkChannels = readFlag(ss);
     if(arg=="auto")             AUTO = readFlag(ss);
@@ -484,11 +490,13 @@ void Param::setParam(string &parstr) {
     
 
     if(arg=="2dfit")     flagRing = readFlag(ss);
+    if(arg=="fit2d")     flagRing = readFlag(ss);
     if (arg=="ellprof")  flagEllProf = readFlag(ss);
 
     // SHARED PARAMETERS BETWEEN GALMOD, GALFIT AND GALWIND
     if(arg=="galfit")    parGF.flagGALFIT  = readFlag(ss);
     if(arg=="3dfit")     parGF.flagGALFIT  = readFlag(ss);
+    if(arg=="fit3d")     parGF.flagGALFIT  = readFlag(ss);
     if(arg=="galmod")    parGM.flagGALMOD  = readFlag(ss);
     if(arg=="galwind")   parGW.flagGALWIND = readFlag(ss);
     if(arg=="spacepar")  flagSpace  = readFlag(ss);

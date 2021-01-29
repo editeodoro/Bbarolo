@@ -96,7 +96,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     if (meanPA>180) std::swap(segments[2], segments[3]);
 
     Tasks::Ellprof<T> ell(&allmaps[0],outr,nseg,segments);
-    ell.setOptions(mass,distance);  //To set the mass and the distance
     ell.RadialProfile();
     
     if (normtype=="AZIM" || normtype=="BOTH") {
@@ -122,6 +121,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             //if (outr->dens[i]==0) outr->dens[i]=profmin*1E20;
         }
     }
+    
     std::string dens_out = outfold+"densprof.txt";
     std::ofstream fileo(dens_out.c_str());
     ell.printProfile(fileo,nseg-1);
@@ -223,21 +223,34 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     if (normtype=="NONE") {
         
-        // Calculate total flux of model within last ring
-        for (int i=0; i<in->DimX()*in->DimY(); i++) {
-            if (!isNaN(ringreg[i])) {
-                for (int z=0; z<in->DimZ(); z++)
-                    totflux_model += outarray[i+z*in->DimY()*in->DimX()];
-            }
-            else {
-                  //for (size_t z=0; z<in->DimZ(); z++)
-                  //     outarray[i+z*in->DimY()*in->DimX()]=0;
-              }
+        // The final model has been build from an input density profile in cm^-2
+        // Here I renormalize to have to the integral of the input density profile.
+        // Output cube will have units of Jy/beam for HI data.
+        
+        // Current flux model is assumed to be in JY/beam
+        mod->Out()->Head().setBunit("JY/BEAM");
+        // Getting current profile
+        MomentMap<T> *dmap = new MomentMap<T>;
+        dmap->input(mod->Out());
+        dmap->ZeroMoment(false);
+        Tasks::Ellprof<T> ell(dmap,outr,nseg,segments);
+        ell.RadialProfile();
+        delete dmap;
+        
+        // Calculating integral of input density profile and current
+        double totmass_req=0, totmass_curr=0;
+        for (int i=0; i<outr->nr; i++) {
+            totmass_req  += outr->dens[i];              // In cm^-2
+            totmass_curr += ell.getSurfDensFaceOn(i);   // In JY*KM/S/pc2
         }
+        
+        // Converting everything to Msun/pc2
+        const double arctorad = 1/3600.*M_PI/180.;
+        totmass_req  = 3.0856*3.0856*8.41185687e-22*totmass_req;
+        totmass_curr = 2.36E-07*totmass_curr/(arctorad*arctorad);
 
-        double factor = totflux_data/totflux_model;
-        if (totflux_data==0) factor=1;
-        for (auto i=in->NumPix(); i--;) outarray[i] *= factor;
+        // Re-normalization
+        for (auto i=in->NumPix(); i--;) outarray[i] *= totmass_req/totmass_curr;
         if (verb) std::cout << " Done." << std::endl;
         
         if (verb) std::cout << "    Writing model..." << std::flush;
@@ -252,21 +265,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         modmaps[1].fitswrite_2d((outfold+"maps/"+object+"_nonorm_1mom.fits").c_str());
         modmaps[2].fitswrite_2d((outfold+"maps/"+object+"_nonorm_2mom.fits").c_str());
         if (verb) std::cout << " Done." << std::endl;
-        
-/*////////        TO BE REMOVED ////////////////////////////////////////////////////////
-        map = new MomentMap<T>;
-        map->input(mod->Out());
-        map->ZeroMoment(false);
-        Tasks::Ellprof<T> ell(map,outr,nseg,segments);
-        ell.setOptions(mass,distance);  //To set the mass and the distance
-        ell.RadialProfile();
-        std::string dens_out = outfold+"densprofmod.txt";
-        std::ofstream fileo;
-        fileo.open(dens_out.c_str());
-        ell.printProfile(fileo,nseg-1);
-        fileo.close();
-//////////////////////////////////////////////////////////////////////////////////////////*/
-        
         
     }
     

@@ -475,13 +475,12 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     }
 
     // Setting limits for fitting parameters
-    double kpcperarc = KpcPerArc(distance);
     maxs[VROT]  = *max_element(inr->vrot.begin(),inr->vrot.end())+par.DELTAVROT;
     mins[VROT]  = *min_element(inr->vrot.begin(),inr->vrot.end())-par.DELTAVROT;
     maxs[VDISP] = 500;
     mins[VDISP] = par.MINVDISP;
-    maxs[Z0] = 5/kpcperarc;         // Max scaleheight allowed is 5 Kpc.  
-    mins[Z0] = 0.;                  // Min scaleheight allowed is 0 pc.
+    maxs[Z0] = 1000;         // Max scaleheight allowed is 1000 arcs.  
+    mins[Z0] = 0.;           // Min scaleheight allowed is 0 arcs.
     maxs[INC] = *max_element(inr->inc.begin(),inr->inc.end())+par.DELTAINC;
     mins[INC] = *min_element(inr->inc.begin(),inr->inc.end())-par.DELTAINC;
     maxs[PA]  = *max_element(inr->phi.begin(),inr->phi.end())+par.DELTAPHI;
@@ -543,7 +542,7 @@ void Galfit<T>::galfit() {
     }
 
     *outr = *inr;
-    writeHeader(fout,mpar,par.flagERRORS, par.flagBADOUT);
+    writeHeader(fout,mpar,par.flagERRORS,par.flagBADOUT);
 
     // Normalizing input data cube such that the maximum value is =10.
     // This helps the convergence of the algorithm and
@@ -618,8 +617,8 @@ void Galfit<T>::galfit() {
         fout.open(fileo.c_str());
         writeHeader(fout,mpar,par.flagERRORS, par.flagBADOUT);
         for (int ir=0; ir<inr->nr; ir++) {
-	  if (fitok[ir] || par.flagBADOUT)
-	    writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors, par.flagBADOUT, fitok[ir]);
+	  		if (fitok[ir] || par.flagBADOUT) 
+				writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
         }
         fout.close();
     }
@@ -721,8 +720,8 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                                   " conditions and/or the function to minimize.";
                 WarningMessage(cout,msg);
             }
-	    if (par.flagBADOUT)
-	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+	    	if (par.flagBADOUT)
+	      	  	writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -749,8 +748,7 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                 WarningMessage(cout,msg);
             }
             fitok[ir] = false;
-	    if (par.flagBADOUT)
-	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+	    	if (par.flagBADOUT) writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -841,8 +839,8 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
                                   " conditions and/or the function to minimize.";
                 WarningMessage(cout,msg);
             }
-	    if (par.flagBADOUT)
-	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+	    	if (par.flagBADOUT)
+	      	  	writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -869,8 +867,8 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
                 WarningMessage(cout,msg);
             }
             fitok[ir] = false;
-	    if (par.flagBADOUT)
-	      writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+	    	if (par.flagBADOUT)
+	      	  	writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -878,15 +876,13 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
 
         if (par.flagERRORS) getErrors(dring,errors[ir],ir,minimum);
 
-        writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors, par.flagBADOUT, fitok[ir]);
+        writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
 
         delete dring;
     }
 }
 template void Galfit<float>::fit_reverse(float ***errors, bool *fitok, std::ostream &fout);
 template void Galfit<double>::fit_reverse(double ***errors, bool *fitok, std::ostream &fout);
-
-
 
 
 template <class T> 
@@ -1359,9 +1355,9 @@ ParamGuess<T>* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     else ip->findRotationVelocity();
 
     // This performs an additional step with a 2D tilted ring model
-    if (c->pars().getFlagPlots()==3) ip->plotGuess("initialguesses_"+c->Head().Name()+"_0.pdf");
+    if (c->pars().getFlagPlots()>=3) ip->plotGuess("initialguesses_"+c->Head().Name()+"_0.pdf");
     if (ip->nrings>3) ip->tuneWithTiltedRing();
-    if (c->pars().getFlagPlots()==2) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
+    if (c->pars().getFlagPlots()>=2) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
 
     if (verb) std::cout << "Done." << std::endl;
     c->pars().setVerbosity(verb);
