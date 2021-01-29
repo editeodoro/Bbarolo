@@ -121,7 +121,7 @@ libBB.Fit2D_delete.argtypes = [c_void_p]
 libBB.Fit2D_compute.restype = None
 libBB.Fit2D_compute.argtypes = [c_void_p]
 libBB.Fit2D_write.restype = None
-libBB.Fit2D_write.argtypes = [c_void_p,c_char_p]
+libBB.Fit2D_write.argtypes = [c_void_p,c_void_p,c_char_p]
 ########################################################################################
 
 

@@ -1,0 +1,18 @@
+$$ BBarolo --listhead
+
+ BBarolo's LISTHEAD FITS utility: 
+
+ List the FITS header keywords in a single extension, or, if [ext] is
+ not given, list the keywords in all the extensions.
+
+ Usage:
+   BBarolo --listhead filename[ext] 
+
+ Examples: 
+   BBarolo --listhead file.fits      (list every header in the file) 
+   BBarolo --listhead file.fits[0]   (list primary array header) 
+   BBarolo --listhead file.fits[2]   (list header of 2nd extension) 
+   BBarolo --listhead file.fits[GTI] (list header of GTI extension) 
+
+ NOTE: it may be necessary to enclose the input file name in single 
+ quote characters on some Unix shells.

@@ -20,6 +20,7 @@ For a detailed description of the algorithms used in this code, please refer to 
    installing
    running
    tasks/index
+   fitsutils
 
 .. toctree::
    :maxdepth: 2

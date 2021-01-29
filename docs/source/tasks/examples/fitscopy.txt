@@ -1,0 +1,25 @@
+$$ BBarolo --fitscopy
+
+ BBarolo's FITSCOPY FITS utility: 
+
+ Copy an input file to an output file, optionally filtering the file in the 
+ process. Filters may be used to extract a subimage from a larger image, 
+ select rows from a table, filter a table with a GTI time extension or a SAO
+ region file, create or delete columns in a table, create an image by binning
+ 2 table columns, and convert IRAF format .imh or raw binary data files into 
+ FITS images (see CFITSIO User's Guide for filtering syntax).
+
+ Usage:
+   BBarolo --fitscopy inputfile[filter] outputfile 
+
+ Examples: 
+   BBarolo --fitscopy in.fits out.fits                   (simple file copy)
+   BBarolo --fitscopy in.fits[11:50,21:60] out.fits      (copy a subimage)
+   BBarolo --fitscopy in.fits[-*,*] out.fits             (mirror reverse axis 0)
+   BBarolo --fitscopy iniraf.imh out.fits                (IRAF image to FITS)
+   BBarolo --fitscopy in.dat[i512,512] out.fit           (binary file to FITS)
+   BBarolo --fitscopy in.fits[events][pi>35] out.fits    (copy rows with pi>35)
+   BBarolo --fitscopy in.fits[events][bin X,Y] out.fits  (bin an image)
+
+ NOTE: it may be necessary to enclose the input file name in single quote
+ characters on some Unix shells.

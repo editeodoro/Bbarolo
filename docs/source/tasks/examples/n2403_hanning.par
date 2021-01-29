@@ -1,7 +1,7 @@
 FITSFILE     ngc2403.fits
 
-/////////// SMOOTHSPEC parameters /////////////
-SMOOTHSPEC  true
-WINDOW_TYPE HANNING
-WINDOW_SIZE 11
-///////////////////////////////////////////
+/////////// SPECSMOOTH parameters /////////////
+SMOOTHSPEC   true
+WINDOW_TYPE  HANNING
+WINDOW_SIZE  11
+///////////////////////////////////////////////

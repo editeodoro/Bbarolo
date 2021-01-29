@@ -1,0 +1,16 @@
+$$ BBarolo --fitsarith
+
+ BBarolo's FITSARITH FITS utility: 
+
+ Perform an operation between two images or between an image and a number. 
+ Supported operators are add, sub, mul, div (first character required). 
+
+ Usage:
+   BBarolo --fitsarith image1 { image2 | value } oper outimage 
+
+ Examples: 
+   BBarolo --fitsarith in1.fits in2.fits add out.fits  (add the 2 files)
+   BBarolo --fitsarith in1.fits 1000.0 mul out.fits    (mult in1 by 1000)
+
+ NOTE: it may be necessary to enclose the file names in single quote
+ characters on some Unix shells.

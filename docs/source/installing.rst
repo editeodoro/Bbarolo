@@ -106,7 +106,7 @@ Installing via Homebrew (MAC only)
 
 If you use `Homebrew <https://brew.sh/>`_ package manager for MacOSX, there is a simpler way of compiling and installing the code::
 
-    > wget https://github.com/editeodoro/Bbarolo/blob/master/bbarolo.rb .
+    > wget https://raw.github.com/editeodoro/Bbarolo/master/bbarolo.rb .
     > brew install [--devel] bbarolo.rb
     
 The first command downloads a ruby installing script, the second command installs BBarolo in /usr/local/Cellar/bbarolo and symlinks the executable to /usr/local/bin. Homebrew takes care of all dependencies. After installation, you will be able to run the code from any directory just by typing ``BBarolo``. The optional argument ``--devel`` install the latest non-stable version rather than the stable release.

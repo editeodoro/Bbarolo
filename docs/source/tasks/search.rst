@@ -12,6 +12,8 @@ Parameters
 
 * **FLAGROBUSTSTATS** [true]. Whether to use to robust estimators (median and MADFM) instead of normal estimators (mean and standard deviation) when calculating cube statistics.
 
+* **CUBELETS** [false]. If true, it produces individual cubelets and sub-images for each detected source.
+
 * **SEARCHTYPE** [spatial]. How the search is performed. Accepted values are *spatial* and *spectral*. Spatial search is done in 2D channel maps, spectral search along 1D spectra.
 
 * **SNRCUT** [5]. The primary S/N cut (number of σ above the mean/median). 

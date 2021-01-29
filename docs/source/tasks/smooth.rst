@@ -51,8 +51,8 @@ Below, an example :download:`parameter <examples/n2403_smooth.par>` file to smoo
 
 .. _spectralsmoothtask:
 
-SMOOTHSPEC task (v1.5.2+)
-#########################
+SMOOTHSPEC task
+###############
 This task convolves each spectrum in a datacube with a given window, i.e. it performs spectral smoothing. 
 
 Parameters
@@ -63,7 +63,7 @@ Parameters
 
 * **WINDOW_SIZE** [3]. Size of the smoothing window in channels. 
 
-* **REDUCE** [false]. If *true*, output data will be averaged over WINDOW_SIZE channels.
+* **REDUCE** [false]. If *true*, output data will be averaged over (WINDOW_SIZE+1)/2 channels.
 
 Outputs
 ========

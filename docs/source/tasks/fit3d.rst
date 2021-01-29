@@ -15,32 +15,34 @@ Parameters
 Rings input
 ^^^^^^^^^^^^^
 
-Following parameters are used to define the set of rings used for the fit. All parameters are allowed to vary ring-by-ring or to be fixed. In the first case, given values represent initial guesses for the fit.
+Following parameters are used to define the initial set of rings used for the fit. All parameters are allowed to vary ring-by-ring or they can just be fixed to their initial value.
 
-All parameters listed below (except NRADII and RADSEP) can be given in the form of a single value valid for all rings or through a text file containing values at different radii. In this second case, the sintax to be used is *file(filename,N,M)*, where *filename* is the name of the file with values, *N* is the column number (counting from 1) and *M* is the starting row (all rows if omitted).
+All parameters listed below (except NRADII and RADSEP) can be given in the form of a single value valid for all rings or through a text file containing values at different radii. In this second case, the syntax to be used is *file(filename,N,M)*, where *filename* is the name of the file with values, *N* is the column number (counting from 1) and *M* is the starting row (all rows if omitted).
+
+If any of the following parameters is not explicitly specified, BBarolo will estimate an appropriate initial value for that parameter.
 
 
-* **NRADII** [none]. The number of rings to be used and fitted. If not given, BBarolo tries to guess it from the size of the galaxy.
+* **NRADII** [none]. The number of rings to be used and fitted. If not given, BBarolo will determine it from the radial extension of the emission line.
 
-* **RADSEP** [none]. The separation between rings in *arcsec*. If N radii have been requested, the rings will be placed at N*RADSEP + RADSEP/2. If not given, BBarolo assumes the FWHM of the beam major axis as radius separation. 
+* **RADSEP** [none]. The separation between rings in *arcsec*. If N radii have been requested, the rings will be placed at N*RADSEP + RADSEP/2. If not given, it will be equal to the FWHM of the beam major axis.
 
 * **RADII** [none]. This parameter can be used as an alternative to NRADII and RADSEP. This needs to be a text file (see above).
 
-* **XPOS** [none]. X-center of rings. Accepted format are in *pixels* (starting from 0, unlike GIPSY) or in WCS coordinates in the format +000.0000d (*degrees*) or +00:00:00.00 (*sexagesimal*). If not specified, BBarolo tries to guess it using the 3D source finder.
+* **XPOS** [none]. X-center of rings. Accepted format are in *pixels* (starting from 0, unlike GIPSY) or in WCS coordinates in the format +000.0000d (*degrees*) or +00:00:00.00 (*sexagesimal*). If not specified, it is determined from the centroids of the emission.
 
 * **YPOS** [none]. Like XPOS, but for the y-axis.
 
-* **VSYS** [none]. Systemic velocity in *km/s*. If not given, BBarolo tries to guess it from the global line profile.
+* **VSYS** [none]. Systemic velocity in *km/s*. If not given, it is estimated as the central velocity in the global line profile.
 
-* **VROT** [none]. Rotation velocity in *km/s*. If not given, BBarolo tries to guess it.
+* **VROT** [none]. Rotation velocity in *km/s*.
 
 * **VDISP** [8]. Velocity dispersion in *km/s*. 
 
 * **VRAD** [0]. Radial velocity in *km/s*. 
 
-* **INC** [none]. Inclination in *degrees*. If not given, BBarolo tries to guess it from the column density map.
+* **INC** [none]. Inclination in *degrees*. If not given, it is guessed from the total map.
 
-* **PA** [none]. Position angle in *degrees*, measured anti-clockwise form the North direction. If not given, BBarolo tries to guess it from the velocity field.
+* **PA** [none]. Position angle in *degrees*, measured anti-clockwise form the North direction. If not given, it is estimated from the velocity field.
 
 * **Z0** [0]. Scale-height of the disc in *arcsec*. 
 
@@ -48,30 +50,12 @@ All parameters listed below (except NRADII and RADSEP) can be given in the form 
 
 .. _3dfitopt:
 
-Additional options
+Main options
 ^^^^^^^^^^^^^^^^^^
 
-Additional parameters to control and refine the fit. All following parameters have default values and are therefore optional.
-
-* **DELTAINC** [5]. This parameter fixes the boundaries of parameter space at [INC-DELTAINC, INC+DELTAINC]. It is not advisable to let the inclination varying over the whole range [0,90].
-
-* **DELTAPA** [15]. This parameter fixes the boundaries of parameter space at [PA-DELTAINC, PA+DELTAPA]. It is not advisable to let the position angle varying over the whole range [0,360].
-
-* **DELTAVROT** [inf] (BBarolo v1.5.1+). This parameter fixes the boundaries of parameter space at [VROT-DELTAVROT, VROT+DELTAVROT]. Default is not to limit rotation velocity.
+Some important parameters that can be used to control 3DFIT. All following parameters have default values and are therefore optional.
 
 * **FREE** [VROT VDISP INC PA]. The list of parameters to fit. Can be any combination of VROT, VDISP, VRAD, VSYS, INC, PA, Z0, XPOS, YPOS.
-
-* **FTYPE** [2]. Function to be minimized. Accepted values are: 1 = chi-squared, 2 = \|mod-obs\|, (default) and 3 = \|mod-obs\|/(mod+obs)).
-
-* **WFUNC** [2]. Weighting function to be used in the fit. Accepted values are: 0 = uniform weight, 1 = \|cos(θ)\| and 2 = cos(θ)^2, default), where θ is the azimuthal angle (= 0 for galaxy major axis).
-
-* **LTYPE** [1]. Layer type along z. Accepted values are: 1 = Gaussian (default), 2  = sech^2, 3 = exponential, 4 = Lorentzian and 5 = box.
-
-* **CDENS** [10]. Surface density of clouds in the plane of the rings per area of a pixel in units of *1E20 atoms/cm^2* (see also GIPSY `GALMOD <https://www.astro.rug.nl/~gipsy/tsk/galmod.dc1>`_).
-
-* **NV** [nchan]. Number of subclouds in the velocity profile of a single cloud (see also GIPSY `GALMOD <https://www.astro.rug.nl/~gipsy/tsk/galmod.dc1>`_). Default is the number of channels in the datacube.
-
-* **SIDE** [B]: Side of the galaxy to be fitted. Accepted values are: A = approaching, R = receding and B = both (default)
 
 * **MASK** [SMOOTH]. This parameter tells the code how to build a mask to identify the regions of genuine galaxy emission. Accepted values are *SMOOTH*, *SEARCH*, *SMOOTH&SEARCH*, *THRESHOLD*, *NONE* or a FITS mask file:
 
@@ -83,34 +67,70 @@ Additional parameters to control and refine the fit. All following parameters ha
   
   * *THRESHOLD*: blank all pixels with flux < THRESHOLD. A **THRESHOLD** parameter must be specified in the same flux units of the input datacube. 
   
-  *  *NONE*: all regions with flux > 0 are used. 
+  * *NONE*: all regions with flux > 0 are used. 
   
-  * *file(fitsname.fits)*: A mask FITS file (i.e. filled with 0,1).
-
+  * *file(fitsname.fits)*: A mask FITS file (i.e. filled with 0s and 1s).
+  
 * **NORM** [LOCAL]. Type of normalization of the model. Accepted values are: *LOCAL* (pixel by pixel), *AZIM* (azimuthal) or *NONE*.
 
-* **TWOSTAGE** [true]. This flag enables the second fitting stage after parameter regularization. This is relevant just if the user wishes to fit parameters other than VROT, VDISP, VRAD and VVERT. The inclination and the position angle are regularized by polynomials of degree POLYN or a Bezier function (default), while the other parameters by constant functions.
+* **TWOSTAGE** [true]. This flag enables the second fitting stage after parameter regularisation. This is relevant just if the user wishes to fit parameters other than VROT, VDISP and VRAD. The inclination and the position angle are regularised by polynomials of degree POLYN or a Bezier function (default), while the other parameters by constant functions.
 
-* **POLYN** [-1]. Degree of polynomials for the regularization of inclination and position angles. -1 enables the Bezier function.
+* **REGTYPE** [auto]. Type of regularisation to use for second fitting stage. Accepted values are *auto* (the code will choose), *bezier* (Bezier interpolation), *median* (take the median), or a positive integer *n* for a nth-degree polynomial interpolation. It is possible to choose different types for INC, PA, VSYS, XPOS, YPOS and Z0 with a list of keyword-value pairs separated with whitespaces. A single value is used only to set INC and PA together. For example::
 
-* **BWEIGHT** [1]. Exponent of weight for blank pixels. See Section 2.4 of reference paper for details. Large numbers mean that models that extend further away than observations are severely discouraged.
+    REGTYPE   bezier                 # Bezier function for INC and PA, 'auto' for others
+    REGTYPE   INC=1 PA=median        # A line for INC, median for PA
+    REGTYPE   INC=2 PA=0 VSYS=bezier # A parabola for INC, a constant for PA, bezier for VSYS
 
-* **FLAGERRORS** [false]. Whether the code has to estimate the errors. This usually heavily slows down the run.
+* **POLYN** [-1]. **DEPRECATED**. It will be discontinued after v1.6, use REGTYPE instead.
 
-* **STARTRAD** [0]. This parameter allows the user to start the fit from the given ring. Indexing from 0.
+* **LINEAR** [0.85]. This parameter controls the spectral broadening of the instrument. It is in units of channel and it represents the standard deviation, not the FWHM. The default is for data that has been Hanning smoothed, so that FWHM = 2 channels and LINEAR = FWHM/2.355.
 
-* **LINEAR** [0.85]. This parameter controls the spectral broadening of the instrument. It is in units of channel and it represents the standard deviation, not the FWHM. The default is for data that has been Hanning smoothed, so that FWHM = 2 channels and σ = FWHM/2.355.
+* **SIDE** [B]: Side of the galaxy to be fitted. Accepted values are: A = approaching, R = receding and B = both (default)
+
+* **FLAGERRORS** [false]. Whether the code has to estimate the errors. This heavily slows down the run.
 
 * **ADRIFT** [false]. If true, calculate the asymmetric drift correction. First regularize velocity dispersion and density profile and then compute the correction following classical prescription (see e.g. `Iorio et al. 2017 <http://adsabs.harvard.edu/abs/2017MNRAS.466.4159I>`_).
 
-* **PLOTMASK** [false]. If true, the mask contour is overlayed on the channel maps and PVs plots.
+
+.. _3dfitopt_add:
+
+Advanced options
+^^^^^^^^^^^^^^^^
+
+Additional optional parameters to refine the fit for advanced users. 
+
+* **DELTAINC** [5]. This parameter fixes the boundaries of parameter space at [INC-DELTAINC, INC+DELTAINC]. It is not advisable to let the inclination varying over the whole range [0,90].
+
+* **DELTAPA** [15]. This parameter fixes the boundaries of parameter space at [PA-DELTAINC, PA+DELTAPA]. It is not advisable to let the position angle varying over the whole range [0,360].
+
+* **DELTAVROT** [inf]. This parameter fixes the boundaries of parameter space at [VROT-DELTAVROT, VROT+DELTAVROT]. Default is not to limit rotation velocity.
+
+* **MINVDISP** [0]. Minimum gas velocity dispersion allowed.
+
+* **FTYPE** [2]. Function to be minimized. Accepted values are: 1 = chi-squared, 2 = \|mod-obs\|, (default) and 3 = \|mod-obs\|/(mod+obs)).
+
+* **WFUNC** [2]. Weighting function to be used in the fit. Accepted values are: 0 = uniform weight, 1 = \|cos(θ)\| and 2 = cos(θ)^2, default), where θ is the azimuthal angle (= 0 for galaxy major axis).
+
+* **LTYPE** [1]. Layer type along z. Accepted values are: 1 = Gaussian (default), 2  = sech^2, 3 = exponential, 4 = Lorentzian and 5 = box.
+
+* **CDENS** [10]. Surface density of clouds in the plane of the rings per area of a pixel in units of *1E20 atoms/cm^2* (see also GIPSY `GALMOD <https://www.astro.rug.nl/~gipsy/tsk/galmod.dc1>`_).
+
+* **NV** [nchan]. Number of subclouds in the velocity profile of a single cloud (see also GIPSY `GALMOD <https://www.astro.rug.nl/~gipsy/tsk/galmod.dc1>`_). Default is the number of channels in the datacube.
+
+* **BWEIGHT** [1]. Exponent of weight for blank pixels. See Section 2.4 of reference paper for details. Large numbers mean that models that extend further away than observations are severely discouraged.
+
+* **STARTRAD** [0]. This parameter allows the user to start the fit from the given ring. Indexing from 0.
+
+* **PLOTMASK** [false]. If true, the mask contour is overlaid on the channel maps and PVs plots.
 
 * **NOISERMS** [0] If > 0, Gaussian noise with rms = NOISERMS will be added to the final model cube.
 
-* **NORMALCUBE** [true] (BBarolo v1.5.1+). If true, the input cube is normalized before the fit. This usually helps convergence and avoids issues with very small flux values.
+* **NORMALCUBE** [true]. If true, the input cube is normalized before the fit. This usually helps convergence and avoids issues with very small flux values.
+
+* **BADOUT** [false]. If true, it writes also unconverged/bad rings in the output ringfile (with a flag identifying them).
 
 
-Additional parameters for high-z galaxies 
+Parameters for high-z galaxies 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For high-z galaxies the following additional parameters are available.
@@ -147,17 +167,15 @@ The 3DFIT task produces several outputs to check the goodness of the fit. In the
   * *NAME_0mom.fits*, *NAME_1mom.fits*, *NAME_2mom.fits:* 0th, 1st and 2nd moment maps of the data.
   * *NAME_NORM_0mom.fits*, *NAME_NORM_1mom.fits*, *NAME_NORM_2mom.fits:* 0th, 1st and 2nd moment maps of the model.
 
-* Text files *ringlog1.txt* and *ringlog2.txt*, containing the ring best-fit parameters for the first and second fitting steps. The file *ringlog2.txt* is only produced if **TWOSTAGE** is true.
+* Text files *rings_final1.txt* and *rings_final2.txt*, containing the ring best-fit parameters for the first and second fitting steps. The file *rings_final2.txt* is only produced if **TWOSTAGE** is true.
 
 * A text file *densprof.txt*, with the radial intensity profiles along the best-fit rings.
 
 * If **ADRIFT** is true, a text file *asymdrift.txt* with the asymmetric drift correction parameters.
 
-* A Gnuplot script *gnuscript.gnu* to plot P-V diagrams and best-fit parameters. This is only used if Gnuplot support is on and Python support is off.
+* Plotting scripts to produce output plots with Gnuplot/Python can be found in the *plotscripts* subdirectory.
 
-* A Python script *pyscript.py* to conveniently plot all the above outputs. This script produces all the following plots.
-
-* A PDF file *plot_chanmaps_NORM.pdf* with a channel-by-channel comparison of data and model cubes.
+* A PDF file *NAME_chanmaps_NORM.pdf* with a channel-by-channel comparison of data and model cubes.
 
 .. figure:: examples/channels.png
    :alt: Channel maps plot
@@ -167,7 +185,7 @@ The 3DFIT task produces several outputs to check the goodness of the fit. In the
 |
 |
 
-* A PDF file *plot_pv_NORM.pdf* with a comparison of data and model P-Vs taken along the average major and minor axes.
+* A PDF file *NAME_pv_NORM.pdf* with a comparison of data and model P-Vs taken along the average major and minor axes.
 
 .. figure:: examples/pvs.png
    :alt: Position-velocity plots
@@ -177,7 +195,7 @@ The 3DFIT task produces several outputs to check the goodness of the fit. In the
 |
 |
  
-* A PDF file *plot_maps_NORM.pdf* with a comparison of data and model moment maps.
+* A PDF file *NAME_maps_NORM.pdf* with a comparison of data and model moment maps.
 
 .. figure:: examples/mom.png
    :alt: Position-velocity plots
@@ -187,7 +205,7 @@ The 3DFIT task produces several outputs to check the goodness of the fit. In the
 |
 |
 
-* A PDF file *plot_parameters.pdf* with the best-fit parameters.
+* A PDF file *NAME_parameters.pdf* with the best-fit parameters.
 
 .. figure:: examples/params.png
    :alt: Position-velocity plots

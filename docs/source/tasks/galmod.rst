@@ -8,7 +8,7 @@ GALMOD is the routine underlying the 3DFIT task. It builds a 3D simulated datacu
 Parameters
 ==========
 
-Parameters for rings are the same of the :ref:`3DFIT task <ringio>`. Options are LTYPE, CDENS and NV (see :ref:`3DFIT options <3dfitopt>`).
+Parameters for rings are the same of the :ref:`3DFIT task <ringio>`. Options are LTYPE, CDENS and NV (see :ref:`3DFIT options <3dfitopt_add>`).
 
 Additional GALMOD-specific parameters are:
 

@@ -1,0 +1,16 @@
+$$ BBarolo --modhead
+
+ BBarolo's MODHEAD FITS utility: 
+
+ Write or modify the value of a header keyword.
+ If a newvalue is not specified, just print the current value.
+
+ Usage:
+   BBarolo --modhead filename[ext] keyword [newvalue]
+
+ Examples: 
+   BBarolo --modhead in.fits cunit1      (list the CUNIT1 keyword)
+   BBarolo --modhead in.fits cunit1 deg  (set CUNIT1 = 'deg')
+
+ NOTE: it may be necessary to enclose the input file name in single 
+ quote characters on some Unix shells.
