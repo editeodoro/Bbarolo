@@ -653,8 +653,9 @@ class FitMod3D(Model3D):
                 raise ValueError("%s ERROR: %s can only be 1, 2 or 3."%(self.taskname,key))
             if key=='startrad' and op[key][0]<0:
                 raise ValueError("%s ERROR: %s can only be positive."%(self.taskname,key))
-            if key=='mask' and op[key][0].upper() not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
-                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH' or 'NONE'."%(self.taskname,key))
+            if key=='mask' and op[key][0] not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
+                if "FILE" not in op[key][0]:
+                    raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH', 'NONE' or 'FILE(mask.fits)'."%(self.taskname,key))
             if key=='norm' and op[key][0].upper() not in ['LOCAL','AZIM','NONE']:
                 raise ValueError("%s ERROR: %s can only 'LOCAL','AZIM' or 'NONE'."%(self.taskname,key))
             if key=='side' and op[key][0].upper() not in ['A','R','B']:
@@ -814,8 +815,9 @@ class FitMod2D(Task):
         op = self._opts
         for key in op:
             op[key][0] = op[key][1](op[key][0])
-            if key=='mask' and op[key][0].upper() not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
-                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH' or 'NONE'."%(self.taskname,key))
+            if key=='mask' and op[key][0] not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
+                if "FILE" not in op[key][0]:
+                    raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH', 'NONE' or 'FILE(mask.fits)'."%(self.taskname,key))
             if key=='side' and op[key][0].upper() not in ['A','R','B']:
                 raise ValueError("%s ERROR: %s can only be 'A' (approaching),'R' (receding) or 'B' (both)."%(self.taskname,key))
             if key=='wfunc' and (op[key][0]<0 or op[key][0]>2):
@@ -908,8 +910,9 @@ class Ellprof(Task):
         op = self._opts
         for key in op:
             op[key][0] = op[key][1](op[key][0])
-            if key=='mask' and op[key][0].upper() not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
-                raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH' or 'NONE'."%(self.taskname,key))
+            if key=='mask' and op[key][0] not in ['SMOOTH','SEARCH','THRESHOLD','NEGATIVE','SMOOTH&SEARCH','NONE']:
+                if "FILE" not in op[key][0]:
+                    raise ValueError("%s ERROR: %s can only 'SMOOTH','SEARCH','THRESHOLD','NEGATIVE', 'SMOOTH&SEARCH', 'NONE' or 'FILE(mask.fits)'."%(self.taskname,key))
             if key=='side' and op[key][0].upper() not in ['A','R','B']:
                 raise ValueError("%s ERROR: %s can only be 'A' (approaching),'R' (receding) or 'B' (both)."%(self.taskname,key))
 
