@@ -864,6 +864,32 @@ bool Param::checkPars() {
         }
     }
     
+    // Check parameters for ELLPROF task
+    if (flagEllProf) {
+        std::string str =" is not an optional parameter. Please specify it in the input file.";
+        if ((parGF.NRADII==-1 || parGF.RADSEP==-1) && parGF.RADII=="-1")  {
+            cout << "ELLPROF error: NRADII or RADII" << str << std::endl;
+            good = false;
+        }
+        if (parGF.XPOS=="-1") {
+            cout << "ELLPROF ERROR: XPOS" << str << std::endl;
+            good = false;
+        }
+        if (parGF.YPOS=="-1") {
+            cout << "ELLPROF error: YPOS" << str << std::endl;
+            good = false;
+        }
+        if (parGF.INC=="-1") {
+            cout << "ELLPROF error: INC" << str << std::endl;
+            good = false;
+        }
+        if (parGF.PHI=="-1") {
+            cout << "ELLPROF error: PA" << str << std::endl;
+            good = false;
+        }
+    }
+    
+    
     // Check parameters for GALWIND task
     if (parGW.flagGALWIND) {
         std::string str =" is not an optional parameter. Please specify it in the input file.";
