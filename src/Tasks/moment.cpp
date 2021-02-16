@@ -409,7 +409,7 @@ Image2D<T>* PositionVelocity (Cube<T> *c, float x0, float y0, float Phi) {
     Image2D<T> *pv;
     int xdim=c->DimX(), ydim=c->DimY();
     int xmax=xdim, ymax=ydim;
-    int xmin=0, ymin=0; 
+    int xmin=0, ymin=0;
     
     Header &h = c->Head();
     float cdelt0;

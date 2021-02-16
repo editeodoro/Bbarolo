@@ -335,9 +335,9 @@ void Ringmodel<T>::setoption (bool *maskpar, int hside, int wfunc, float freeang
   ///                   2 = Approching half.
   ///                   3 = Both halves.
   /// \param wfunc      Which weighting function:
-  ///                   1 = Uniform.
-  ///                   2 = Cosine.
-  ///                   3 = Cosine-squared.
+  ///                   0 = Uniform.
+  ///                   1 = Cosine.
+  ///                   2 = Cosine-squared.
   /// \param freeangle  The angle around mionr axis within 
   ///                   witch radial velocities are discarded.
     
@@ -348,23 +348,7 @@ void Ringmodel<T>::setoption (bool *maskpar, int hside, int wfunc, float freeang
     }
     
     thetaf = freeangle;
-    
-    switch(wfunc) {
-        case 1: 
-            wpow = 0;
-            break;       
-        case 2: 
-            wpow = 1;
-            break;
-        case 3: 
-            wpow = 2;
-            break;
-        default: 
-            std::cout << "Not allowed weighting function. Setting to COSINE.\n";
-            wpow = 1;
-            break;
-         
-    }
+    wpow = wfunc;
 
     // We allow only fitting of systemic velocity and centre position
     // when both halves of the galaxy are used.
@@ -682,6 +666,9 @@ int Ringmodel<T>::getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &
     }
    
     int nlt = bup[0]-blo[0]+1;                     // Number of pixels in X.
+    
+    double (*wfunc)(double) = cos;
+    if (wpow<0) wfunc = sin;
    
     for (int rx=llo; rx<lup; rx++) {
         for (int ry=mlo; ry<mup; ry++) {
@@ -695,7 +682,8 @@ int Ringmodel<T>::getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &
                 T theta = 0.;
                 if (r>=0.1) theta = atan2(yr, xr)/F;   
                 T costh = fabs(cos(F*theta));
-                    
+                T wf    = fabs(wfunc(F*theta));
+                
                 if (r>ri && r<ro && costh>free) {      // If we are inside the ring.
 
                     bool use = true;
@@ -707,7 +695,7 @@ int Ringmodel<T>::getdat (std::vector<T> &x, std::vector<T> &y, std::vector<T> &
                         T xx[2] = {float(rx),float(ry)};
                         T vz = func (xx, p, MAXPAR);
                         T s = v - vz;          // Corrected difference
-                        T wi = std::pow(costh, wpow); // Weight of this point.
+                        T wi = std::pow(wf, fabs(wpow)); // Weight of this point.
                         x.push_back(rx);           // Load X-coordinate.
                         x.push_back(ry);           // Load Y-coordinate.
                         y.push_back(v);            // Load LOS velocity.

@@ -729,7 +729,7 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     
     // Setting number of rings and radsep
     size_t nr     = par.NRADII;
-    double radsep = par.RADSEP;    
+    double radsep = par.RADSEP;
     nr = nr>0 && nr<max_size ? nr : max_size;
     if (radii_b) {
         radsep = 0;

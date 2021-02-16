@@ -764,7 +764,7 @@ bool Param::checkPars() {
                 parGF.FTYPE = 2;
             }
 
-            if (parGF.WFUNC<0 || parGF.WFUNC>2) {
+            if (fabs(parGF.WFUNC)>2) {
                 cout << "3DFIT warning: ";
                 cout << "Not valid argument for WFUNC parameter. ";
                 cout << "Assuming 1 (|cos(θ)| weighting function).\n";
@@ -1355,11 +1355,12 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
             else if (t==4) typ = "(m-o)^2";
             recordParam(Str, "[FTYPE]", "   Residuals to minimize", typ);
 
-            typ = "";
             t = p.getParGF().WFUNC;
-            if (t==0)      typ = "uniform";
-            else if (t==1) typ = "|cos(θ)|";
-            else if (t==2) typ = "cos(θ)^2";
+            if (t==0)       typ = "uniform";
+            else if (t==1)  typ = "|cos(θ)|";
+            else if (t==2)  typ = "cos(θ)^2";
+            else if (t==-1) typ = "|sin(θ)|";
+            else if (t==-2) typ = "sin(θ)^2";
             recordParam(Str, "[WFUNC]", "   Weighting function", typ);
 
             recordParam(Str, "[BWEIGHT]", "   Weight for blank pixels", p.getParGF().BWEIGHT); 
@@ -1444,6 +1445,16 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[FREE]", "   Parameters to be fit", p.getParGF().FREE);
         recordParam(Str, "[MASK]", "   Type of mask for velocity map", p.getMASK());
         recordParam(Str, "[SIDE]", "   Side of the galaxy to be used", p.getParGF().SIDE); 
+        
+        std::string typ = "";
+        int t = p.getParGF().WFUNC;
+        if (t==0)       typ = "uniform";
+        else if (t==1)  typ = "|cos(θ)|";
+        else if (t==2)  typ = "cos(θ)^2";
+        else if (t==-1) typ = "|sin(θ)|";
+        else if (t==-2) typ = "sin(θ)^2";
+        
+        recordParam(Str, "[WFUNC]", "   Weighting function", typ);
     }
     
     // PARAMETERS FOR ELLPROF

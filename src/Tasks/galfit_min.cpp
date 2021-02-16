@@ -622,7 +622,11 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
     int bweight = par.BWEIGHT;
-
+    
+    // Weighting function can be either a cos(theta)^n or a sin(theta)^n
+    double (*wfunc)(double) = cos;
+    if (wpow<0) wfunc = sin;
+    
     for (uint y=bsize[1]; y--;) {
         for (uint x=bsize[0]; x--;) {
             double theta;
@@ -641,8 +645,9 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
             if (modSum!=0) factor = obsSum/modSum;
             else factor=0;
 
-            double costh = fabs(cos(theta*M_PI/180.));
-            double wi = std::pow(costh, double(wpow));
+            //double costh = fabs(cos(theta*M_PI/180.));
+            double wf = fabs(wfunc(theta*M_PI/180.));
+            double wi = std::pow(wf, fabs(wpow));
 
             // Normalizing and residuals.
             for (uint z=in->DimZ(); z--;) {
@@ -748,6 +753,10 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
     int bweight = par.BWEIGHT;
+    
+    // Weighting function can be either a cos(theta)^n or a sin(theta)^n
+    double (*wfunc)(double) = cos;
+    if (wpow<0) wfunc = sin;
 
     //< Factor for normalization.
     T obsSum=0, modSum=0, factor=1;
@@ -775,8 +784,9 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
             if (!IsIn(x,y,blo,dring,theta)) continue;
             if (!getSide(theta)) continue;
             numPix_ring++;
-            double costh = fabs(cos(theta*M_PI/180.));
-            double wi = std::pow(costh, double(wpow));
+            //double costh = fabs(cos(theta*M_PI/180.));
+            double wf = fabs(wfunc(theta*M_PI/180.));
+            double wi = std::pow(wf, fabs(wpow));
 
             // Normalizing and residuals.
             for (uint z=in->DimZ(); z--;) {
@@ -816,6 +826,10 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
     double minfunc = 0;
     int bweight = par.BWEIGHT;
 
+    // Weighting function can be either a cos(theta)^n or a sin(theta)^n
+    double (*wfunc)(double) = cos;
+    if (wpow<0) wfunc = sin;
+    
     for (uint y=bsize[1]; y--;) {
         for (uint x=bsize[0]; x--;) {
             double theta;
@@ -824,9 +838,10 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
             numPix_ring++;
 
-            double costh = fabs(cos(theta*M_PI/180.));
-            double wi = std::pow(costh, double(wpow));
-
+            //double costh = fabs(cos(theta*M_PI/180.));
+            double wf = fabs(wfunc(theta*M_PI/180.));
+            double wi = std::pow(wf, fabs(wpow));
+            
             // Normalizing and residuals.
             for (uint z=in->DimZ(); z--;) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];

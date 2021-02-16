@@ -144,7 +144,11 @@ bool BBcore (Param *par) {
     // Redirecting output to a log file if requested
     std::ofstream outf;
     if (par->getLogFile()) {
-        outf.open(outfolder+"BBlog.txt");
+        std::string logfile = outfolder+"BBlog_0.txt";
+        int i = 0;
+        while (fexists(logfile)) 
+            logfile = outfolder+"BBlog_"+to_string(++i)+".txt";
+        outf.open(logfile);
         std::cout.rdbuf(outf.rdbuf());
         std::cerr.rdbuf(outf.rdbuf());
         if (par->isVerbose()) {

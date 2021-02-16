@@ -1,6 +1,16 @@
-import os, io, subprocess
+import os, io, stat, subprocess
 import warnings as warn
 from distutils.spawn import find_executable
+
+# Global variable pointing to BBarolo executable
+BBexe = None
+
+# BBarolo should be in module directory. We make sure it is executable
+moddir = os.path.dirname(os.path.realpath(__file__))
+if os.path.isfile(moddir+'/BBarolo'): 
+    BBexe = moddir+'/BBarolo'
+    os.chmod(BBexe,  stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
 
 class BBaroloWrapper(object):
     """ 
@@ -8,14 +18,17 @@ class BBaroloWrapper(object):
     
     Attributes
     ----------
-    opts: (str)
-      A list of strings (param=value) with stored BBarolo's parameters.
+    opts: (dict)
+      A dictionary {param : value} with stored BBarolo's parameters.
     
     
     Methods
     -------
     add_options(**kwargs):
       Add new options to the opts attribute
+    
+    remove_option(toremove):
+      Remove a previously added option from opts list
     
     run(exe=None,stdout=None):
       Run BBarolo after checking that the executable exists and stdout
@@ -25,6 +38,9 @@ class BBaroloWrapper(object):
     
     write_parameterfile(fileout='param.par'):
       Write a parameter file with the parameters stored in the class
+    
+    reset():
+      Reset BBarolo's options to an empty list
     
     """
     def __init__(self,params=None,**kwargs):
@@ -49,16 +65,17 @@ class BBaroloWrapper(object):
         if params is None and not kwargs:
             raise ValueError("BBaroloWrapper must be initialised with a list of BBarolo's parameters")
         
-        # Creating a list of BBarolo's parameters
-        self.opts = []
+        self.opts = {}         # A dictionary with BB's parameters
         if params:
             # Parameters are given through params
             if isinstance(params,dict):
-                self.opts = [f'{k}={params[k]}' for k in params]
+                self.opts = params
             elif isinstance(params,(list,tuple)):
                 if not all(isinstance(k, str) for k in params):
                     raise TypeError("All elements of parameter list must be strings.")
-                self.opts = [str(k.replace(" = ", "=")) for k in params]
+                for s in params:
+                    a = s.split("=")
+                    self.opts.update({a[0].lower().strip() : a[1].strip()})
             else: 
                 raise TypeError("Parameters must given as either a list of strings or a dictionary.")
         
@@ -67,11 +84,14 @@ class BBaroloWrapper(object):
 
     def add_options(self,**kwargs):
         " Add new options to the parameter list"
-        if kwargs:
-            # Parameters are added through **kwargs 
-            self.opts.extend([f'{k}={kwargs[k]}' for k in kwargs])
+        if kwargs: self.opts.update(kwargs)
 
-
+    
+    def remove_option(self,toremove):
+        " Remove an option from the parameter list"
+        self.opts.pop(toremove, None)
+    
+    
     def run(self,exe=None,stdout=None):
         """ Run BBarolo with the given parameters after checking executable and stdout
     
@@ -85,16 +105,19 @@ class BBaroloWrapper(object):
         if exe is not None and not os.path.exists(exe):
             raise NameError(f"{exe} does not exist.")
         
-        # Try to find BBarolo executable exists somewhere
-        exe = find_executable('BBarolo') if exe is None else exe
+        # If not given using global BBexe variable
+        exe = BBexe if exe is None else exe
         if exe is None:
-            raise NameError("Cannot find any BBarolo executable in $PATH. Please specify it with exe=yourBBarolo")
+            # Try to find BBarolo executable exists in path
+            exe = find_executable('BBarolo')
+            if exe is None:
+                raise NameError("Cannot find any BBarolo executable in $PATH. Please specify it with exe=yourBBarolo")
         
         # Deciding where to print BB's messages (screen,file or null)
         if isinstance(stdout,str): 
             if 'null' in stdout.lower(): stdout = subprocess.DEVNULL
             else: stdout = open(stdout,'w')
-        
+
         # Running BBarolo
         if (self.run_nochecks(exe=exe,stdout=stdout)):
             warn.warn("BBarolo returned an unsuccessful exit code", RuntimeWarning)
@@ -103,24 +126,33 @@ class BBaroloWrapper(object):
         if isinstance(stdout,io.IOBase): stdout.close()
 
 
-    def run_nochecks(self,exe='BBarolo',stdout=subprocess.DEVNULL):
+    def run_nochecks(self,exe=BBexe,stdout=subprocess.DEVNULL):
         """ Run BBarolo with no further checks """
         cmd = [f'{exe}', '-c']
-        cmd.extend(self.opts)
+        params = [f'{k}={self.opts[k]}' for k in self.opts]
+        cmd.extend(params)
         return subprocess.call(cmd,stdout=stdout,stderr=stdout)
-        
 
+    
     def write_parameterfile(self,fileout='param.par'):
         """ Write a BBarolo's parameter file in fileout """
         with open(fileout,'w') as f:
             f.write(self.__str__())
     
-    
+
+    def reset(self):
+        "Reset options"
+        self.opts.clear()
+
+
+    def __getitem__(self,key):
+       return self.opts[key]
+
+
     def __str__(self):
         s = "##### Input parameters for BBarolo #####\n"
-        for ss in self.opts:
-            a = ss.split("=")
-            s += f'{a[0].upper():18s} {a[1]} \n' 
+        for k in self.opts:
+            s += f'{k.upper():18s} {self.opts[k]} \n' 
         return s
 
 

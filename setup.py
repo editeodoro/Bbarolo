@@ -29,26 +29,28 @@ def compileBB():
 
     print ("Compiling BBarolo... ",end="")
     sys.stdout.flush()
-    ret = subprocess.call("make -j%i lib"%mpr.cpu_count(), shell=True, stdout=f)
+    ret = subprocess.call("make -j%i"%mpr.cpu_count(), shell=True, stdout=f)
     if ret!=0: sys.exit("\nCompilation failed. Check %s for errors.\n"%logfile)
+    ret = subprocess.call("make lib", shell=True, stdout=f)
+    if ret!=0: sys.exit("\nLibrary linking failed. Check %s for errors.\n"%logfile)
     print ("OK.")
     
 
 if sys.argv[1]=='sdist':  
     # If we are creating the sdist package, make a tar with BB source
-    try: remove_tree("pyBBarolo/BBarolo")
+    try: remove_tree("pyBBarolo/BB")
     except: pass
     try: os.remove("pyBBarolo/BBarolo.tar.gz")
     except: pass
-    mkpath("pyBBarolo/BBarolo")
-    subprocess.call("cp -r src/ pyBBarolo/BBarolo/src", shell=True,stdout=f)
-    subprocess.call("cp -r config/ pyBBarolo/BBarolo/config", shell=True,stdout=f)
-    subprocess.call("cp -r configure pyBBarolo/BBarolo/", shell=True,stdout=f)
-    subprocess.call("cp -r Makefile.in pyBBarolo/BBarolo/", shell=True,stdout=f)
-    subprocess.call("cp -r Makefile.in pyBBarolo/BBarolo/", shell=True,stdout=f)
-    subprocess.call("rm -rf pyBBarolo/BBarolo/src/Build", shell=True,stdout=f)
-    subprocess.call("tar -czf ./pyBBarolo/BBarolo.tar.gz -C ./pyBBarolo BBarolo", shell=True,stdout=f)
-    remove_tree("pyBBarolo/BBarolo/")
+    mkpath("pyBBarolo/BB")
+    subprocess.call("cp -r src/ pyBBarolo/BB/src", shell=True,stdout=f)
+    subprocess.call("cp -r config/ pyBBarolo/BB/config", shell=True,stdout=f)
+    subprocess.call("cp -r configure pyBBarolo/BB/", shell=True,stdout=f)
+    subprocess.call("cp -r Makefile.in pyBBarolo/BB/", shell=True,stdout=f)
+    subprocess.call("cp -r Makefile.in pyBBarolo/BB/", shell=True,stdout=f)
+    subprocess.call("rm -rf pyBBarolo/BB/src/Build", shell=True,stdout=f)
+    subprocess.call("tar -czf ./pyBBarolo/BBarolo.tar.gz -C ./pyBBarolo BB", shell=True,stdout=f)
+    remove_tree("pyBBarolo/BB/")
 
     # If we creating the dist, additional file is the tar just created
     package_data = {'pyBBarolo': ['*.tar.gz']}
@@ -64,21 +66,23 @@ else:
     if os.path.isdir("./src"):
         # If we are in BB root, compile from here
         compileBB()
+        subprocess.call("cp BBarolo pyBBarolo/", shell=True, stdout=f)
         subprocess.call("mv libBB* pyBBarolo/", shell=True, stdout=f)
     else:
         # Enter pyBB dir and look for tar file
         os.chdir("pyBBarolo")
         if not os.path.isfile("BBarolo.tar.gz"): raise ValueError("BBarolo.tar.gz not found")
         subprocess.call(["tar xvzf BBarolo.tar.gz"], shell=True, stdout=f)
-        os.chdir("BBarolo")
+        os.chdir("BB")
         compileBB()
         os.chdir("../")
-        subprocess.call("mv BBarolo/libBB* .", shell=True, stdout=f)
-        #remove_tree("BBarolo")
+        subprocess.call("mv BB/libBB* .", shell=True, stdout=f)
+        subprocess.call("mv BB/BBarolo .", shell=True, stdout=f)
+        #remove_tree("BB")
         os.chdir("../")
     
     # If installing, the additional data are the compiled libraries
-    package_data = {'pyBBarolo': ['libBB*']}
+    package_data = {'pyBBarolo': ['libBB*','BBarolo']}
 
 
 # Installing pyBBarolo package
@@ -92,12 +96,10 @@ setup(name='pyBBarolo',
       packages=['pyBBarolo'],
       package_dir={'pyBBarolo':'pyBBarolo'}, 
       package_data=package_data,
-          classifiers=[
-                   "Development Status :: 3 - Alpha",
+      classifiers=["Development Status :: 3 - Alpha",
                    "Programming Language :: Python",
                    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
           ],
     )
-    
 
 

@@ -95,7 +95,7 @@ int wcsToPixSingle(struct wcsprm *wcs, const double *world, double *pix) {
   int naxis=wcs->naxis,npts=1,status;
   int specAxis = wcs->spec;
   if(specAxis<0) specAxis=2;
-  if(specAxis>=naxis) specAxis = naxis-1;
+  //if(specAxis>=naxis) specAxis = naxis-1;
 
   double *tempworld = new double[naxis*npts];
   for(int i=0;i<naxis;i++) tempworld[i] = wcs->crval[i];

@@ -284,6 +284,11 @@ Galfit<T>::Galfit(Cube<T> *c) {
     }
     
 
+    if (!c->pars().getflagGalMod()) {
+        if (!onefile && verb) showInitial(inR, std::cout);
+        printInitial(inR, c->pars().getOutfolder()+"rings_initial.txt");
+    }
+    
     // Deciding whether to use reverse fitting based on galaxy inclination
     if (par.REVERSE.find("auto")!=std::string::npos && !c->pars().getflagGalMod()) {
         T incmed = findMedian<T>(inR->inc,inR->nr);
@@ -359,11 +364,6 @@ Galfit<T>::Galfit(Cube<T> *c) {
     }
 
     if (ip!=nullptr) delete ip;
-
-    if (!c->pars().getflagGalMod()) {
-        if (!onefile && verb) showInitial(inR, std::cout);
-        printInitial(inR, c->pars().getOutfolder()+"rings_initial.txt");
-    }
 
     // Setup all needed parameters
     setup(c,inR,&par);
