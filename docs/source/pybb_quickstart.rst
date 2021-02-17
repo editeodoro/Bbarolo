@@ -143,7 +143,35 @@ This :download:`script <pyBB_test.py>` shows how to use all wrapped classes:
 .. Example 3: 3D model of an outflow
    =================================
 
+pyBBarolo for PROs
+====================
+Beside the python classes described above, there is probably a better way to run BBarolo from python for users who are familiar with BBarolo's parameter files. A class ``BBaroloWrapper`` to call conveniently BBarolo C++ executable is implemented in the ``pyBBarolo.wrapper`` module. This class allows the user to set any parameter supported in BBarolo and it is extremely useful for scripting.
+
+The  ``BBaroloWrapper`` class takes in input a list of BBarolo's parameters, which can be given as either a python dictionary or a list of strings. The class is basically a container of parameters. A working example is below::
+
+    from pyBBarolo.wrapper import BBaroloWrapper 
+        
+    # Initializing class (doing some spatial smoothing for example)
+    bb = BBaroloWrapper(fitsfile='./examples/ngc2403.fits',smooth=True,bmaj=120,bmin=120)
+    
+    # Parameters can alternatively be given as a list of strings or dictionary
+    # bb = BBaroloWrapper(['FITSFILE=./examples/ngc2403.fits','SMOOTH=True','BMAJ=120','BMIN=120'])
+    # bb = BBaroloWrapper(dict(fitsfile='./examples/ngc2403.fits',smooth=True,bmaj=120,bmin=120))
+    
+    # Parameters can also be added or removed
+    bb.add_options(threads=8,outfolder='myoutfolder')
+    bb.remove_option('threads')
+    
+    # Parameters can be printed or easily be written in a parameter file
+    print (bb)
+    bb.write_parameterfile("param.par")
+    
+    # Now we can run BBarolo
+    bb.run(exe="/path_to_BBarolo/BBarolo",stdout=None)
+    
+The above is exactly the same as calling BBarolo with a parameter file, thus it will write all the outputs in the usual output folder. The ``run()`` function above takes in input two optional parameters, ``exe`` and ``stdout``. The former is your local BBarolo binary (if not given, it will search in your $PATH). The latter is where to write BBarolo's messages: if ``None`` or not given, BBarolo will print messages on the command line, if ``'filename.log'`` it will write everything in a file *filename.log* , if ``'null'`` no output message will be written. 
 
 
+**NB 1**: Parameter names given to ``BBaroloWrapper`` are not case sensitive.
 
-
+**NB 2**: No check is performed on the given parameters. If a parameter does not exist in BBarolo, it will just be ignored.
