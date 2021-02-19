@@ -66,6 +66,7 @@ OBJDIR = $(BASE)/Build
 
 HEADS = $(ARRAYDIR)/param.hh\
 	$(ARRAYDIR)/header.hh\
+	$(ARRAYDIR)/array.hpp\
 	$(ARRAYDIR)/cube.hh\
 	$(ARRAYDIR)/image.hh\
 	$(ARRAYDIR)/stats.hh\

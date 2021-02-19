@@ -29,7 +29,9 @@
 #include <Arrays/image.hh>
 
 
-
+//////////////////////////////////////////////////////////////////////////
+/// MomentMap class to extract a moment maps from a datacube
+//////////////////////////////////////////////////////////////////////////
 template <class T> 
 class MomentMap : public Image2D <T> 
 {
@@ -65,12 +67,52 @@ private:
 };
 
 
-// A function to extract PV-diagrams
-template <class T>
-Image2D<T>* PositionVelocity (Cube<T> *c, float x0, float y0, float Phi);
-
 // A function to extract all kinematic maps at the same time
 template <class T>
 std::vector< MomentMap<T> > getAllMoments(Cube<T> *c, bool usemask=true, bool *mask=nullptr, std::string mtype="MOMENT");
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// A class to extract position-velocity slices
+/////////////////////////////////////////////////////////////////////////////////////
+template <class T>
+class PvSlice : public Image2D<T>
+/// PvSlicer class to extract a position-velocity slice from a datacube
+/// The slice is always a straigh line and can be defined:
+///  1) Through two points (constructor #1)
+///  2) Through one point and an angle (constructor #2)
+///
+/// In the first case, the slice can include just a part of the datacube,
+/// while in the second the entire cube is sliced.
+/// Usage: call one of the constructors and the slice().
+{
+public:
+    PvSlice(Cube<T> *c);
+    PvSlice(Cube<T> *c, float x1, float y1, float x2, float y2) : in(c), x1(x1), x2(x2), y1(y1), y2(y2), isAngle(false) {}
+    PvSlice(Cube<T> *c, float x0, float y0, float angle) : in(c), x0(x0), y0(y0), angle(angle), isAngle(true) {}
+    ~PvSlice(){if (locusAllocated) {delete [] x_locus; delete [] y_locus;}}
+    bool slice ();
+    bool slice_old ();
+    
+private:
+    Cube<T> *in;                    //< A pointer to the input datacube
+    int    xpix, ypix, zpix;        //< Size of the datacube to slice
+    float  x1, x2, y1, y2;          //< Defining slice with two points
+    float  x0, y0, angle;           //< Defining slice with a point and a angle (from North->West)
+    bool   isAngle;                 //< Whether slice is defined with angle
+    float  *x_locus, *y_locus;      //< The slice
+    bool  locusAllocated = false;   //< Whether x_locus and y_locus are allocated
+    int   num_points;               //< Number of pixels along the slice
+    
+    float weight (float x, float y, float cx, float cy) {return fabs((1-(x-cx))*(1-(y-cy)));}  
+    bool  define_slice(int x1, int y1, int x2, int y2);
+    bool  check_bounds (int *blx, int *bly, int *Trx, int *Try);
+    bool  pvslice ();
+    void  define_header();
+};
+
+// A front-end function to extract PV-diagrams with a center and a angle.
+template <class T>
+PvSlice<T>* PositionVelocity (Cube<T> *c, float x0, float y0, float Phi, bool oldmethod=true);
 
 #endif

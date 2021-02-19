@@ -109,7 +109,7 @@ Image2D<Type>& Image2D<Type>::operator=(const Image2D<Type> &i) {
 /**==============================================================================*/
 
 template <class Type>
-void Image2D<Type>::setImage(Type *input, int *dim) {
+void Image2D<Type>::setImage(int *dim) {
 
     if (arrayAllocated) delete [] array;
     numAxes = 2;
@@ -117,12 +117,16 @@ void Image2D<Type>::setImage(Type *input, int *dim) {
     numPix = axisDim[0]*axisDim[1];
     array = new Type [numPix];
     arrayAllocated=true;
-    for (int y=0; y<axisDim[1]; y++) 
-        for (int x=0; x<axisDim[0]; x++) {
-                long nPix = x+y*axisDim[0];
-                array[nPix]=input[nPix]; 
-            }
-    
+    head.setNumAx(numAxes);
+}
+
+
+template <class Type>
+void Image2D<Type>::setImage(Type *input, int *dim) {
+
+    setImage(dim);
+    for (int i=axisDim[0]*axisDim[1]; i--;) array[i]=input[i];
+
 }
 
 
@@ -188,7 +192,7 @@ bool Image2D<Type>::fitsread_2d () {
 
 
 template <class Type>
-bool Image2D<Type>::fitswrite_2d (const char *outname) {
+bool Image2D<Type>::fitswrite_2d (const char *outname, bool fullHead) {
     
     fitsfile *fptr;
     int status;
@@ -210,7 +214,7 @@ bool Image2D<Type>::fitswrite_2d (const char *outname) {
         return false;
     }
     
-    if (headDefined) head.headwrite_2d (fptr,false);
+    if (headDefined) head.headwrite_2d (fptr,fullHead);
     
     if (fits_write_img (fptr, selectDatatype<Type>(), firstPix, numPix, array, &status)){
         fits_report_error (stderr, status);

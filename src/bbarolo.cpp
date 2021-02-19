@@ -317,14 +317,14 @@ bool BBcore (Param *par) {
 
     // PVs extraction task --------------------------------------------
     if (par->getFlagPV()) {
-        BBreal xpos = par->getXPOS_PV();
-        BBreal ypos = par->getYPOS_PV();
-        BBreal ang = par->getPA_PV();
         std::string s = outfolder+c->Head().Name();
-        Image2D<BBreal> *pv = PositionVelocity(c,xpos,ypos,ang);
-        pv->fitswrite_2d((s+"pv_"+to_string(ang,0)+".fits").c_str());
+        PvSlice<BBreal> *pv = new PvSlice<BBreal>(c);
+        //pv->slice();
+        pv->slice_old();
+        pv->fitswrite_2d((s+"pv_"+to_string(par->getPA_PV(),0)+".fits").c_str(),true);
         delete pv;
     }
+    
     //-----------------------------------------------------------------
 
 

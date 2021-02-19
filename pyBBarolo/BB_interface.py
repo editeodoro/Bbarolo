@@ -2,6 +2,22 @@
 Interface between C++ and Python functions.
 """
 
+########################################################################
+# Copyright (C) 2017 Enrico Di Teodoro
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+########################################################################
+
 import os
 from ctypes import *
 import numpy as np
@@ -135,6 +151,7 @@ libBB.Ellprof_compute.argtypes = [c_void_p]
 libBB.Ellprof_write.restype = None
 libBB.Ellprof_write.argtypes = [c_void_p,c_char_p]
 ########################################################################################
+
 
 # Class SpectralSmooth3D interface ############################################################
 libBB.SpectralSmooth3D_new.restype = c_void_p

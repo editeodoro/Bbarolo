@@ -77,12 +77,12 @@ public:
     double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);}
 
     /// I/O functions:
-
-    void setImage(Type *input, int *dim);       
-    bool readImage (std::string fname);             
-    void copyHeader (Header &c);    
+    void setImage(int *dim);
+    void setImage(Type *input, int *dim);
+    bool readImage (std::string fname);
+    void copyHeader (Header &c);
     void setImageStats();
-    bool fitswrite_2d (const char *outname="./output/image.fits"); 
+    bool fitswrite_2d (const char *outname="./output/image.fits", bool fullHead=false); 
 
     void extractSpectrum(Type *Array, int *dim, long pixel);    /// Extract a spectrum from an array.
     void extractImage(Type *Array, int *dim, long channel);     /// Extract an image from an array.

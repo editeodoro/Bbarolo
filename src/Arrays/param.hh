@@ -242,10 +242,12 @@ public:
     float   getSlitWidth () {return slitwidth;}
 
     bool    getFlagPV() {return flagPV;}
-    float   getXPOS_PV() {return XPOS_PV;}
-    float   getYPOS_PV() {return YPOS_PV;}
+    string  getXPOS_PV() {return XPOS_PV;}
+    string  getYPOS_PV() {return YPOS_PV;}
     float   getPA_PV() {return PA_PV;}
-
+    float   getP1_PV (int i) {return P1_PV[i];}
+    float   getP2_PV (int i) {return P2_PV[i];}
+    
     bool    getFlagRend3D() {return flagRend3D;}
     float   getRendAngle() {return rendangle;}
 
@@ -326,10 +328,12 @@ private:
     float           slitwidth;          ///< Width of the slit in arcsec
     
     bool            flagPV;             ///< Extracting a position-velocity diagram.
-    float           XPOS_PV;
-    float           YPOS_PV;
-    float           PA_PV;
-
+    string          XPOS_PV;            ///< X-center of PV slice
+    string          YPOS_PV;            ///< Y-center of PV slice
+    float           PA_PV;              ///< Position angle of PV slice
+    float           P1_PV[2];           ///< Point 1 defining the PV slice
+    float           P2_PV[2];           ///< Point 2 defining the PV slice
+    
     bool            flagEllProf;
     int             threads;
     bool            debug;
