@@ -88,8 +88,10 @@ class PvSlice : public Image2D<T>
 {
 public:
     PvSlice(Cube<T> *c);
-    PvSlice(Cube<T> *c, float x1, float y1, float x2, float y2) : in(c), x1(x1), x2(x2), y1(y1), y2(y2), isAngle(false) {}
-    PvSlice(Cube<T> *c, float x0, float y0, float angle) : in(c), x0(x0), y0(y0), angle(angle), isAngle(true) {}
+    PvSlice(Cube<T> *c, double x1, double y1, double x2, double y2, int width=0) 
+            : in(c), x1(x1), x2(x2), y1(y1), y2(y2), isAngle(false), width(width) {}
+    PvSlice(Cube<T> *c, double x0, double y0, double angle, int width=0) 
+            : in(c), x0(x0), y0(y0), angle(angle), isAngle(true), width(width) {}
     ~PvSlice(){if (locusAllocated) {delete [] x_locus; delete [] y_locus;}}
     bool slice ();
     bool slice_old ();
@@ -97,15 +99,16 @@ public:
 private:
     Cube<T> *in;                    //< A pointer to the input datacube
     int    xpix, ypix, zpix;        //< Size of the datacube to slice
-    float  x1, x2, y1, y2;          //< Defining slice with two points
-    float  x0, y0, angle;           //< Defining slice with a point and a angle (from North->West)
+    double x1, x2, y1, y2;          //< Defining slice with two points
+    double x0, y0, angle;           //< Defining slice with a point and a angle (from North->West)
     bool   isAngle;                 //< Whether slice is defined with angle
-    float  *x_locus, *y_locus;      //< The slice
+    double *x_locus, *y_locus;      //< The slice
     bool  locusAllocated = false;   //< Whether x_locus and y_locus are allocated
     int   num_points;               //< Number of pixels along the slice
+    int   width = 0;                //< Half width of the slice in pixels
     
-    float weight (float x, float y, float cx, float cy) {return fabs((1-(x-cx))*(1-(y-cy)));}  
-    bool  define_slice(int x1, int y1, int x2, int y2);
+    float weight (double x, double y, double cx, double cy) {return fabs((1-(x-cx))*(1-(y-cy)));}  
+    bool  define_slice();
     bool  check_bounds (int *blx, int *bly, int *Trx, int *Try);
     bool  pvslice ();
     void  define_header();

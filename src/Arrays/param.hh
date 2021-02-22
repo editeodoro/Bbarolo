@@ -247,6 +247,7 @@ public:
     float   getPA_PV() {return PA_PV;}
     float   getP1_PV (int i) {return P1_PV[i];}
     float   getP2_PV (int i) {return P2_PV[i];}
+    float   getWIDTH_PV () {return WIDTH_PV;}
     
     bool    getFlagRend3D() {return flagRend3D;}
     float   getRendAngle() {return rendangle;}
@@ -331,6 +332,7 @@ private:
     string          XPOS_PV;            ///< X-center of PV slice
     string          YPOS_PV;            ///< Y-center of PV slice
     float           PA_PV;              ///< Position angle of PV slice
+    float           WIDTH_PV;           ///< Width of the slice 
     float           P1_PV[2];           ///< Point 1 defining the PV slice
     float           P2_PV[2];           ///< Point 2 defining the PV slice
     

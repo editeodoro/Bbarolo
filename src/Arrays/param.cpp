@@ -133,6 +133,7 @@ void Param::defaultValues() {
     XPOS_PV             = "-1";
     YPOS_PV             = "-1";
     PA_PV               = 0;
+    WIDTH_PV            = 0;
     P1_PV[0] = P1_PV[1] = -1;
     P2_PV[0] = P2_PV[1] = -1;
     
@@ -228,6 +229,7 @@ Param& Param::operator= (const Param& p) {
     this->XPOS_PV           = p.XPOS_PV;
     this->YPOS_PV           = p.YPOS_PV;
     this->PA_PV             = p.PA_PV;
+    this->WIDTH_PV          = p.WIDTH_PV;
     for (int i=0; i<2; i++) {
         this->P1_PV[i]      = p.P1_PV[i];
         this->P2_PV[i]      = p.P2_PV[i];
@@ -599,6 +601,7 @@ void Param::setParam(string &parstr) {
     if (arg=="xpos_pv")   XPOS_PV = makelower(readFilename(ss));
     if (arg=="ypos_pv")   YPOS_PV = makelower(readFilename(ss));
     if (arg=="pa_pv")     PA_PV = readval<float>(ss);
+    if (arg=="width_pv")  WIDTH_PV = readval<float>(ss);
     if(arg=="p1_pv")      readArray<float>(ss,P1_PV,2);
     if(arg=="p2_pv")      readArray<float>(ss,P2_PV,2);
 
@@ -1536,7 +1539,8 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[P1_PV]", "   Position 1 of a two-point slice", pp);
         pp = "";
         for (int i=0;i<2;i++) pp += to_string<float>(p.getP2_PV(i),1)+" ";
-        recordParam(Str, "[P2_PV]", "   Position 1 of a two-point slice", pp);
+        recordParam(Str, "[P2_PV]", "   Position 2 of a two-point slice", pp);
+        recordParam(Str, "[WIDTH_PV]", "   Width of the slice (arcsec)", p.getWIDTH_PV());
     }
     
     toPrint = isAll || p.getFlagRend3D() || (defaults && whichtask=="REND3D");

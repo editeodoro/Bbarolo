@@ -480,7 +480,11 @@ PvSlice<T>::PvSlice(Cube<T> *c) {
     else {
         throw("PVSLICE ERROR: no slice has been defined!");
     }
-
+    
+    // Setting width of the window
+    float widtharcs = p.getWIDTH_PV()/2;
+    width = round(widtharcs/(c->Head().PixScale()*arcsconv(c->Head().Cunit(0))));
+    
 }
 
 
@@ -493,7 +497,6 @@ bool PvSlice<T>::slice() {
     xpix = in->DimX();
     ypix = in->DimY();
     zpix = in->DimZ();
-    
     
     if (!(xpix*ypix*zpix > 0)) {
         fprintf (stderr, "PvSlice ERROR: input cube dimensions are wrong.\n");
@@ -514,14 +517,14 @@ bool PvSlice<T>::slice() {
             y1 = 0; y2 = ypix-1;
         }
         else {
-            float theta = (angle+90)*M_PI/180.;
+            double theta = (angle+90)*M_PI/180.;
             x1 = 0;      y1 = tan(theta)*(x1-x0)+y0;
             x2 = xpix-1; y2 = tan(theta)*(x2-x0)+y0;
         }
     }
     
     // Get the slice locus 
-    if(!define_slice(x1,y1,x2,y2)) return false;
+    if(!define_slice()) return false;
     
     if (num_points>0) {
         // Setting the PV array
@@ -535,285 +538,6 @@ bool PvSlice<T>::slice() {
     
     return true;
 }
-
-
-template <class T>
-bool PvSlice<T>::define_slice(int x1, int y1, int x2, int y2) {
-
-    // Determine a locus of pixels in a slice line, from two endpoints 
-    
-    int    blx, bly, Trx, Try;
-    float  theta, ctheta, stheta;
-
-    if (!check_bounds(&blx,&bly,&Trx,&Try) ) return false;
-
-    // Now calculate slice length 
-    float dx    = (float) (Trx-blx+1);
-    float dy    = (float) (Try-bly+1);
-    if (blx==Trx) {
-        theta = M_PI/2.0; ctheta=0.0; stheta=1.0;
-        if (bly>Try) {theta = 3.0*M_PI/2.0; stheta=-1.0;}
-    }
-    else {theta = atan2(dy,dx); ctheta = cos(theta); stheta = sin(theta);}
-
-    float slicelength = sqrt(dx*dx+dy*dy);
-    num_points = lround(slicelength);
-
-    if (locusAllocated) delete [] x_locus;
-    if (locusAllocated) delete [] y_locus;
-    x_locus = new float[num_points];
-    y_locus = new float[num_points];
-    locusAllocated = true;
-    
-    for (int i=0; i<num_points; i++) {
-        x_locus[i] = i * ctheta + blx;
-        y_locus[i] = i * stheta + bly;
-    }
-
-    return true;
-} 
-
-
-template <class T>
-bool PvSlice<T>::check_bounds (int *blx, int *bly, int *Trx, int *Try) {
-    
-    // Checks bounds & if endpoints are outside the area of cube's front face,
-    // computes overlapping section of slice 
-
-    float f, x, y;
-    int swapped=0, v[5], w[5];
-    float ix1 = x1, iy1 = y1,  ix2 = x2, iy2 = y2;
-
-    // Do everything assuming first point is left of second, swap back later 
-    if (ix2 < ix1) {
-        ix1 = x2; ix2 = x1; iy1 = y2; iy2 = y1; swapped=1;
-    } 
-    else {
-        if (ix1 == ix2 && iy1 > iy2) {
-            iy1 = y2; iy2 = y1; swapped=2;
-        }
-    }
-   
-    *blx = ix1; *bly = iy1; *Trx = ix2; *Try = iy2;
-
-    // Handle no-overlap cases: the extended slice line may overlap eventually,
-    // but the piece within the endpoints does not. So stop here.
-    if ( (ix1 < 0 && ix2 < 0) || (ix1 >= xpix && ix2 >= xpix) ) {
-        fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
-    }
-    if ( (iy1 < 0 && iy2 < 0) || (iy1 >= ypix && iy2 >= ypix) ) {
-        fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
-    }
-    // Single pixel case
-    if ( ix1 == ix2 && iy1 == iy2 ) {
-        fprintf(stderr, "PvSlice ERROR: Line segment too short\n"); return false;
-    }
-
-    // Handle the case of a vertical slice 
-    if ( ix1 == ix2 ) {
-
-        if (ix1 < 0 || ix1 >= xpix) {
-            fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
-        }
-        else {
-            *blx = ix1; *Trx = ix2;
-            // Now check if either of the y coords are good 
-            if (iy1 < 0 || iy1 >= ypix) { *bly = 0;}
-            if (iy2 < 0 || iy2 >= ypix) { *Try = ypix-1;}
-        }
-    }
-    else {
-        // Handle the case of a horizontal slice
-        if ( iy1 == iy2 ) {
-
-            if (iy1 < 0 || iy1 >= ypix) {
-                fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
-            }
-            else {
-                *bly = iy1; *Try = iy2;
-                // Now check if either of the x coords are good 
-                if (ix1 < 0 || ix1 >= xpix) { *blx = 0;}
-                if (ix2 < 0 || ix2 >= xpix) { *Trx = xpix-1;}
-            }
-        }
-        else {
-            // Calculate intercepts with x=0, y=0, x=xpix-1, y=ypix-1
-            // store x-intercepts in v[] and y-intercepts in w[]       
-            f = ( (float)(iy2) - (float)(iy1) ) / ( (float)(ix2) - (float)(ix1) );
-
-            v[1]=0; w[2]=0; v[3]=xpix-1; w[4]=ypix-1;
-            x=0.0;    y=(float)(iy1) + (x-(float)(ix1))*f;          w[1]=(int)(y+0.5);
-            y=0.0;    x=(float)(ix1) + (y-(float)(iy1))/f;          v[2]=(int)(x+0.5);
-            x=(float)(xpix-1); y=(float)(iy1) + (x-(float)(ix1))*f; w[3]=(int)(y+0.5);
-            y=(float)(ypix-1); x=(float)(ix1) + (y-(float)(iy1))/f; v[4]=(int)(x+0.5);
-
-
-            // Things are different depending on if slope is +ve or -ve 
-            // For either, there are six cases of where the intercepts of the
-            // slice line (extended to infinity in both directions) lie w.r.t. the
-            // four lines noted above
-            if ( f >= 0.0 ) {
-                if (v[2] < 0 ) {
-                    if (w[1] < ypix) {
-                        *blx = 0; *bly = w[1];
-                        if ( w[3] < ypix ) {*Trx = xpix-1; *Try = w[3];}
-                        else{*Trx = v[4]; *Try = ypix-1;}
-                    }
-                    else {fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
-                }
-                else{
-                    if (v[2] < xpix) {
-                        *bly = 0; *blx = v[2];
-                        if (v[4] < xpix) {*Try = ypix-1; *Trx = v[4];}
-                        else {*Try = w[3]; *Trx = xpix-1;}
-                    }
-                    else{fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
-                }
-            }
-            else {
-                if (v[4] < 0) {
-                    if ( w[1] > 0 ) {
-                        *blx = 0; *bly = w[1];
-                        if (w[3] > 0 ) {*Trx = xpix-1; *Try = w[3];}
-                        else {*Trx = v[2]; *Try = 0;}
-                    }
-                    else {fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
-                }
-                else {
-                    if (v[4] < xpix) {
-                        *blx = v[4]; *bly = ypix-1;
-                        if ( v[2] < xpix ) {*Trx = v[2]; *Try = 0;}
-                        else {*Trx = xpix-1; *Try = w[3];}
-                    }
-                    else {fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
-                }
-            } 
-        } 
-    } 
-    
-    // now check to see if either endpoint NEEDS to be replaced:
-    // if they are legal return the input value 
-    if ( (ix1 >= 0 && ix1 < xpix) && (iy1 >= 0 && iy1 < ypix) ) {
-        *blx = ix1; *bly = iy1;
-    }
-    if ( (ix2 >= 0 && ix2 < xpix) && (iy2 >= 0 && iy2 < ypix) ) {
-        *Trx = ix2; *Try = iy2;
-    }
-
-    // Swap ends back if necessary
-    if (swapped > 0) {
-        ix1 = *blx; *blx = *Trx; *Trx = ix1;
-        iy1 = *bly; *bly = *Try; *Try = iy1;
-    }
-
-    return true;
-
-} 
-
-
-template <class T>
-bool PvSlice<T>::pvslice () {
-
-    // Extract pixels from a cube, along an input locus and write the PV in 
-    // the main array. Result is antialiased.
-    // 
-    // The cube is assumed to have axes in x,y,v order.
-    // The output array has the same spatial scale as input cube, ie
-    // the scale is assumed to be the same for both spatial axes,
-    // and velocity pixels are given the same width as the channel spacing.
-    // Output is a weighted sum over all pixels nearby the point where the
-    // slice locus passes, to reduce aliasing effects.
-    //
-    // There are four cases to consider for the neighbour pixels, depending
-    // where within a pixel the hit occurs:
-    //
-    //         |-----------|-----------|     |-----------|-----------|
-    //         |           |           |	   |           |           |
-    //    2.0  -     3     |     2     | 	   |     3     |     2     |
-    //         |           |           |	   |       xy  |           |
-    //         |-----------|-----------|	   |-----------|-----------|
-    //         |           | xy        |	   |           |           |
-    //    1.0  -     4     |     1     |	   |     4     |     1     |
-    //         |           |           |	   |           |           |
-    //         |-----|-----|-----|-----|	   |-----------|-----------|
-    //              1.0         2.0
-    //
-    //         |-----------|-----------|     |-----------|-----------|
-    //         |           |           |	   |           |           |
-    //         |     3     |     2     | 	   |     3     |     2     |
-    //         |           | xy        |	   |           |           |
-    //         |-----------|-----------|	   |-----------|-----------|
-    //         |           |           |	   |       xy  |           |
-    //         |     4     |     1     |	   |     4     |     1     |
-    //         |           |           |	   |           |           |
-    //         |-----------|-----------|	   |-----------|-----------|
-    //
-    // All these can be handled by int(x+/-0.5), int(y+/-0.5)
-    // Pixel coordinates are associated with centres of pixels. In pixels that 
-    // don't have 4 neighbours, missing neighbours are aasigned a zero weight.
-
-    
-    int    xp, yp, xn, yn;
-    float  xc, yc, xx, yy, sw, f;
-    size_t MAXNB = 5;    // Number of neighbours for antialiasing
-    
-
-    if (num_points < 2) return false;
-    
-    float2D wt (MAXNB,size_t(num_points));
-    int3D nb(size_t(2),MAXNB,size_t(num_points));
-
-    // Find the neighbour pixels & antialiasing weights.
-    // this is done for one channel only, then list applied to all channels
-    for (int i = 0; i < num_points; i++) {
-        xc = x_locus[i];       yc = y_locus[i];
-        xp = (int)( xc+0.5 );  yp = (int)( yc+0.5 );
-        // here I only do the 4 nearest pixels
-        nb(0,0,i) = xp; nb(1,0,i) = yp;
-        nb(0,1,i) = (int)(xc+0.5); nb(1,1,i) = (int)(yc-0.5); // neigbours
-        nb(0,2,i) = (int)(xc+0.5); nb(1,2,i) = (int)(yc+0.5);
-        nb(0,3,i) = (int)(xc-0.5); nb(1,3,i) = (int)(yc+0.5);
-        nb(0,4,i) = (int)(xc-0.5); nb(1,4,i) = (int)(yc-0.5);
-
-        // calculate the weight for each neighbour
-        for (int j = 1; j < MAXNB; j++) {
-            xp = nb(0,j,i); yp = nb(1,j,i);
-            xx = (float) xp;   yy = (float) yp;
-            if ( (xp >= 0) && (xp < xpix) && (yp >= 0) && (yp < ypix) )
-                wt(j, i) = weight (xx, yy, xc, yc);
-            else wt(j, i) = 0.0;
-        }   
-    }   
-
-    
-    for (int z = 0; z < zpix; ++z) {
-        for (int i=0; i<num_points; i++) { // Start slice loop 
-            f = 0.0; sw = 0.0;
-            xp = nb(0,0,i);
-            yp = nb(1,0,i);
-
-            for (int j=1; j<MAXNB; j++) {
-                xn = nb(0,j,i);
-                yn = nb(1,j,i);
-                // The first test protects the second; it is possible for xn and yn
-                // to go out of range (neighbours of a pixel at edge of cube) 
-                if ( wt(j,i) >0.0 && in->Array(xn,yn,z)!=1.0e30) {
-                    sw += wt(j,i);
-                    f  += in->Array(xn,yn,z) * wt(j,i);
-                }
-            } 
-            
-            if (sw>0.0) this->array[i+z*num_points] = f/sw;
-            else {
-                if ( xp >= 0 && xp<xpix && yp>=0 && yp<ypix ) this->array[i+z*num_points] = in->Array(xn,yn,z);
-                else this->array[i+z*num_points] = 0.0;
-            }
-            
-        } 
-    } 
-    
-    return true;
-} 
 
 
 template <class T>
@@ -937,6 +661,309 @@ bool PvSlice<T>::slice_old() {
     
 }
 
+
+template <class T>
+bool PvSlice<T>::define_slice() {
+
+    // Determine a locus of pixels in a slice line, from two endpoints 
+    
+    int    blx, bly, Trx, Try;
+    double  theta, ctheta, stheta;
+
+    if (!check_bounds(&blx,&bly,&Trx,&Try) ) return false;
+
+    // Now calculate slice length 
+    double dx    = (double) (Trx-blx+1);
+    double dy    = (double) (Try-bly+1);
+    if (blx==Trx) {
+        theta = M_PI/2.0; ctheta=0.0; stheta=1.0;
+        if (bly>Try) {theta = 3.0*M_PI/2.0; stheta=-1.0;}
+    }
+    else {theta = atan2(dy,dx); ctheta = cos(theta); stheta = sin(theta);}
+
+    double slicelength = sqrt(dx*dx+dy*dy);
+    num_points = lround(slicelength);
+
+    if (locusAllocated) delete [] x_locus;
+    if (locusAllocated) delete [] y_locus;
+    x_locus = new double[num_points];
+    y_locus = new double[num_points];
+    locusAllocated = true;
+    
+    for (int i=0; i<num_points; i++) {
+        x_locus[i] = i * ctheta + blx;
+        y_locus[i] = i * stheta + bly;
+    }
+
+    return true;
+} 
+
+
+template <class T>
+bool PvSlice<T>::check_bounds (int *blx, int *bly, int *Trx, int *Try) {
+    
+    // Checks bounds & if endpoints are outside the area of cube's front face,
+    // computes overlapping section of slice 
+
+    double f, x, y;
+    int swapped=0, v[5], w[5];
+    double ix1 = x1, iy1 = y1,  ix2 = x2, iy2 = y2;
+
+    // Do everything assuming first point is left of second, swap back later 
+    if (ix2 < ix1) {
+        ix1 = x2; ix2 = x1; iy1 = y2; iy2 = y1; swapped=1;
+    } 
+    else {
+        if (ix1 == ix2 && iy1 > iy2) {
+            iy1 = y2; iy2 = y1; swapped=2;
+        }
+    }
+   
+    *blx = ix1; *bly = iy1; *Trx = ix2; *Try = iy2;
+
+    // Handle no-overlap cases: the extended slice line may overlap eventually,
+    // but the piece within the endpoints does not. So stop here.
+    if ( (ix1 < 0 && ix2 < 0) || (ix1 >= xpix && ix2 >= xpix) ) {
+        fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
+    }
+    if ( (iy1 < 0 && iy2 < 0) || (iy1 >= ypix && iy2 >= ypix) ) {
+        fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
+    }
+    // Single pixel case
+    if ( ix1 == ix2 && iy1 == iy2 ) {
+        fprintf(stderr, "PvSlice ERROR: Line segment too short\n"); return false;
+    }
+
+    // Handle the case of a vertical slice 
+    if ( ix1 == ix2 ) {
+
+        if (ix1 < 0 || ix1 >= xpix) {
+            fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
+        }
+        else {
+            *blx = ix1; *Trx = ix2;
+            // Now check if either of the y coords are good 
+            if (iy1 < 0 || iy1 >= ypix) { *bly = 0;}
+            if (iy2 < 0 || iy2 >= ypix) { *Try = ypix-1;}
+        }
+    }
+    else {
+        // Handle the case of a horizontal slice
+        if ( iy1 == iy2 ) {
+            if (iy1 < 0 || iy1 >= ypix) {
+                fprintf(stderr, "PvSlice ERROR: Slice does not intercept cube.\n"); return false;
+            }
+            else {
+                *bly = iy1; *Try = iy2;
+                // Now check if either of the x coords are good 
+                if (ix1 < 0 || ix1 >= xpix) { *blx = 0;}
+                if (ix2 < 0 || ix2 >= xpix) { *Trx = xpix-1;}
+            }
+        }
+        else {
+            
+            // Calculate intercepts with x=0, y=0, x=xpix-1, y=ypix-1
+            // store x-intercepts in v[] and y-intercepts in w[]       
+            f = (iy2-iy1) / (ix2-ix1);
+
+            v[1]=0; w[2]=0; v[3]=xpix-1; w[4]=ypix-1;
+            x=0.0;    y=iy1 + (x-ix1)*f;     w[1]=(int)(y+0.5);
+            y=0.0;    x=ix1 + (y-iy1)/f;     v[2]=(int)(x+0.5);
+            x=xpix-1; y=iy1 + (x-ix1)*f;     w[3]=(int)(y+0.5);
+            y=ypix-1; x=ix1 + (y-iy1)/f;     v[4]=(int)(x+0.5);
+
+
+            // Things are different depending on if slope is +ve or -ve 
+            // For either, there are six cases of where the intercepts of the
+            // slice line (extended to infinity in both directions) lie w.r.t. the
+            // four lines noted above
+            if ( f >= 0.0 ) {
+                if (v[2] < 0 ) {
+                    if (w[1] < ypix) {
+                        *blx = 0; *bly = w[1];
+                        if ( w[3] < ypix ) {*Trx = xpix-1; *Try = w[3];}
+                        else{*Trx = v[4]; *Try = ypix-1;}
+                    }
+                    else {fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
+                }
+                else{
+                    if (v[2] < xpix) {
+                        *bly = 0; *blx = v[2];
+                        if (v[4] < xpix) {*Try = ypix-1; *Trx = v[4];}
+                        else {*Try = w[3]; *Trx = xpix-1;}
+                    }
+                    else{fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
+                }
+            }
+            else {
+                if (v[4] < 0) {
+                    if ( w[1] > 0 ) {
+                        *blx = 0; *bly = w[1];
+                        if (w[3] > 0 ) {*Trx = xpix-1; *Try = w[3];}
+                        else {*Trx = v[2]; *Try = 0;}
+                    }
+                    else {fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
+                }
+                else {
+                    if (v[4] < xpix) {
+                        *blx = v[4]; *bly = ypix-1;
+                        if ( v[2] < xpix ) {*Trx = v[2]; *Try = 0;}
+                        else {*Trx = xpix-1; *Try = w[3];}
+                    }
+                    else {fprintf(stderr, "PvSlice ERROR: Out of bounds\n"); return false;}
+                }
+            } 
+        } 
+    } 
+    
+    // now check to see if either endpoint NEEDS to be replaced:
+    // if they are legal return the input value 
+    if ( (ix1 >= 0 && ix1 < xpix) && (iy1 >= 0 && iy1 < ypix) ) {
+        *blx = ix1; *bly = iy1;
+    }
+    if ( (ix2 >= 0 && ix2 < xpix) && (iy2 >= 0 && iy2 < ypix) ) {
+        *Trx = ix2; *Try = iy2;
+    }
+
+    // Swap ends back if necessary
+    if (swapped > 0) {
+        ix1 = *blx; *blx = *Trx; *Trx = ix1;
+        iy1 = *bly; *bly = *Try; *Try = iy1;
+    }
+
+    return true;
+
+} 
+
+
+template <class T>
+bool PvSlice<T>::pvslice () {
+
+    // Extract pixels from a cube, along an input locus and write the PV in 
+    // the main array. Result is antialiased.
+    // 
+    // The cube is assumed to have axes in x,y,v order.
+    // The output array has the same spatial scale as input cube, ie
+    // the scale is assumed to be the same for both spatial axes,
+    // and velocity pixels are given the same width as the channel spacing.
+    // Output is a weighted sum over all pixels nearby the point where the
+    // slice locus passes, to reduce aliasing effects.
+    //
+    // There are four cases to consider for the neighbour pixels, depending
+    // where within a pixel the hit occurs:
+    //
+    //         |-----------|-----------|     |-----------|-----------|
+    //         |           |           |	   |           |           |
+    //    2.0  -     3     |     2     | 	   |     3     |     2     |
+    //         |           |           |	   |       xy  |           |
+    //         |-----------|-----------|	   |-----------|-----------|
+    //         |           | xy        |	   |           |           |
+    //    1.0  -     4     |     1     |	   |     4     |     1     |
+    //         |           |           |	   |           |           |
+    //         |-----|-----|-----|-----|	   |-----------|-----------|
+    //              1.0         2.0
+    //
+    //         |-----------|-----------|     |-----------|-----------|
+    //         |           |           |	   |           |           |
+    //         |     3     |     2     | 	   |     3     |     2     |
+    //         |           | xy        |	   |           |           |
+    //         |-----------|-----------|	   |-----------|-----------|
+    //         |           |           |	   |       xy  |           |
+    //         |     4     |     1     |	   |     4     |     1     |
+    //         |           |           |	   |           |           |
+    //         |-----------|-----------|	   |-----------|-----------|
+    //
+    // All these can be handled by int(x+/-0.5), int(y+/-0.5)
+    // Pixel coordinates are associated with centres of pixels. In pixels that 
+    // don't have 4 neighbours, missing neighbours are assigned a zero weight.
+
+    
+    int    xp, yp, xn, yn;
+    double  xc, yc, xx, yy, sw, f;
+    size_t MAXNB = 5;    // Number of neighbours for antialiasing
+    
+    int w = width;
+    if (num_points < 2) return false;
+    
+    float3D wt(2*w+1,MAXNB,num_points);
+    int4D nb(2*w+1,2,MAXNB,num_points);
+
+    double theta = atan2(y_locus[num_points-1]-y_locus[0],
+                         x_locus[num_points-1]-x_locus[0]);
+    
+    // Find the neighbour pixels & antialiasing weights.
+    // this is done for one channel only, then list applied to all channels
+    for (int i=0; i<num_points; i++) {
+        for (int k=-w; k<=w; k++) {
+            
+            xc = x_locus[i]+k*sin(theta);
+            yc = y_locus[i]-k*cos(theta);
+            xp = (int)( xc+0.5 );  yp = (int)( yc+0.5 );
+            // here I only do the 4 nearest pixels
+            nb(k+w,0,0,i) = xp; 
+            nb(k+w,1,0,i) = yp;
+            nb(k+w,0,1,i) = (int)(xc+0.5);          // neigbours 
+            nb(k+w,1,1,i) = (int)(yc-0.5); 
+            nb(k+w,0,2,i) = (int)(xc+0.5); 
+            nb(k+w,1,2,i) = (int)(yc+0.5);
+            nb(k+w,0,3,i) = (int)(xc-0.5); 
+            nb(k+w,1,3,i) = (int)(yc+0.5);
+            nb(k+w,0,4,i) = (int)(xc-0.5); 
+            nb(k+w,1,4,i) = (int)(yc-0.5);
+            
+            // calculate the weight for each neighbour
+            for (int j=1; j<MAXNB; j++) {
+                xp = nb(k+w,0,j,i); 
+                yp = nb(k+w,1,j,i);
+                xx = (float) xp;   
+                yy = (float) yp;
+                if ( (xp >= 0) && (xp < xpix) && (yp >= 0) && (yp < ypix) )
+                    wt(k+w,j,i) = weight(xx,yy,xc,yc);
+                else wt(k+w,j,i) = 0.0;
+            }
+        
+        }
+    }
+
+
+    for (int z=0; z<zpix; z++) {
+        for (int i=0; i<num_points; i++) {  // Start slice loop
+            T thisvalue = 0;
+            int n = 0;
+            for (int k=-w; k<=w; k++) {     // Loop over width window
+                f = 0.0; sw = 0.0;
+                xp = nb(k+w,0,0,i);
+                yp = nb(k+w,1,0,i);
+
+                for (int j=1; j<MAXNB; j++) {
+                    xn = nb(k+w,0,j,i);
+                    yn = nb(k+w,1,j,i);
+                    // The first test protects the second; it is possible for xn and yn
+                    // to go out of range (neighbours of a pixel at edge of cube) 
+                    if (wt(k+w,j,i)>0.0) {
+                        sw += wt(k+w,j,i);
+                        f  += in->Array(xn,yn,z) * wt(k+w,j,i);
+                    }
+                } 
+            
+                if (sw>0.0) { thisvalue += f/sw; n++; }
+                else {
+                    if ( xp >= 0 && xp<xpix && yp>=0 && yp<ypix ) {
+                        thisvalue += in->Array(xn,yn,z);
+                        n++;
+                    }
+                    else thisvalue += 0.0;
+                }
+            }
+            this->array[i+z*num_points] = thisvalue / n;
+        } 
+    } 
+    
+    return true;
+} 
+
+
+
 template <class T>
 void PvSlice<T>::define_header () {
     
@@ -1002,6 +1029,113 @@ void PvSlice<T>::define_header () {
     this->setHeadDef(true);
 
 }
+
+
+/* Original slice function (without width)
+template <class T>
+bool PvSlice<T>::pvslice () {
+
+    // Extract pixels from a cube, along an input locus and write the PV in 
+    // the main array. Result is antialiased.
+    // 
+    // The cube is assumed to have axes in x,y,v order.
+    // The output array has the same spatial scale as input cube, ie
+    // the scale is assumed to be the same for both spatial axes,
+    // and velocity pixels are given the same width as the channel spacing.
+    // Output is a weighted sum over all pixels nearby the point where the
+    // slice locus passes, to reduce aliasing effects.
+    //
+    // There are four cases to consider for the neighbour pixels, depending
+    // where within a pixel the hit occurs:
+    //
+    //         |-----------|-----------|     |-----------|-----------|
+    //         |           |           |	   |           |           |
+    //    2.0  -     3     |     2     | 	   |     3     |     2     |
+    //         |           |           |	   |       xy  |           |
+    //         |-----------|-----------|	   |-----------|-----------|
+    //         |           | xy        |	   |           |           |
+    //    1.0  -     4     |     1     |	   |     4     |     1     |
+    //         |           |           |	   |           |           |
+    //         |-----|-----|-----|-----|	   |-----------|-----------|
+    //              1.0         2.0
+    //
+    //         |-----------|-----------|     |-----------|-----------|
+    //         |           |           |	   |           |           |
+    //         |     3     |     2     | 	   |     3     |     2     |
+    //         |           | xy        |	   |           |           |
+    //         |-----------|-----------|	   |-----------|-----------|
+    //         |           |           |	   |       xy  |           |
+    //         |     4     |     1     |	   |     4     |     1     |
+    //         |           |           |	   |           |           |
+    //         |-----------|-----------|	   |-----------|-----------|
+    //
+    // All these can be handled by int(x+/-0.5), int(y+/-0.5)
+    // Pixel coordinates are associated with centres of pixels. In pixels that 
+    // don't have 4 neighbours, missing neighbours are assigned a zero weight.
+
+    
+    int    xp, yp, xn, yn;
+    float  xc, yc, xx, yy, sw, f;
+    size_t MAXNB = 5;    // Number of neighbours for antialiasing
+    
+
+    if (num_points < 2) return false;
+    
+    float2D wt(MAXNB,size_t(num_points));
+    int3D nb(size_t(2),MAXNB,size_t(num_points));
+
+    // Find the neighbour pixels & antialiasing weights.
+    // this is done for one channel only, then list applied to all channels
+    for (int i = 0; i < num_points; i++) {
+        xc = x_locus[i];       yc = y_locus[i];
+        xp = (int)( xc+0.5 );  yp = (int)( yc+0.5 );
+        // here I only do the 4 nearest pixels
+        nb(0,0,i) = xp; nb(1,0,i) = yp;
+        nb(0,1,i) = (int)(xc+0.5); nb(1,1,i) = (int)(yc-0.5); // neigbours
+        nb(0,2,i) = (int)(xc+0.5); nb(1,2,i) = (int)(yc+0.5);
+        nb(0,3,i) = (int)(xc-0.5); nb(1,3,i) = (int)(yc+0.5);
+        nb(0,4,i) = (int)(xc-0.5); nb(1,4,i) = (int)(yc-0.5);
+
+        // calculate the weight for each neighbour
+        for (int j = 1; j < MAXNB; j++) {
+            xp = nb(0,j,i); yp = nb(1,j,i);
+            xx = (float) xp;   yy = (float) yp;
+            if ( (xp >= 0) && (xp < xpix) && (yp >= 0) && (yp < ypix) )
+                wt(j, i) = weight (xx, yy, xc, yc);
+            else wt(j, i) = 0.0;
+        }   
+    }
+
+    
+    for (int z = 0; z < zpix; ++z) {
+        for (int i=0; i<num_points; i++) { // Start slice loop 
+            f = 0.0; sw = 0.0;
+            xp = nb(0,0,i);
+            yp = nb(1,0,i);
+
+            for (int j=1; j<MAXNB; j++) {
+                xn = nb(0,j,i);
+                yn = nb(1,j,i);
+                // The first test protects the second; it is possible for xn and yn
+                // to go out of range (neighbours of a pixel at edge of cube) 
+                if ( wt(j,i) >0.0 && in->Array(xn,yn,z)!=1.0e30) {
+                    sw += wt(j,i);
+                    f  += in->Array(xn,yn,z) * wt(j,i);
+                }
+            } 
+            
+            if (sw>0.0) this->array[i+z*num_points] = f/sw;
+            else {
+                if ( xp >= 0 && xp<xpix && yp>=0 && yp<ypix ) this->array[i+z*num_points] = in->Array(xn,yn,z);
+                else this->array[i+z*num_points] = 0.0;
+            }
+            
+        } 
+    } 
+    std::cout << "ORIGINALE" << std::endl;
+    return true;
+} 
+*/
 
 
 

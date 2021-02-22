@@ -22,13 +22,11 @@ public:
     Array(const Array& a) {this->operator=(a);};
     ~Array() {if(p) delete[] p;}
 
-    // SPECIAL CONSTRUCTORS FOR 3D,2D and 1D ARRAYS
+    // SPECIAL CONSTRUCTORS FOR 4D,3D,2D and 1D ARRAYS
+    Array(size_t xi,size_t yi, size_t zi, size_t qi) {if (checkNDim(4)) setArray(xi,yi,zi,qi);}
     Array(size_t xi,size_t yi, size_t zi) {if (checkNDim(3)) setArray(xi,yi,zi);}
-    Array(size_t xi,size_t yi, size_t zi, Type v) {if (checkNDim(3)) setArray(v,xi,yi,zi);}
     Array(size_t xi,size_t yi) {if (checkNDim(2)) setArray(xi,yi);}
-    Array(size_t xi,size_t yi, Type v) {if (checkNDim(2)) setArray(v,xi,yi);}
     Array(size_t xi) {if (checkNDim(1)) setArray(xi);}
-    Array(size_t xi, Type v) {if (checkNDim(1)) setArray(v,xi);}
 
     void setArray(size_t *Dim) {
         Ndim=N; size=1;
@@ -107,12 +105,15 @@ public:
     Type& P (size_t i) {return p[i];}
 
 
-    // SPECIALIZED FUNCTION TO BE USED FOR 3D and 2D ARRAYS
+    // SPECIALIZED FUNCTION TO BE USED FOR 4D, 3D and 2D ARRAYS
     // WARNING: no check on pixels or dimensions ---> use consciously
-    void setArray(size_t xi,size_t yi=1, size_t zi=1) {size_t Dim[3] = {xi,yi,zi}; setArray(Dim);}
-    void setArray(Type v,size_t xi,size_t yi=1, size_t zi=1) {size_t Dim[3] = {xi,yi,zi}; setArray(Dim,v);}
+    void setArray(size_t xi,size_t yi, size_t zi, size_t qi) {size_t Dim[4] = {xi,yi,zi,qi}; setArray(Dim);}
+    void setArray(size_t xi,size_t yi, size_t zi) {size_t Dim[3] = {xi,yi,zi}; setArray(Dim);}
+    void setArray(size_t xi,size_t yi) {size_t Dim[2] = {xi,yi}; setArray(Dim);}
+    inline Type& operator()(size_t i,size_t j,size_t k, size_t l) {return *(p+i+j*dim[0]+k*dim[0]*dim[1]+l*dim[0]*dim[1]*dim[2]);}
     inline Type& operator()(size_t i,size_t j,size_t k) {return *(p+i+j*dim[0]+k*dim[0]*dim[1]);}
     inline Type& operator()(size_t i,size_t j) {return *(p+i+j*dim[0]);}
+    inline size_t nPix (size_t i,size_t j,size_t k, size_t l) {return (i+j*dim[0]+k*dim[0]*dim[1]+l*dim[0]*dim[1]*dim[2]);}
     inline size_t nPix (size_t i,size_t j,size_t k) {return (i+j*dim[0]+k*dim[0]*dim[1]);}
     inline size_t nPix (size_t i,size_t j) {return (i+j*dim[0]);}
 
@@ -248,6 +249,12 @@ template <class T, size_t M>
 bool operator!=(const Array<T,M>& a, const Array<T,M>& b) {return(!(a==b));}
 
 
+typedef Array<double,4> double4D;
+typedef Array<float,4>  float4D;
+typedef Array<long,4>   long4D;
+typedef Array<int,4>    int4D;
+typedef Array<bool,4>   bool4D;
+typedef Array<short,4>  short4D;
 typedef Array<double,3> double3D;
 typedef Array<float,3>  float3D;
 typedef Array<long,3>   long3D;

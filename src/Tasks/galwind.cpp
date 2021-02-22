@@ -367,7 +367,7 @@ bool GalWind<T>::writePV(std::string fname){
         double *pixs = getCenterCoordinates(pos, in->Head());
         float x0  = pixs[0], y0=pixs[1];
         // Extract pv
-        Image2D<T> *pv_max = PositionVelocity(out,x0,y0,ang);
+        PvSlice<T> *pv_max = PositionVelocity(out,x0,y0,ang);
         return pv_max->fitswrite_2d(fn.c_str());
     }
     else return false;

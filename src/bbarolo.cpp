@@ -319,8 +319,8 @@ bool BBcore (Param *par) {
     if (par->getFlagPV()) {
         std::string s = outfolder+c->Head().Name();
         PvSlice<BBreal> *pv = new PvSlice<BBreal>(c);
-        //pv->slice();
-        pv->slice_old();
+        pv->slice();
+        //pv->slice_old();
         pv->fitswrite_2d((s+"pv_"+to_string(par->getPA_PV(),0)+".fits").c_str(),true);
         delete pv;
     }

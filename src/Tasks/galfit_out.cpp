@@ -345,18 +345,18 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     float meanPAp90= meanPA+90<360 ? meanPA+90 : meanPA-90;
 
     // Extract pvs of data
-    Image2D<T> *pv_max = PositionVelocity(in,meanXpos,meanYpos,meanPA);
+    PvSlice<T> *pv_max = PositionVelocity(in,meanXpos,meanYpos,meanPA);
     std::string mfile = outfold+object+"_pv_a.fits";
     pv_max->fitswrite_2d(mfile.c_str());
-    Image2D<T> *pv_min = PositionVelocity(in,meanXpos,meanYpos,meanPAp90);
+    PvSlice<T> *pv_min = PositionVelocity(in,meanXpos,meanYpos,meanPAp90);
     mfile = outfold+object+"_pv_b.fits";
     pv_min->fitswrite_2d(mfile.c_str());
 
     // Extract pvs of data
-    Image2D<T> *pv_max_m = PositionVelocity(mod,meanXpos,meanYpos,meanPA);
+    PvSlice<T> *pv_max_m = PositionVelocity(mod,meanXpos,meanYpos,meanPA);
     mfile = outfold+object+"mod_pv_a"+suffix+".fits";
     pv_max_m->fitswrite_2d(mfile.c_str());
-    Image2D<T> *pv_min_m = PositionVelocity(mod,meanXpos,meanYpos,meanPAp90);
+    PvSlice<T> *pv_min_m = PositionVelocity(mod,meanXpos,meanYpos,meanPAp90);
     mfile = outfold+object+"mod_pv_b"+suffix+".fits";
     pv_min_m->fitswrite_2d(mfile.c_str());
 
@@ -367,10 +367,10 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     m->Head().setMinMax(0.,0);
     for (size_t i=in->NumPix(); i--;) m->Array()[i] = short(mask[i]);
     
-    Image2D<short> *pv_max_ma = PositionVelocity(m,meanXpos,meanYpos,meanPA);
+    PvSlice<short> *pv_max_ma = PositionVelocity(m,meanXpos,meanYpos,meanPA);
     mfile = outfold+object+"mask_pv_a.fits";
     pv_max_ma->fitswrite_2d(mfile.c_str());
-    Image2D<short> *pv_min_ma = PositionVelocity(m,meanXpos,meanYpos,meanPAp90);
+    PvSlice<short> *pv_min_ma = PositionVelocity(m,meanXpos,meanYpos,meanPAp90);
     mfile = outfold+object+"mask_pv_b.fits";
     pv_min_ma->fitswrite_2d(mfile.c_str());
     
