@@ -23,13 +23,17 @@ Parameters
 
 * **MASSDENSMAP** [false]. It *true*, calculate a mass surface-density map in units of Msun/pc^2 from a datacube and write it to a FITS file. This is just for HI data and the input datacube is required to have JY/BEAM flux density units.
 
-* **FLAGPV** [false]. If *true*, extract position-velocity image from a datacube and write it to a FITS file. The cut is defined by a point and an angle, as set with the following parameters.
+* **PVSLICE** [false]. If *true*, extract a position-velocity image from a datacube and write it to a FITS file. The slice can be defined by either a point and an angle (see **XPOS_PV**, **YPOS_PV**, **PA_PV** below), or by two points (see **P1_PV**, **P2_PV** below). The former has priority over the latter.
 
-* **XPOS_PV** [none]. Reference X pixel of the cut.
+* **XPOS_PV** [none]. Reference X of the slice. Can be a pixel or a coordinate (see also **XPOS** for :ref:`3DFIT <ringio>`).
 
-* **YPOS_PV** [none]. Reference Y pixel of the cut.
+* **YPOS_PV** [none]. Reference X of the slice. Can be a pixel or a coordinate (see also **YPOS** for :ref:`3DFIT <ringio>`).
 
-* **PA_PV** [none]. Position angle of the cut, defined anti-clockwise from the X direction. 
+* **P1_PV** [none]. X and Y coordinates of the first point defining a slice. For example: '10 30' for a pixel at X=10 and Y=30. 
+
+* **P2_PV** [none]. X and Y coordinates of the second point defining a slice. 
+
+* **WIDTH_PV** [0]. Width of the slice in arcsec. The PV cut will be averaged over a rectangular window extending from -width/2 to +width/2 from the slice defined above.
 
 
 Outputs

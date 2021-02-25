@@ -47,7 +47,7 @@ Compiling
 
 If your machine satisfies the above requirements, compiling BBarolo will hopefully be a piece of cake. 
 
-1. **Download** the `latest <https://github.com/editeodoro/Bbarolo/archive/1.5.tar.gz>`_ stable release. From a terminal::
+1. **Download** the `latest <https://github.com/editeodoro/Bbarolo/archive/1.6.tar.gz>`_ stable release. From a terminal::
 
     > wget https://github.com/editeodoro/Bbarolo/archive/X.Y.tar.gz .
 

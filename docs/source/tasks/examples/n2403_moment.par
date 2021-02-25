@@ -9,7 +9,7 @@ VELOCITYMAP   true
 DISPERSIONMAP true
 RMSMAP        true
 // Extract PV along major axis
-FLAGPV        true
+PVSLICE       true
 XPOS_PV       77
 YPOS_PV       77
 PA_PV         123
