@@ -110,6 +110,7 @@ struct SEARCH_PAR {
     bool   flagSearch        = false;     ///< Should search for sources in cube?
     string searchType        = "spatial"; ///< "Spectral" or "Spatial" search?
     float  snrCut            = 4.0;       ///< Signal to Noise for detection when sigma-clipping.
+    bool   iternoise         = false;     ///< Whether to estimate noise iteratively.
     float  threshold         = 0;         ///< What the threshold is (when sigma-clipping).
     bool   UserThreshold     = false;     ///< Whether the user has defined a threshold of their own.
     bool   flagAdjacent      = true;      ///< Use the adjacent criterion for objects merger?
@@ -279,6 +280,7 @@ private:
     float           beamFWHM;           ///< Beam to adopt if any information in header.
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     int             plots;              ///< Whether producing output plots.
+    
     
     bool            makeMask;           ///< Whether to write a mask.
     string          MaskType;           ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE, SMOOTH&SEARCH or NONE.

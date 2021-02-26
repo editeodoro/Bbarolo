@@ -200,7 +200,7 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
             }
 
             // Calculating the median deviation from VSYS
-            T median = findMedian<T>(vdev, vdev.size());
+            T median = findMedian<T>(&vdev[0], vdev.size());
             // If the median is so far the highest, assign best pa
             if (median>maxdev && fabs(median)<1E16) {
                 maxdev = median;
@@ -245,7 +245,7 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
                 for (int yi=y-range; yi<=y+range; yi++) 
                     for (int xi=x-range; xi<=x+range; xi++) 
                         vec.push_back(Vemap[(yi+Ymin)*in->DimX()+xi+Xmin]);
-                T median = findMedian<T>(vec, vec.size());
+                T median = findMedian<T>(&vec[0], vec.size());
                 if (median<vel_low && median>=velmin) {
                     vel_low = median;
                     coord_low[0] = x+Xmin;
@@ -545,11 +545,11 @@ void ParamGuess<T>::tuneWithTiltedRing() {
     }
 
     // Setting initial estimates to the median of the tilted-ring model
-    if (xcen.size()>1) xcentre = findMedian(xcen,xcen.size());
-    if (ycen.size()>1) ycentre = findMedian(ycen,ycen.size());
-    if (vsys.size()>1) vsystem = findMedian(vsys,vsys.size());
-    if (incl.size()>1) inclin  = findMedian(incl,incl.size());
-    if (posa.size()>1) posang  = findMedian(posa,posa.size());
+    if (xcen.size()>1) xcentre = findMedian(&xcen[0],xcen.size());
+    if (ycen.size()>1) ycentre = findMedian(&ycen[0],ycen.size());
+    if (vsys.size()>1) vsystem = findMedian(&vsys[0],vsys.size());
+    if (incl.size()>1) inclin  = findMedian(&incl[0],incl.size());
+    if (posa.size()>1) posang  = findMedian(&posa[0],posa.size());
 
     // Re-estimating inclination angle with the latest parameters
     findInclination(2);
@@ -695,7 +695,7 @@ int ParamGuess<T>::plotGuess(std::string outfile) {
         << "        r'$\\alpha$  = %.5f$^\\circ$'%ra, r'$\\delta$ = %.5f$^\\circ$'%dec, \n"
         << "        r'$\\phi$    = %.0f$^\\circ$'%pa,r'inc  = %.1f$^\\circ$'%inc, r'$b/a$ = %.2f'%(axmin/axmaj), \n"
         << "        r'R$_\\mathrm{max}$ = %.2f pix'%axmaj, r'V$_\\mathrm{sys}$ = %.2f km/s'%vsys, \n"
-           "        r'W$_{20}$ = %.2f km/s'%(np.fabs(v20max-v20min)/2),r'W$_{50}$ = %.2f km/s'%(np.fabs(v50max-v50min)/2)] \n"
+           "        r'W$_{20}$ = %.2f km/s'%(np.fabs(v20max-v20min)),r'W$_{50}$ = %.2f km/s'%(np.fabs(v50max-v50min))] \n"
         << "for i in range (len(pstr)): \n"
         << "\tax[2].text(1.1,0.97-i*0.08,pstr[i],va='top',transform=ax[2].transAxes) \n"
         << std::endl

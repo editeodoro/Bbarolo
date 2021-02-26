@@ -52,8 +52,8 @@ std::string get_currentpath() {
 }
 
 double KpcPerArc(double d) {return 2*d*tan(M_PI/2/180)/3.6;}
-double VeltoDist(double vsys) {return vsys/70.;}
-double RedtoDist(double redshift) {return redshift*299792.458/70.;}
+double VeltoDist(double vsys, double H0) {return vsys/H0;}
+double RedtoDist(double redshift,  double H0) {return redshift*299792.458/H0;}
 
 
 bool fexists(std::string filename) {std::ifstream ifile(filename.c_str()); return ifile.good();}

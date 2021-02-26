@@ -278,7 +278,7 @@ bool Cube<T>::fitsread_3d() {
         if (isNaN(array[i])) array[i] = 0;
     ///////////////////////////////////////////////////////////////////////////////
 
-    if (par.isVerbose()) std::cout << "Done \n\n";
+    if (par.isVerbose()) std::cout << "Done. \n\n";
 
     return true;
 }
@@ -333,31 +333,45 @@ void Cube<T>::setCubeStats() {
   /// Calculates the full statistics for the cube: mean, rms, median, madfm.
   /// Also work out the threshold and store it in the stats set.
 
-    if(par.isVerbose()) std::cout << " Calculating statistics for the cube... "<<std::flush;
+    if(par.isVerbose()) std::cout << "Calculating statistics for the cube... " << std::flush;
     
-    stats.setRobust(par.getFlagRobustStats());
+    // Here we find pixels that should not be used for statistics
     bool *blanks = new bool[numPix];
-    for (size_t i=0; i<numPix; i++) blanks[i] = isBlank(array[i]) ? false : true;
+    for (size_t i=0; i<numPix; i++) blanks[i] = !isBlank(array[i]);
 
+    // Calculate statistics
+    stats.setRobust(par.getFlagRobustStats());
     stats.calculate(array,numPix,blanks);
-    stats.setThresholdSNR(par.getParSE().snrCut);
-
-    if(par.isVerbose()) {
-        std::cout << "Using flux threshold of: ";
-        T thresh;
-        if (par.getParSE().UserThreshold) thresh = par.getParSE().threshold;
-        else thresh = stats.getThreshold();
-        if (thresh<1E-04) std::cout << std::scientific;
-        else std::cout << std::fixed;
-        std::cout << std::setprecision(5) << thresh << " " << head.Bunit() << std::endl;
-        std::cout << std::setw(52) << std::right << "(middle = " 
-                  << stats.getMiddle() << ", spread = " << stats.getSpread() << ")\n" << std::fixed;
+    
+    if (par.getParSE().iternoise) {
+        // To refine the noise level estimate, we may iterate over the data, mask 
+        // pixels above 3sigma, re-calculate stats until a convergence is found.
+        // Here I set a maximum of 20 iteration (usually only few are needed)
+        for (int i=0; i<20; i++) {
+            // Masking pixels above the threshold
+            for (size_t j=0; j<numPix; j++) {
+                double thresh = stats.getMiddle()+3*stats.getSpread();
+                if (fabs(array[j])>thresh) blanks[j]=false;
+            }
+            // Calculating new stats and check convergence
+            double olds = stats.getSpread();
+            stats.calculate(array,numPix,blanks);
+            double ftol = fabs(olds-stats.getSpread())/olds+stats.getSpread();
+            if (ftol<0.001) break;
+        }
     }
 
+    // Setting threshold for source finder based on noise level
+    stats.setThresholdSNR(par.getParSE().snrCut);
+    
+    if(par.isVerbose()) {
+        std::cout << "Done." << std::scientific << std::setprecision(5);
+        std::cout << std::endl << stats << std::fixed << std::endl;
+    }
+    
     delete [] blanks;
-    
     statsDefined = true;
-    
+    std::abort();
 }
 
 
@@ -828,6 +842,19 @@ void Cube<T>::search() {
     SEARCH_PAR p = par.getParSE();
 
     if (!statsDefined) setCubeStats();
+    
+    if(par.isVerbose()) {
+        std::cout << "Using flux threshold of: ";
+        T thresh;
+        if (par.getParSE().UserThreshold) thresh = par.getParSE().threshold;
+        else thresh = stats.getThreshold();
+        if (thresh<1E-04) std::cout << std::scientific;
+        else std::cout << std::fixed;
+        std::cout << std::setprecision(5) << thresh << " " << head.Bunit() << std::endl;
+        std::cout << std::setw(25) << " " << "(middle = " 
+                  << stats.getMiddle() << ", spread = " << stats.getSpread() << ")\n" << std::fixed;
+    }
+    
     checkBeam();
 
     float PixScale = (fabs(h.Cdelt(0))+fabs(h.Cdelt(1)))/2.;

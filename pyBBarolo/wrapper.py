@@ -218,6 +218,10 @@ class MakeMask(GenericTask):
     def __init__(self,fitsname,**kwargs):
         super(MakeMask,self).__init__(task='makemask',fitsname=fitsname,**kwargs)
 
+class PVSlice(GenericTask):
+    def __init__(self,fitsname,**kwargs):
+        super(PVSlice,self).__init__(task='pvslice',fitsname=fitsname,**kwargs)
+        
 
 def read_parameter_file(filein):
     """ This function reads in a BBarolo's parameter file 

@@ -339,9 +339,9 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     
     mkdirp((outfold).c_str());
     
-    float meanPA = findMean(&outr->phi[0], outr->nr);
-    float meanXpos = findMean(&outr->xpos[0], outr->nr);
-    float meanYpos = findMean(&outr->ypos[0], outr->nr);
+    float meanPA = findMedian(&outr->phi[0], outr->nr);
+    float meanXpos = findMedian(&outr->xpos[0], outr->nr);
+    float meanYpos = findMedian(&outr->ypos[0], outr->nr);
     float meanPAp90= meanPA+90<360 ? meanPA+90 : meanPA-90;
 
     // Extract pvs of data
@@ -1237,8 +1237,8 @@ int Galfit<T>::plotAll_Python() {
     /////////////////////////////////////////////////////////////////////////
     float zmin_wcs = AlltoVel(in->getZphys(zmin),in->Head());
     float zmax_wcs = AlltoVel(in->getZphys(zmax),in->Head());
-    int pa_av = lround(findMedian(&outr->phi[0],outr->nr));
-    int pa_min = pa_av+90<360 ? pa_av+90 : pa_av-90;
+    float pa_av = findMedian(&outr->phi[0],outr->nr);
+    float pa_min = pa_av+90<360 ? pa_av+90 : pa_av-90;
     //if (zmin_wcs>zmax_wcs) std::swap(zmin_wcs,zmax_wcs);
     bool reverse = (pa_av>=45 && pa_av<225);
     //if (cdelt3_kms<0) reverse = !reverse;
@@ -1308,8 +1308,11 @@ int Galfit<T>::plotAll_Python() {
         << "norm = ImageNormalize(vmin=cont, vmax=vmax, stretch=PowerStretch(0.5)) \n\n";
 
     pyf << "radius = np.concatenate((rad,-rad)) \n"
-        << "vlos1 = vrot*np.sin(np.deg2rad(inc))+vsys \n"
-        << "vlos2 = vsys-vrot*np.sin(np.deg2rad(inc)) \n";
+        << "pamaj_av = "<< pa_av << endl
+        << "pamin_av = "<< pa_min << endl
+        << "costh = np.cos(np.deg2rad(np.abs(pa-pamaj_av))) \n"
+        << "vlos1 = vsys+vrot*np.sin(np.deg2rad(inc))*costh \n"
+        << "vlos2 = vsys-vrot*np.sin(np.deg2rad(inc))*costh \n";
     if (reverse) pyf << "reverse = True \n";
     else pyf << "reverse = False \n";
     pyf << "if reverse: vlos1, vlos2 = vlos2, vlos1 \n"
@@ -1318,7 +1321,7 @@ int Galfit<T>::plotAll_Python() {
         << "ext = [[xmin_wcs[0],xmax_wcs[0],zmin_wcs-vsys_m,zmax_wcs-vsys_m],\\" << std::endl
         << "       [xmin_wcs[1],xmax_wcs[1],zmin_wcs-vsys_m,zmax_wcs-vsys_m]] \n"
         << "labsize = 14 \n"
-        << "palab = ['$\\phi = $" << pa_av <<"$^\\circ$', '$\\phi = $" << pa_min << "$^\\circ$'] \n\n";
+        << "palab = ['$\\phi = $%i$^\\circ$'%np.round(pamaj_av), '$\\phi = $%i$^\\circ$'%np.round(pamin_av)] \n\n";
 
     pyf << "# Beginning PV plot \n"
         << "for k in range (len(files_pva_mod)): \n"

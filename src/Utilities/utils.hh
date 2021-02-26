@@ -59,7 +59,6 @@ template <class T> T findStddev(T *array, size_t size);
 template <class T> T findStddev(T *array, bool *mask, size_t size);
 template <class T> T findMedian(T *array, size_t size, bool changeArray=false);
 template <class T> T findMedian(T *array, bool *mask, size_t size);
-template <class T> T findMedian(std::vector<T> array, size_t size);
 template <class T> T findMADFM(T *array, size_t size, T median, bool changeArray=false);
 template <class T> T findMADFM(T *array, bool *mask, size_t size, T median);
 
@@ -141,8 +140,8 @@ std::string get_currentpath();
 double KpcPerArc(double d);
 // Function for the distance from systemic velocity by Hubble law.
 // vsys is given in km/s, the returned value is in Mpc.
-double VeltoDist(double vsys); 
-double RedtoDist(double redshift);
+double VeltoDist(double vsys, double H0=70); 
+double RedtoDist(double redshift, double H0=70);
 
 template <class T> bool isNaN (T n) {volatile T d=n; return d!=d;}
 template <class T> bool isBlank(T n) {return (n==0 || isNaN(n));}

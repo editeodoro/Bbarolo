@@ -85,7 +85,7 @@ void Param::defaultValues() {
     beamFWHM            = 30.;
     checkChannels       = false;
     flagRobustStats     = true;
-
+    
     makeMask            = false;
     MaskType            = "SEARCH";
     
@@ -174,7 +174,7 @@ Param& Param::operator= (const Param& p) {
     this->showbar           = p.showbar;
     this->plots             = p.plots;
     this->flagRobustStats   = p.flagRobustStats;
-
+    
     this->makeMask          = p.makeMask;
     this->MaskType          = p.MaskType;
     
@@ -330,7 +330,9 @@ bool Param::getopts(int argc, char **argv) {
                 break;
             
             case 'q':                    // Random citation
-                cout << endl << " " << randomQuoting() << endl << endl;
+                c = argc==3 ? atoi(argv[2]) : 1;
+                for (auto i=0; i<c; i++)
+                    cout << endl << " " << randomQuoting() << endl << endl;
                 break;
             
             case 'F':                    // List available FITS utilities
@@ -463,6 +465,8 @@ void Param::setParam(string &parstr) {
     // SEARCH ONLY PARAMETERS
     if(arg=="search")            parSE.flagSearch = readFlag(ss);
     if(arg=="searchtype")        parSE.searchType = readFilename(ss);
+    if(arg=="iternoise")         parSE.iternoise = readFlag(ss);
+    
     if(arg=="flagadjacent")      parSE.flagAdjacent = readFlag(ss);
     if(arg=="threshspatial")     parSE.threshSpatial = readval<int>(ss);
     if(arg=="threshvelocity")    parSE.threshVelocity = readval<int>(ss);
@@ -1188,6 +1192,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
     recordParam(Str, "[LOGFILE]", "Redirect output messages to a file?", stringize(p.getLogFile()));
     recordParam(Str, "[flagRobustStats]", "Using Robust statistics?", stringize(p.getFlagRobustStats()));
+    
     if (p.getFlagDebug()) recordParam(Str, "[DEBUG]", "Debugging mode?", stringize(p.getFlagDebug()));
 
     Str  <<"-----------------"<<std::endl;
@@ -1204,17 +1209,10 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     if (toPrint) {
         recordParam(Str, "[SEARCH]", "Searching for sources in cube?", stringize(p.getParSE().flagSearch));
         recordParam(Str, "[searchType]", "   Type of searching performed", p.getParSE().searchType);
-        recordParam(Str, "[minPix]", "   Minimum # Pixels in a detection", p.getParSE().minPix);
-        recordParam(Str, "[minChannels]", "   Minimum # Channels in a detection", p.getParSE().minChannels);
-        recordParam(Str, "[minVoxels]", "   Minimum # Voxels in a detection", p.getParSE().minVoxels);
-        recordParam(Str, "[maxChannels]", "   Maximum # Channels in a detection", p.getParSE().maxChannels);
-        recordParam(Str, "[maxAngsize]", "   Max angular size of a detection in arcmin", p.getParSE().maxAngSize);
-        recordParam(Str, "[flagAdjacent]", "   Using Adjacent-pixel criterion?", stringize(p.getParSE().flagAdjacent));
-        if(!p.getParSE().flagAdjacent || defaults)
-            recordParam(Str, "[threshSpatial]", "   Max. spatial separation for merging", p.getParSE().threshSpatial);
-        recordParam(Str, "[threshVelocity]", "   Max. velocity separation for merging", p.getParSE().threshVelocity);
-        recordParam(Str, "[RejectBeforeMerge]", "   Reject objects before merging?", stringize(p.getParSE().RejectBeforeMerge));
-        recordParam(Str, "[TwoStageMerging]", "   Merge objects in two stages?", stringize(p.getParSE().TwoStageMerging));
+        recordParam(Str, "[ITERNOISE]", "   Estimating noise with iterative algorithm?", stringize(p.getParSE().iternoise));
+        recordParam(Str, "[CUBELETS]", "   Writing sub-cubes of detections?", stringize(p.getParSE().cubelets));
+        if(p.getParSE().cubelets || defaults)
+            recordParam(Str, "[EDGES]", "     Number of pixels at the edges of cubelets?", p.getParSE().edges);
         if (defaults) {
             recordParam(Str, "[threshold]", "   Detection Threshold", p.getParSE().threshold);
             recordParam(Str, "[snrCut]", "   SNR Threshold (in sigma)", p.getParSE().snrCut);
@@ -1239,10 +1237,19 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
                     recordParam(Str, "[growthCut]", "   SNR Threshold for growth", p.getParSE().growthCut);
             }            
         }
-        recordParam(Str, "[CUBELETS]", "   Writing sub-cubes of detections?", stringize(p.getParSE().cubelets));
-        if(p.getParSE().cubelets || defaults)
-            recordParam(Str, "[EDGES]", "     Number of pixels at the edges of cubelets?", p.getParSE().edges);
-
+        
+        recordParam(Str, "[minPix]", "   Minimum # Pixels in a detection", p.getParSE().minPix);
+        recordParam(Str, "[minChannels]", "   Minimum # Channels in a detection", p.getParSE().minChannels);
+        recordParam(Str, "[minVoxels]", "   Minimum # Voxels in a detection", p.getParSE().minVoxels);
+        recordParam(Str, "[maxChannels]", "   Maximum # Channels in a detection", p.getParSE().maxChannels);
+        recordParam(Str, "[maxAngsize]", "   Max angular size of a detection in arcmin", p.getParSE().maxAngSize);
+        recordParam(Str, "[flagAdjacent]", "   Using Adjacent-pixel criterion?", stringize(p.getParSE().flagAdjacent));
+        if(!p.getParSE().flagAdjacent || defaults)
+            recordParam(Str, "[threshSpatial]", "   Max. spatial separation for merging", p.getParSE().threshSpatial);
+        recordParam(Str, "[threshVelocity]", "   Max. velocity separation for merging", p.getParSE().threshVelocity);
+        recordParam(Str, "[RejectBeforeMerge]", "   Reject objects before merging?", stringize(p.getParSE().RejectBeforeMerge));
+        recordParam(Str, "[TwoStageMerging]", "   Merge objects in two stages?", stringize(p.getParSE().TwoStageMerging));
+        
     }
     
     // PARAMETERS FOR SMOOTH
@@ -1640,7 +1647,15 @@ void helpscreen(std::ostream& Str) {
         << "Example:      BBarolo -p param.par       \n"
         << endl << endl
         << setw(m) << left << "   -c, --cline" 
-        << "Read all parameters from the command line \n"
+        << "Read all parameters from the command line. \n"
+        << setw(m) << left << " "     
+        << "Input parameters are given as a list of \n"
+        << setw(m) << left << " " 
+        << "parametername=value. \n\n"
+        << setw(m) << left << " " 
+        << "Example:      \n "
+        << setw(m) << left << " " 
+        << "  BBarolo -c fitsfile=file.fits 3dfit=true \n"
         << endl << endl
         << setw(m) << left << "   -d, --defaults" 
         << "Print on the screen a list all available par-\n"

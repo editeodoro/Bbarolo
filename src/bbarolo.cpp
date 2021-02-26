@@ -109,9 +109,10 @@ int main (int argc, char *argv[]) {
     
     gettimeofday(&end, NULL);
     double time = (end.tv_sec - begin.tv_sec) + ((end.tv_usec - begin.tv_usec)/1000000.0);
-    if (verbose)
-        std::cout << "\nExecution time: " << int(time/60) << " min and " << int(time)%60 << " sec.\n";
-
+    if (verbose) {
+        if (time<1) std::cout << "\nExecution time: " << setprecision(2) << time << " sec.\n";
+        else std::cout << "\nExecution time: " << int(time/60) << " min and " << int(time)%60 << " sec.\n";
+    }
 
     return EXIT_SUCCESS;
 
@@ -362,7 +363,6 @@ bool BBcore (Param *par) {
         delete ell;
     }
     //-----------------------------------------------------------------
-
 
 
     // 3D Rendering ---------------------------------------------------

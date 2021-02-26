@@ -125,7 +125,7 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     if (mpar[XPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[XPOS]-mins[XPOS])/4.; point[k++]=dring->xpos[j];}
     if (mpar[YPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[YPOS]-mins[YPOS])/4.; point[k++]=dring->ypos[j];}
     if (mpar[VSYS])  for (int j=0;j<n;j++) {dels[k]=(maxs[VSYS]-mins[VSYS])/4.; point[k++]=dring->vsys[j];}
-    if (mpar[VRAD])  for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->vrad[j];}
+    if (mpar[VRAD])  for (int j=0;j<n;j++) {dels[k]=15; point[k++]=dring->vrad[j];}
 
     // Build the initial matrix.
     for (int i=0; i<mpts; i++) {

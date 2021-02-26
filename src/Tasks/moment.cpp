@@ -1,6 +1,6 @@
-//----------------------------------------------------------
-// moment.cpp: Functions of the MomentMap class.
-//----------------------------------------------------------
+//-----------------------------------------------------------
+// moment.cpp: Functions of the MomentMap and PvSlice classes.
+//-----------------------------------------------------------
 
 /*-----------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify it
@@ -31,7 +31,9 @@
 #include <Utilities/lsqfit.hh>
 #include <Utilities/progressbar.hh>
 
-
+////////////////////////////////////////////////////////////////////////////////////////
+// Functions for MomentMap class
+////////////////////////////////////////////////////////////////////////////////////////
 template <class T>
 MomentMap<T>::MomentMap() {
     
@@ -921,7 +923,6 @@ bool PvSlice<T>::pvslice () {
                     wt(k+w,j,i) = weight(xx,yy,xc,yc);
                 else wt(k+w,j,i) = 0.0;
             }
-        
         }
     }
 
@@ -1031,7 +1032,7 @@ void PvSlice<T>::define_header () {
 }
 
 
-/* Original slice function (without width)
+/* Original slice function (no width)
 template <class T>
 bool PvSlice<T>::pvslice () {
 

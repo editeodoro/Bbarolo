@@ -291,7 +291,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
     
     // Deciding whether to use reverse fitting based on galaxy inclination
     if (par.REVERSE.find("auto")!=std::string::npos && !c->pars().getflagGalMod()) {
-        T incmed = findMedian<T>(inR->inc,inR->nr);
+        T incmed = findMedian<T>(&inR->inc[0],inR->nr);
         if (incmed>75) {
             if (verb) {
                 //std::cout << "\n 3DFIT WARNING: because the galaxy is highly inclined, I will use a \n"
@@ -927,7 +927,7 @@ bool Galfit<T>::SecondStage() {
                 else {
                     // Calculating scatter of inc/pa
                     std::vector<T> myvec = i==0 ? outr->inc : outr->phi;
-                    T median = findMedian<T>(myvec,myvec.size());
+                    T median = findMedian<T>(&myvec[0],myvec.size());
                     T madfm  = findMADFM(&myvec[0],myvec.size(),median,false);
                     // If scatter is > 3 degrees, it is worth tracing the change
                     if (madfmToSigma(madfm)>3) {
@@ -989,7 +989,7 @@ bool Galfit<T>::regularizeParams(std::vector<T> x, std::vector<T> y, std::vector
     else if (&yout==&inr->z0)   whichpar="disk thickness";
 
     if (rtype==-2) {                            // Take the median
-        T val = findMedian<T>(y,n);
+        T val = findMedian<T>(&y[0],n);
         for (int i=n; i--;) yout[i] = val;
     }
     else if (rtype==-1) {                        // Bezier interpolation

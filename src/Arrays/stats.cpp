@@ -186,7 +186,7 @@ namespace Statistics
   /// \param mask       An array of the same length that says whether to
   ///                   include each member of the array in the calculations.
 
-        findAllStats(array, size, mask, mean, stddev, median, madfm,max_val,min_val);
+        findAllStats(array,size,mask,mean,stddev,median,madfm,max_val,min_val);
         defined = true;
     }
 
@@ -195,11 +195,11 @@ namespace Statistics
     std::ostream& operator<< (std::ostream& theStream, Stats<Type> &s) {
         
     /// Prints out the four key statistics to the requested stream.
-    
-    theStream << "Mean   = "   << s.mean   << "\t"
-              << "Std.Dev. = " << s.stddev << "\n"
-              << "Median = "   << s.median << "\t"
-              << "MADFM    = " << s.madfm  << " (= " << madfmToSigma(s.madfm) << " as std.dev.)\n";
+    theStream << " Mean   = "   << setw(12) << s.mean   << "\t"
+              << " Std.Dev. = " << setw(12) <<s.stddev << "\n"
+              << " Median = "   << setw(12) <<s.median << "\t"
+              << " MADFM    = " << setw(12) <<s.madfm  << " (= " 
+              << madfmToSigma(s.madfm) << " as std.dev.)\n";
     return theStream;
     }
     template std::ostream& operator<<<short> (std::ostream& theStream, Stats<short> &s);
