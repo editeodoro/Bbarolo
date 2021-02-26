@@ -371,7 +371,7 @@ void Cube<T>::setCubeStats() {
     
     delete [] blanks;
     statsDefined = true;
-    std::abort();
+
 }
 
 
