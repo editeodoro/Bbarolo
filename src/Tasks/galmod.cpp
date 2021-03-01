@@ -1015,7 +1015,7 @@ void Galmod<T>::galmod() {
             if (abs(z)>zcyltmp) vsys = vsystmp+((vrottmp-dvdztmp*(abs(z)-zcyltmp))*caz+vradtmp*saz)*sinc;
 //          Adding vertical velocity
             if (z>0.) vsys += vverttmp*cinc;
-            else vsys -= vverttmp*cinc;     // <--- The sign here depends on the meaning of vvert
+            else vsys += vverttmp*cinc;     // <--- The sign here depends on the meaning of vvert
 
 
 //          ORIGINAL GALMOD BUILDING PROFILES
