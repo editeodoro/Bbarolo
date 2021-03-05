@@ -343,7 +343,8 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     float meanXpos = findMedian(&outr->xpos[0], outr->nr);
     float meanYpos = findMedian(&outr->ypos[0], outr->nr);
     float meanPAp90= meanPA+90<360 ? meanPA+90 : meanPA-90;
-
+    
+    
     // Extract pvs of data
     PvSlice<T> *pv_max = PositionVelocity(in,meanXpos,meanYpos,meanPA);
     std::string mfile = outfold+object+"_pv_a.fits";
@@ -351,6 +352,7 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     PvSlice<T> *pv_min = PositionVelocity(in,meanXpos,meanYpos,meanPAp90);
     mfile = outfold+object+"_pv_b.fits";
     pv_min->fitswrite_2d(mfile.c_str());
+
 
     // Extract pvs of data
     PvSlice<T> *pv_max_m = PositionVelocity(mod,meanXpos,meanYpos,meanPA);
@@ -360,10 +362,12 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     mfile = outfold+object+"mod_pv_b"+suffix+".fits";
     pv_min_m->fitswrite_2d(mfile.c_str());
 
+
     // Extract pvs of mask
     Cube<short> *m = new Cube<short>(in->AxisDim());
     m->saveHead(in->Head());
     m->saveParam(in->pars());
+    m->pars().setANTIALIAS(0);
     m->Head().setMinMax(0.,0);
     for (size_t i=in->NumPix(); i--;) m->Array()[i] = short(mask[i]);
     
@@ -373,6 +377,7 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     PvSlice<short> *pv_min_ma = PositionVelocity(m,meanXpos,meanYpos,meanPAp90);
     mfile = outfold+object+"mask_pv_b.fits";
     pv_min_ma->fitswrite_2d(mfile.c_str());
+    
     
 #ifndef HAVE_PYTHON
 #ifdef HAVE_GNUPLOT
@@ -384,7 +389,7 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     delete pv_max_m; delete pv_min_m;
     delete m;
     
-   // delete pv_max_ma; delete pv_min_ma;
+    delete pv_max_ma; delete pv_min_ma;
     
 }
 template void Galfit<float>::writePVs(Cube<float>*, std::string);
@@ -1235,8 +1240,8 @@ int Galfit<T>::plotAll_Python() {
     /////////////////////////////////////////////////////////////////////////
     /// Script to plot position-velocity slices of model vs data
     /////////////////////////////////////////////////////////////////////////
-    float zmin_wcs = AlltoVel(in->getZphys(zmin),in->Head());
-    float zmax_wcs = AlltoVel(in->getZphys(zmax),in->Head());
+    float zmin_wcs = AlltoVel(in->getZphys(zmin-0.5),in->Head());
+    float zmax_wcs = AlltoVel(in->getZphys(zmax+0.5),in->Head());
     float pa_av = findMedian(&outr->phi[0],outr->nr);
     float pa_min = pa_av+90<360 ? pa_av+90 : pa_av-90;
     //if (zmin_wcs>zmax_wcs) std::swap(zmin_wcs,zmax_wcs);
@@ -1297,8 +1302,8 @@ int Galfit<T>::plotAll_Python() {
         << "data_min = image_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
         << "data_mas_maj = image_mas_maj[0].data[zmin:zmax+1,int(xminpv[0]):int(xmaxpv[0])+1] \n"
         << "data_mas_min = image_mas_min[0].data[zmin:zmax+1,int(xminpv[1]):int(xmaxpv[1])+1] \n"
-        << "xmin_wcs = ((xminpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
-        << "xmax_wcs = ((xmaxpv+1-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
+        << "xmin_wcs = ((xminpv+1-0.5-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
+        << "xmax_wcs = ((xmaxpv+1+0.5-crpixpv)*cdeltpv+crvalpv)*" << arcconv << std::endl
         << "zmin_wcs, zmax_wcs = " << zmin_wcs << ", " << zmax_wcs << std::endl
         << "cont = " << cont << std::endl
         << "v = np.array([1,2,4,8,16,32,64])*cont \n"
@@ -1356,6 +1361,7 @@ int Galfit<T>::plotAll_Python() {
         << "\t\taxis.contour(toplot[1][i],v,origin='lower',linewidths=1,colors='#B22222',extent=ext[i]) \n"
         << "\t\taxis.axhline(y=0,color='black') \n"
         << "\t\taxis.axvline(x=0,color='black') \n"
+        << "\t\taxis.grid(color='gray', linestyle='--', linewidth=0.3) \n"
         << "\t\tif plotmask: \n"
         << "\t\t\taxis.contour(toplot[2][i],[1],origin='lower',linewidths=2,colors='k',extent=ext[i]) \n"
         << "\t\tif i==0 : \n"

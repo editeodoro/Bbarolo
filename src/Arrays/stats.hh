@@ -97,6 +97,7 @@ namespace Statistics
     
         void calculate(Type *array, long size);                 /// Calculate statistics for all elements of a data array.
         void calculate(Type *array, long size, bool *mask);     /// Calculate statistics for a subset of a data array. 
+        void tofile(std::string filename="stats.txt");          /// Write statistics to a text file.
     
         template <class T> 
         friend std::ostream& operator<<(std::ostream& theStream, Stats<T> &s);  /// Overloaded operator <<.

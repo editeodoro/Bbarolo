@@ -48,6 +48,7 @@ vector<Entry> tasksList = {
     {"MAKEMASK",      "Define a mask for emission-line data."},
     {"SPACEPAR",      "Compute the full 2D space for any pair of 3DFIT parameters."},
     {"GALWIND",       "Make a 3D emission-line model of a bi-conical outflow."},
+    {"STATS",         "Simply calculate and print statistics for the cube."},
     {"SLITFIT",       "Fit the kinematics from long-slit data (CURRENTLY BROKEN)."},
     {"GLOBALPROFILE", "Extract a total spectral profile from a datacube."},
     {"TOTALMAP",      "Compute a total intensity map from a datacube."},
@@ -84,6 +85,7 @@ void Param::defaultValues() {
     plots               = 1;
     beamFWHM            = 30.;
     checkChannels       = false;
+    flagStats           = false;
     flagRobustStats     = true;
     
     makeMask            = false;
@@ -136,6 +138,7 @@ void Param::defaultValues() {
     WIDTH_PV            = 0;
     P1_PV[0] = P1_PV[1] = -1;
     P2_PV[0] = P2_PV[1] = -1;
+    ANTIALIAS           = 0.5;
     
     
     flagEllProf         = false;
@@ -173,6 +176,7 @@ Param& Param::operator= (const Param& p) {
     this->verbose           = p.verbose; 
     this->showbar           = p.showbar;
     this->plots             = p.plots;
+    this->flagStats         = p.flagStats;
     this->flagRobustStats   = p.flagRobustStats;
     
     this->makeMask          = p.makeMask;
@@ -234,6 +238,8 @@ Param& Param::operator= (const Param& p) {
         this->P1_PV[i]      = p.P1_PV[i];
         this->P2_PV[i]      = p.P2_PV[i];
     }
+    this->ANTIALIAS         = p.ANTIALIAS;
+    
     this->flagEllProf       = p.flagEllProf;
 
     this->flagRend3D        = p.flagRend3D;
@@ -460,8 +466,8 @@ void Param::setParam(string &parstr) {
     if(arg=="makemask")         makeMask  = readFlag(ss);
     if(arg=="mask")             MaskType  = readFilename(ss);
     
-    if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss); 
-    
+    if(arg=="stats")            flagStats = readFlag(ss); 
+    if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss);     
     // SEARCH ONLY PARAMETERS
     if(arg=="search")            parSE.flagSearch = readFlag(ss);
     if(arg=="searchtype")        parSE.searchType = readFilename(ss);
@@ -544,6 +550,7 @@ void Param::setParam(string &parstr) {
     if(arg=="deltapa")   parGF.DELTAPHI   = readval<float>(ss);
     if(arg=="deltavrot") parGF.DELTAVROT  = readval<float>(ss);
     if(arg=="minvdisp")  parGF.MINVDISP   = readval<float>(ss);
+    if(arg=="maxvdisp")  parGF.MAXVDISP   = readval<float>(ss);
     if(arg=="ftype")     parGF.FTYPE      = readval<int>(ss);
     if(arg=="wfunc")     parGF.WFUNC      = readval<int>(ss);
     if(arg=="tol")       parGF.TOL        = readval<double>(ss);
@@ -608,7 +615,8 @@ void Param::setParam(string &parstr) {
     if (arg=="width_pv")  WIDTH_PV = readval<float>(ss);
     if(arg=="p1_pv")      readArray<float>(ss,P1_PV,2);
     if(arg=="p2_pv")      readArray<float>(ss,P2_PV,2);
-
+    if(arg=="antialias")  ANTIALIAS = readval<float>(ss);
+    
     if (arg=="rend3d")    flagRend3D = readFlag(ss);
     if (arg=="rendangle") rendangle = readval<float>(ss);
     
@@ -991,10 +999,15 @@ bool Param::checkPars() {
     // Checking parameters for PV
     if (flagPV) {
         bool isSingle = atof(XPOS_PV.c_str())>=0 && atof(YPOS_PV.c_str())>=0;
-        bool isDouble = P1_PV[0]>=0 && P1_PV[1] && P2_PV[0]>=0 && P2_PV[1]>=0; 
+        bool isDouble = P1_PV[0]>=0 && P1_PV[1]>=0 && P2_PV[0]>=0 && P2_PV[1]>=0; 
         if (!isSingle && !isDouble) {
             cout << "PVSLICE error: define slice through either (XPOS_PV,YPOS_PV,PA_PV) or (P1_PV,P2_PV) \n";
             good = false;
+        }
+        
+        if (std::floor(ANTIALIAS)!=ANTIALIAS && ANTIALIAS!=0.5) {
+            cout << "PVSLICE error: ANTIALIAS can only be a positive integer or 0.5. Defaulting to 0.5 \n";
+            ANTIALIAS=0.5;
         }
     }
     
@@ -1191,14 +1204,22 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     if (p.getOutfolder()!="" || defaults)
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
     recordParam(Str, "[LOGFILE]", "Redirect output messages to a file?", stringize(p.getLogFile()));
-    recordParam(Str, "[flagRobustStats]", "Using Robust statistics?", stringize(p.getFlagRobustStats()));
+    recordParam(Str, "[flagRobustStats]", "Using robust statistics?", stringize(p.getFlagRobustStats()));
+    
     
     if (p.getFlagDebug()) recordParam(Str, "[DEBUG]", "Debugging mode?", stringize(p.getFlagDebug()));
 
     Str  <<"-----------------"<<std::endl;
+
+    // PARAMETERS FOR STATS TASK
+    bool toPrint = isAll || p.getFlagStats() || (defaults && whichtask=="STATS");
+    if (toPrint) {
+        recordParam(Str, "[STATS]", "Calculate and print statistics?", stringize(p.getFlagStats()));
+        recordParam(Str, "[ITERNOISE]", "   Estimating noise with iterative algorithm?", stringize(p.getParSE().iternoise));
+    }
     
     // PARAMETERS FOR MAKEMASK TASK
-    bool toPrint = isAll || p.getMakeMask() || (defaults && whichtask=="MAKEMASK");
+    toPrint = isAll || p.getMakeMask() || (defaults && whichtask=="MAKEMASK");
     if (toPrint) {
         recordParam(Str, "[MAKEMASK]", "Writing the mask to a fitsfile", stringize(p.getMakeMask()));
         recordParam(Str, "[MASK]", "   Type of mask", p.getMASK());
@@ -1345,7 +1366,10 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         if (isGalfit) recordParam(Str, "[DELTAVROT]", "   Max rot. velocity variation from VROT (km/s)", p.getParGF().DELTAVROT);
         recordParam(Str, "[VRAD]", "   Initial radial velocity (km/s)", p.getParGF().VRAD);
         recordParam(Str, "[VDISP]", "   Initial velocity dispersion (km/s)", p.getParGF().VDISP);
-        if (isGalfit) recordParam(Str, "[MINVDISP]", "   Minimum acceptable velocity dispersion (km/s)", p.getParGF().MINVDISP);
+        if (isGalfit) {
+            recordParam(Str, "[MINVDISP]", "   Minimum acceptable velocity dispersion (km/s)", p.getParGF().MINVDISP);
+            recordParam(Str, "[MAXVDISP]", "   Maximum acceptable velocity dispersion (km/s)", p.getParGF().MAXVDISP);
+        }
         recordParam(Str, "[INC]", "   Initial inclination (degrees)", p.getParGF().INC);
         if (isGalfit) recordParam(Str, "[DELTAINC]", "   Max inclination variation from INC (degrees)", p.getParGF().DELTAINC);
         recordParam(Str, "[PA]", "   Initial position angle (degrees)", p.getParGF().PHI);
@@ -1538,6 +1562,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     toPrint = isAll || p.getFlagPV() || (defaults && (whichtask=="PVSLICE" || whichtask=="PV"));
     if (toPrint) {
         recordParam(Str, "[PVSLICE]", "Extracting a position-velocity slice from a cube?", stringize(p.getFlagPV()));
+        recordParam(Str, "[ANTIALIAS]", "   Type of anti-aliasing to use for slice", p.getANTIALIAS());
         recordParam(Str, "[XPOS_PV]", "   X center of the slice", p.getXPOS_PV());
         recordParam(Str, "[YPOS_PV]", "   Y center of the slice", p.getYPOS_PV());
         recordParam(Str, "[PA_PV]", "   Position angle of the slice", p.getPA_PV());

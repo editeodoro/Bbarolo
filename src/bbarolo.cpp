@@ -175,6 +175,15 @@ bool BBcore (Param *par) {
 
     if (par->getCheckCh()) c->CheckChannels();
 
+
+    // Statistic utility ------------------------------------------
+    if (par->getFlagStats()) {
+        c->setCubeStats();
+        c->stat().tofile(c->pars().getOutfolder()+c->Head().Name()+"_stats.txt");
+    }
+    // --------------------------------------------------------------
+    
+    
     // Mask making utility ----------------------------------------
     if (par->getMakeMask()) {
         if (par->getMASK().find("LARGEST")!=std::string::npos) c->BlankMask(NULL,true);

@@ -22,6 +22,7 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
+#include <iomanip>
 #include <Arrays/stats.hh>
 #include <Utilities/utils.hh>
 
@@ -191,6 +192,26 @@ namespace Statistics
     }
 
 
+    template <class Type>
+    void Stats<Type>::tofile(std::string filename) {
+        
+        remove(filename.c_str());
+        std::ofstream fout(filename.c_str());
+
+        int m = 13;
+        fout << setprecision(4) << scientific;
+        fout << setw(m) << left << "# MEAN" << setw(m) << "MEDIAN"  
+             << setw(m) << "STDDEV" << setw(m) << "MADFM" << setw(m) << "MADasSTDDEV" 
+             << setw(m) << "MAX" << setw(m) << "MIN" << setw(m)  << std::endl
+             << setw(m) << left << mean << setw(m) << median
+             << setw(m) << stddev << setw(m) << madfm << setw(m) << madfmToSigma(madfm) 
+             << setw(m) << max_val << setw(m) << min_val
+             << std::endl; 
+        
+        fout.close();
+        
+    }
+    
     template <class Type> 
     std::ostream& operator<< (std::ostream& theStream, Stats<Type> &s) {
         

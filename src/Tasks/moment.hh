@@ -106,10 +106,12 @@ private:
     bool  locusAllocated = false;   //< Whether x_locus and y_locus are allocated
     int   num_points;               //< Number of pixels along the slice
     int   width = 0;                //< Half width of the slice in pixels
+    float nalias = 0.5;             //< Type of anti-aliasing.
     
-    float weight (double x, double y, double cx, double cy) {return fabs((1-(x-cx))*(1-(y-cy)));}  
+    double weight (double x, double y, double cx, double cy) {return fabs((1-(x-cx))*(1-(y-cy)));}
+     
     bool  define_slice();
-    bool  check_bounds (int *blx, int *bly, int *Trx, int *Try);
+    bool  check_bounds (double *blx, double *bly, double *Trx, double *Try);
     bool  pvslice ();
     void  define_header();
 };

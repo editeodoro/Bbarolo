@@ -418,8 +418,8 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     
     /// Information about RA-DEC and conversions.
     arcmconv=0;
-    for (int i=0; i<2; i++) {                        
-        bhi[i] = Boxup[i];                  
+    for (int i=0; i<2; i++) {
+        bhi[i] = Boxup[i];
         blo[i] = Boxlow[i];
         ctype[i] = c->Head().Ctype(i);
         cunit[i] = c->Head().Cunit(i);
@@ -453,9 +453,6 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     out = new Cube<T>(ax);
     out->saveHead(c->Head());
     out->saveParam(c->pars());
-    out->Head().setDimAx(0, bsize[0]);
-    out->Head().setDimAx(1, bsize[1]);
-    out->Head().setDimAx(2, nsubs);
     out->Head().setCrpix(0, c->Head().Crpix(0)-blo[0]);
     out->Head().setCrpix(1, c->Head().Crpix(1)-blo[1]);
     outDefined = true;
@@ -481,7 +478,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     
     if (axtyp==2) {                 // Wavelength axis
         float mconv=0;
-        if (cunit3=="um"||cunit3=="mum"||cunit3=="micron") mconv = 1.E-06;
+        if (cunit3=="um"||cunit3=="mum"||cunit3=="micron") mconv = 1.0E-06;
         else if (cunit3=="nm"||cunit3=="nanom") mconv = 1.0E-09;
         else if (cunit3=="a" ||cunit3=="ang"||cunit3=="angstrom") mconv = 1.0E-10;
         else {
@@ -678,8 +675,8 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         uzcyl[i]  = rings->zcyl[i]/60.;
         uinc[i]   = rings->inc[i]*M_PI/180.;
         uphi[i]   = rings->phi[i]*M_PI/180.;
-        uxpos[i]  = rings->xpos[i]+1;
-        uypos[i]  = rings->ypos[i]+1;
+        uxpos[i]  = rings->xpos[i];
+        uypos[i]  = rings->ypos[i];
         uvsys[i]  = rings->vsys[i]*1000;
     }
 
@@ -763,6 +760,10 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
 /*
 template <class T>
 void Galmod<T>::galmod() {
+
+    //////////
+    ////////// NEED TO UPDATE LIKE NEW GALMOD BELOW 
+    //////////
 
     std::cout << "GALMOD PROTO" << std::endl;
 
@@ -904,8 +905,9 @@ template <class T>
 void Galmod<T>::galmod() {
 
     const double twopi = 2*M_PI;
-    const int buflen=bsize[0]*bsize[1]*nsubs+1;
-    T *datbuf = new T [buflen];
+    T *array = out->Array();
+//  Initialize output array on zero.
+    for (int i=0; i<out->NumPix(); i++) array[i] = 0.;
 
     ProgressBar bar(false,in->pars().isVerbose(),in->pars().getShowbar());
     bar.init(" Modeling... ",r->nr);
@@ -913,8 +915,7 @@ void Galmod<T>::galmod() {
     int isd = iseed;
 //  Get number of velocity profiles that will be done.
     int nprof = bsize[0]*bsize[1];
-//  Initialize data buffer on zero.
-    for (int i=0; i<buflen; i++) datbuf[i]=0.0;
+
 //  Convenient random generator functions
     auto fran = std::bind(uniform, generator);
 
@@ -974,8 +975,9 @@ void Galmod<T>::galmod() {
 //          Get grid of this position, check if it is inside area of box.
             long grid[2] = {lround(r->xpos[ir]+(x*spa-y*cpa)/cdelt[0]),
                             lround(r->ypos[ir]+(x*cpa+y*spa)/cdelt[1])};
-            if (grid[0]<=blo[0] || grid[0]>bhi[0]) continue;
-            if (grid[1]<=blo[1] || grid[1]>bhi[1]) continue;
+//          If outside any of the ranges, jump to next cloud.
+            if (grid[0]<blo[0] || grid[0]>=bhi[0]) continue;
+            if (grid[1]<blo[1] || grid[1]>=bhi[1]) continue;
 
 //            /////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //            float rr, theta;
@@ -1007,8 +1009,7 @@ void Galmod<T>::galmod() {
 //
 //          Get profile number of current pixel and check if position is in
 //          range of positions of profiles that are currently being done.
-//          If outside any of the ranges, jump to next cloud.
-            int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0]-bsize[0];
+            int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0];
 //          Get systematic velocity of cloud.
             double vsys = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
 //          Adding vertical rotational gradient after zcyl
@@ -1041,26 +1042,17 @@ void Galmod<T>::galmod() {
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                 for (int nl=0; nl<nlines; nl++) {
                     double v     = vsys+vdev+relvel[nl];
-                    int isubs = lround(velgrid(v)+crpix3-1);
+                    // Adding a 0.5 offset to center in the middle of channel
+                    int isubs = lround(velgrid(v)+crpix3-1-0.5);
                     if (isubs<0 || isubs>=nsubs) continue;
-                    int idat  = iprof+isubs*nprof;
-                    datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
+                    size_t idat  = iprof+isubs*nprof;
+                    array[idat] += relint[nl]*fluxsc*cd2i[isubs];
                 }
             }
         }
     }
 
-//  Write data to output Cube.
-    for (int isubs=0; isubs<nsubs; isubs++) {
-        int pixstart=isubs*bsize[0]*bsize[1];
-        int idat=1+isubs*nprof;
-        for (int i=0; i<nprof; i++)
-            out->Array(pixstart+i)=datbuf[idat+i];
-    }
-
     bar.fillSpace("OK.\n");
-
-    delete [] datbuf;
 
     modCalculated=true;
 

@@ -66,7 +66,8 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   flagGALFIT = false;    ///< Enable task 
     float  DELTAINC   = 5;        ///< Inclination angle variation (degrees).
     float  DELTAPHI   = 15;       ///< Position angle variation (degrees).
-    float  DELTAVROT  = 600;     ///< Rotation velocity variation (km/s).
+    float  DELTAVROT  = 600;      ///< Rotation velocity variation (km/s).
+    float  MAXVDISP   = 1000.;    ///< Maximum velocity dispersion.
     float  MINVDISP   = 0.1;      ///< Minimum velocity dispersion.
     int    FTYPE      = 2;        ///< Type of function to be minimized;
     int    WFUNC      = 2;        ///< Weighting function.
@@ -163,6 +164,7 @@ public:
     bool    getFlagDebug() {return debug;}
     int     getFlagPlots() {return plots;}
     bool    getFlagAuto() {return AUTO;}
+    bool    getFlagStats() {return flagStats;}
 
     bool    getMakeMask() {return makeMask;}
     string  getMASK() {return MaskType;}
@@ -249,6 +251,8 @@ public:
     float   getP1_PV (int i) {return P1_PV[i];}
     float   getP2_PV (int i) {return P2_PV[i];}
     float   getWIDTH_PV () {return WIDTH_PV;}
+    float   getANTIALIAS () {return ANTIALIAS;}
+    void    setANTIALIAS (float i) {ANTIALIAS=i;}
     
     bool    getFlagRend3D() {return flagRend3D;}
     float   getRendAngle() {return rendangle;}
@@ -280,7 +284,7 @@ private:
     float           beamFWHM;           ///< Beam to adopt if any information in header.
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     int             plots;              ///< Whether producing output plots.
-    
+    bool            flagStats;          ///< Whether to calculate and return stats
     
     bool            makeMask;           ///< Whether to write a mask.
     string          MaskType;           ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE, SMOOTH&SEARCH or NONE.
@@ -337,6 +341,7 @@ private:
     float           WIDTH_PV;           ///< Width of the slice 
     float           P1_PV[2];           ///< Point 1 defining the PV slice
     float           P2_PV[2];           ///< Point 2 defining the PV slice
+    float           ANTIALIAS;          ///< Anti-aliasing to use
     
     bool            flagEllProf;
     int             threads;

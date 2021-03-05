@@ -482,7 +482,7 @@ PvSlice<T>::PvSlice(Cube<T> *c) {
     else {
         throw("PVSLICE ERROR: no slice has been defined!");
     }
-    
+        
     // Setting width of the window
     float widtharcs = p.getWIDTH_PV()/2;
     width = round(widtharcs/(c->Head().PixScale()*arcsconv(c->Head().Cunit(0))));
@@ -496,6 +496,9 @@ bool PvSlice<T>::slice() {
     // Front-end function to slice the cube and extract the position-velocity.
     // Slice is made through the data provided in the constructor.
     
+    nalias = in->pars().getANTIALIAS();
+    if (std::floor(nalias)!=nalias && nalias!=0.5) nalias=0.5;
+        
     xpix = in->DimX();
     ypix = in->DimY();
     zpix = in->DimZ();
@@ -669,14 +672,15 @@ bool PvSlice<T>::define_slice() {
 
     // Determine a locus of pixels in a slice line, from two endpoints 
     
-    int    blx, bly, Trx, Try;
+    double  blx, bly, Trx, Try;
     double  theta, ctheta, stheta;
 
     if (!check_bounds(&blx,&bly,&Trx,&Try) ) return false;
 
     // Now calculate slice length 
-    double dx    = (double) (Trx-blx+1);
-    double dy    = (double) (Try-bly+1);
+    double dx    = Trx-blx+1;
+    double dy    = Try-bly+1;
+        
     if (blx==Trx) {
         theta = M_PI/2.0; ctheta=0.0; stheta=1.0;
         if (bly>Try) {theta = 3.0*M_PI/2.0; stheta=-1.0;}
@@ -702,7 +706,7 @@ bool PvSlice<T>::define_slice() {
 
 
 template <class T>
-bool PvSlice<T>::check_bounds (int *blx, int *bly, int *Trx, int *Try) {
+bool PvSlice<T>::check_bounds (double *blx, double *bly, double *Trx, double *Try) {
     
     // Checks bounds & if endpoints are outside the area of cube's front face,
     // computes overlapping section of slice 
@@ -850,192 +854,77 @@ bool PvSlice<T>::pvslice () {
     // and velocity pixels are given the same width as the channel spacing.
     // Output is a weighted sum over all pixels nearby the point where the
     // slice locus passes, to reduce aliasing effects.
-    //
-    // There are four cases to consider for the neighbour pixels, depending
-    // where within a pixel the hit occurs:
-    //
-    //         |-----------|-----------|     |-----------|-----------|
-    //         |           |           |	   |           |           |
-    //    2.0  -     3     |     2     | 	   |     3     |     2     |
-    //         |           |           |	   |       xy  |           |
-    //         |-----------|-----------|	   |-----------|-----------|
-    //         |           | xy        |	   |           |           |
-    //    1.0  -     4     |     1     |	   |     4     |     1     |
-    //         |           |           |	   |           |           |
-    //         |-----|-----|-----|-----|	   |-----------|-----------|
-    //              1.0         2.0
-    //
-    //         |-----------|-----------|     |-----------|-----------|
-    //         |           |           |	   |           |           |
-    //         |     3     |     2     | 	   |     3     |     2     |
-    //         |           | xy        |	   |           |           |
-    //         |-----------|-----------|	   |-----------|-----------|
-    //         |           |           |	   |       xy  |           |
-    //         |     4     |     1     |	   |     4     |     1     |
-    //         |           |           |	   |           |           |
-    //         |-----------|-----------|	   |-----------|-----------|
-    //
-    // All these can be handled by int(x+/-0.5), int(y+/-0.5)
-    // Pixel coordinates are associated with centres of pixels. In pixels that 
-    // don't have 4 neighbours, missing neighbours are assigned a zero weight.
 
+    if (num_points<2) return false;
     
-    int    xp, yp, xn, yn;
-    double  xc, yc, xx, yy, sw, f;
-    size_t MAXNB = 5;    // Number of neighbours for antialiasing
+    int MAXNB = (1+2*nalias)*(1+2*nalias);      // Number of pixels for antialiasing
+    double dmax = (nalias+1)*sqrt(2);           // Maximum distance of a pixel from centre
     
-    int w = width;
-    if (num_points < 2) return false;
+    int w = width;                              // Width of slice in pixels
     
-    float3D wt(2*w+1,MAXNB,num_points);
-    int4D nb(2*w+1,2,MAXNB,num_points);
+    float3D wt(2*w+1,MAXNB,size_t(num_points)); // Weights for anti-aliasing
+    int3D nx(2*w+1,MAXNB,size_t(num_points));   // X coordinates of pixels for anti-aliasing 
+    int3D ny(2*w+1,MAXNB,size_t(num_points));   // Y coordinates of pixels for anti-aliasing
 
     double theta = atan2(y_locus[num_points-1]-y_locus[0],
                          x_locus[num_points-1]-x_locus[0]);
     
     // Find the neighbour pixels & antialiasing weights.
-    // this is done for one channel only, then list applied to all channels
+    // This is done for one channel only, then list applied to all channels
     for (int i=0; i<num_points; i++) {
         for (int k=-w; k<=w; k++) {
-            
-            xc = x_locus[i]+k*sin(theta);
-            yc = y_locus[i]-k*cos(theta);
-            xp = (int)( xc+0.5 );  yp = (int)( yc+0.5 );
-            // here I only do the 4 nearest pixels
-            nb(k+w,0,0,i) = xp; 
-            nb(k+w,1,0,i) = yp;
-            nb(k+w,0,1,i) = (int)(xc+0.5);          // neigbours 
-            nb(k+w,1,1,i) = (int)(yc-0.5); 
-            nb(k+w,0,2,i) = (int)(xc+0.5); 
-            nb(k+w,1,2,i) = (int)(yc+0.5);
-            nb(k+w,0,3,i) = (int)(xc-0.5); 
-            nb(k+w,1,3,i) = (int)(yc+0.5);
-            nb(k+w,0,4,i) = (int)(xc-0.5); 
-            nb(k+w,1,4,i) = (int)(yc-0.5);
-            
-            // calculate the weight for each neighbour
-            for (int j=1; j<MAXNB; j++) {
-                xp = nb(k+w,0,j,i); 
-                yp = nb(k+w,1,j,i);
-                xx = (float) xp;   
-                yy = (float) yp;
-                if ( (xp >= 0) && (xp < xpix) && (yp >= 0) && (yp < ypix) )
-                    wt(k+w,j,i) = weight(xx,yy,xc,yc);
-                else wt(k+w,j,i) = 0.0;
+        
+            double xc = x_locus[i]+k*sin(theta);
+            double yc = y_locus[i]-k*cos(theta);
+            int xp = lround(xc);
+            int yp = lround(yc);
+
+            for (float ys=-nalias; ys<=nalias; ys++) {
+                for (float xs=-nalias; xs<=nalias; xs++) {
+                    size_t n = (xs+nalias)+(1+2*nalias)*(ys+nalias);
+                    // Determining (x,y) positions of anti-aliasing pixels
+                    nx(k+w,n,i) = int(xp+xs);
+                    ny(k+w,n,i) = int(yp+ys);
+                    // Determining the weights for anti-aliasing pixels
+                    wt(k+w,n,i) = 0.0;
+                    if ((nx(k+w,n,i)>=0) && (nx(k+w,n,i)<xpix) && 
+                        (ny(k+w,n,i)>=0) && (ny(k+w,n,i)<ypix)) {
+                        double d = sqrt((nx(k+w,n,i)-xc)*(nx(k+w,n,i)-xc)+(ny(k+w,n,i)-yc)*(ny(k+w,n,i)-yc));
+                        wt(k+w,n,i) = 1.-d/dmax;
+                    }
+                }
             }
         }
     }
-
-
-    for (int z=0; z<zpix; z++) {
-        for (int i=0; i<num_points; i++) {  // Start slice loop
-            T thisvalue = 0;
-            int n = 0;
+    
+    
+    for (int z=0; z<zpix; z++) {            // Loop over channels
+        for (int i=0; i<num_points; i++) {  // Loop over slice
+            double val=0, n=0;
             for (int k=-w; k<=w; k++) {     // Loop over width window
-                f = 0.0; sw = 0.0;
-                xp = nb(k+w,0,0,i);
-                yp = nb(k+w,1,0,i);
-
-                for (int j=1; j<MAXNB; j++) {
-                    xn = nb(k+w,0,j,i);
-                    yn = nb(k+w,1,j,i);
-                    // The first test protects the second; it is possible for xn and yn
-                    // to go out of range (neighbours of a pixel at edge of cube) 
-                    if (wt(k+w,j,i)>0.0) {
+                double f=0, sw=0;
+                // Weighted average over antialiasing neighbours
+                for (int j=0; j<MAXNB; j++) {
+                    if (wt(k+w,j,i)>0.) {
                         sw += wt(k+w,j,i);
-                        f  += in->Array(xn,yn,z) * wt(k+w,j,i);
+                        f  += in->Array(nx(k+w,j,i),ny(k+w,j,i),z)*wt(k+w,j,i);
                     }
                 } 
-            
-                if (sw>0.0) { thisvalue += f/sw; n++; }
-                else {
-                    if ( xp >= 0 && xp<xpix && yp>=0 && yp<ypix ) {
-                        thisvalue += in->Array(xn,yn,z);
-                        n++;
-                    }
-                    else thisvalue += 0.0;
-                }
+                if (sw>0.0) {val += f/sw; n++;}
             }
-            this->array[i+z*num_points] = thisvalue / n;
-        } 
-    } 
+            
+            if (n>0) {this->array[i+z*num_points] = val / n;}
+            else this->array[i+z*num_points] = 0;
+        }
+    }
     
     return true;
 } 
+//*/
 
-
-
-template <class T>
-void PvSlice<T>::define_header () {
-    
-    // Defining the Header for the PV slice.
-    
-    ///* Calculating x-axis WCS
-    double *coord_start = in->getXYphys(x_locus[0],y_locus[0]);
-    double *coord_end   = in->getXYphys(x_locus[num_points-1],y_locus[num_points-1]);
-    double coord_center[2] = {0.5*(coord_start[0]+coord_end[0]),0.5*(coord_start[1] + coord_end[1])};
-    
-    double ra_off  = (coord_start[0]-coord_center[0])*cos(coord_center[1]*M_PI/180.);
-    double dec_off = coord_end[1] - coord_center[1];
-    double position_angle = atan2(-ra_off, dec_off)*180./M_PI - 90.0;
-    if (position_angle < 0) position_angle += 360.0;
-    double first_coord  = -sqrt( ra_off*ra_off + dec_off*dec_off );
-    
-    double cdelt1 = fabs(2*first_coord/(num_points-1));
-    double pcent = 0.5*num_points;
-    
-    if (isAngle) {
-        // If the center is given, let's center the WCS on it.
-        double dx_0 = sqrt( (x0-x_locus[0])*(x0-x_locus[0]) + (y0-y_locus[0])*(y0-y_locus[0]) ) ;
-        double dx_t = sqrt( (x_locus[0]-x_locus[num_points-1])*(x_locus[0]-x_locus[num_points-1]) 
-                          + (y_locus[0]-y_locus[num_points-1])*(y_locus[0]-y_locus[num_points-1]) );
-        pcent =  dx_0/dx_t*num_points;
-    }
-    
-    
-    // Setting spatial coordinates
-    this->Head().setCtype(0,"OFFSET");
-    this->Head().setCrpix(0,pcent);
-    this->Head().setCrval(0,0);
-    this->Head().setCdelt(0,cdelt1);
-    this->Head().setCunit(0,in->Head().Cunit(0));
-    
-    // Setting spectral coordinates
-    this->Head().setCtype(1,in->Head().Ctype(2));
-    this->Head().setCrpix(1,in->Head().Crpix(2));
-    this->Head().setCrval(1,in->Head().Crval(2));
-    this->Head().setCdelt(1,in->Head().Cdelt(2));
-    this->Head().setCunit(1,in->Head().Cunit(2));
-    
-    // Setting other properties
-    this->Head().setBmaj(in->Head().Bmaj());
-    this->Head().setBmin(in->Head().Bmin());
-    this->Head().setBpa(in->Head().Bpa());
-    this->Head().setBunit(in->Head().Bunit());
-    this->Head().setBtype(in->Head().Btype());
-    this->Head().setEpoch(in->Head().Epoch());
-    this->Head().setTelesc(in->Head().Telesc());
-    std::string name = in->Head().Name()+"_pv"+to_string(angle,0);
-    this->Head().setName(name);
-    
-    std::string str;
-    if (isAngle) {
-        double *crt   = in->getXYphys(x0,y0);
-        str = "RA="+to_string(crt[0])+" deg, DEC="+to_string(crt[1])+" deg, PA="+to_string(angle,1)+" deg";
-    }
-    else 
-        str = "P1=("+to_string(x1,1)+","+to_string(y1,1)+") P2=("+to_string(x2,1)+","+to_string(y2,1)+")";
-    
-    this->Head().Keys().push_back("HISTORY BBAROLO PVSLICE: "+str);
-    this->setHeadDef(true);
-
-}
-
-
-/* Original slice function (no width)
+/* Original slice function (no width and fixed antialiasing)
 template <class T>
 bool PvSlice<T>::pvslice () {
-
     // Extract pixels from a cube, along an input locus and write the PV in 
     // the main array. Result is antialiased.
     // 
@@ -1073,18 +962,15 @@ bool PvSlice<T>::pvslice () {
     // All these can be handled by int(x+/-0.5), int(y+/-0.5)
     // Pixel coordinates are associated with centres of pixels. In pixels that 
     // don't have 4 neighbours, missing neighbours are assigned a zero weight.
-
     
     int    xp, yp, xn, yn;
     float  xc, yc, xx, yy, sw, f;
     size_t MAXNB = 5;    // Number of neighbours for antialiasing
     
-
     if (num_points < 2) return false;
     
     float2D wt(MAXNB,size_t(num_points));
     int3D nb(size_t(2),MAXNB,size_t(num_points));
-
     // Find the neighbour pixels & antialiasing weights.
     // this is done for one channel only, then list applied to all channels
     for (int i = 0; i < num_points; i++) {
@@ -1096,7 +982,6 @@ bool PvSlice<T>::pvslice () {
         nb(0,2,i) = (int)(xc+0.5); nb(1,2,i) = (int)(yc+0.5);
         nb(0,3,i) = (int)(xc-0.5); nb(1,3,i) = (int)(yc+0.5);
         nb(0,4,i) = (int)(xc-0.5); nb(1,4,i) = (int)(yc-0.5);
-
         // calculate the weight for each neighbour
         for (int j = 1; j < MAXNB; j++) {
             xp = nb(0,j,i); yp = nb(1,j,i);
@@ -1106,14 +991,12 @@ bool PvSlice<T>::pvslice () {
             else wt(j, i) = 0.0;
         }   
     }
-
     
     for (int z = 0; z < zpix; ++z) {
         for (int i=0; i<num_points; i++) { // Start slice loop 
             f = 0.0; sw = 0.0;
             xp = nb(0,0,i);
             yp = nb(1,0,i);
-
             for (int j=1; j<MAXNB; j++) {
                 xn = nb(0,j,i);
                 yn = nb(1,j,i);
@@ -1127,7 +1010,7 @@ bool PvSlice<T>::pvslice () {
             
             if (sw>0.0) this->array[i+z*num_points] = f/sw;
             else {
-                if ( xp >= 0 && xp<xpix && yp>=0 && yp<ypix ) this->array[i+z*num_points] = in->Array(xn,yn,z);
+                if ( xp >= 0 && xp<xpix && yp>=0 && yp<ypix ) this->array[i+z*num_points] = in->Array(xp,yp,z);
                 else this->array[i+z*num_points] = 0.0;
             }
             
@@ -1137,6 +1020,80 @@ bool PvSlice<T>::pvslice () {
     return true;
 } 
 */
+
+
+template <class T>
+void PvSlice<T>::define_header () {
+    
+    // Defining the Header for the PV slice.
+    
+    ///* Calculating x-axis WCS
+    double *coord_start = in->getXYphys(x_locus[0],y_locus[0]);
+    double *coord_end   = in->getXYphys(x_locus[num_points-1],y_locus[num_points-1]);
+    double coord_center[2] = {0.5*(coord_start[0]+coord_end[0]),0.5*(coord_start[1] + coord_end[1])};
+    
+    double ra_off  = (coord_start[0]-coord_center[0])*cos(coord_center[1]*M_PI/180.);
+    double dec_off = coord_end[1] - coord_center[1];
+    double position_angle = atan2(-ra_off, dec_off)*180./M_PI - 90.0;
+    if (position_angle < 0) position_angle += 360.0;
+    double first_coord  = -sqrt( ra_off*ra_off + dec_off*dec_off );
+    
+    double cdelt1 = fabs(2*first_coord/(num_points-1));
+    double pcent = 0.5*(num_points-1);
+        
+    if (isAngle) {
+        // If the center is given, let's center the WCS on it.
+        //int xl[2] {int(x_locus[0]+0.5),int(x_locus[num_points-1]+0.5)};
+        //int yl[2] {int(y_locus[0]+0.5),int(y_locus[num_points-1]+0.5)};
+        double xl[2] {x_locus[0],x_locus[num_points-1]};
+        double yl[2] {y_locus[0],y_locus[num_points-1]};
+        if (xl[0]<0) xl[0]=0;
+        if (xl[1]>=in->DimX()) xl[1]=0;
+        
+        double dx_0 = sqrt((x0-xl[0])*(x0-xl[0]) + (y0-yl[0])*(y0-yl[0]));
+        double dx_t = sqrt((xl[0]-xl[1])*(xl[0]-xl[1])+(yl[0]-yl[1])*(yl[0]-yl[1]));
+
+        pcent =  dx_0/dx_t*(num_points-1);
+    }
+    
+    
+    // Setting spatial coordinates
+    this->Head().setCtype(0,"OFFSET");
+    this->Head().setCrpix(0,pcent+1);
+    this->Head().setCrval(0,0);
+    this->Head().setCdelt(0,cdelt1);
+    this->Head().setCunit(0,in->Head().Cunit(0));
+    
+    // Setting spectral coordinates
+    this->Head().setCtype(1,in->Head().Ctype(2));
+    this->Head().setCrpix(1,in->Head().Crpix(2));
+    this->Head().setCrval(1,in->Head().Crval(2));
+    this->Head().setCdelt(1,in->Head().Cdelt(2));
+    this->Head().setCunit(1,in->Head().Cunit(2));
+    
+    // Setting other properties
+    this->Head().setBmaj(in->Head().Bmaj());
+    this->Head().setBmin(in->Head().Bmin());
+    this->Head().setBpa(in->Head().Bpa());
+    this->Head().setBunit(in->Head().Bunit());
+    this->Head().setBtype(in->Head().Btype());
+    this->Head().setEpoch(in->Head().Epoch());
+    this->Head().setTelesc(in->Head().Telesc());
+    std::string name = in->Head().Name()+"_pv"+to_string(angle,0);
+    this->Head().setName(name);
+    
+    std::string str;
+    if (isAngle) {
+        double *crt   = in->getXYphys(x0,y0);
+        str = "RA="+to_string(crt[0])+" deg, DEC="+to_string(crt[1])+" deg, PA="+to_string(angle,1)+" deg";
+    }
+    else 
+        str = "P1=("+to_string(x1,1)+","+to_string(y1,1)+") P2=("+to_string(x2,1)+","+to_string(y2,1)+")";
+    
+    this->Head().Keys().push_back("HISTORY BBAROLO PVSLICE: "+str);
+    this->setHeadDef(true);
+
+}
 
 
 

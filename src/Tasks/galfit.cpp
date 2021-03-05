@@ -477,7 +477,7 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     // Setting limits for fitting parameters
     maxs[VROT]  = *max_element(inr->vrot.begin(),inr->vrot.end())+par.DELTAVROT;
     mins[VROT]  = *min_element(inr->vrot.begin(),inr->vrot.end())-par.DELTAVROT;
-    maxs[VDISP] = 500;
+    maxs[VDISP] = par.MAXVDISP;
     mins[VDISP] = par.MINVDISP;
     maxs[Z0] = 1000;         // Max scaleheight allowed is 1000 arcs.  
     mins[Z0] = 0.;           // Min scaleheight allowed is 0 arcs.

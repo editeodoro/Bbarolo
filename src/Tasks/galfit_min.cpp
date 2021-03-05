@@ -321,7 +321,10 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
             case VDISP:
                 for (int j=0; j<n; j++) {
-                    vdisp[j] = (zpar[np]<mins[VDISP] || zpar[np]>maxs[VDISP]) ? inr->vdisp[w_r]+0.1*mins[VDISP] : zpar[np];
+                    if (zpar[np]>maxs[VDISP]) vdisp[j]= maxs[VDISP]-fran()*inr->vdisp[w_r];
+                    else if (zpar[np]<mins[VDISP]) vdisp[j]= mins[VDISP]+fran()*inr->vdisp[w_r];
+                    else vdisp[j] = zpar[np];
+                    //vdisp[j] = (zpar[np]<mins[VDISP] || zpar[np]>maxs[VDISP]) ? inr->vdisp[w_r]+0.1*mins[VDISP] : zpar[np];
                     //vdisp = mins[VDISP]+0.1*mins[VDISP];
                     //vdisp = outr->vdisp[w_r-1];
                     zpar[np++] = vdisp[j];
@@ -519,7 +522,7 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
 
     //<<<<< Normalizing & calculating the residuals....
     double minfunc = (this->*func_norm)(dring,modp,bhi,blo);
-
+    
     delete mod;
     
 	return minfunc; 
@@ -878,8 +881,8 @@ void Galfit<T>::getModelSize(Rings<T> *dring, int *blo, int *bhi,int* bsize) {
     int ypos = ceil(dring->ypos.back());
     blo[0] = xpos-xdis;
     blo[1] = ypos-ydis;
-    bhi[0] = xpos+xdis;
-    bhi[1] = ypos+ydis;
+    bhi[0] = xpos+xdis+1;
+    bhi[1] = ypos+ydis+1;
     if (blo[0]<0) blo[0] = 0;
     if (blo[1]<0) blo[1] = 0;
     if (bhi[0]>in->DimX()) bhi[0] = in->DimX();	
