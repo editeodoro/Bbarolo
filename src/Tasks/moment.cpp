@@ -1058,7 +1058,7 @@ void PvSlice<T>::define_header () {
     
     
     // Setting spatial coordinates
-    this->Head().setCtype(0,"OFFSET");
+    this->Head().setCtype(0,"Offset");
     this->Head().setCrpix(0,pcent+1);
     this->Head().setCrval(0,0);
     this->Head().setCdelt(0,cdelt1);
