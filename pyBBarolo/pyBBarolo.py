@@ -44,6 +44,9 @@ def isIterable (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
     return isinstance(p,(list,tuple,np.ndarray))
     
+def isNumber (p):
+    """Check if p is an iteratable (list,tuple or numpy array). """
+    return isinstance(p,(float,int,np.int32,np.int64,np.float32,np.float64))
 
 
 class FitsCube(object):
@@ -101,7 +104,7 @@ class Rings(object):
         
         fl = np.float32
         
-        if not isinstance(self.nr,(int,float)): raise ValueError("nrings must be a number")
+        if not isNumber(self.nr): raise ValueError("nrings must be a number")
             
         if isIterable(radii): radii = np.array(radii,dtype=fl)
         else: raise ValueError("radii must be an array")
@@ -252,7 +255,7 @@ class Model3D(Task):
                 raise RuntimeError("Beam info is not available in the header.\
                                     Please pass beam=(bmaj,bmin,bpa) paramater to smooth()")
         else:
-            if isinstance(beam, (list,tuple,np.ndarray)) and len(beam)==3:
+            if isIterable(beam) and len(beam)==3:
                 set_beam(bmaj=beam[0],bmin=beam[1],bpa=beam[2])
             else: 
                 raise ValueError("%s ERROR: beam is a list of [bmaj,bmin,bpa]."%self.taskname)            
@@ -325,7 +328,7 @@ class GalMod(Model3D):
     
         """
         
-        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
     
@@ -779,7 +782,7 @@ class FitMod2D(Task):
           phi (float, list):   Position angle of the receding part of the major axis (N->W)
     
         """
-        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi)
 
@@ -873,7 +876,7 @@ class Ellprof(Task):
           phi (float, list):   Position angle of the receding part of the major axis (N->W)
             
         """
-        if not isinstance(radii,(list,tuple,np.ndarray)): raise ValueError("radii must be an array")
+        if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
         self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi)
         

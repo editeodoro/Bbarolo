@@ -107,6 +107,8 @@ Additional optional parameters to refine the fit for advanced users.
 
 * **MINVDISP** [0]. Minimum gas velocity dispersion allowed.
 
+* **MAXVDISP** [1000]. Maximum gas velocity dispersion allowed.
+
 * **FTYPE** [2]. Function to be minimized. Accepted values are: 1 = chi-squared, 2 = \|mod-obs\|, (default) and 3 = \|mod-obs\|/(mod+obs)).
 
 * **WFUNC** [2]. Weighting function to be used in the fit. Accepted values are: 0 = uniform weight, 1 = \|cos(θ)\| and 2 = cos(θ)^2, default), where θ is the azimuthal angle (= 0 for galaxy major axis). Negative values can be used to set a sin(θ) weight: -1 = \|sin(θ)\| and -2 = sin(θ)^2.

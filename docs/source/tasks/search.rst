@@ -12,6 +12,8 @@ Parameters
 
 * **FLAGROBUSTSTATS** [true]. Whether to use to robust estimators (median and MADFM) instead of normal estimators (mean and standard deviation) when calculating cube statistics.
 
+* **ITERNOISE** [false]. Whether to use an iterative algorithm to estimate the noise level. If true, it will reiterate over the array, masking pixels above 3sigma and re-calculating noise statistics until convergence. 
+
 * **CUBELETS** [false]. If true, it produces individual cubelets and sub-images for each detected source.
 
 * **SEARCHTYPE** [spatial]. How the search is performed. Accepted values are *spatial* and *spectral*. Spatial search is done in 2D channel maps, spectral search along 1D spectra.

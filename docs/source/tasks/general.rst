@@ -20,6 +20,9 @@ Input/output parameters
 
 * **SHOWBAR** [true]. Whether to show progress bars.
 
+* **STATS** [false]. If true, calculate and print statistics of input FITS file.
+
+
 .. _beam:
 
 Beam parameters
