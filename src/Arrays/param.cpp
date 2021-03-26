@@ -425,7 +425,7 @@ bool Param::readParamFile(std::string paramfile) {
     std::ifstream fin(paramfile.c_str());
     if(!fin.is_open()) return false;
     std::string line;
-    while(!std::getline(fin,line,'\n').eof()){
+    while(std::getline(fin,line)){
         if(line[0]!='#' || line[0]!='/') setParam(line);
     }
     return true;
@@ -619,7 +619,6 @@ void Param::setParam(string &parstr) {
     
     if (arg=="rend3d")    flagRend3D = readFlag(ss);
     if (arg=="rendangle") rendangle = readval<float>(ss);
-    
 }
 
 

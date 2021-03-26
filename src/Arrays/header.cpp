@@ -325,7 +325,7 @@ bool Header::header_read (std::string fname) {
                 if (i==2) cunit[i] = "km/s";
                 if (i==3) cunit[i] = "stokes";
                 std::stringstream toprint;
-                toprint << "HEADER WARNING: CUNIT" << i+1 << " keywords not found. Assuming " << cunit[i]; 
+                toprint << "HEADER WARNING: CUNIT" << i+1 << " keywords not found. Assuming " << cunit[i] << "."; 
                 Warning(toprint.str());
             }
             
