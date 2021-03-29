@@ -46,7 +46,7 @@ will set a INC of 60 degrees and a PA of 120 degrees and ignore the values liste
 
     > BBarolo -c PARAM1=VALUE1 PARAM2=VALUE2 PARAM3=VALUE3
 
-If ``VALUE`` must contain white spaces, just include it in between quotation marks (e.g. ``FREE="VROT VDISP"``). Name of parameters are not case-sensitive. This way is very convenient when the user only needs to run a task with few parameters. For example, to run the source finder with default parameters::
+If ``VALUE`` must contain white spaces, just include it in between quotation marks (e.g. ``FREE="VROT VDISP"``). Names of parameters are not case-sensitive. This way is very convenient when the user only needs to run a task with few parameters. For example, to run the source finder with default parameters::
 
     > BBarolo -c fitsfile=yourfits.fits search=true
     

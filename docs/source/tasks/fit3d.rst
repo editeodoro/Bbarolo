@@ -42,7 +42,7 @@ If any of the following parameters is not explicitly specified, BBarolo will est
 
 * **INC** [none]. Inclination in *degrees*. If not given, it is guessed from the total map.
 
-* **PA** [none]. Position angle in *degrees*, measured anti-clockwise form the North direction. If not given, it is estimated from the velocity field.
+* **PA** [none]. Position angle in *degrees* of the receding side of the galaxy, measured anti-clockwise from the North direction. If not given, it is estimated from the velocity field.
 
 * **Z0** [0]. Scale-height of the disc in *arcsec*. 
 
