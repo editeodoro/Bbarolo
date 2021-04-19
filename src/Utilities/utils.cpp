@@ -610,30 +610,30 @@ bool getDataColumn (std::vector<T> &data, std::string filestring) {
     // column to be read and m:k is the range of rows to be read.
     
     
-    int found = filestring.find("ile");
-    if (found==-1) return false;    
+    int found = makelower(filestring).find("file(");
+    if (found==std::string::npos) return false;
     
-    filestring.erase(0,5);
-    
+    filestring.erase(0,found+5);
+
     std::string filename = filestring;
     std::string column = filestring;
     std::string rows = filestring;
     int col=0, row_low=0, row_high=INT_MAX;
     
     found = filename.find(",");
-    if (found==-1) filename.erase(filename.size()-1);
+    if (found==std::string::npos) filename.erase(filename.size()-1);
     else {
         filename.erase(found, filename.size()-1);
         column.erase(0,found+1);
         rows.erase(0,found+1);
         found = column.find(",");
-        if (found==-1) column.erase(column.size()-1);
+        if (found==std::string::npos) column.erase(column.size()-1);
         else {
             column.erase(found, column.size()-1);
             rows.erase(0,found+1);
             rows.erase(rows.size()-1);
             found = rows.find(":");
-            if (found==-1) row_low = atoi(rows.c_str())-1;
+            if (found==std::string::npos) row_low = atoi(rows.c_str())-1;
             else {
                 std::string rows_low  = rows.substr(0,found);
                 std::string rows_high = rows.substr(found+1, rows.size()-1);
@@ -643,7 +643,7 @@ bool getDataColumn (std::vector<T> &data, std::string filestring) {
         }
         col = atoi(column.c_str())-1;
     }
-    
+        
     filename = deblank(filename);
     checkHome(filename);
     std::ifstream filein(filename.c_str());

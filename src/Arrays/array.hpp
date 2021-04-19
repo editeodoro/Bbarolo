@@ -20,7 +20,7 @@ public:
     Array(size_t *Dim, Type v) {setArray(Dim, v);}
     Array(size_t *Dim, Type *vp) {setArray(Dim,vp);}
     Array(const Array& a) {this->operator=(a);};
-    ~Array() {if(p) delete[] p;}
+    ~Array() {if(pAllocated) delete[] p;}
 
     // SPECIAL CONSTRUCTORS FOR 4D,3D,2D and 1D ARRAYS
     Array(size_t xi,size_t yi, size_t zi, size_t qi) {if (checkNDim(4)) setArray(xi,yi,zi,qi);}
@@ -31,8 +31,9 @@ public:
     void setArray(size_t *Dim) {
         Ndim=N; size=1;
         for (int i=N; i--;) {dim[i]=Dim[i]; size*=dim[i];}
-        if (p) delete [] p;
+        if (pAllocated) delete [] p;
         p=new Type[size];
+        pAllocated = true;
     }
 
     void setArray(size_t *Dim, Type v) {setArray(Dim); for (int i=size; i--;) p[i]=v;}
@@ -69,7 +70,7 @@ public:
     }
 
     inline Type& operator()(size_t i) {return *(p+i);}
-    inline Type& operator[] (size_t s) {return this->operator()(s);}
+    inline Type& operator[](size_t i) {return *(p+i);}
 
     // FRIEND FUNCTIONS
     template <class T, size_t M, class K> friend Array<T,M>& operator+=(Array<T,M>& a,const K& b);
@@ -103,7 +104,7 @@ public:
     size_t& Dim (size_t n) {return dim[n];}
     Type* P () {return p;}
     Type& P (size_t i) {return p[i];}
-
+    void setP (Type *point) {p=point;}
 
     // SPECIALIZED FUNCTION TO BE USED FOR 4D, 3D and 2D ARRAYS
     // WARNING: no check on pixels or dimensions ---> use consciously
@@ -119,8 +120,9 @@ public:
 
 
 private:
-    Type* 	p = NULL;
-    size_t 	dim[N], Ndim, size;
+    Type*   p = nullptr;
+    bool    pAllocated = false;
+    size_t  dim[N], Ndim, size;
 
 
     bool checkSize (const Array &a, bool terminate=true) const {

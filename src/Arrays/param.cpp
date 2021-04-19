@@ -426,7 +426,7 @@ bool Param::readParamFile(std::string paramfile) {
     if(!fin.is_open()) return false;
     std::string line;
     while(std::getline(fin,line)){
-        if(line[0]!='#' || line[0]!='/') setParam(line);
+        if(line[0]!='#' && line[0]!='/') setParam(line);
     }
     return true;
 }
@@ -467,7 +467,8 @@ void Param::setParam(string &parstr) {
     if(arg=="mask")             MaskType  = readFilename(ss);
     
     if(arg=="stats")            flagStats = readFlag(ss); 
-    if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss);     
+    if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss);
+    
     // SEARCH ONLY PARAMETERS
     if(arg=="search")            parSE.flagSearch = readFlag(ss);
     if(arg=="searchtype")        parSE.searchType = readFilename(ss);

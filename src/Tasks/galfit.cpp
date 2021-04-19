@@ -501,8 +501,8 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     if (mins[XPOS]<0)  mins[XPOS] = 0;
     if (mins[YPOS]<0)  mins[YPOS] = 0;
     if (maxs[VSYS]<mins[VSYS]) std::swap(maxs[VSYS],mins[VSYS]);
-    maxs[VRAD]  = 100;
-    mins[VRAD]  = -100;
+    maxs[VRAD]  = 500;
+    mins[VRAD]  = -500;
     
     // Setting the convolution field
     if (par.SM) {

@@ -418,8 +418,18 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
 
     ui->PVgroupBox->setChecked(par->getFlagPV());
     if (ui->PVgroupBox->isChecked()) {
-        ui->PVXposSpinBox->setValue(par->getXPOS_PV());
-        ui->PVYposSpinBox->setValue(par->getYPOS_PV());
+        bool isNumber = true;
+        for (char const &c : par->getXPOS_PV()) {
+            if (std::isdigit(c)==0) isNumber=false;
+        }
+        double posval = isNumber ? atof(par->getXPOS_PV().c_str()) : 0;
+        ui->PVXposSpinBox->setValue(posval);
+        isNumber = true;
+        for (char const &c : par->getYPOS_PV()) {
+            if (std::isdigit(c)==0) isNumber=false;
+        }
+        posval = isNumber ? atof(par->getYPOS_PV().c_str()) : 0;
+        ui->PVYposSpinBox->setValue(posval);
         ui->PVPaSpinBox->setValue(par->getPA_PV());
     }
 
