@@ -1042,8 +1042,7 @@ void Galmod<T>::galmod() {
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                 for (int nl=0; nl<nlines; nl++) {
                     double v     = vsys+vdev+relvel[nl];
-                    // Adding a 0.5 offset to center in the middle of channel
-                    int isubs = lround(velgrid(v)+crpix3-1-0.5);
+                    int isubs = lround(velgrid(v)+crpix3-1);
                     if (isubs<0 || isubs>=nsubs) continue;
                     size_t idat  = iprof+isubs*nprof;
                     array[idat] += relint[nl]*fluxsc*cd2i[isubs];

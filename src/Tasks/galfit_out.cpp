@@ -142,7 +142,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         // thus just need to rescale the model to the total flux of data inside last ring.
 
         // Calculate total flux of model within last ring
-        totflux_data = 0;
+        totflux_data = totflux_model = 0;
+        
+        /*
         for (auto i=0; i<in->DimX()*in->DimY(); i++) {
             if (!isNaN(ringreg[i])) {
                 for (auto z=0; z<in->DimZ(); z++) {
@@ -156,6 +158,36 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             //             outarray[i+z*in->DimY()*in->DimX()]=0;
             //}
         }
+        */
+        
+        //////////////////////////////////////////////////////////////////
+        // New normalization method, taking only pixels in a given range 
+        // (see start, stop below)
+        std::vector<T> d, m;
+        for (auto i=0; i<in->DimX()*in->DimY(); i++) {
+            if (!isNaN(ringreg[i])) {
+                for (auto z=0; z<in->DimZ(); z++) {
+                    long npix = i+z*in->DimY()*in->DimX();
+                    if (in->Mask(npix) && in->Array(npix)>0) {
+                        d.push_back(in->Array(npix));
+                        m.push_back(outarray[npix]);
+                    }
+                }
+            }
+        }
+        
+        std::sort (d.begin(), d.end()); 
+        std::sort (m.begin(), m.end()); 
+        int start = 0.6*d.size();
+        int stop  = 0.99*d.size();
+        
+        for (int i=start; i<stop; i++) {
+            totflux_data  += d[i];
+            totflux_model += m[i];
+        }
+        //*/
+        ////////////////////////////////////////////////////////////////////////
+        
 
         double factor = totflux_data/totflux_model;
         for (auto i=in->NumPix(); i--;) outarray[i] *= factor;

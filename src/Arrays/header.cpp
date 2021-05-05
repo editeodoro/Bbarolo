@@ -305,12 +305,12 @@ bool Header::header_read (std::string fname) {
         if (numAxes>1) cunit[1] = "DEGREE";
         if (numAxes>2) {
             if (makelower(ctype[2]).find("freq")!=std::string::npos) {
-                cunit[2] = "HZ";
-                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [DEGREE,DEGREE,HZ]");
+                cunit[2] = "hz";
+                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [deg,deg,hz]");
             }
             else {
-                cunit[2] = "M/S";
-                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [DEGREE,DEGREE,M/S]");
+                cunit[2] = "m/s";
+                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [deg,deg,m/s]");
             }
         }
     }

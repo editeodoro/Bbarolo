@@ -1716,7 +1716,7 @@ void versionInfo(std::ostream& ostr, char **argv) {
     compiler += "Clang/LLVM "+ std::string(__VERSION__);
 #elif defined(__ICC) || defined(__INTEL_COMPILER)
     /* Intel ICC/ICPC. ------------------------------------------ */
-    compiler += "Intel ICC/ICPC "
+    compiler += "Intel ICC/ICPC ";
 #elif defined(__GNUC__) || defined(__GNUG__) && !(defined(__clang__) || defined(__INTEL_COMPILER))
     /* GNU GCC/G++. --------------------------------------------- */
     compiler += "GNU GCC ";

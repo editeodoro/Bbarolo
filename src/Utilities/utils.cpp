@@ -444,22 +444,22 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h) {
     
     float freq=0;                               /// Frequency in GHz
     
-    if (h.Cunit(2)=="KM/S" || h.Cunit(2)=="Km/s" || h.Cunit(2)=="km/s") {
+    if (makelower(h.Cunit(2))=="km/s") {
         const float HIrest = 1.420405751;
         const float c = 299792.458;
         float vel = ((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2));
         freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
     }
-    else if (h.Cunit(2)=="M/S" || h.Cunit(2)=="m/s" || h.Cunit(2)=="M/s") {
+    else if (makelower(h.Cunit(2))=="m/s") {
         const float HIrest = 1.420405751;
         const float c = 299792458;
         float vel = ((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2));
         freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
     }
-    else if (h.Cunit(2)=="HZ" || h.Cunit(2)=="Hz" || h.Cunit(2)=="hz") {
+    else if (makelower(h.Cunit(2))=="hz") {
         freq=((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2))/(1.e09);
     }   
-    else if (h.Cunit(2)=="MHZ" || h.Cunit(2)=="MHz" || h.Cunit(2)=="Mhz") {
+    else if (makelower(h.Cunit(2))=="mhz") {
         freq=((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2))/(1000);
     }
     else return -2;
@@ -824,54 +824,54 @@ T* RingRegion (Rings<T> *r, Header &h) {
 	
     // Given a set of rings, return the 2D region covered by these rings
     
-	long bsize[2] = {h.DimAx(0),h.DimAx(1)};
+    long bsize[2] = {h.DimAx(0),h.DimAx(1)};
     float pscale = h.PixScale()*arcsconv(h.Cunit(0));
     T *ringregion = new T[bsize[0]*bsize[1]];
-	for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
-	
+    for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
+
     T R1  = std::max((r->radii.front()-r->radsep/2.)/pscale,0.); //#+sqrt(in->Head().BeamArea()/M_PI);
     T R2  = (r->radii.back()+r->radsep/2.)/pscale;    
-	T phi = r->phi.back();
-	T inc = r->inc.back();
-	T psi = 0.;
+    T phi = r->phi.back();
+    T inc = r->inc.back();
+    T psi = 0.;
     T z0  = 3*r->z0.back()/(pscale); //prima prendevo 3*dring->....
-	T x0  = r->xpos.back()-1;
-	T y0  = r->ypos.back()-1;
-	
-	double **matrices = RotMatrices(inc,psi,-phi-90);
-	int size[2] = {3,3};
-	double *rotmatrix = MatrixProduct(&matrices[2][0], size, &matrices[0][0],size);
-	
-	int xyrange = lround(R2);
-	int zrange = lround(z0);
-	int sizecoord[2] = {3,1};	
-	for (int z=-zrange; z<=zrange; z++) {
-		 for (int y=-xyrange; y<=xyrange; y++) {
-			for(int x=-xyrange; x<=xyrange; x++) {
-				double r = sqrt(x*x+y*y);
-				if (r<=R2 && r>=R1) {
-					double coord[3]={double(x),double(y),double(z)};
-					double *coordrot = MatrixProduct(rotmatrix,size,coord,sizecoord);
-					int xrot = lround(coordrot[0]+x0);
-					int yrot = lround(coordrot[1]+y0);
-					if (xrot>=0 && xrot<bsize[0] &&
-						yrot>=0 && yrot<bsize[1]) {
-						double theta;						
-						if (r<0.1) theta = 0.0;
-						else theta = atan2(y, x)/M_PI*180.;	
-						if(isNaN(ringregion[xrot+yrot*bsize[0]])) {
-							ringregion[xrot+yrot*bsize[0]] = theta;
-						}
-					}
-				}
-			}
-		}
-	}
+    T x0  = r->xpos.back()-1;
+    T y0  = r->ypos.back()-1;
+        
+    double **matrices = RotMatrices(inc,psi,-phi-90);
+    int size[2] = {3,3};
+    double *rotmatrix = MatrixProduct(&matrices[2][0], size, &matrices[0][0],size);
 
-	deallocate_2D<double>(matrices,3);
-	delete [] rotmatrix;
-	return ringregion;
-	
+    int xyrange = ceil(R2);
+    int zrange = ceil(z0);
+    int sizecoord[2] = {3,1};	
+    for (int z=-zrange; z<=zrange; z++) {
+        for (int y=-xyrange; y<=xyrange; y++) {
+            for(int x=-xyrange; x<=xyrange; x++) {
+                double r = sqrt(x*x+y*y);
+                if (r<=R2 && r>=R1) {
+                    double coord[3]={double(x),double(y),double(z)};
+                    double *coordrot = MatrixProduct(rotmatrix,size,coord,sizecoord);
+                    int xrot = lround(coordrot[0]+x0);
+                    int yrot = lround(coordrot[1]+y0);
+                    if (xrot>=0 && xrot<bsize[0] &&
+                        yrot>=0 && yrot<bsize[1]) {
+                        double theta;
+                        if (r<0.1) theta = 0.0;
+                        else theta = atan2(y, x)/M_PI*180.;	
+                        if(isNaN(ringregion[xrot+yrot*bsize[0]])) {
+                            ringregion[xrot+yrot*bsize[0]] = theta;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    deallocate_2D<double>(matrices,3);
+    delete [] rotmatrix;
+    return ringregion;
+
 }
 template float* RingRegion (Rings<float>*,Header&);
 template double* RingRegion (Rings<double>*,Header&);
