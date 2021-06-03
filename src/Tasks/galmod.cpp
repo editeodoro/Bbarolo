@@ -465,14 +465,15 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     crpix3 = c->Head().Crpix(2);
     drval3 = c->Head().Drval3();
     
-    if (ctype3=="wave" || ctype3=="awav" || cunit3=="um" || cunit3=="nm" || cunit3=="ang" ) axtyp =2;
+    if (ctype3=="wave" || ctype3=="awav" || ctype3=="wavelength" ||
+        cunit3=="um" || cunit3=="nm" || cunit3=="ang" ) axtyp =2;
     else if (ctype3=="freq" || cunit3=="hz" || cunit3=="mhz") axtyp = 3;
     else if (ctype3=="velo" || ctype3=="velo-helo" || ctype3=="velo-hel" ||
              cunit3=="m/s" || cunit3=="km/s") {
         axtyp = 4;
     }
     else {
-        std::cout << "GALMOD error (unknown CUNIT for spectral axis): cannot convert.";
+        std::cout << "GALMOD error (unknown CUNIT for spectral axis): cannot convert." << std::endl;
         std::terminate(); 
     }
     

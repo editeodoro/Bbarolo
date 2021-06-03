@@ -30,6 +30,7 @@
 #include <Utilities/utils.hh>
 #include <Utilities/progressbar.hh>
 #include <Utilities/gnuplot.hh>
+#include <Utilities/lsqfit.hh>
 #include <Tasks/smooth3D.hh>
 #include <Tasks/moment.hh>
 
@@ -832,6 +833,72 @@ void Cube<T>::CheckChannels () {
 }
 
 
+template <class T>
+void Cube<T>::continuumSubtract() {
+    
+    /// Fit with a polynomial and subtract the continuum from the array
+        
+    // Defining channels to exclude during the fit
+    std::vector<T> toex(axisDim[2],false);
+
+    stringstream ss(par.getExcludeWind());
+    std::vector<string> s = readVec<string>(ss);
+    for (auto &w : s) {
+        string key, val;
+        bool isrange = splitString(w,":",key,val);
+        if (!isrange) isrange = splitString(w,"~",key,val);
+        if(isrange) {
+            // Check that is a number
+            if (key.find_first_not_of("0123456789")!=string::npos) continue;
+            if (val.find_first_not_of("0123456789")!=string::npos) continue;
+            int cstart=std::stoi(key), cstop=std::stoi(val);
+            if (cstart>cstop) std::swap(cstart,cstop);
+            for (auto i=cstart; i<=cstop; i++) toex[i] = true;
+        }
+        else {
+            if (w.find_first_not_of("0123456789")!=string::npos) continue;
+            toex[std::stoi(w)] = true;
+        }
+    }
+
+    // Number of coefficients for polynomial (= order + 1)
+    int ncoeff = par.getContOrder() + 1;
+    T coeff[ncoeff], coefferr[ncoeff];
+    bool mp[ncoeff];
+    for (int i=0; i<ncoeff;i++) mp[i] = true;
+    
+    // Looping over spectra
+    for (auto x=0; x<axisDim[0]; x++) {
+        for (auto y=0; y<axisDim[1]; y++) {
+            
+            // Preparing the spectrum to fit (line window excluded)
+            std::vector<T> xx, yy;
+            for (auto z=0; z<axisDim[2]; z++) {
+                if (toex[z]) continue;
+                xx.push_back(z);
+                yy.push_back(Array(x,y,z));
+            }
+            
+            // Now least square fit the continuum
+            std::vector<T> ww(xx.size(),1);
+            Lsqfit<T> lsq(&xx[0],1,&yy[0],&ww[0],xx.size(),coeff,coefferr,mp,ncoeff,&polyn,&polynd);
+            if (lsq.fit()<0) {
+                if (par.isVerbose()) std::cerr << " WARNING: There was some problem during continuum subtraction. \n";
+                continue;
+            }
+            
+            // Subtract the continuum from the spectrum
+            for (auto z=0; z<axisDim[2]; z++) {
+                T yout = 0;
+                for (int j=0; j<ncoeff; j++)
+                    yout += coeff[j]*std::pow(double(z),j);
+                array[nPix(x,y,z)] -= yout;
+            }
+        }
+    }
+}
+
+
 ///=====================================================================================
 /// SOURCE-FINDING RELATED FUNCTIONS
 ///=====================================================================================
@@ -1363,6 +1430,7 @@ int Cube<T>::plotDetections(){
 
     return ret;
 }
+
 
 
 // Explicit instantiation of the class

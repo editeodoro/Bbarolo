@@ -48,7 +48,8 @@ vector<Entry> tasksList = {
     {"MAKEMASK",      "Define a mask for emission-line data."},
     {"SPACEPAR",      "Compute the full 2D space for any pair of 3DFIT parameters."},
     {"GALWIND",       "Make a 3D emission-line model of a bi-conical outflow."},
-    {"STATS",         "Simply calculate and print statistics for the cube."},
+    {"STATS",         "Simply calculate and print statistics for a cube."},
+    {"CONTSUB",       "Subtract a polynomial continuum from a cube."},
     {"SLITFIT",       "Fit the kinematics from long-slit data (CURRENTLY BROKEN)."},
     {"GLOBALPROFILE", "Extract a total spectral profile from a datacube."},
     {"TOTALMAP",      "Compute a total intensity map from a datacube."},
@@ -87,6 +88,10 @@ void Param::defaultValues() {
     checkChannels       = false;
     flagStats           = false;
     flagRobustStats     = true;
+    
+    contsub             = false;
+    exclude_windows     = "NONE";
+    cont_order          = 1;
     
     makeMask            = false;
     MaskType            = "SEARCH";
@@ -178,6 +183,10 @@ Param& Param::operator= (const Param& p) {
     this->plots             = p.plots;
     this->flagStats         = p.flagStats;
     this->flagRobustStats   = p.flagRobustStats;
+    
+    this->contsub           = p.contsub;
+    this->exclude_windows   = p.exclude_windows;
+    this->cont_order        = p.cont_order;
     
     this->makeMask          = p.makeMask;
     this->MaskType          = p.MaskType;
@@ -463,6 +472,10 @@ void Param::setParam(string &parstr) {
     if(arg=="checkchannels")    checkChannels = readFlag(ss);
     if(arg=="auto")             AUTO = readFlag(ss);
 
+    if(arg=="contsub")          contsub  = readFlag(ss);
+    if(arg=="exclwind")         exclude_windows  = readFilename(ss);
+    if(arg=="contorder")        cont_order = readval<int>(ss);
+    
     if(arg=="makemask")         makeMask  = readFlag(ss);
     if(arg=="mask")             MaskType  = readFilename(ss);
     
@@ -684,6 +697,13 @@ bool Param::checkPars() {
         MaskType = "SMOOTH";
     }
 
+    // Checking continuum subtraction parameters
+    if (contsub) {
+        if (cont_order<0) {
+            cout << "CONTORDER must be >0. Setting to 1. \n";
+            cont_order = 1;
+        }
+    }
 
     // Checking parameters for source finder
     if (parSE.flagSearch) {
@@ -1216,6 +1236,14 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     if (toPrint) {
         recordParam(Str, "[STATS]", "Calculate and print statistics?", stringize(p.getFlagStats()));
         recordParam(Str, "[ITERNOISE]", "   Estimating noise with iterative algorithm?", stringize(p.getParSE().iternoise));
+    }
+    
+    // PARAMETERS FOR CONTINUUM SUBTRACTION
+    toPrint = isAll || p.getFlatContsub() || (defaults && whichtask=="CONTSUB");
+    if (toPrint) {
+        recordParam(Str, "[CONTSUB]", "Subtract continuum from datacube?", stringize(p.getFlatContsub()));
+        recordParam(Str, "[EXCLWIND]", "   Channel window(s) to exclude for continuum fit", p.getExcludeWind());
+        recordParam(Str, "[CONTORDER]", "   Order of polynomial for continuum fit", p.getContOrder());
     }
     
     // PARAMETERS FOR MAKEMASK TASK

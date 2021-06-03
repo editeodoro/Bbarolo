@@ -657,7 +657,7 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     if (unit_l.find("jy")!=std::string::npos) isJy = true;
     
     theStream << "# ELLPROF results for " << im->Head().Name() << std::endl;
-    
+    theStream << fixed << setprecision(5);
     theStream << "#\n# Map units: unit = " << unit << std::endl;
     theStream << "# Pixel area: " << fabs(Dx*Dy) << " arcs2" << std::endl << "#\n";
     theStream << "# Columns 2-6  : ring stats (sum, mean, median, standard deviation and median absolute deviation from the median).\n";

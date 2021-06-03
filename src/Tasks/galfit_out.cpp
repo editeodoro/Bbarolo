@@ -1155,6 +1155,9 @@ int Galfit<T>::plotAll_Python() {
     scriptnames.push_back("plot_chanmaps.py");
     pyf.open((in->pars().getOutfolder()+"plotscripts/"+scriptnames[1]).c_str());
 
+    std::string cubefile = in->pars().getImageFile();
+    if (in->pars().getFlatContsub()) cubefile = in->pars().getOutfolder()+in->Head().Name()+"_contsub.fits";
+
     pyf << "#####################################################################\n"
         << "#### This script writes a plot of channel maps of model and data ####\n"
         << "#####################################################################\n"
@@ -1184,7 +1187,7 @@ int Galfit<T>::plotAll_Python() {
         << "xcen_m,ycen_m,vsys_m = np.nanmean((xpos,ypos,vsys),axis=1) \n"
         << std::endl
         << "# CHANNEL MAPS: Setting all the needed variables \n"
-        << "image = fits.open('" << in->pars().getImageFile() << "') \n"
+        << "image = fits.open('" << cubefile << "') \n"
         << "image_mas = fits.open(outfolder+'mask.fits') \n"
         << "xmin, xmax = " << xmin << ", " << xmax << std::endl
         << "ymin, ymax = " << ymin << ", " << ymax << std::endl

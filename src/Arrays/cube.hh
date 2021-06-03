@@ -132,7 +132,7 @@ public:
     
     Cube<T>*    Reduce (int fac,std::string rtype="spatial");
     void    CheckChannels ();
-    
+    void    continuumSubtract();
     void    checkBeam();
     
 protected:

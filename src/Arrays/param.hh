@@ -166,6 +166,10 @@ public:
     bool    getFlagAuto() {return AUTO;}
     bool    getFlagStats() {return flagStats;}
 
+    bool    getFlatContsub() {return contsub;}
+    string  getExcludeWind() {return exclude_windows;}
+    int     getContOrder() {return cont_order; }
+    
     bool    getMakeMask() {return makeMask;}
     string  getMASK() {return MaskType;}
     void    setMASK(string s) {MaskType=s;}
@@ -285,6 +289,10 @@ private:
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     int             plots;              ///< Whether producing output plots.
     bool            flagStats;          ///< Whether to calculate and return stats
+    
+    bool            contsub;            ///< Whether to subtract continuum from a cube. 
+    string          exclude_windows;    ///< Exclude channels for continuum subtraction.
+    int             cont_order;         ///< Order of polynomial fit for continuum.
     
     bool            makeMask;           ///< Whether to write a mask.
     string          MaskType;           ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE, SMOOTH&SEARCH or NONE.

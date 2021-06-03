@@ -172,6 +172,12 @@ bool BBcore (Param *par) {
         par->getParGF().flagGALFIT = true;
     }
 
+    // Continuum subtraction
+    if (par->getFlatContsub()) {
+        c->continuumSubtract();
+        c->fitswrite_3d((outfolder+c->Head().Name()+"_contsub.fits").c_str(),true);
+    }
+
 
     if (par->getCheckCh()) c->CheckChannels();
 
