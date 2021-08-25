@@ -10,7 +10,7 @@ AC_INIT([BBAROLO], [1.6], [enrico.diteodoro@gmail.com])
 #AC_PREFIX_DEFAULT(/usr/local)
 
 ##### ------ Macro that checks for specific modules in python ----- ######
-AC_DEFUN([AC_PYTHON_MODULE],
+AC_DEFUN([AC_PYTHON_MODULE], 
 [AC_MSG_CHECKING(for module $1 in python)
 echo "import $1" | ${PYTHON} -
 if test $? -ne 0 ; then
