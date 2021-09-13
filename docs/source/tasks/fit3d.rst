@@ -17,7 +17,7 @@ Rings input
 
 Following parameters are used to define the initial set of rings used for the fit. All parameters are allowed to vary ring-by-ring or they can just be fixed to their initial value.
 
-All parameters listed below (except NRADII and RADSEP) can be given in the form of a single value valid for all rings or through a text file containing values at different radii. In this second case, the syntax to be used is *file(filename,N,M)*, where *filename* is the name of the file with values, *N* is the column number (counting from 1) and *M* is the starting row (all rows if omitted).
+All parameters listed below (except NRADII and RADSEP) can be given in the form of a single value valid for all rings or through a text file containing values at different radii. In this second case, the syntax to be used is *file(filename,N,M)*, where *filename* is the name of the file with values, *N* is the column number (counting from 1) and *M* is the starting row (all rows if omitted). A subset of rows can also be selected using the syntax *file(filename,N,start:stop)*, where *start* and *stop* are the first and last row to be considered.
 
 If any of the following parameters is not explicitly specified, BBarolo will estimate an appropriate initial value for that parameter.
 
