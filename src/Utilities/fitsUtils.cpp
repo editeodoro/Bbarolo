@@ -198,7 +198,7 @@ int modhead(int argc, char *argv[]) {
 
                 // Construct template for new keyword */
                 std::string newcard = std::string(argv[3]) + " = ";
-                if (isdigit(argv[4][0])) newcard += std::string(argv[4]);
+                if (isdigit(argv[4][1])) newcard += std::string(argv[4]);
                 else newcard += "'" + std::string(argv[4]) + "'" ;
                 
                 if (*comment) newcard += "/ " + std::string(comment);

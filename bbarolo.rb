@@ -2,17 +2,17 @@ class Bbarolo < Formula
   desc "3D fitting tool to derive the kinematics of galaxies"
   homepage "https://editeodoro.github.io/Bbarolo/"
 
-  # Default is v1.5 stable
+  # Default is v1.6 stable
   stable do
-    url "https://github.com/editeodoro/Bbarolo/archive/1.5.tar.gz"
-    sha256 "38276adf408de83b8aa72e52f022709c3955e98fa378e9d414a2b82e59c4a3c2"
+    url "https://github.com/editeodoro/Bbarolo/archive/1.6.tar.gz"
+    sha256 "f9ad7d7a32b9141e76d21867ebe17fde777e40a998e08290785d8a284bc3973d"
   end
 
   # To install instead latest non-stable version, use --devel option
-  devel do
+  head do
     url "https://github.com/editeodoro/Bbarolo/archive/master.tar.gz"
-    sha256 "2d2c8c9a816cf9ba30d2005e8c54141ac5f42461be7b91fdc9f89fd4cc638488"
-    version "1.5dev"
+    sha256 "3db5d9080b17e2f5b1d70954db2fa06191c9fd9cac31132f0dc48019d7a9f7e2"
+    version "1.6dev"
   end
 
   # Dependencies 

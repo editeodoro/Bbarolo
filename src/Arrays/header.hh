@@ -126,6 +126,7 @@ public:
     void    headwrite_3d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits cube.
     void    headwrite_2d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits image.
     void    updateWCS();                                        /// Update WCS structure
+    bool    checkHeader();                                      /// Check header is ok for BBarolo
     int     wcsToPix(const double *world, double *pix, size_t npts=1);
     int     pixToWCS(const double *pix, double *world, size_t npts=1);
 

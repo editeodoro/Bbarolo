@@ -131,8 +131,8 @@ template Galfit<double>& Galfit<double>::operator=(const Galfit<double>&);
 template <class T>
 Galfit<T>::Galfit(Cube<T> *c) {
     
-    // This constructor reads all needed parameters from the Cube object.
-    // Cube object must contain a Param method with all information.
+    /// This constructor reads all needed parameters from the Cube object.
+    /// Cube object must contain a Param method with all information.
 
     par  = c->pars().getParGF();
     verb = c->pars().isVerbose();
@@ -617,8 +617,8 @@ void Galfit<T>::galfit() {
         fout.open(fileo.c_str());
         writeHeader(fout,mpar,par.flagERRORS, par.flagBADOUT);
         for (int ir=0; ir<inr->nr; ir++) {
-	  		if (fitok[ir] || par.flagBADOUT) 
-				writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+            if (fitok[ir] || par.flagBADOUT)
+                writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
         }
         fout.close();
     }
@@ -700,7 +700,7 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                 }
             }
         }
-        //std::cout << nTot << " " << nIn << std::endl;
+
         if (nIn<20 && (nIn==0 || nIn<0.7*nTot)) {
             if (verb) {
                 std::string msg = " Not enough pixels to fit in ring #"+to_string(ir+1)+". I will skip it.";
@@ -720,8 +720,7 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                                   " conditions and/or the function to minimize.";
                 WarningMessage(cout,msg);
             }
-	    	if (par.flagBADOUT)
-	      	  	writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+            if (par.flagBADOUT) writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -748,7 +747,7 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                 WarningMessage(cout,msg);
             }
             fitok[ir] = false;
-	    	if (par.flagBADOUT) writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+            if (par.flagBADOUT) writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -839,8 +838,7 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
                                   " conditions and/or the function to minimize.";
                 WarningMessage(cout,msg);
             }
-	    	if (par.flagBADOUT)
-	      	  	writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+            if (par.flagBADOUT) writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -867,8 +865,7 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
                 WarningMessage(cout,msg);
             }
             fitok[ir] = false;
-	    	if (par.flagBADOUT)
-	      	  	writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
+            if (par.flagBADOUT) writeRing(fout,outr,ir,toKpc,nfree,par.flagERRORS,errors,par.flagBADOUT,fitok[ir]);
             continue;
         }
 
@@ -903,7 +900,7 @@ bool Galfit<T>::SecondStage() {
     std::vector<std::string> Polyn = readVec<string>(ss);
     auto getval = [](std::string s){
         int nval = -3;                                     // Auto
-        if (isNumber(s))      nval = 1+atoi(s.c_str());    // Polynomical fitting
+        if (isNumber(s))      nval = 1+atoi(s.c_str());    // Polynomial fitting
         else if (s=="bezier") nval = -1;                   // Bezier
         else if (s=="median") nval = -2;                   // Median
         return nval;

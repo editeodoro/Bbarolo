@@ -22,7 +22,7 @@
 -----------------------------------------------------------------------*/
 
 #ifndef OPTIMIZATION_HH_
-#define OPTMIZATION_HH_
+#define OPTIMIZATION_HH_
 
 #include <iostream>
 #include <vector>

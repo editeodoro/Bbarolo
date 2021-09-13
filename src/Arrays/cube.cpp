@@ -205,7 +205,11 @@ bool Cube<T>::readCube (std::string fname) {
     numAxes = 3;
 
     if(!head.header_read(par.getImageFile())) return false;
-
+    
+    if(!head.checkHeader()) {
+        std::cout << "\nBBAROLO WARNING: Something seems wrong with the header. Fix it before going on. \n";
+    }
+    
     headDefined = true;
     // I do not like the following 3 lines, I should think something better
     head.setRedshift(par.getRedshift());
@@ -379,11 +383,11 @@ void Cube<T>::setCubeStats() {
 template <class T>
 void Cube<T>::BlankCube (T *Array, size_t size) {
     
-  /// A function for blanking an array with Cube mask data.
-  ///
-  /// \param Array      The array to blank.
-  /// \param size       The size of array. It must be equal
-  ///                   to the size of Cube-object array.
+    /// A function for blanking an array with Cube mask data.
+    ///
+    /// \param Array      The array to blank.
+    /// \param size       The size of array. It must be equal
+    ///                   to the size of Cube-object array.
 
     if (size!=numPix) 
         std::cout << "Error blanking cube: array size is different from cube size" << std::endl;
@@ -412,7 +416,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
      ///                and builds the mask based on the S/N threshold BLANKCUT.
      /// - FILE(Name):  User-provided mask. 'Name' is a fitsfile with same size of the
      ///                cube and filled with 0(false) or 1(true).
-     /// - NONE:        No mask, just pixels > 0.
+     /// - NONE:        No mask.
      ///
      ///////////////////////////////////////////////////////////////////////////////////
 
@@ -836,7 +840,7 @@ void Cube<T>::CheckChannels () {
 template <class T>
 void Cube<T>::continuumSubtract() {
     
-    /// Fit with a polynomial and subtract the continuum from the array
+    /// Fit with a polynomial and subtract the continuum from the cube array
         
     // Defining channels to exclude during the fit
     std::vector<T> toex(axisDim[2],false);
@@ -1285,7 +1289,7 @@ void Cube<T>::writeCubelets() {
                     }
                 }
             }
-            fileo << left << setw(18) << vel << "  " << FluxtoJy(intSpec,c->Head()) << endl;
+            fileo << left << setw(18) << vel << "  " << intSpec << endl;
         }
 
         fileo.close();

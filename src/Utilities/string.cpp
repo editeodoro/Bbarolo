@@ -362,7 +362,7 @@ std::string randomQuoting () {
          "History should be divided in two epochs: Before BBarolo (BBB) and After BBarolo (ABB)",
          "BBarolo is the medicine for beam-smearing anxiety","And now you can even ask BBarolo for random quotes!",
          "I have been told that BBarolo is full of Easter eggs...", "Take everything from me, but leave me BBarolo!",
-         "BBarolo has been ranked amongst the top 10 most influential codes ever written"
+         "BBarolo has been ranked amongst the top 10 most influential codes ever written","When you go BBarolo, you never go back!"
     };
     
     std::vector<std::string> wise = 
@@ -377,7 +377,8 @@ std::string randomQuoting () {
          "Napoleon","Lao Tsu","Franz Schubert","Franz Liszt","Caravaggio","Franz Kafka","Plutarch","Popeye",
          "Aristarchus of Samos","Kakaroth","Amerigo Vespucci","Donald Duck","Charlie Brown","Cleopatra",
          "Enrico Di Teodoro","Santa Claus","Easter Bunny","Mohammed Ali","Averroes","Louis Cauchy",
-         "Leonhard Euler","Carl Friedrich Gauss","Don Matteo","Edmond Dantès","Filippo Fraternali",
+         "Leonhard Euler","Carl Friedrich Gauss","Don Matteo","Edmond Dantès","Filippo Fraternali","Anne Boleyn",
+         "Lucia Armillotta"
     };
     
     static auto const seed = std::random_device()();

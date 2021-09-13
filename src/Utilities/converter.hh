@@ -43,18 +43,18 @@ public:
     double factor;
     
     UNITS(Unit IN, Unit OUT) : in(IN), out(OUT) {setFactor();}
-    ~UNITS() {};
+    ~UNITS() {}
     
     void setFactor() {factor=ConvFactor();}
     
 private:
-    double  ConvFactor();
+    double ConvFactor();
     double LinearFactor ();
     double TimeFactor ();
     double MassFactor ();
     double FrequencyFactor ();
     double AngleFactor ();
-    void    ErrorMessage();
+    void   ErrorMessage();
 };
 
 // Convert the value from Units in to Units out

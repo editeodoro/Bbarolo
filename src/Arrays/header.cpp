@@ -873,6 +873,50 @@ int Header::pixToWCS(const double *pix, double *world, size_t npts) {
 }
 
 
+bool Header::checkHeader() {
+    
+    // Performs a few checks to verify that the header is compatible with BBarolo's needs
+    
+    bool allgood = true;
+    
+    // Checking that CDELT1 is negative
+    if (cdelt[0]>0) {
+        Warning("HEADER CHECK: BBAROLO expects a negative CDELT1.");
+        allgood = false;
+    }
+    
+    // Checking that the values of CDELT1-2 make sense
+    double lowval = 1E-06, highval = 0.5;  // Expecting cdelts between 1E-06 and .5 degrees
+    double fac = 0;
+    string cunit1 = makelower(cunit[0]);
+    string cunit2 = makelower(cunit[1]);
+    if (cunit1.find("deg")!=std::string::npos && cunit2.find("deg")!=std::string::npos) 
+        fac = 1;
+    else if (cunit1.find("arcm")!=std::string::npos && cunit2.find("arcm")!=std::string::npos) 
+        fac = 60;
+    else if (cunit1.find("arcs")!=std::string::npos && cunit2.find("arcs")!=std::string::npos) 
+        fac = 3600;
+    
+    if (fac>0 && (fabs(cdelt[0])<fac*lowval || fabs(cdelt[0])>fac*highval 
+        || fabs(cdelt[1])<fac*lowval || fabs(cdelt[1])>fac*highval) ) {
+        Warning("HEADER CHECK: CDELT1 and/or CDELT2 values are suspiciously large or small. ");
+        allgood = false;
+    }
+    
+    // Checking that BMAJ and BMIN make sense
+    if (beamArea!=0) {
+        if (fabs(bmaj/cdelt[0])<1  || fabs(bmin/cdelt[1])<1 ||
+            fabs(bmaj/cdelt[0])>30 || fabs(bmin/cdelt[1])>30) {
+            Warning("HEADER CHECK: BMAN and/or BMIN values are suspiciously large or small. ");
+            allgood = false;
+        }
+    }
+    
+    return allgood;
+
+}
+
+
 template <class T>
 bool Header::read_keyword(std::string keyword, T &key, bool err) {
     
@@ -939,4 +983,5 @@ bool Header::read_keyword<std::string>(std::string keyword, std::string &key, bo
     delete [] Key;
     return true;
 }
+
 
