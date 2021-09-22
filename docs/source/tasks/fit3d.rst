@@ -57,7 +57,7 @@ Some important parameters that can be used to control 3DFIT. All following param
 
 * **FREE** [VROT VDISP INC PA]. The list of parameters to fit. Can be any combination of VROT, VDISP, VRAD, VSYS, INC, PA, Z0, XPOS, YPOS.
 
-* **MASK** [SMOOTH]. This parameter tells the code how to build a mask to identify the regions of genuine galaxy emission. Accepted values are *SMOOTH*, *SEARCH*, *SMOOTH&SEARCH*, *THRESHOLD*, *NONE* or a FITS mask file:
+* **MASK** [SEARCH]. This parameter tells the code how to build a mask to identify the regions of genuine galaxy emission. Accepted values are *SMOOTH*, *SEARCH*, *SMOOTH&SEARCH*, *THRESHOLD*, *NONE* or a FITS mask file:
 
   * *SMOOTH*: the input cube is smoothed according to the :ref:`smooth parameters <smoothtask>` and the mask built from the region at S/N>BLANKCUT, where **BLANKCUT** is a parameter representing the S/N cut to apply in the smoothed datacube. Defaults are to smooth by a FACTOR = 2 and cut at BLANKCUT = 3.
   
@@ -71,7 +71,7 @@ Some important parameters that can be used to control 3DFIT. All following param
   
   * *file(fitsname.fits)*: A mask FITS file (i.e. filled with 0s and 1s).
   
-* **NORM** [LOCAL]. Type of normalization of the model. Accepted values are: *LOCAL* (pixel by pixel), *AZIM* (azimuthal) or *NONE*.
+* **NORM** [AZIM]. Type of normalization of the model. Accepted values are: *LOCAL* (pixel by pixel), *AZIM* (azimuthal) or *NONE*.
 
 * **TWOSTAGE** [true]. This flag enables the second fitting stage after parameter regularisation. This is relevant just if the user wishes to fit parameters other than VROT, VDISP and VRAD. The inclination and the position angle are regularised by polynomials of degree POLYN or a Bezier function (default), while the other parameters by constant functions.
 

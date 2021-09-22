@@ -2,6 +2,8 @@
 Installing pyBBarolo
 #####################
 
+pyBBarolo is a python wrapper to the BBarolo main code. It is compatible with both Python 2 (>2.6) and with Python 3. It can be easily installed via either pip or from the main repository.
+
 
 From pip
 =====================
