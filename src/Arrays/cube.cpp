@@ -58,7 +58,7 @@ Cube<T>::~Cube () {
     maskAllocated=false;
     if (axisDimAllocated) delete [] axisDim;
     axisDimAllocated=false;
-    if (isSearched) delete sources;
+    if (isSearched) delete sources;    
 } 
 
 
@@ -1147,20 +1147,18 @@ void Cube<T>::writeDetections() {
     Cube<T> *det = new Cube<T>(axisDim);
     for (size_t i=0; i<det->NumPix(); i++) det->Array()[i] = array[i]*isObj[i];
     det->saveHead(head);
-    det->Head().setMinMax(0,0);
+    //det->Head().setMinMax(0,0);
     det->fitswrite_3d((par.getOutfolder()+"detections.fits.gz").c_str());
     delete det;
 
-
-    // Writing detection map
+    // Writing detection map    
     Image2D<int> *DetMap = new Image2D<int>(axisDim);
-    for (int i=0; i<axisDim[0]*axisDim[1];i++) DetMap->Array()[i] = sources->DetectMap(i);
+    for (int i=0; i<axisDim[0]*axisDim[1];i++) DetMap->Array()[i] = sources->DetectMap(i);    
     DetMap->copyHeader(head);
     DetMap->Head().setMinMax(0,0);
     DetMap->Head().setBtype("detected_chan");
     DetMap->fitswrite_2d((par.getOutfolder()+"DetectMap.fits.gz").c_str());
     delete DetMap;
-
 
     // Writing kinematic maps
     std::vector< MomentMap<T> > allmaps = getAllMoments<T>(this,true,isObj,"MOMENT");

@@ -114,10 +114,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             factor /= 10;
         }
         for (auto i=0; i<outr->nr; i++) {
-            if (outr->dens[i]==0) {
-                continue;
-            }
-            outr->dens[i]=factor*fabs(ell.getMean(i))*1E20;
+            if (outr->dens[i]>0) outr->dens[i]=factor*fabs(ell.getMean(i))*1E20;
             //if (outr->dens[i]==0) outr->dens[i]=profmin*1E20;
         }
     }
@@ -128,6 +125,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     fileo.close();
     //ell.printProfile(std::cout);
     if (verb) std::cout << " Done." << std::endl;
+
+    // Deleting bad rings, for which I set dens=0 in galfit()
+    for (auto i=0; i<outr->nr; i++) 
+        if (outr->dens[i]==0) outr->deleteRing(i);
 
     if (verb) std::cout << "    Calculating the very last model..." << std::flush;
     Model::Galmod<T> *mod = getModel();
@@ -1064,14 +1065,14 @@ int Galfit<T>::plotAll_Python() {
         << "# Plotting rotation velocity \n"
         << "ax[0].set_ylim(0,1.2*max_vrot) \n"
         << "ax[0].set_ylabel('V$_\\mathrm{rot}$ (km/s)', fontsize=lsize) \n"
-        << "ax[0].errorbar(rad,vrot, yerr=[err1_l[0],-err1_h[0]],fmt='o', color=color) \n"
-        << "if twostage: ax[0].errorbar(rad2,vrot2, yerr=[err2_l[0],-err2_h[0]],fmt='o', color=color2) \n"
+        << "ax[0].errorbar(rad,vrot, yerr=[-err1_l[0],err1_h[0]],fmt='o', color=color) \n"
+        << "if twostage: ax[0].errorbar(rad2,vrot2, yerr=[-err2_l[0],err2_h[0]],fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting velocity dispersion \n"
         << "ax[1].set_ylim(0,1.2*max_vdisp) \n"
         << "ax[1].set_ylabel('$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=lsize) \n"
-        << "ax[1].errorbar(rad,disp, yerr=[err1_l[1],-err1_h[1]],fmt='o', color=color) \n"
-        << "if twostage: ax[1].errorbar(rad2,disp2, yerr=[err2_l[1],-err2_h[1]],fmt='o', color=color2) \n"
+        << "ax[1].errorbar(rad,disp, yerr=[-err1_l[1],err1_h[1]],fmt='o', color=color) \n"
+        << "if twostage: ax[1].errorbar(rad2,disp2, yerr=[-err2_l[1],err2_h[1]],fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting surface density \n"
         << "ax[2].set_xlim(0,max_rad) \n"
@@ -1080,37 +1081,37 @@ int Galfit<T>::plotAll_Python() {
         << std::endl
         << "# Plotting inclination angle \n"
         << "ax[3].set_ylabel('i (deg)', fontsize=lsize) \n"
-        << "ax[3].errorbar(rad,inc, yerr=[err1_l[4],-err1_h[4]],fmt='o', color=color) \n"
-        << "if twostage: ax[3].errorbar(rad2,inc2,yerr=[err2_l[4],-err2_h[4]], fmt='o-', color=color2) \n"
+        << "ax[3].errorbar(rad,inc, yerr=[-err1_l[4],err1_h[4]],fmt='o', color=color) \n"
+        << "if twostage: ax[3].errorbar(rad2,inc2,yerr=[-err2_l[4],err2_h[4]], fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting x-center \n"
         << "ax[4].set_ylabel('x$_0$ (pix)', fontsize=lsize) \n"
-        << "ax[4].errorbar(rad,xpos, yerr=[err1_l[6],-err1_h[6]],fmt='o', color=color) \n"
-        << "if twostage: ax[4].errorbar(rad2,xpos2,yerr=[err2_l[6],-err2_h[6]],fmt='o-', color=color2) \n"
+        << "ax[4].errorbar(rad,xpos, yerr=[-err1_l[6],err1_h[6]],fmt='o', color=color) \n"
+        << "if twostage: ax[4].errorbar(rad2,xpos2,yerr=[-err2_l[6],err2_h[6]],fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting radial velocity \n"
         << "ax[5].set_xlim(0,max_rad) \n"
         << "ax[5].set_ylabel('V$_\\mathrm{rad}$ (km/s)', fontsize=lsize) \n"
-        << "ax[5].errorbar(rad,vrad, yerr=[err1_l[9],-err1_h[9]],fmt='o', color=color) \n"
-        << "if twostage==True: ax[5].errorbar(rad2,vrad2,yerr=[err2_l[9],-err2_h[9]],fmt='o', color=color2) \n"
+        << "ax[5].errorbar(rad,vrad, yerr=[-err1_l[9],err1_h[9]],fmt='o', color=color) \n"
+        << "if twostage==True: ax[5].errorbar(rad2,vrad2,yerr=[-err2_l[9],err2_h[9]],fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting position angle \n"
         << "ax[6].set_ylabel('$\\phi$ (deg)', fontsize=lsize) \n"
         << "ax[6].set_xlabel('Radius (arcsec)', fontsize=lsize, labelpad=10) \n"
-        << "ax[6].errorbar(rad,pa, yerr=[err1_l[5],-err1_h[5]],fmt='o', color=color) \n"
-        << "if twostage: ax[6].errorbar(rad2,pa2,yerr=[err2_l[5],-err2_h[5]], fmt='o-', color=color2) \n"
+        << "ax[6].errorbar(rad,pa, yerr=[-err1_l[5],err1_h[5]],fmt='o', color=color) \n"
+        << "if twostage: ax[6].errorbar(rad2,pa2,yerr=[-err2_l[5],err2_h[5]], fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting y-center \n"
         << "ax[7].set_ylabel('y$_0$ (pix)', fontsize=lsize) \n"
         << "ax[7].set_xlabel('Radius (arcsec)', fontsize=lsize, labelpad=10) \n"
-        << "ax[7].errorbar(rad,ypos, yerr=[err1_l[7],-err1_h[7]],fmt='o', color=color) \n"
-        << "if twostage: ax[7].errorbar(rad2,ypos2, yerr=[err2_l[7],-err2_h[7]],fmt='o-', color=color2) \n"
+        << "ax[7].errorbar(rad,ypos, yerr=[-err1_l[7],err1_h[7]],fmt='o', color=color) \n"
+        << "if twostage: ax[7].errorbar(rad2,ypos2, yerr=[-err2_l[7],err2_h[7]],fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting systemic velocity \n"
         << "ax[8].set_ylabel('v$_\\mathrm{sys}$ (km/s)', fontsize=lsize) \n"
         << "ax[8].set_xlabel('Radius (arcsec)', fontsize=lsize, labelpad=10) \n"
-        << "ax[8].errorbar(rad,vsys, yerr=[err1_l[8],-err1_h[8]],fmt='o', color=color) \n"
-        << "if twostage==True: ax[8].errorbar(rad2,vsys2,yerr=[err2_l[8],-err2_h[8]],fmt='o', color=color2) \n"
+        << "ax[8].errorbar(rad,vsys, yerr=[-err1_l[8],err1_h[8]],fmt='o', color=color) \n"
+        << "if twostage==True: ax[8].errorbar(rad2,vsys2,yerr=[-err2_l[8],err2_h[8]],fmt='o', color=color2) \n"
         << std::endl
         << "fig.savefig(outfolder+'%s_parameters.pdf'%gname,bbox_inches='tight') \n";
 

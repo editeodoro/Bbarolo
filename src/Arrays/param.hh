@@ -125,7 +125,7 @@ struct SEARCH_PAR {
     int    maxChannels       = -1;        ///< Maximum channels to accept an object.
     float  maxAngSize        = -1;        ///< Maximum angular size in the object in arcmin.
     bool   flagGrowth        = true;      ///< Are we growing objects once they are found?
-    float  growthCut         = 3.0;       ///< The SNR that we are growing objects down to.
+    float  growthCut         = 2.5;       ///< The SNR that we are growing objects down to.
     bool   flagUserGrowthT   = false;     ///< Whether the user has manually defined a threshold
     float  growthThreshold   = 0;         ///< The threshold for growing objects down to
     bool   cubelets          = false;     ///< If true, produce a sub-cube of each detection.

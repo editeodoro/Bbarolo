@@ -163,7 +163,7 @@ public:
         this->z0.erase(this->z0.begin()+nring);
         this->inc.erase(this->inc.begin()+nring);
         this->phi.erase(this->phi.begin()+nring);
-        this->pa.erase(this->pa.begin()+nring);
+        //this->pa.erase(this->pa.begin()+nring);
 
         this->nr = this->radii.size();
     }

@@ -622,8 +622,10 @@ void Galfit<T>::galfit() {
         }
         fout.close();
     }
-
-    bool lastround = n==2 || (n==1 && !par.TWOSTAGE);
+    
+    // Setting density to 0 if fit is not converged or bad
+    bool is2StepNeeded = mpar[INC] || mpar[PA]   || mpar[Z0] || mpar[XPOS]|| mpar[YPOS] || mpar[VSYS];
+    bool lastround = n==2 || (n==1 && !(par.TWOSTAGE && is2StepNeeded));
     if (lastround) {
         for (int ir=inr->nr; ir--;)
             if (!fitok[ir]) outr->dens[ir]=0;
@@ -631,7 +633,7 @@ void Galfit<T>::galfit() {
 
     deallocate_3D<T>(errors,inr->nr,2);
 
-    if (verb) {               
+    if (verb) {
         cout << setfill('=') << setw(69) << "" << endl << endl;
         cout << fixed << setprecision(2) << setfill(' ');
         in->pars().setVerbosity(true);

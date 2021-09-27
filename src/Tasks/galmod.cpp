@@ -1017,6 +1017,7 @@ void Galmod<T>::galmod() {
             if (abs(z)>zcyltmp) vsys = vsystmp+((vrottmp-dvdztmp*(abs(z)-zcyltmp))*caz+vradtmp*saz)*sinc;
 //          Adding vertical velocity
             if (z>0.) vsys += vverttmp*cinc;
+            //else if (z<0.) vsys -= vverttmp*cinc;
             else vsys += vverttmp*cinc;     // <--- The sign here depends on the meaning of vvert. If different from the one above, GALWIND will not work (should have a flag for GALWIND execution)
 
 
