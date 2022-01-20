@@ -198,7 +198,7 @@ void MomentMap<T>::SNMap(bool msk){
     //
     // Maps are written in a 4-channel FITS cube, with ch0 = moment0, 
     // ch1 = noise, ch2 = S/N, ch3 = channels.
-    
+
     // First of all we compute the 0th moment
     this->ZeroMoment(msk,"MOMENT");
 
