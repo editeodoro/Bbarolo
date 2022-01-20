@@ -624,7 +624,7 @@ void Galfit<T>::galfit() {
     }
     
     // Setting density to 0 if fit is not converged or bad
-    bool is2StepNeeded = mpar[INC] || mpar[PA]   || mpar[Z0] || mpar[XPOS]|| mpar[YPOS] || mpar[VSYS];
+    bool is2StepNeeded = mpar[INC] || mpar[PA] || mpar[Z0] || mpar[XPOS]|| mpar[YPOS] || mpar[VSYS];
     bool lastround = n==2 || (n==1 && !(par.TWOSTAGE && is2StepNeeded));
     if (lastround) {
         for (int ir=inr->nr; ir--;)

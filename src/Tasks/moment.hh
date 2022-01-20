@@ -49,6 +49,7 @@ public:
     void FirstMoment (bool msk, std::string mtype="MOMENT") {storeMap(msk,1,mtype);}
     void SecondMoment(bool msk, std::string mtype="MOMENT") {storeMap(msk,2,mtype);}
     void RMSMap (float level=0.1, float sncut = 1.5);
+    void SNMap(bool msk);
     bool setHead(int type); 
     
     bool fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar);

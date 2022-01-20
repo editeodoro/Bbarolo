@@ -450,10 +450,10 @@ class SimulatedGalaxyCube(object):
         
         # If noise is not given, put a random noise
         noiserms = 0.
-        if isNumber(noise): noiserms = noise
-        elif noise:
+        if noise==True:
             noiserms = np.random.uniform(0,0.05)
-        
+        elif isNumber(noise): noiserms = noise
+            
         try: self.f.header['BMAJ']>0
         except: smooth = False
         

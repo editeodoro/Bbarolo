@@ -1147,7 +1147,7 @@ void Cube<T>::writeDetections() {
     Cube<T> *det = new Cube<T>(axisDim);
     for (size_t i=0; i<det->NumPix(); i++) det->Array()[i] = array[i]*isObj[i];
     det->saveHead(head);
-    //det->Head().setMinMax(0,0);
+    det->Head().setMinMax(0,0);
     det->fitswrite_3d((par.getOutfolder()+"detections.fits.gz").c_str());
     delete det;
 

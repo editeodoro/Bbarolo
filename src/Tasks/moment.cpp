@@ -148,7 +148,8 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
     
     // Creating mask if it does not exist
     if(msk && mask==nullptr) {
-        if (!in->MaskAll()) in->BlankMask();
+        if (in->pars().getMASK().find("LARGEST")!=std::string::npos) in->BlankMask(NULL,true);
+        else in->BlankMask(NULL,false);
         mask = in->Mask();
     }
 
@@ -186,6 +187,91 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
     
     bar.fillSpace("Done.\n");
     
+}
+
+
+template <class T> 
+void MomentMap<T>::SNMap(bool msk){
+    
+    // Computes the 0th moment, the noise and S/N maps of a masked datacube.
+    // (see appendixes in Verheijen & Sancis 01 and Lelli et al 2014)
+    //
+    // Maps are written in a 4-channel FITS cube, with ch0 = moment0, 
+    // ch1 = noise, ch2 = S/N, ch3 = channels.
+    
+    // First of all we compute the 0th moment
+    this->ZeroMoment(msk,"MOMENT");
+
+    if (!in->StatsDef()) in->setCubeStats();
+    double sigma = in->stat().getSpread();
+    float Nleft = in->pars().getParMA().contChans[0];
+    float Nright = Nleft;
+    if (in->pars().getParMA().contChans.size()>1)
+        Nright = in->pars().getParMA().contChans[1];
+
+    // Coefficients 
+    double a, b, c, sigmaBC;
+    if (in->pars().getParMA().isHannsmoothed) { // Hanning smoothing case
+        a=0.25*((Nright-0.75)/(Nright*Nright)+(Nleft-0.75)/(Nleft*Nleft));
+        b=0.75;
+        c=4./(sqrt(6.));
+        sigmaBC = sigma/(sqrt(1.+4./3.*a));
+    }
+    else { // Uniform tapering case
+        a=0.25*((1./Nright)+(1./Nleft));
+        b=0.;
+        c=1.;
+        sigmaBC = sigma/(sqrt(1.+a));
+    }
+    
+    long imsize = in->DimX()*in->DimY();
+    int nthreads = in->pars().getThreads();
+
+    // Cube to store the 3 maps
+    int dim[] = {in->DimX(),in->DimY(),4}; 
+    Cube<T> *fc = new Cube<T>(dim);
+
+    // Progress bar
+    ProgressBar bar(true,in->pars().isVerbose(),in->pars().getShowbar());
+
+#pragma omp parallel num_threads(nthreads)
+{
+   bar.init(" Computing SN map for moment 0... ",imsize);
+#pragma omp for
+    for (int i=0; i<imsize; i++) {
+        bar.update(i+1);
+        // Collapsing mask
+        int nchan = 0;
+        if (msk) 
+            for (int z=0; z<nsubs; z++) nchan += in->Mask(i+z*imsize);
+        else nchan = nsubs;
+        T noise = sqrt(nchan-b+a*nchan*nchan)*c*sigmaBC;
+        // Moment map in channel 0
+        fc->Array()[i] = this->array[i];
+        // Noise map in channel 1
+        fc->Array()[i+1*imsize] = noise!=0 ? noise : log(-1);
+        // S/N map in channel 2
+        fc->Array()[i+2*imsize] = this->array[i]/noise;
+        // Number of channel map in channel 3
+        fc->Array()[i+3*imsize] = nchan;
+    }
+}
+
+    bar.fillSpace("Done.\n");
+    
+    // Writing FITS file
+    fc->saveHead(in->Head());
+    fc->Head().setBtype("intensity");
+    fc->Head().setCrval(2,1);
+    fc->Head().setCdelt(2,1);
+    fc->Head().setCrpix(2,1);
+    fc->Head().setCunit(2,"NONE");
+    fc->Head().setCtype(2,"MAPTYPE");
+    
+    std::string s = in->pars().getOutfolder()+in->Head().Name();
+    fc->fitswrite_3d((s+"map_0th.fits").c_str());
+    
+    delete fc;
 }
 
 
@@ -266,7 +352,7 @@ bool MomentMap<T>::setHead(int type) {
         this->copyHeader(in->Head());
         this->head.setCrpix(0, in->Head().Crpix(0)-blo[0]);
         this->head.setCrpix(1, in->Head().Crpix(1)-blo[1]);
-        if (type==0) {              
+        if (type==0) {
             this->head.setBtype("intensity");
             std::string bunit;
             if (FluxtoJy(1,in->Head())==1) {
@@ -285,10 +371,10 @@ bool MomentMap<T>::setHead(int type) {
         }
         this->head.calcArea();
         this->headDefined = true;
-    }   
-    
+    }
+
     return this->headDefined;
-    
+
 }
 
 

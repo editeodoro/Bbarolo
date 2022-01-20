@@ -127,8 +127,8 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     if (verb) std::cout << " Done." << std::endl;
 
     // Deleting bad rings, for which I set dens=0 in galfit()
-    for (auto i=0; i<outr->nr; i++) 
-        if (outr->dens[i]==0) outr->deleteRing(i);
+    //for (auto i=0; i<outr->nr; i++) 
+    //    if (outr->dens[i]==0) outr->deleteRing(i);
 
     if (verb) std::cout << "    Calculating the very last model..." << std::flush;
     Model::Galmod<T> *mod = getModel();

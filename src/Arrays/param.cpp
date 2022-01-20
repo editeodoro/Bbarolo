@@ -95,15 +95,7 @@ void Param::defaultValues() {
     
     makeMask            = false;
     MaskType            = "SEARCH";
-    
-    globprof            = false;
-    massdensmap         = false;
-    totalmap            = false;
-    velocitymap         = false;
-    dispersionmap       = false;
-    rmsmap              = false;
     blankCut            = 3;
-    maptype             = "MOMENT";
     
     flagRing            = false;
 
@@ -190,15 +182,7 @@ Param& Param::operator= (const Param& p) {
     
     this->makeMask          = p.makeMask;
     this->MaskType          = p.MaskType;
-    
-    this->globprof          = p.globprof;
-    this->velocitymap       = p.velocitymap;
-    this->totalmap          = p.totalmap;
-    this->massdensmap       = p.massdensmap;
-    this->dispersionmap     = p.dispersionmap;
-    this->rmsmap            = p.rmsmap;
     this->blankCut          = p.blankCut;
-    this->maptype           = p.maptype;
          
     this->flagRing          = p.flagRing;
  
@@ -208,6 +192,7 @@ Param& Param::operator= (const Param& p) {
     this->parGM             = p.parGM;
     this->parGF             = p.parGF;
     this->parGW             = p.parGW;
+    this->parMA             = p.parMA;
     
     this->flagSpace     = p.flagSpace;
     this->P1                = p.P1;
@@ -478,6 +463,7 @@ void Param::setParam(string &parstr) {
     
     if(arg=="makemask")         makeMask  = readFlag(ss);
     if(arg=="mask")             MaskType  = readFilename(ss);
+    if(arg=="blankcut")         blankCut = readval<float>(ss);
     
     if(arg=="stats")            flagStats = readFlag(ss); 
     if(arg=="flagrobuststats")  flagRobustStats = readFlag(ss);
@@ -511,16 +497,18 @@ void Param::setParam(string &parstr) {
     if(arg=="cubelets")          parSE.cubelets = readFlag(ss);
     if(arg=="edges")             parSE.edges = readval<int>(ss);
 
-    if(arg=="globalprofile")    globprof = readFlag(ss);
-    if(arg=="totalmap")         totalmap = readFlag(ss);
-    if(arg=="massdensmap")      massdensmap = readFlag(ss);
-    if(arg=="velocitymap")      velocitymap = readFlag(ss);
-    if(arg=="dispersionmap")    dispersionmap = readFlag(ss);
-    if(arg=="rmsmap")           rmsmap = readFlag(ss);
-    if(arg=="blankcut")         blankCut = readval<float>(ss);
-    if(arg=="maptype")          maptype  = makeupper(readFilename(ss));
-    
-
+    // MAP PARAMETERS
+    if(arg=="globalprofile")    parMA.globprof = readFlag(ss);
+    if(arg=="totalmap")         parMA.totalmap = readFlag(ss);
+    if(arg=="massdensmap")      parMA.massdensmap = readFlag(ss);
+    if(arg=="velocitymap")      parMA.velocitymap = readFlag(ss);
+    if(arg=="dispersionmap")    parMA.dispersionmap = readFlag(ss);
+    if(arg=="rmsmap")           parMA.rmsmap = readFlag(ss);
+    if(arg=="maptype")          parMA.maptype = makeupper(readFilename(ss));
+    if(arg=="snmap")            parMA.SNmap = readFlag(ss);
+    if(arg=="ishannsmoothed")   parMA.isHannsmoothed = readFlag(ss);
+    if(arg=="contchans")        parMA.contChans = readVec<int>(ss);
+                                
     if(arg=="2dfit")     flagRing = readFlag(ss);
     if(arg=="fit2d")     flagRing = readFlag(ss);
     if (arg=="ellprof")  flagEllProf = readFlag(ss);
@@ -1012,7 +1000,7 @@ bool Param::checkPars() {
     }
 
     if (getMaps()) {
-        if (maptype!="GAUSSIAN" && maptype!="MOMENT")
+        if (parMA.maptype!="GAUSSIAN" && parMA.maptype!="MOMENT")
             cout << "MAP warning: MAPTYPE is either MOMENT or GAUSSIAN. Reverting to MOMENT.\n";
     }
     
@@ -1569,22 +1557,30 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[checkChannels]", "Checking for bad channels in the cube", stringize(p.getCheckCh()));
     
     // PARAMETERS FOR MOMENT MAPS
-    if (p.getGlobProf() || (defaults && isAll))
-        recordParam(Str, "[globalProfile]", "Saving the global profile?", stringize(p.getGlobProf()));
-    if (p.getTotalMap() || (defaults && isAll))
-        recordParam(Str, "[totalMap]",      "Saving integrated intensity map to FITS file?", stringize(p.getTotalMap()));
-    if (p.getMassDensMap() || (defaults && isAll))
-        recordParam(Str, "[massdensMap]",   "Saving HI mass density map to FITS file?", stringize(p.getMassDensMap()));
-    if (p.getVelMap() || (defaults && isAll))
-        recordParam(Str, "[velocityMap]",   "Saving velocity map to FITS file?", stringize(p.getVelMap()));
-    if (p.getDispMap() || (defaults && isAll))
-        recordParam(Str, "[dispersionMap]", "Saving velocity dispersion map to FITS file?", stringize(p.getDispMap()));
-    if (p.getRMSMap() || (defaults && isAll))
-        recordParam(Str, "[rmsMap]",        "Saving RMS map to FITS file?", stringize(p.getRMSMap()));
+    if (p.getParMA().globprof || (defaults && isAll))
+        recordParam(Str, "[globalProfile]", "Saving the global profile?", stringize(p.getParMA().globprof));
+    if (p.getParMA().totalmap || (defaults && isAll)) {
+        recordParam(Str, "[totalMap]", "Saving integrated intensity map to FITS file?", stringize(p.getParMA().totalmap));
+        recordParam(Str, "[SNMap]", "   Computing also S/N map for intensity map?", stringize(p.getParMA().SNmap));
+        if (p.getParMA().SNmap || (defaults && isAll)) {
+            recordParam(Str, "[isHannsmoothed]", "     Whether cube used a Hanning taper", stringize(p.getParMA().isHannsmoothed));
+            string cstr = "";
+            for (unsigned i=0; i<p.getParMA().contChans.size(); i++) cstr = cstr + to_string<int>(p.getParMA().contChans[i],0) + " ";
+            recordParam(Str, "[contChans]", "     Channels used for continuum subtraction", cstr);
+        }
+    }
+    if (p.getParMA().massdensmap || (defaults && isAll))
+        recordParam(Str, "[massdensMap]",   "Saving HI mass density map to FITS file?", stringize(p.getParMA().massdensmap));
+    if (p.getParMA().velocitymap || (defaults && isAll))
+        recordParam(Str, "[velocityMap]",   "Saving velocity map to FITS file?", stringize(p.getParMA().velocitymap));
+    if (p.getParMA().dispersionmap || (defaults && isAll))
+        recordParam(Str, "[dispersionMap]", "Saving velocity dispersion map to FITS file?", stringize(p.getParMA().dispersionmap));
+    if (p.getParMA().rmsmap || (defaults && isAll))
+        recordParam(Str, "[rmsMap]",        "Saving RMS map to FITS file?", stringize(p.getParMA().rmsmap));
     if (p.getMaps() || (defaults && isAll)) 
         recordParam(Str, "[MASK]",          "   Mask used for maps and profile?", p.getMASK());
-    if (p.getTotalMap() || p.getVelMap() || p.getDispMap() || (defaults && isAll))
-        recordParam(Str, "[MAPTYPE]",       "   How to extract the map (gaussian or moment)?", p.getMapType());
+    if (p.getParMA().totalmap || p.getParMA().velocitymap || p.getParMA().dispersionmap || (defaults && isAll))
+        recordParam(Str, "[MAPTYPE]",       "   How to extract the map (gaussian or moment)?", p.getParMA().maptype);
     
     // PARAMETERS FOR PV
     toPrint = isAll || p.getFlagPV() || (defaults && (whichtask=="PVSLICE" || whichtask=="PV"));

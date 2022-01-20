@@ -133,6 +133,20 @@ struct SEARCH_PAR {
 
 };
 
+// Container for input parameters for maps
+struct MAPS_PAR {
+    string maptype          = "MOMENT"; ///< How to extract kinematic map: GAUSSIAN OR MOMENT
+    bool   globprof         = false;    ///< Whether to calculate the global profile.
+    bool   massdensmap      = false;    ///< Whether to calculate the mass density HI map.
+    bool   totalmap         = false;    ///< Whether to calculate the total map.
+    bool   velocitymap      = false;    ///< Whether to calculate the velocity field.
+    bool   dispersionmap    = false;    ///< Whether to calculate velocity dispersion field.
+    bool   rmsmap           = false;    ///< Whether to calculate the RMS map.
+    bool   SNmap            = false;    ///< Whether to calculate A S/N map of the moment 0 map. 
+    vector<int> contChans   = {20, 20}; ///< Number of channels used for continuum subtraction.
+    bool   isHannsmoothed   = false;    ///< Whether input cube has been Hanning tapered.
+};
+
 
 class Param              /// Class to store general parameters for main program.
 {
@@ -173,7 +187,9 @@ public:
     bool    getMakeMask() {return makeMask;}
     string  getMASK() {return MaskType;}
     void    setMASK(string s) {MaskType=s;}
-        
+    void    setBlankCut (float f) {blankCut=f;}
+    float   getBlankCut() {return blankCut;}
+
     float   getBeamFWHM() {return beamFWHM;}
     void    setBeamFWHM(float val) {beamFWHM=val;}
     bool    getCheckCh () {return checkChannels;}
@@ -182,20 +198,7 @@ public:
     bool    getFlagRobustStats () {return flagRobustStats;}
     void    setFlagRobustStats (bool flag) {flagRobustStats=flag;}
     
-    void    setGlobProf (bool flag) {globprof = flag;}
-    bool    getGlobProf () {return globprof;}
-    void    setTotalMap (bool flag) {totalmap = flag;}
-    bool    getTotalMap () {return totalmap;}
-    bool    getMassDensMap () {return massdensmap;}
-    void    setVelMap (bool flag) {velocitymap = flag;}
-    bool    getVelMap () {return velocitymap;}
-    void    setDispMap (bool flag) {dispersionmap = flag;}
-    bool    getDispMap () {return dispersionmap;}
-    bool    getRMSMap () {return rmsmap;}
-    bool    getMaps() {return (globprof || totalmap || velocitymap || dispersionmap || massdensmap || rmsmap);}
-    void    setBlankCut (float f) {blankCut=f;}
-    float   getBlankCut() {return blankCut;}
-    string  getMapType() {return maptype;}
+    bool    getMaps() {return (parMA.globprof || parMA.totalmap || parMA.velocitymap || parMA.dispersionmap || parMA.massdensmap || parMA.rmsmap);}
     
     bool    getFlagRing () {return flagRing;}
     void    setFlagRing (bool b) {flagRing = b;}
@@ -217,6 +220,7 @@ public:
     GALFIT_PAR&  getParGF() {return parGF;}
     GALWIND_PAR& getParGW() {return parGW;}
     SEARCH_PAR&  getParSE() {return parSE;}
+    MAPS_PAR&    getParMA() {return parMA;}
     
     bool    getflagSpace () {return flagSpace;}
     string  getP1 () {return P1;}
@@ -295,16 +299,8 @@ private:
     int             cont_order;         ///< Order of polynomial fit for continuum.
     
     bool            makeMask;           ///< Whether to write a mask.
-    string          MaskType;           ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE, SMOOTH&SEARCH or NONE.
-    
-    bool            globprof;           ///< Whether the user wants the global profile.
-    bool            massdensmap;        ///< Whether the user wants the mass density HI map.
-    bool            totalmap;           ///< Whether the user wants the total HI map.
-    bool            velocitymap;        ///< Whether the user wants the velocity field.
-    bool            dispersionmap;      ///< Whether the user wants the velocity dispersion field.
-    bool            rmsmap;             ///< Whether the user wants the RMS map.
-    float           blankCut;           ///< SNR clipping cut for blanked area.
-    string          maptype;            ///< How to extract kinematic map: GAUSSIAN OR MOMENT
+    string          MaskType;           ///< Type of mask: SEARCH,SMOOTH,THRESHOLD,NEGATIVE,SMOOTH&SEARCH or NONE.
+    float           blankCut;           ///< SNR clipping cut for blanked area when mask==SMOOTH
 
     bool            flagRing;           ///< Do you want to fit a tilted ring model?
 
@@ -314,6 +310,7 @@ private:
     GALMOD_PAR      parGM;              ///< Input parameters for the GALMOD task
     GALFIT_PAR      parGF;              ///< Input parameters for the GALFIT task
     GALWIND_PAR     parGW;              ///< Input parameters for the GALWIND task
+    MAPS_PAR        parMA;              ///< Input parameter for MAPS
     
     bool            flagSpace;
     string          P1;

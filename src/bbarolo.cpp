@@ -299,27 +299,30 @@ bool BBcore (Param *par) {
         map.input(c);
         std::string s = outfolder+c->Head().Name();
         bool masking = par->getMASK()=="NONE" ? false : true;
-        if (par->getMassDensMap()) {
+        if (par->getParMA().massdensmap) {
             map.HIMassDensityMap(masking);
             map.fitswrite_2d((s+"map_massdens.fits").c_str());
         }
-        if (par->getTotalMap()) {
-            map.ZeroMoment(masking,par->getMapType());
-            map.fitswrite_2d((s+"map_0th.fits").c_str());
+        if (par->getParMA().totalmap) {
+            if (par->getParMA().SNmap) map.SNMap(masking);
+            else {
+                map.ZeroMoment(masking,par->getParMA().maptype);
+                map.fitswrite_2d((s+"map_0th.fits").c_str());
+            }
         }
-        if (par->getVelMap()) {
-            map.FirstMoment(masking,par->getMapType());
+        if (par->getParMA().velocitymap) {
+            map.FirstMoment(masking,par->getParMA().maptype);
             map.fitswrite_2d((s+"map_1st.fits").c_str());
         }
-        if (par->getDispMap()) {
-            map.SecondMoment(masking,par->getMapType());
+        if (par->getParMA().dispersionmap) {
+            map.SecondMoment(masking,par->getParMA().maptype);
             map.fitswrite_2d((s+"map_2nd.fits").c_str());
         }
-        if (par->getRMSMap()) {
+        if (par->getParMA().rmsmap) {
             map.RMSMap();
             map.fitswrite_2d((s+"map_RMS.fits").c_str());
         }
-        if (par->getGlobProf()) {
+        if (par->getParMA().globprof) {
             Image2D<BBreal> spectrum;
             spectrum.extractGlobalSpectrum(c);
             std::string specfname = c->pars().getOutfolder()+"spectrum.txt";
