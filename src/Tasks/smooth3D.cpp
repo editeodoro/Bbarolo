@@ -998,8 +998,8 @@ void SpectralSmooth3D<T>::fitswrite(Cube<T> *templ, std::string outname) {
     }
 
     if (templ->pars().getflagReduce() && windowsize>1) {
-        //int bins = windowtype=="HANNING" ? (windowsize+1)/2 : windowsize;
-        int bins = windowsize;
+        int bins = windowtype=="HANNING" ? (windowsize+1)/2 : windowsize;
+        //int bins = windowsize;
         Cube<T> *red = out->Reduce(bins,"spectral");
         red->fitswrite_3d(outname.c_str(),true);
         delete red;

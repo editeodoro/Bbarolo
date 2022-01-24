@@ -83,7 +83,7 @@ bool mkdirp(const char* path, mode_t mode) {
 
 
 template <class T> 
-T AlltoVel (T in, Header &h) {
+T AlltoVel (T in, Header &h, std::string veldef) {
     
   /// This function convert a spectral input value "in" in 
   /// a output value in units of KM/S.
@@ -98,12 +98,15 @@ T AlltoVel (T in, Header &h) {
     if (cunit2=="km/s" || cunit2=="kms") vel_km_s = in;
     else if (cunit2=="m/s" || cunit2=="ms") vel_km_s = in/1000.;
     else if (cunit2=="hz" || cunit2=="mhz") {
+        // Redshifted rest frequency
         double frest = h.Freq0()/(1+h.Redshift());
-        T vel_m_s = c*(frest*frest-in*in)/(frest*frest+in*in);
+        T vel_m_s = c*(frest*frest-in*in)/(frest*frest+in*in);      // Relativistic velocity definition (default)
+        if (veldef=="radio") vel_m_s = c*(frest-in)/frest;          // Radio velocity definition
+        else if (veldef=="optical") vel_m_s = c*(frest-in)/in;      // Optical velocity definition
         vel_km_s = vel_m_s/1000.;
     }
     else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
-             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {          // Micron or Angstrom for Hi-Z
+             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") { // Micron or Angstrom for Hi-Z
         //int z_cent = floor(h.DimAx(2)/2.)-1;
         double z_cent = h.Crpix(2)-1;
         double restw = h.Wave0(), reds = h.Redshift();
@@ -119,11 +122,11 @@ T AlltoVel (T in, Header &h) {
     return vel_km_s;
     
 }
-template short AlltoVel (short, Header &);
-template int AlltoVel (int, Header &);
-template long AlltoVel (long, Header &);
-template float AlltoVel (float, Header &);
-template double AlltoVel (double, Header &);
+template short AlltoVel (short, Header &, std::string);
+template int AlltoVel (int, Header &, std::string);
+template long AlltoVel (long, Header &, std::string);
+template float AlltoVel (float, Header &, std::string);
+template double AlltoVel (double, Header &, std::string);
 
 
 template <class T> 

@@ -194,7 +194,7 @@ template <class T>
 void MomentMap<T>::SNMap(bool msk){
     
     // Computes the 0th moment, the noise and S/N maps of a masked datacube.
-    // (see appendixes in Verheijen & Sancis 01 and Lelli et al 2014)
+    // (see appendixes in Verheijen & Sancisi 01 and Lelli et al 2014)
     //
     // Maps are written in a 4-channel FITS cube, with ch0 = moment0, 
     // ch1 = noise, ch2 = S/N, ch3 = channels.
@@ -208,21 +208,29 @@ void MomentMap<T>::SNMap(bool msk){
     float Nright = Nleft;
     if (in->pars().getParMA().contChans.size()>1)
         Nright = in->pars().getParMA().contChans[1];
+    std::string tapering = in->pars().getParMA().taper;
 
     // Coefficients 
     double a, b, c, sigmaBC;
-    if (in->pars().getParMA().isHannsmoothed) { // Hanning smoothing case
+    if (tapering=="hanning1"){          // Hanning smoothing case keeping all channels.
         a=0.25*((Nright-0.75)/(Nright*Nright)+(Nleft-0.75)/(Nleft*Nleft));
         b=0.75;
-        c=4./(sqrt(6.));
+        c=4./sqrt(6.);
         sigmaBC = sigma/(sqrt(1.+4./3.*a));
     }
-    else { // Uniform tapering case
-        a=0.25*((1./Nright)+(1./Nleft));
+    else if (tapering=="hanning2") {    // Hanning smoothing case throwing half channels away.
+        a=0.25*((Nright-0.75)/(Nright*Nright)+(Nleft-0.75)/(Nleft*Nleft));
+        b=0.75;
+        c=4./sqrt(2.)/sqrt(6.);
+        sigmaBC = sigma/(sqrt(1.+4./3.*a));
+    }
+    else {                              // Uniform tapering case (default).
+        a=0.25*(1./Nright+1./Nleft);
         b=0.;
         c=1.;
         sigmaBC = sigma/(sqrt(1.+a));
     }
+     
     
     long imsize = in->DimX()*in->DimY();
     int nthreads = in->pars().getThreads();
@@ -390,7 +398,8 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
     for (int z=0; z<nsubs; z++) {
         long npix = in->nPix(x+blo[0],y+blo[1],z+blo[2]);
         vels[z] = z+blo[2];
-        if (in->HeadDef()) vels[z] = AlltoVel<T>(in->getZphys(z), in->Head());
+        if (in->HeadDef()) 
+            vels[z] = AlltoVel<T>(in->getZphys(z),in->Head(),in->pars().getVelDef());
                 
         if (msk) {
             num   += in->Array(npix)*vels[z]*mask[npix];

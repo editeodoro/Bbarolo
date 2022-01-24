@@ -135,16 +135,17 @@ struct SEARCH_PAR {
 
 // Container for input parameters for maps
 struct MAPS_PAR {
-    string maptype          = "MOMENT"; ///< How to extract kinematic map: GAUSSIAN OR MOMENT
-    bool   globprof         = false;    ///< Whether to calculate the global profile.
-    bool   massdensmap      = false;    ///< Whether to calculate the mass density HI map.
-    bool   totalmap         = false;    ///< Whether to calculate the total map.
-    bool   velocitymap      = false;    ///< Whether to calculate the velocity field.
-    bool   dispersionmap    = false;    ///< Whether to calculate velocity dispersion field.
-    bool   rmsmap           = false;    ///< Whether to calculate the RMS map.
-    bool   SNmap            = false;    ///< Whether to calculate A S/N map of the moment 0 map. 
-    vector<int> contChans   = {20, 20}; ///< Number of channels used for continuum subtraction.
-    bool   isHannsmoothed   = false;    ///< Whether input cube has been Hanning tapered.
+    string maptype        = "MOMENT";       ///< How to extract kinematic map: GAUSSIAN OR MOMENT
+    bool   globprof       = false;          ///< Whether to calculate the global profile.
+    bool   massdensmap    = false;          ///< Whether to calculate the mass density HI map.
+    bool   totalmap       = false;          ///< Whether to calculate the total map.
+    bool   velocitymap    = false;          ///< Whether to calculate the velocity field.
+    bool   dispersionmap  = false;          ///< Whether to calculate velocity dispersion field.
+    bool   rmsmap         = false;          ///< Whether to calculate the RMS map.
+    bool   SNmap          = false;          ///< Whether to calculate A S/N map of the moment 0 map. 
+    vector<int> contChans = {20, 20};       ///< Number of channels used for continuum subtraction.
+    string taper          = "uniform";      ///< Whether input cube has been Hanning tapered.
+    string veldef         = "relativistic"; ///< Velocity conversion when spectral axis not velocity
 };
 
 
@@ -182,13 +183,14 @@ public:
 
     bool    getFlatContsub() {return contsub;}
     string  getExcludeWind() {return exclude_windows;}
-    int     getContOrder() {return cont_order; }
+    int     getContOrder() {return cont_order;}
     
     bool    getMakeMask() {return makeMask;}
     string  getMASK() {return MaskType;}
     void    setMASK(string s) {MaskType=s;}
     void    setBlankCut (float f) {blankCut=f;}
     float   getBlankCut() {return blankCut;}
+    string  getVelDef() {return parMA.veldef;}
 
     float   getBeamFWHM() {return beamFWHM;}
     void    setBeamFWHM(float val) {beamFWHM=val;}

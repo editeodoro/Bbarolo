@@ -295,14 +295,10 @@ bool BBcore (Param *par) {
 
     // Moment maps task -----------------------------------------------
     if (par->getMaps()) {
-        MomentMap<BBreal> map;
-        map.input(c);
         std::string s = outfolder+c->Head().Name();
         bool masking = par->getMASK()=="NONE" ? false : true;
-        if (par->getParMA().massdensmap) {
-            map.HIMassDensityMap(masking);
-            map.fitswrite_2d((s+"map_massdens.fits").c_str());
-        }
+        MomentMap<BBreal> map;
+        map.input(c);
         if (par->getParMA().totalmap) {
             if (par->getParMA().SNmap) map.SNMap(masking);
             else {
@@ -317,6 +313,10 @@ bool BBcore (Param *par) {
         if (par->getParMA().dispersionmap) {
             map.SecondMoment(masking,par->getParMA().maptype);
             map.fitswrite_2d((s+"map_2nd.fits").c_str());
+        }
+        if (par->getParMA().massdensmap) {
+            map.HIMassDensityMap(masking);
+            map.fitswrite_2d((s+"map_massdens.fits").c_str());
         }
         if (par->getParMA().rmsmap) {
             map.RMSMap();

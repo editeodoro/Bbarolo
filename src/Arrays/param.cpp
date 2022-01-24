@@ -506,9 +506,11 @@ void Param::setParam(string &parstr) {
     if(arg=="rmsmap")           parMA.rmsmap = readFlag(ss);
     if(arg=="maptype")          parMA.maptype = makeupper(readFilename(ss));
     if(arg=="snmap")            parMA.SNmap = readFlag(ss);
-    if(arg=="ishannsmoothed")   parMA.isHannsmoothed = readFlag(ss);
+    if(arg=="taper")            parMA.taper = makelower(readFilename(ss));
     if(arg=="contchans")        parMA.contChans = readVec<int>(ss);
-                                
+    if(arg=="veldef")           parMA.veldef = makelower(readFilename(ss));
+    
+
     if(arg=="2dfit")     flagRing = readFlag(ss);
     if(arg=="fit2d")     flagRing = readFlag(ss);
     if (arg=="ellprof")  flagEllProf = readFlag(ss);
@@ -1002,6 +1004,16 @@ bool Param::checkPars() {
     if (getMaps()) {
         if (parMA.maptype!="GAUSSIAN" && parMA.maptype!="MOMENT")
             cout << "MAP warning: MAPTYPE is either MOMENT or GAUSSIAN. Reverting to MOMENT.\n";
+    }
+    
+    if (parMA.veldef!="radio" && parMA.veldef!="optical" && parMA.veldef!="relativistic") {
+        cout << "MAP warning: unknown velocity definition '"<< parMA.veldef << "'. Defaulting to 'relativistic'. \n";
+        parMA.veldef = "relativistic";
+    }
+    
+    if (parMA.taper!="uniform" && parMA.taper!="hanning1" && parMA.taper!="hanning2") {
+        cout << "MAP warning: unknown tapering '"<< parMA.taper << "'. Defaulting to 'uniform'. \n";
+        parMA.taper = "uniform";
     }
     
     // Checking parameters for PV
@@ -1563,7 +1575,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[totalMap]", "Saving integrated intensity map to FITS file?", stringize(p.getParMA().totalmap));
         recordParam(Str, "[SNMap]", "   Computing also S/N map for intensity map?", stringize(p.getParMA().SNmap));
         if (p.getParMA().SNmap || (defaults && isAll)) {
-            recordParam(Str, "[isHannsmoothed]", "     Whether cube used a Hanning taper", stringize(p.getParMA().isHannsmoothed));
+            recordParam(Str, "[taper]", "     Type of velocity taper used", p.getParMA().taper);
             string cstr = "";
             for (unsigned i=0; i<p.getParMA().contChans.size(); i++) cstr = cstr + to_string<int>(p.getParMA().contChans[i],0) + " ";
             recordParam(Str, "[contChans]", "     Channels used for continuum subtraction", cstr);
@@ -1571,8 +1583,10 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     }
     if (p.getParMA().massdensmap || (defaults && isAll))
         recordParam(Str, "[massdensMap]",   "Saving HI mass density map to FITS file?", stringize(p.getParMA().massdensmap));
-    if (p.getParMA().velocitymap || (defaults && isAll))
+    if (p.getParMA().velocitymap || (defaults && isAll)) {
         recordParam(Str, "[velocityMap]",   "Saving velocity map to FITS file?", stringize(p.getParMA().velocitymap));
+        recordParam(Str, "[veldef]",   "   Definition for velocity conversion?", p.getParMA().veldef);
+    }
     if (p.getParMA().dispersionmap || (defaults && isAll))
         recordParam(Str, "[dispersionMap]", "Saving velocity dispersion map to FITS file?", stringize(p.getParMA().dispersionmap));
     if (p.getParMA().rmsmap || (defaults && isAll))
