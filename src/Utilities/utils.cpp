@@ -192,6 +192,35 @@ template long DeltaVel (Header&);
 template float DeltaVel (Header&);
 template double DeltaVel (Header&);
 
+template <class T> 
+T FluxtoJyBeam (T in, Header &h) {
+
+    /// This function convert the input flux value  
+    /// in a output flux value in units of Jy/beam. 
+
+    T fluxJYB = in;
+    std::string b = deblankAll(makelower(h.Bunit()));
+    size_t f = std::string::npos;
+    
+    if (b.find("w.u.")!=f || b.find("wu")!=f) 
+        fluxJYB *= 5E-3;
+    else if (b.find("jy/b")!=f || b.find("j/b")!=f) 
+        fluxJYB = fluxJYB;
+    else if (b.find("jy")!=f && h.BeamArea()!=0)
+        fluxJYB *= h.BeamArea();
+    else if (b=="k") {
+        // Converting from Kelvin -> Jy/Beam -> Jy (only ok for HI)
+        fluxJYB = in*(h.Bmaj()*3600.*h.Bmin()*3600.)/(1360.*21.106*21.106);
+    }
+    
+    return fluxJYB;
+}
+template short FluxtoJyBeam (short, Header&);
+template int FluxtoJyBeam (int, Header&);
+template long FluxtoJyBeam (long, Header&);
+template float FluxtoJyBeam (float, Header&);
+template double FluxtoJyBeam (double, Header&);
+
 
 template <class T> 
 T FluxtoJy (T in, Header &h) {
@@ -199,26 +228,8 @@ T FluxtoJy (T in, Header &h) {
  /// This function convert the input flux value  
  /// in a output flux value in units of Jy. 
  
-    T fluxJY = in;
-    std::string b = deblankAll(makelower(h.Bunit()));
-    size_t f = std::string::npos;
-    
-    if (b.find("w.u.")!=f || b.find("wu")!=f) {
-        fluxJY *= 5E-3;
-        if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
-    }
-    else if (b.find("jy/b")!=f || b.find("j/b")!=f) {
-        if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
-    }
-    else if (b.find("jy")!=f) {
-        return fluxJY; 
-    }
-    else if (b=="k") {
-        // Converting from Kelvin -> Jy/Beam -> Jy
-        fluxJY = in*(h.Bmaj()*3600.*h.Bmin()*3600.)/(1360.*21.106*21.106);
-        if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
-    }
-    
+    T fluxJY = FluxtoJyBeam(in,h);
+    if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
     return fluxJY;
     
 }

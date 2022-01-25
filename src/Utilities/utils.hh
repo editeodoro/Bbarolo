@@ -131,6 +131,7 @@ int wcsToPixSingle(struct wcsprm *wcs, const double *world, double *pix);
 bool mkdirp(const char* path, mode_t mode = DEFAULT_MODE);
 template <class T> T AlltoVel (T in, Header &h, std::string veldef="relativistic");
 template <class T> T DeltaVel (Header &h);
+template <class T> T FluxtoJyBeam (T in, Header &h);
 template <class T> T FluxtoJy (T in, Header &h);
 template <class T> T Pbcor (PixelInfo::Voxel<T> &v, Header &h);
 template <class T> void Pbcor(long x, long y, long z, T &flux, Header &h);

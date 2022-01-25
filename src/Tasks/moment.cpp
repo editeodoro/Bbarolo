@@ -253,13 +253,16 @@ void MomentMap<T>::SNMap(bool msk){
         if (msk) 
             for (int z=0; z<nsubs; z++) nchan += in->Mask(i+z*imsize);
         else nchan = nsubs;
+        // Noise in map units
         T noise = sqrt(nchan-b+a*nchan*nchan)*c*sigmaBC;
+        // Convering to  Jy/beam * km/s
+        noise = FluxtoJyBeam(noise,in->Head())*fabs(DeltaVel<T>(in->Head()));
         // Moment map in channel 0
         fc->Array()[i] = this->array[i];
-        // Noise map in channel 1
+        // Noise map in channel 1 
         fc->Array()[i+1*imsize] = noise!=0 ? noise : log(-1);
         // S/N map in channel 2
-        fc->Array()[i+2*imsize] = this->array[i]/noise;
+        fc->Array()[i+2*imsize] = this->array[i] / noise;
         // Number of channel map in channel 3
         fc->Array()[i+3*imsize] = nchan;
     }
@@ -270,6 +273,7 @@ void MomentMap<T>::SNMap(bool msk){
     // Writing FITS file
     fc->saveHead(in->Head());
     fc->Head().setBtype("intensity");
+    fc->Head().setBunit(this->head.Bunit());
     fc->Head().setCrval(2,1);
     fc->Head().setCdelt(2,1);
     fc->Head().setCrpix(2,1);
@@ -363,10 +367,10 @@ bool MomentMap<T>::setHead(int type) {
         if (type==0) {
             this->head.setBtype("intensity");
             std::string bunit;
-            if (FluxtoJy(1,in->Head())==1) {
+            if (FluxtoJyBeam(1,in->Head())==1) {
                 bunit = in->Head().Bunit() + " * KM/S";
             }
-            else bunit = "JY * KM/S";
+            else bunit = "JY/BEAM * KM/S";
             this->head.setBunit(bunit);
         }
         else if (type==1 || type==2) {
@@ -422,7 +426,7 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
     // Moment 0th
     moments[0] = denom;
     if (in->HeadDef()) 
-        moments[0] = FluxtoJy(denom, in->Head()) * fabs(DeltaVel<T>(in->Head()));
+        moments[0] = FluxtoJyBeam(denom, in->Head()) * fabs(DeltaVel<T>(in->Head()));
     
     // Moment 1st
     moments[1] = num/denom;
@@ -462,7 +466,7 @@ bool MomentMap<T>::fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar
         ww[z] = 1;
         spectrum[z] = in->Array(x,y,z);
         if (msk) spectrum[z] *= mask[in->nPix(x,y,z)];
-        vels[z] = AlltoVel(in->getZphys(z),in->Head());
+        vels[z] = AlltoVel(in->getZphys(z),in->Head(),in->pars().getVelDef());
         // Finding spectrum maximum value and corresponding position
         if (spectrum[z]>smax) {
             smax = spectrum[z];
@@ -482,7 +486,7 @@ bool MomentMap<T>::fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar
     ret = lsq.fit();
     if(ret<0) return false;
     
-    double integint = sqrt(2)*sqrt(M_PI)*fabs(c[2])*FluxtoJy(c[0], in->Head());
+    double integint = sqrt(2)*sqrt(M_PI)*fabs(c[2])*FluxtoJyBeam(c[0], in->Head());
     bestfitpar[0] = integint;        // Integrated intensity
     bestfitpar[1] = c[1];            // Central velocity
     bestfitpar[2] = c[2];            // Velocity dispersion

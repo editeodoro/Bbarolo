@@ -1073,9 +1073,9 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             pixToWCSSingle(head.WCS(), pix, world);
             RA  = world[0];
             DEC = world[1];
-            VEL = AlltoVel (world[2],head);
+            VEL = AlltoVel (world[2],head,par.getVelDef());
             //float zval = ((Zcenter+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2));
-            //VEL = AlltoVel(zval, head);
+            //VEL = AlltoVel(zval,head,par.getVelDef());
             if (RA<0) RA += 360;
             else if (RA>360) RA -= 360;
         }
@@ -1277,7 +1277,7 @@ void Cube<T>::writeCubelets() {
 
         for (int z=0; z<c->DimZ(); z++) {
             float intSpec = 0;
-            double vel = AlltoVel(c->getZphys(z),c->Head());
+            double vel = AlltoVel(c->getZphys(z),c->Head(),par.getVelDef());
             for (int y=0; y<c->DimY(); y++) {
                 for (int x=0; x<c->DimX(); x++) {
                     if (obj->isInObject(x+starts[0],y+starts[1],z+starts[2])) {

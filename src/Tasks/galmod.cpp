@@ -526,7 +526,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         }
         
         crval3=crval3*hzconv;
-        cdelt3=cdelt3*hzconv;  
+        cdelt3=cdelt3*hzconv;
         
         /// Information about frequency/velocity axis and conversions.
         freq0 = c->Head().Freq0()/(1+c->Head().Redshift());
@@ -537,7 +537,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         }
         
         double crvalfreq = c->Head().Crval(2)*hzconv;
-        drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
+        drval3 = AlltoVel<double>(crvalfreq,c->Head())*1000.;
         
         // Set number of emission lines
         nlines = in->pars().getParGM().RESTFREQ.size();
@@ -547,7 +547,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             for (auto i=0; i<nlines; i++) {
                 double fred = in->pars().getParGM().RESTFREQ[i]*(1+reds);
                 relvel.push_back(AlltoVel(fred,in->Head())*1000.);
-                relint.push_back(in->pars().getParGM().RELINT[i]);                
+                relint.push_back(in->pars().getParGM().RELINT[i]);
             }
         }
     }
