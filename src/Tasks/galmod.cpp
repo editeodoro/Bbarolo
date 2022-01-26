@@ -150,7 +150,7 @@ void Galmod<T>::defaults() {
     crota2        = 0; 
     cdens         = 1.0;
     freq0         = 0.1420405751786E10;
-    velsys        = 2;    //Optical or radio definition of the velocities resp. 1 2.
+    velsys        = 1;    //Radio (1), optical (2) or relativistic (3) definition of the velocities.
     nlines        = 1;
     relvel.push_back(0);
     relint.push_back(1);
@@ -192,7 +192,6 @@ Galmod<T>& Galmod<T>::operator=(const Galmod &g) {
     if (this->outDefined) *this->out = *g.out;
     this->crpix3    = g.crpix3;
     this->crval3    = g.crval3;
-    this->drval3    = g.drval3;
     this->cdelt3    = g.cdelt3;
     this->cunit3    = g.cunit3;
     this->ctype3    = g.ctype3;
@@ -463,28 +462,23 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     cdelt3 = c->Head().Cdelt(2);
     crval3 = c->Head().Crval(2);
     crpix3 = c->Head().Crpix(2);
-    drval3 = c->Head().Drval3();
     
-    if (ctype3=="wave" || ctype3=="awav" || ctype3=="wavelength" ||
-        cunit3=="um" || cunit3=="nm" || cunit3=="ang" ) axtyp =2;
-    else if (ctype3=="freq" || cunit3=="hz" || cunit3=="mhz") axtyp = 3;
-    else if (ctype3=="velo" || ctype3=="velo-helo" || ctype3=="velo-hel" ||
-             cunit3=="m/s" || cunit3=="km/s") {
-        axtyp = 4;
-    }
-    else {
-        std::cout << "GALMOD error (unknown CUNIT for spectral axis): cannot convert." << std::endl;
-        std::terminate(); 
-    }
+    if (in->Head().VelDef()=="radio") velsys=1;
+    else if (in->Head().VelDef()=="optical") velsys=2;
+    else if (in->Head().VelDef()=="relativistic") velsys=3;
     
-    if (axtyp==2) {                 // Wavelength axis
+    std::string sptype = c->Head().getSpectralType();
+    
+    if (sptype=="wave") {                 // Wavelength axis
+        
+        axtyp=2;
+        
         float mconv=0;
         if (cunit3=="um"||cunit3=="mum"||cunit3=="micron") mconv = 1.0E-06;
         else if (cunit3=="nm"||cunit3=="nanom") mconv = 1.0E-09;
         else if (cunit3=="a" ||cunit3=="ang"||cunit3=="angstrom") mconv = 1.0E-10;
         else {
-            std::cout << "GALMOD error (unknown CUNIT3): cannot convert to M.\n";
-            std::cout << cunit3;
+            std::cout << "GALMOD ERROR: unknown CUNIT3=" << cunit3 << ". Cannot convert to meters.\n";
             std::terminate();
         }
 
@@ -493,12 +487,10 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 
         double crvalfreq = C/crval3;
 
-        // If wavelength parameter is set, take them for freq0, otherwise central channel
+        // If wavelength parameter is set, take it for freq0, otherwise central channel
         double restw = in->pars().getRestwave(); 
         if (restw!=-1) freq0 = C/(restw*(1+reds)*mconv);
         else freq0 = crvalfreq; // Velocity is 0 always at the reference channel
-
-        drval3 = C*(freq0*freq0-crvalfreq*crvalfreq)/(freq0*freq0+crvalfreq*crvalfreq);
 
         // Set number of emission lines
         nlines = in->pars().getParGM().RESTWAVE.size();
@@ -512,7 +504,9 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             }
         }
     }
-    else if (axtyp==3) {                // Frequency axis
+    else if (sptype=="freq") {                // Frequency axis
+        
+        axtyp=3;
         
         float hzconv=0;
         if (cunit3=="hz") hzconv = 1;
@@ -520,8 +514,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         else if (cunit3=="mhz") hzconv = 1.0E06;
         else if (cunit3=="ghz") hzconv = 1.0E09;
         else {
-            std::cerr << "GALMOD error (unknown CUNIT3): cannot convert to Hz.\n";
-            std::cerr << cunit3;
+            std::cerr << "GALMOD ERROR: unknown CUNIT3=" << cunit3 <<". Cannot convert to Hz.\n";
             std::terminate(); 
         }
         
@@ -535,10 +528,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             std::cerr << "Header item FREQ0 not found. Assuming " << freq0;
             std::cerr << std::endl;
         }
-        
-        double crvalfreq = c->Head().Crval(2)*hzconv;
-        drval3 = AlltoVel<double>(crvalfreq,c->Head())*1000.;
-        
+
         // Set number of emission lines
         nlines = in->pars().getParGM().RESTFREQ.size();
         if (nlines>1) {
@@ -551,15 +541,16 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             }
         }
     }
-    else if (axtyp==4) {                // Velocity axis
+    else if (sptype=="velo") {                // Velocity axis
+        
+        axtyp=4;
         
         float msconv=0;
         if (cunit3=="m/s" || cunit3=="ms") msconv = 1;
         else if (cunit3=="km/s") msconv = 1.0E03;
         else if ("cm/s") msconv = 1.0E-03;
         else {
-            std::cerr << "GALMOD error (unknown CUNIT3): cannot convert to M/S.\n";
-            std::cerr << cunit3;
+            std::cerr << "GALMOD ERROR: unknown CUNIT3=" << cunit3 <<". Cannot convert to M/S.\n";
             std::terminate(); 
         }
         
@@ -573,13 +564,10 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         
         crval3=crval3*msconv;
         cdelt3=cdelt3*msconv;
-        double crvalvel = c->Head().Crval(2)*msconv;
-        drval3=freq0*sqrt((C-crvalvel)/(C+crvalvel));
-        
     }
     else { 
-        std::cerr << "Unknown axis type: no velocities along spectral axis.\n";
-        std::terminate();
+        std::cerr << "GALMOD ERROR: unknown Spectral axis type. Check CTYPE3 and CUNIT3 keywords." << std::endl;
+        std::terminate(); 
     }
     
     // Get the instrumental broadnening: when Hanning smoothing has been applied, 
@@ -587,7 +575,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     // twice the channnel separation. Thus, the sig_instr is FWHM/2.355.
     float nch = in->pars().getLinear();
     if (nch==-1) nch=2./(2*sqrt(2*log(2)));
-    chwidth = fabs(DeltaVel<double>(in->Head()))*1000;
+    chwidth = fabs(DeltaVel(in->Head()))*1000;
     sig_instr = nch*chwidth;
     
 }
@@ -734,14 +722,14 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
             r->ypos.push_back(uypos[i-1]+dyposdr*dr);
             r->vsys.push_back(uvsys[i-1]+dvsysdr*dr);
             r->radii.push_back(r->radii.back()+r->radsep);
-        }
+        }        
     }
 
     r->radii.pop_back();
-    r->nr=r->radii.size();      
+    r->nr=r->radii.size();
     
     ringDefined = true;
-        
+
     delete [] uradii;
     delete [] uvrot;
     delete [] uvrad;
@@ -929,7 +917,7 @@ void Galmod<T>::galmod() {
 //      Get number of clouds inside ring.
         int nc = lround(cdens*pow(r->dens[ir],cmode)*twopi*rtmp*r->radsep/pixarea);
         if (nc==0) {
-            std::cerr << " GALMOD ERROR: No clouds used. Choose higher CDENS " << std::endl;
+            std::cerr << " GALMOD ERROR: No clouds used. Choose higher CDENS. " << std::endl;
             std::terminate();
 //          Do next ring, jump to end of loop for rings.
             continue;
@@ -1320,9 +1308,9 @@ void Galmod<T>::NHItoRAD(){
     for (int isubs=0; isubs<nsubs; isubs++) {
         double labsubs=0, fac=0;
 
-        if (axtyp==2) {    // Z-axis is wavelength
+        if (axtyp==2) {         // Z-axis is wavelength
             labsubs = crval3+cdelt3*(isubs+1-crpix3);
-            fac = 3.8475E-06;     // This is wrong for wavelength
+            fac = C/3.8475E-06;     // This is wrong for wavelength
         }
         else if (axtyp==3) {    // Z-axis is frequency
             double fsubs = crval3+cdelt3*(isubs+1-crpix3);
@@ -1331,7 +1319,9 @@ void Galmod<T>::NHItoRAD(){
         }
         else if (axtyp==4) {     // Z-axis is velocity
             double vsubs=crval3+cdelt3*(isubs+1-crpix3);
-            double fsubs=freq0*C*drval3/(drval3*(vsubs-crval3)+freq0*C);
+            double fsubs = freq0*(1-vsubs/C);
+            if (velsys==2) fsubs = freq0*(C/(C+vsubs));
+            if (velsys==3) fsubs = freq0*sqrt((C-vsubs)/(C+vsubs)); 
             labsubs=C/fsubs;
             fac = 1.823E-05;       // This is 1.823E13 / 1E20 * 1E02
         } 
@@ -1352,26 +1342,19 @@ double Galmod<T>::velgrid(double v) {
     
     /// Function to transform a velocity to a grid.
         
-    double velg=0, fdv;
-    
-    if (axtyp==2) {                     //< Wavelength axis
-        double f = freq0*sqrt((C-v)/(C+v));
-        double l = C/f;
-        velg = (l-crval3)/cdelt3;
-    }
-    else if (axtyp==3) {                //< Frequency axis.
-        if (velsys==1) {                //< Optical definition of velocities.
-            fdv  = (drval3-v)*crval3;
-            velg = crval3*fdv/((freq0*C-fdv)*cdelt3);
-        }
-        else if (velsys==2) velg = (drval3-v)*freq0/(C*cdelt3); //< Radio definition
-    }
-    else if (axtyp==4) velg = (v-crval3)/cdelt3;
+    double w = 0;
+    if (axtyp==4) w = v;                                 //< Velocity axis.
     else {
-        std::cout << "Invalid frequency/velocity system." << std::endl;
+        // Calculate corresponding frequency
+        if (velsys==1)      w = freq0*(1-v/C);           // Radio definition.
+        else if (velsys==2) w = freq0*(C/(C+v));         // Optical definition.
+        else if (velsys==3) w = freq0*sqrt((C-v)/(C+v)); // Relativistic definition.
+
+        if (axtyp==2) w = C/w;                            //< Wavelength axis.
+        //else if (axtyp==3) w = w;                       //< Frequency axis.
     }
-   
-    return velg;
+    
+    return (w-crval3)/cdelt3;
 
 }
 

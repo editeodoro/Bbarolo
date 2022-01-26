@@ -100,7 +100,7 @@ void MomentMap<T>::HIMassDensityMap (bool msk) {
     
     // Check that input units are jy / beam or Kelvin
     std::string bunit = makelower(in->Head().Bunit());
-    bool isJY = bunit.find("/b")!=std::string::npos;
+    bool isJY = bunit.find("//b")!=std::string::npos;
     bool isK  = bunit=="k" || bunit=="kelvin";
     if (isJY || isK) {      
         if(msk && !in->MaskAll()) in->BlankMask();
@@ -113,7 +113,7 @@ void MomentMap<T>::HIMassDensityMap (bool msk) {
         in->checkBeam();
         double bmaj = in->Head().Bmaj()*arcsconv(in->Head().Cunit(0));
         double bmin = in->Head().Bmin()*arcsconv(in->Head().Cunit(1));
-        double dvel = fabs(DeltaVel<T>(in->Head()));
+        double dvel = fabs(DeltaVel(in->Head()));
         for (int i=0; i<this->numPix; i++) {
             T val = this->array[i];
             if (isK) val /= 1360*21.106114*21.106114/(bmaj*bmin);
@@ -121,7 +121,7 @@ void MomentMap<T>::HIMassDensityMap (bool msk) {
         }
         this->head.setBunit("Msun/pc2");
         this->head.setBtype("Mass_surfdens");
-        
+        storedtype = 3;
     }
     else {
         std::cerr << "MOMENT MAPS ERROR: Input datacube must be in JY/BEAM or K.\n";
@@ -185,6 +185,7 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
     }
 }
     
+    storedtype = whichmap;
     bar.fillSpace("Done.\n");
     
 }
@@ -200,7 +201,7 @@ void MomentMap<T>::SNMap(bool msk){
     // ch1 = noise, ch2 = S/N, ch3 = channels.
 
     // First of all we compute the 0th moment
-    this->ZeroMoment(msk,"MOMENT");
+    if (storedtype!=0) this->ZeroMoment(msk,"MOMENT");
 
     if (!in->StatsDef()) in->setCubeStats();
     double sigma = in->stat().getSpread();
@@ -236,8 +237,9 @@ void MomentMap<T>::SNMap(bool msk){
     int nthreads = in->pars().getThreads();
 
     // Cube to store the 3 maps
-    int dim[] = {in->DimX(),in->DimY(),4}; 
-    Cube<T> *fc = new Cube<T>(dim);
+    int dim[] = {in->DimX(),in->DimY()}; 
+    Image2D<T> *nmap  = new Image2D<T>(dim);
+    Image2D<T> *snmap = new Image2D<T>(dim);
 
     // Progress bar
     ProgressBar bar(true,in->pars().isVerbose(),in->pars().getShowbar());
@@ -255,35 +257,32 @@ void MomentMap<T>::SNMap(bool msk){
         else nchan = nsubs;
         // Noise in map units
         T noise = sqrt(nchan-b+a*nchan*nchan)*c*sigmaBC;
-        // Convering to  Jy/beam * km/s
-        noise = FluxtoJyBeam(noise,in->Head())*fabs(DeltaVel<T>(in->Head()));
-        // Moment map in channel 0
-        fc->Array()[i] = this->array[i];
+        // Converting to  Jy/beam * km/s
+        noise = FluxtoJyBeam(noise,in->Head())*fabs(DeltaVel(in->Head()));
         // Noise map in channel 1 
-        fc->Array()[i+1*imsize] = noise!=0 ? noise : log(-1);
+        nmap->Array()[i] = noise!=0 ? noise : log(-1);
         // S/N map in channel 2
-        fc->Array()[i+2*imsize] = this->array[i] / noise;
-        // Number of channel map in channel 3
-        fc->Array()[i+3*imsize] = nchan;
+        snmap->Array()[i] = this->array[i] / noise;
     }
 }
 
     bar.fillSpace("Done.\n");
     
     // Writing FITS file
-    fc->saveHead(in->Head());
-    fc->Head().setBtype("intensity");
-    fc->Head().setBunit(this->head.Bunit());
-    fc->Head().setCrval(2,1);
-    fc->Head().setCdelt(2,1);
-    fc->Head().setCrpix(2,1);
-    fc->Head().setCunit(2,"NONE");
-    fc->Head().setCtype(2,"MAPTYPE");
+    nmap->copyHeader(in->Head());
+    nmap->Head().setBtype("noise");
+    nmap->Head().setBunit(this->head.Bunit());
+    
+    snmap->copyHeader(in->Head());
+    snmap->Head().setBtype("S/N");
+    nmap->Head().setBunit("NONE");
     
     std::string s = in->pars().getOutfolder()+in->Head().Name();
-    fc->fitswrite_3d((s+"map_0th.fits").c_str());
+    nmap->fitswrite_2d((s+"map_0th_RMS.fits").c_str());
+    snmap->fitswrite_2d((s+"map_0th_SN.fits").c_str());
     
-    delete fc;
+    delete nmap;
+    delete snmap;
 }
 
 
@@ -351,6 +350,7 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
         this->array[xy] = orms;
     }
 }
+    storedtype = 4;
     bar.fillSpace("Done.\n");
 
 }
@@ -374,7 +374,16 @@ bool MomentMap<T>::setHead(int type) {
             this->head.setBunit(bunit);
         }
         else if (type==1 || type==2) {
-            if (type==1) this->head.setBtype("velocity");
+            if (type==1) {
+                std::string sptype = in->Head().getSpectralType();
+                if (sptype=="velo") this->head.setBtype("velocity");
+                else {
+                    std::string vdef = in->Head().VelDef();
+                    if (vdef=="radio") this->head.setBtype("velo-radio");
+                    else if (vdef=="optical") this->head.setBtype("velo-opt");
+                    else if (vdef=="relativistic") this->head.setBtype("velo-rel");
+                }
+            }
             else this->head.setBtype("dispersion");
             this->head.setBunit("KM/S");
         }
@@ -403,7 +412,7 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
         long npix = in->nPix(x+blo[0],y+blo[1],z+blo[2]);
         vels[z] = z+blo[2];
         if (in->HeadDef()) 
-            vels[z] = AlltoVel<T>(in->getZphys(z),in->Head(),in->pars().getVelDef());
+            vels[z] = AlltoVel(in->getZphys(z),in->Head());
                 
         if (msk) {
             num   += in->Array(npix)*vels[z]*mask[npix];
@@ -426,7 +435,7 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
     // Moment 0th
     moments[0] = denom;
     if (in->HeadDef()) 
-        moments[0] = FluxtoJyBeam(denom, in->Head()) * fabs(DeltaVel<T>(in->Head()));
+        moments[0] = FluxtoJyBeam(denom, in->Head()) * fabs(DeltaVel(in->Head()));
     
     // Moment 1st
     moments[1] = num/denom;
@@ -466,7 +475,7 @@ bool MomentMap<T>::fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar
         ww[z] = 1;
         spectrum[z] = in->Array(x,y,z);
         if (msk) spectrum[z] *= mask[in->nPix(x,y,z)];
-        vels[z] = AlltoVel(in->getZphys(z),in->Head(),in->pars().getVelDef());
+        vels[z] = AlltoVel(in->getZphys(z),in->Head());
         // Finding spectrum maximum value and corresponding position
         if (spectrum[z]>smax) {
             smax = spectrum[z];

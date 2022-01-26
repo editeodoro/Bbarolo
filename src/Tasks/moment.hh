@@ -61,6 +61,7 @@ private:
     int blo[3],bhi[3];
     int nsubs;
     bool *mask = nullptr;
+    int storedtype = -1;
     
     typedef bool (MomentMap<T>::*funcPtr) (size_t, size_t, bool, double*);
     funcPtr map_Type = &MomentMap<T>::calculateMoments;

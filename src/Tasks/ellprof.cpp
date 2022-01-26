@@ -704,7 +704,7 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     double barea = im->Head().Bmaj()*im->Head().Bmin();
     const double arctorad = 1/3600.*M_PI/180.;
     barea *= abs(arcsconv(im->Head().Cunit(0))*arcsconv(im->Head().Cunit(1))); 
-    if (!(unit_l.find("/b")!=std::string::npos)) barea /= im->Head().BeamArea();
+    if (!(unit_l.find("//b")!=std::string::npos)) barea /= im->Head().BeamArea();
     
     for (size_t i=0; i<Nrad; i++) {
         
@@ -721,9 +721,9 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
                   << setw(m+1) << getSurfDensFaceOn(i,seg) << " ";
         if (isJy) {
             // This simply calculates mass surface density for HI data
-            double massdsurfdens  = 2.36E-07*getSurfDensFaceOn(i,seg)/(arctorad*arctorad);
+            double massdsurfdens  = 2.36E-07*getSurfDensFaceOn(i,seg)/(arctorad*arctorad)/im->Head().BeamArea();
             // Calculating Mass surface density with Roberts75 formula.
-            double massdsurfdens2 = 8794*Mean[i][seg]/barea*Cosinc[i];
+            double massdsurfdens2 = 8794*Mean[i][seg]/barea*Cosinc[i]/im->Head().BeamArea();
             // Calculating number density in 1E20 cm^{-2}
             double numberdens = massdsurfdens/(8.41185687E-02*3.0857*3.0857);
             //totmass_req  = 3.0856*3.0856*8.41185687e-22*totmass_req;

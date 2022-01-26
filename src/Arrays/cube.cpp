@@ -211,9 +211,7 @@ bool Cube<T>::readCube (std::string fname) {
     }
     
     headDefined = true;
-    // I do not like the following 3 lines, I should think something better
-    head.setRedshift(par.getRedshift());
-    head.setWave0(par.getRestwave());
+    
     // The FREQ0 can be in the header. Override if given by the user.
     if (par.getRestfreq()!=-1) head.setFreq0(par.getRestfreq());
     axisDim = new int [numAxes];
@@ -235,6 +233,27 @@ bool Cube<T>::readCube (std::string fname) {
         head.setDimAx(2,head.DimAx(3));
         axisDim[2] = head.DimAx(2);
     }
+
+    // I do not like the following lines, redshift, wave0 and veldef should not 
+    // be stored in Header(). I should think something better
+    head.setRedshift(par.getRedshift());
+    head.setWave0(par.getRestwave());
+
+    // Setting velocity conversion
+    if (par.getParMA().veldef=="auto") {
+        std::string sptype = head.getSpectralType();
+        if (sptype=="freq") {
+            head.setVelDef("radio");
+            std::cout << "\nBBAROLO WARNING: I will use a radio definition for velocity. ";
+            std::cout << "This can be changed by using VELDEF parameter.\n";
+        }
+        else if (sptype=="wave") {
+            head.setVelDef("relativistic");
+            std::cout << "\nBBAROLO WARNING: I will use a relativistic definition of velocity. ";
+            std::cout << "This can be changed by using VELDEF parameter.\n";
+        }
+    }
+    else head.setVelDef(par.getParMA().veldef);
 
     numPix = axisDim[0]*axisDim[1]*axisDim[2];
     if (!fitsread_3d()) return false;
@@ -1073,9 +1092,9 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             pixToWCSSingle(head.WCS(), pix, world);
             RA  = world[0];
             DEC = world[1];
-            VEL = AlltoVel (world[2],head,par.getVelDef());
+            VEL = AlltoVel (world[2],head);
             //float zval = ((Zcenter+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2));
-            //VEL = AlltoVel(zval,head,par.getVelDef());
+            //VEL = AlltoVel(zval,head);
             if (RA<0) RA += 360;
             else if (RA>360) RA -= 360;
         }
@@ -1277,7 +1296,7 @@ void Cube<T>::writeCubelets() {
 
         for (int z=0; z<c->DimZ(); z++) {
             float intSpec = 0;
-            double vel = AlltoVel(c->getZphys(z),c->Head(),par.getVelDef());
+            double vel = AlltoVel(c->getZphys(z),c->Head());
             for (int y=0; y<c->DimY(); y++) {
                 for (int x=0; x<c->DimX(); x++) {
                     if (obj->isInObject(x+starts[0],y+starts[1],z+starts[2])) {

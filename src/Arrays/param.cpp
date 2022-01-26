@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.6.2"
+#define BBVERSION "1.6.3dev"
 
 struct Entry {string name; string descr;};
 
@@ -1006,9 +1006,10 @@ bool Param::checkPars() {
             cout << "MAP warning: MAPTYPE is either MOMENT or GAUSSIAN. Reverting to MOMENT.\n";
     }
     
-    if (parMA.veldef!="radio" && parMA.veldef!="optical" && parMA.veldef!="relativistic") {
-        cout << "MAP warning: unknown velocity definition '"<< parMA.veldef << "'. Defaulting to 'relativistic'. \n";
-        parMA.veldef = "relativistic";
+    if (parMA.veldef!="radio" && parMA.veldef!="optical" && \
+        parMA.veldef!="relativistic" && parMA.veldef!="auto") {
+        cout << "MAP warning: unknown velocity definition '"<< parMA.veldef << "'. Defaulting to 'auto'. \n";
+        parMA.veldef = "auto";
     }
     
     if (parMA.taper!="uniform" && parMA.taper!="hanning1" && parMA.taper!="hanning2") {

@@ -45,6 +45,7 @@ Header::Header () {
     datamin = datamax = redshift = crota = 0.;
     dunit3 = "";
     object = "NONE";
+    veldef = "auto";
     pointAllocated = false;
     warning = true;
     wcs = new struct wcsprm;
@@ -125,6 +126,7 @@ Header& Header::operator=(const Header& h) {
     this->btype     = h.btype;
     this->object    = h.object;
     this->telescope = h.telescope;
+    this->veldef    = h.veldef;
     this->dunit3    = h.dunit3;
     this->drval3    = h.drval3;
     this->datamin   = h.datamin;
@@ -916,6 +918,27 @@ bool Header::checkHeader() {
 
 }
 
+std::string Header::getSpectralType() {
+
+    // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis ig numAxes>3
+    std::string cu2 = makelower(cunit[numAxes-1]);
+    std::string ct2 = makelower(ctype[numAxes-1]);
+    if (numAxes>3) {
+        cu2 = makelower(cunit[2]);
+        ct2 = makelower(ctype[2]);
+    }
+    size_t f = std::string::npos;
+    std::string sptype;
+    
+    if (ct2.find("wav")!=f  || cu2.find("um")!=f || cu2.find("nm")!=f ||
+        cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
+    else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
+    else if (ct2.find("vel")!=f || ct2.find("vopt")!=f || 
+        ct2.find("vrad")!=f || cu2.find("m//s")!=f) sptype="velo";
+    else sptype="none";
+    
+    return sptype;
+}
 
 template <class T>
 bool Header::read_keyword(std::string keyword, T &key, bool err) {

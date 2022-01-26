@@ -141,8 +141,8 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
     ////////////////////////////////////////////////////////////////////////////
     
     // Getting maximum and minimum velocity in the spectral range of the cube
-    T velmin = AlltoVel<T>(in->getZphys(0),in->Head());
-    T velmax = AlltoVel<T>(in->getZphys(in->DimZ()-1),in->Head());
+    double velmin = AlltoVel(in->getZphys(0),in->Head());
+    double velmax = AlltoVel(in->getZphys(in->DimZ()-1),in->Head());
     if (velmin>velmax) std::swap(velmin,velmax);
     // Getting maximum and minimum coordinates of detection
     int Xmin=obj->getXmin(), Ymin=obj->getYmin();
@@ -814,7 +814,7 @@ double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, dou
     T inc  = mypar[1];
 
     Rings<T> *rings = new Rings<T>;
-    rings->setRings(0,RMAX,radsep,xcen,ycen,vsys,10*DeltaVel<T>(c->Head()),8,0,0,0,0,1E20,0,inc,pa);
+    rings->setRings(0,RMAX,radsep,xcen,ycen,vsys,10*DeltaVel(c->Head()),8,0,0,0,0,1E20,0,inc,pa);
 
     MomentMap<T> *totalmap = new MomentMap<T>;
     totalmap->input(c);

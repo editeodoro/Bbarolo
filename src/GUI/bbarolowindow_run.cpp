@@ -38,7 +38,7 @@ void BBaroloWindow::on_FitslineEdit_editingFinished() {
     if (filename=="") {lastFilename = filename; return;}
     if(fexists(filename.toStdString())) {
         
-        if (filename.toStdString().find("./")==0) {
+        if (filename.toStdString().find(".//")==0) {
             filename.remove(0,1);
             filename = QDir::currentPath()+filename;
         }

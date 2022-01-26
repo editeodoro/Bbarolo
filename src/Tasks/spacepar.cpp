@@ -117,7 +117,15 @@ void Spacepar<T>::calculate() {
     // Setting output FITS File
     setOutSpacepar(p1_nsteps,p2_nsteps);
 
-    int start_rad = Galfit<T>::par.STARTRAD < Galfit<T>::inr->nr ? Galfit<T>::par.STARTRAD : 0;    
+    int start_rad = Galfit<T>::par.STARTRAD < Galfit<T>::inr->nr ? Galfit<T>::par.STARTRAD : 0;
+    
+    double scaling = 1;
+    if (Galfit<T>::par.NORMALCUBE) {
+        scaling = 10./Galfit<T>::in->stat().getMax();
+        for (auto i=Galfit<T>::in->NumPix(); i--;) Galfit<T>::in->Array(i) *= scaling;
+        Galfit<T>::data_noise *= scaling;
+    }
+    
     // Starting loop over rings
     for (int ir=start_rad; ir<Galfit<T>::inr->nr; ir++) {
         
@@ -214,6 +222,7 @@ void Spacepar<T>::calculate() {
                      
                 T minfunc = Galfit<T>::func3D(dring, par);
                 parspace->Array(i,j,ir) = minfunc;
+                
                 delete dring;
                 
 #pragma omp critical (spacepar_min) 
@@ -226,6 +235,7 @@ void Spacepar<T>::calculate() {
                 file << p1steps[i] << "  " << p2steps[j] << "  " << minfunc << endl;
 }
             }
+            
 #pragma omp critical (spacepar_endl) 
             file << endl;
         }
@@ -242,9 +252,17 @@ void Spacepar<T>::calculate() {
         }
     
     }
-
+    
     remove(filename.c_str());
     Galfit<T>::in->pars().setVerbosity(verb);
+    
+    // Scaling back to original values
+    if (Galfit<T>::par.NORMALCUBE) {
+        for (auto i=Galfit<T>::in->NumPix(); i--;) {
+            Galfit<T>::in->Array(i) /= scaling;
+            Galfit<T>::data_noise /= scaling;
+        }
+    }
     
     delete [] p1steps;
     delete [] p2steps;

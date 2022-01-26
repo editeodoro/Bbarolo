@@ -45,30 +45,30 @@ public:
      
     /// Obvious inline functions
     
-    int     NumAx   () {return numAxes;}
-    int     Bitpix  () {return bitpix;}
-    long    *DimAx  () {return dimAxes;}
-    long    DimAx (int i) {return dimAxes[i];}
-    double  *Crpix  () {return crpix;}
-    double  *Crval  () {return crval;}
-    double  *Cdelt  () {return cdelt;}
-    double  Bmin    () {return bmin;}
-    double  Bmaj    () {return bmaj;}
-    double  Bpa     () {return bpa;}
-    float   BeamArea() {return beamArea;}
-    float   Bzero   () {return bzero;}
-    float   Bscale  () {return bscale;}
-    float   Blank   () {return blank;}
-    float   Epoch   () {return epoch;}
-    double  Freq0   () {return freq0;}
-    double  Crota   () {return crota;}
-    double  DataMax () {return datamax;}
-    double  DataMin () {return datamin;}
-    double  Cdelt   (int i) {return cdelt[i];}
-    double  Crval   (int i) {return crval[i];}
-    double  Crpix   (int i) {return crpix[i];}
-    double  Drval3  () {return drval3;}
-    double  PixScale () {return (fabs(cdelt[0])+fabs(cdelt[1]))/2.;}
+    int    NumAx   () {return numAxes;}
+    int    Bitpix  () {return bitpix;}
+    long   *DimAx  () {return dimAxes;}
+    long   DimAx (int i) {return dimAxes[i];}
+    double *Crpix  () {return crpix;}
+    double *Crval  () {return crval;}
+    double *Cdelt  () {return cdelt;}
+    double Bmin    () {return bmin;}
+    double Bmaj    () {return bmaj;}
+    double Bpa     () {return bpa;}
+    float  BeamArea() {return beamArea;}
+    float  Bzero   () {return bzero;}
+    float  Bscale  () {return bscale;}
+    float  Blank   () {return blank;}
+    float  Epoch   () {return epoch;}
+    double Freq0   () {return freq0;}
+    double Crota   () {return crota;}
+    double DataMax () {return datamax;}
+    double DataMin () {return datamin;}
+    double Cdelt   (int i) {return cdelt[i];}
+    double Crval   (int i) {return crval[i];}
+    double Crpix   (int i) {return crpix[i];}
+    double Drval3  () {return drval3;}
+    double PixScale () {return (fabs(cdelt[0])+fabs(cdelt[1]))/2.;}
     struct wcsprm *WCS () {return wcs;}
     double Wave0 () {return wave0;}
     double Redshift () {return redshift;}
@@ -83,6 +83,7 @@ public:
     std::string Dunit3 () {return dunit3;}
     std::string Obname () {return object;}
     std::string Telesc () {return telescope;}
+    std::string VelDef () {return veldef;}
     
     void setBitpix (int i) {bitpix = i;}
     void setDimAx (int i, long val) {dimAxes[i] = val;}
@@ -113,7 +114,8 @@ public:
     void setWarning (bool b) {warning=b;}
     void setWave0 (double w) {wave0=w;}
     void setRedshift (double r) {redshift=r;}
-
+    void setVelDef(std::string s) {veldef=s;}
+        
     void Warning(std::string s) {if (warning) std::cout << s << std::endl;}
     void addKey(std::string s) {keys.push_back(s);}
 
@@ -129,6 +131,7 @@ public:
     bool    checkHeader();                                      /// Check header is ok for BBarolo
     int     wcsToPix(const double *world, double *pix, size_t npts=1);
     int     pixToWCS(const double *pix, double *world, size_t npts=1);
+    std::string getSpectralType();
 
     template <class T>                                          /// Read the request keyword and write on "key".
     bool read_keyword(std::string keyword, T &key, bool err=false); 
@@ -164,6 +167,7 @@ private:
     std::string *cunit;             ///< Unity of axis.
     std::string dunit3;             ///< Secondary units of third axis.
     std::string telescope;          ///< Instrument.
+    std::string veldef;             ///< Velocity definition.
     std::vector<std::string> keys;  ///< Whole header as strings.
 
     struct wcsprm *wcs;             ///< The WCS parameters in a struct from the wcslib library.

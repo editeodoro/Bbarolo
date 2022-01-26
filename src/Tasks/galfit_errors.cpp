@@ -470,7 +470,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
         if (err[0][nf]==0) err[0][nf] = findMean(err[0],nfree);
         if (err[1][nf]==0) err[1][nf] = findMean(err[1],nfree);
         if (free_var[nf]==VDISP) {
-            float minerr_vd = DeltaVel<float>(in->Head())/(2*sqrt(2*log(2)));
+            double minerr_vd = DeltaVel(in->Head())/(2*sqrt(2*log(2)));
             uniform_real_distribution<float> distribution(0,1.); 
             if (abs(err[0][nf])<minerr_vd/2.) err[0][nf] = -abs(minerr_vd/2.+distribution(generator));
             if (abs(err[1][nf])<minerr_vd/2.) err[1][nf] = abs(minerr_vd/2.+distribution(generator)); 

@@ -105,8 +105,7 @@ protected:
     Cube<Type>  *in;                        //< A pointer to the input cube.
     Cube<Type>  *out;                       //< The Cube containing the model.
     bool    outDefined;
-    double  crpix3, crval3;                 //< Header keywords.
-    double  drval3, cdelt3;                  //<
+    double  crpix3, crval3, cdelt3;         //< Header keywords.
     double  cdelt[2];                       //<
     std::string cunit3, ctype3;         
     std::string ctype[2], cunit[2]; 

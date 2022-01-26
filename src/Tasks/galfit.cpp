@@ -235,7 +235,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
     zcyl  = par.ZCYL!="-1" ? atof(par.ZCYL.c_str()) : 0.;
     
     if (nr==0) {
-        std::cout << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
+        std::cerr << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
         std::terminate();
     }
 
@@ -434,11 +434,11 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     for (int ir=0; ir<inr->nr-1; ir++) {
         if (ir!=inr->nr-1) {
             if (inr->radii[ir+1]<=inr->radii[ir]) {
-                cout << "3DFIT WARNING: Radii not in increasing order.\n";
+                std::cout  << "3DFIT WARNING: Radii not in increasing order.\n";
             }
         }
         if (inr->radii[ir]<0) {
-            cout << "3DFIT ERROR: Negative radius!!!\n";
+            std::cerr << "3DFIT ERROR: Negative radius!!!\n";
             std::terminate();
         }
     }
@@ -446,13 +446,15 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     // Checking that the beam has all information
     in->checkBeam();
 
-    // Setting other GALFIT variables
+    // Setting other 3DFIT variables
     verb = in->pars().isVerbose();
     arcconv = arcsconv(in->Head().Cunit(0));
     distance = par.DISTANCE==-1 ? VeltoDist(fabs(inr->vsys[0])) : par.DISTANCE;
     chan_noise = new float[in->DimZ()];
     chan_noiseAllocated = true;
-    for (int z=0; z< in->DimZ(); z++) chan_noise[z]=1;
+    for (int z=0; z<in->DimZ(); z++) chan_noise[z]=1;
+    if (!in->StatsDef()) in->setCubeStats();
+    data_noise = in->stat().getSpread();
     
     wpow = par.WFUNC;
     
@@ -549,11 +551,11 @@ void Galfit<T>::galfit() {
     // avoid problems with small flux values.
     double scaling = 1;
     if (par.NORMALCUBE) {
-        if (!in->StatsDef()) in->setCubeStats();
         scaling = 10./in->stat().getMax();
         for (auto i=in->NumPix(); i--;) in->Array(i) *= scaling;
+        data_noise *= scaling;
     }
-
+    
     T ***errors = allocate_3D<T>(inr->nr,2,nfree);
     bool fitok[inr->nr];
     for (int i=0; i<inr->nr; i++) fitok[i]=false;
@@ -640,8 +642,13 @@ void Galfit<T>::galfit() {
     }
     
     // Scaling back to original values
-    if (par.NORMALCUBE) for (auto i=in->NumPix(); i--;) in->Array(i) /= scaling;
-    
+    if (par.NORMALCUBE) {
+        for (auto i=in->NumPix(); i--;) {
+            in->Array(i) /= scaling;
+            data_noise /= scaling;
+        }
+    }
+
 }
 template void Galfit<float>::galfit();
 template void Galfit<double>::galfit();
@@ -739,8 +746,8 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
         if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
 
         // Check that VROT is within limit of cube
-        double maxv = fabs(AlltoVel<T>(in->getZphys(in->DimZ()-1),in->Head())-outr->vsys[ir]);
-        double minv = fabs(AlltoVel<T>(in->getZphys(0),in->Head())-outr->vsys[ir]);
+        double maxv = fabs(AlltoVel(in->getZphys(in->DimZ()-1),in->Head())-outr->vsys[ir]);
+        double minv = fabs(AlltoVel(in->getZphys(0),in->Head())-outr->vsys[ir]);
         double maxvrot = std::max(maxv/sin(outr->inc[ir]*M_PI/180.),minv/sin(outr->inc[ir]*M_PI/180.));
         if (outr->vrot[ir]>maxvrot) {
             if (verb) {
@@ -857,8 +864,8 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
         if (mpar[VRAD])  outr->vrad[ir]=pmin[k++];
 
         // Check that VROT is within limit of cube
-        double maxv = fabs(AlltoVel<T>(in->getZphys(in->DimZ()-1),in->Head())-outr->vsys[ir]);
-        double minv = fabs(AlltoVel<T>(in->getZphys(0),in->Head())-outr->vsys[ir]);
+        double maxv = fabs(AlltoVel(in->getZphys(in->DimZ()-1),in->Head())-outr->vsys[ir]);
+        double minv = fabs(AlltoVel(in->getZphys(0),in->Head())-outr->vsys[ir]);
         double maxvrot = std::max(maxv/sin(outr->inc[ir]*M_PI/180.),minv/sin(outr->inc[ir]*M_PI/180.));
         if (outr->vrot[ir]>maxvrot) {
             if (verb) {

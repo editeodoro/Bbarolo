@@ -145,7 +145,7 @@ struct MAPS_PAR {
     bool   SNmap          = false;          ///< Whether to calculate A S/N map of the moment 0 map. 
     vector<int> contChans = {20, 20};       ///< Number of channels used for continuum subtraction.
     string taper          = "uniform";      ///< Whether input cube has been Hanning tapered.
-    string veldef         = "relativistic"; ///< Velocity conversion when spectral axis not velocity
+    string veldef         = "auto";         ///< Velocity conversion when spectral axis not velocity.
 };
 
 

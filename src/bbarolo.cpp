@@ -300,11 +300,9 @@ bool BBcore (Param *par) {
         MomentMap<BBreal> map;
         map.input(c);
         if (par->getParMA().totalmap) {
+            map.ZeroMoment(masking,par->getParMA().maptype);
+            map.fitswrite_2d((s+"map_0th.fits").c_str());
             if (par->getParMA().SNmap) map.SNMap(masking);
-            else {
-                map.ZeroMoment(masking,par->getParMA().maptype);
-                map.fitswrite_2d((s+"map_0th.fits").c_str());
-            }
         }
         if (par->getParMA().velocitymap) {
             map.FirstMoment(masking,par->getParMA().maptype);

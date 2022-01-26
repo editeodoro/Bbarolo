@@ -82,8 +82,32 @@ bool mkdirp(const char* path, mode_t mode) {
 }
 
 
-template <class T> 
-T AlltoVel (T in, Header &h, std::string veldef) {
+double Freq2Vel(double v, double freq0, std::string veldef) {
+    
+    // Convert a frequency into a velocity in km/s.
+    
+    const double c = 299792.458;
+    double vel_km_s = c*(freq0*freq0-v*v)/(freq0*freq0+v*v);  // Relativistic velocity definition (default)
+    if (veldef=="radio") vel_km_s = c*(freq0-v)/freq0;        // Radio velocity definition
+    else if (veldef=="optical") vel_km_s = c*(freq0-v)/v;     // Optical velocity definition
+    return vel_km_s;
+}
+
+
+double Wave2Vel(double v, double wave0, std::string veldef) {
+    
+    // Convert a wavelenght into a velocity in km/s.
+    
+    const double c = 299792.458;
+    double vel_km_s = c*(v*v-wave0*wave0)/(v*v+wave0*wave0);  // Relativistic velocity definition (default)
+    if (veldef=="radio") vel_km_s = c*(v-wave0)/v;            // Radio velocity definition
+    else if (veldef=="optical") vel_km_s = c*(v-wave0)/wave0; // Optical velocity definition
+    return vel_km_s;
+    //return Freq2Vel(c/v,c/wave0,veldef); 
+}
+
+
+double AlltoVel (double in, Header &h) {
     
   /// This function convert a spectral input value "in" in 
   /// a output value in units of KM/S.
@@ -91,77 +115,69 @@ T AlltoVel (T in, Header &h, std::string veldef) {
     
     std::string cunit2 = makelower(h.Cunit(h.NumAx()-1));
     if (h.NumAx()>3) cunit2 = makelower(h.Cunit(2));
-
-    const double c = 299792458;
-    T vel_km_s = in;
+    
+    double vel_km_s = in;
 
     if (cunit2=="km/s" || cunit2=="kms") vel_km_s = in;
     else if (cunit2=="m/s" || cunit2=="ms") vel_km_s = in/1000.;
     else if (cunit2=="hz" || cunit2=="mhz") {
         // Redshifted rest frequency
         double frest = h.Freq0()/(1+h.Redshift());
-        T vel_m_s = c*(frest*frest-in*in)/(frest*frest+in*in);      // Relativistic velocity definition (default)
-        if (veldef=="radio") vel_m_s = c*(frest-in)/frest;          // Radio velocity definition
-        else if (veldef=="optical") vel_m_s = c*(frest-in)/in;      // Optical velocity definition
-        vel_km_s = vel_m_s/1000.;
+        vel_km_s = Freq2Vel(in,frest,h.VelDef());
     }
     else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
-             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") { // Micron or Angstrom for Hi-Z
+             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {
         //int z_cent = floor(h.DimAx(2)/2.)-1;
         double z_cent = h.Crpix(2)-1;
         double restw = h.Wave0(), reds = h.Redshift();
         if (restw!=-1) {
             z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
         }
-        double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+        double wrest = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
         
-        T vel_m_s = c*(in*in-line_wave*line_wave)/(in*in+line_wave*line_wave);
-        vel_km_s = vel_m_s/1000.;
+        vel_km_s = Wave2Vel(in,wrest,h.VelDef());
     }
     
     return vel_km_s;
     
 }
-template short AlltoVel (short, Header &, std::string);
-template int AlltoVel (int, Header &, std::string);
-template long AlltoVel (long, Header &, std::string);
-template float AlltoVel (float, Header &, std::string);
-template double AlltoVel (double, Header &, std::string);
 
 
-template <class T> 
-T DeltaVel (Header &h) {
+double DeltaVel(Header &h) {
 
  /// This function convert the spectral cdelt value 
  /// in a output cdelt value in units of KM/S.  
     
-    T deltaV = h.Cdelt(2);
+    double deltaV = h.Cdelt(2);
     long zdim = h.DimAx(2);
     std::string cunit2 = makelower(h.Cunit(2));
-
-    const double c = 299792458;
+    const double c = 299792.458;
 
     if (cunit2=="km/s" || cunit2=="kms") deltaV = h.Cdelt(2);
     else if (cunit2=="m/s" || cunit2=="ms") {
-        deltaV =h.Cdelt(2)/1000.;
+        deltaV = h.Cdelt(2)/1000.;
     }
     else if (cunit2=="hz" || cunit2=="mhz") {
         double frest = h.Freq0()/(1+h.Redshift());
-            
-        T sum=0;
-        for (int i=0; i<zdim-1; i++) {
-            T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T ivel = c*(frest*frest-ipix*ipix)/(frest*frest+ipix*ipix);
-            T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T svel = c*(frest*frest-spix*spix)/(frest*frest+spix*spix);
-            T diff = svel - ivel;
-            sum += diff;
+        
+        if (h.VelDef()=="radio") deltaV = -c*deltaV/frest;
+        else {
+            // For optical and relativistic velocity, equal steps in freq do not 
+            // correspond to equal steps in velocity. I am taking an average.
+            double sum=0;
+            for (int i=0; i<zdim-1; i++) {
+                double ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+                double spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+                double ivel = Freq2Vel(ipix,frest,h.VelDef());
+                double svel = Freq2Vel(spix,frest,h.VelDef());
+                double diff = svel - ivel;
+                sum += diff;
+            }
+            deltaV = sum/(zdim-1);
         }
-        deltaV = sum/(zdim-1);
-        deltaV /= 1000; 
     }
     else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
-             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {            // Micron or Angstrom for Hi-Z
+             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {
 
         double z_cent = h.DimAx(2)/2.-1;
         double restw = h.Wave0(), reds = h.Redshift();
@@ -169,28 +185,25 @@ T DeltaVel (Header &h) {
             z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
         }
 
-        double line_wave = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+        double wrest = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
 
-        T sum=0;
-        for (int i=0; i<zdim-1; i++) {
-            T ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T ivel = c*(ipix*ipix-line_wave*line_wave)/(ipix*ipix+line_wave*line_wave);
-            T spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
-            T svel = c*(spix*spix-line_wave*line_wave)/(spix*spix+line_wave*line_wave);
-            T diff = svel - ivel;
-            sum += diff;
+        if (h.VelDef()=="radio") deltaV = -c*wrest/deltaV;
+        else {
+            double sum=0;
+            for (int i=0; i<zdim-1; i++) {
+                double ipix = (i+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+                double spix = (i+2-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+                double ivel = Wave2Vel(ipix,wrest,h.VelDef());
+                double svel = Wave2Vel(spix,wrest,h.VelDef());
+                double diff = svel - ivel;
+                sum += diff;
+            }
+            deltaV = sum/(zdim-1);
         }
-
-        deltaV = sum/(zdim-1);
-        deltaV /= 1000;
     }
     return deltaV;
 }
-template short DeltaVel (Header&);
-template int DeltaVel (Header&);
-template long DeltaVel (Header&);
-template float DeltaVel (Header&);
-template double DeltaVel (Header&);
+
 
 template <class T> 
 T FluxtoJyBeam (T in, Header &h) {
@@ -204,7 +217,7 @@ T FluxtoJyBeam (T in, Header &h) {
     
     if (b.find("w.u.")!=f || b.find("wu")!=f) 
         fluxJYB *= 5E-3;
-    else if (b.find("jy/b")!=f || b.find("j/b")!=f) 
+    else if (b.find("jy//b")!=f || b.find("j//b")!=f) 
         fluxJYB = fluxJYB;
     else if (b.find("jy")!=f && h.BeamArea()!=0)
         fluxJYB *= h.BeamArea();

@@ -59,7 +59,7 @@ void Rendering3D<T>::compute(float azangle) {
     int isize = int(azangle);
 
     int axis[3]={size[0],size[1],isize};
-    out = new Cube<float>(axis);
+    out = new Cube<T>(axis);
     out->saveHead(in->Head());
     out->saveParam(in->pars());
     for (int i=0; i<out->NumPix(); i++) out->Array(i)=0;
@@ -123,7 +123,7 @@ void Rendering3D<T>::writefits(std::string fname, float smoothfactor) {
     if (fname=="") fname = in->pars().getOutfolder()+in->Head().Obname()+"_3D.fits";
 
     if (smoothfactor>1) {
-        Smooth3D<float> *smoothed = new Smooth3D<float>;
+        Smooth3D<T> *smoothed = new Smooth3D<T>;
         Beam oldbeam = {in->Head().Bmaj()*3600,
                         in->Head().Bmin()*3600,
                         in->Head().Bpa()};

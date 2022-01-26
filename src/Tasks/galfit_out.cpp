@@ -76,7 +76,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         }
     }
 
-    float mass = 2.365E5*FluxtoJy(totflux_data,in->Head())*fabs(DeltaVel<float>(in->Head()))*distance*distance;
+    float mass = 2.365E5*FluxtoJy(totflux_data,in->Head())*fabs(DeltaVel(in->Head()))*distance*distance;
 
     // Calculate radial profile along the output rings
     if (verb) std::cout << "    Deriving " << randomAdjective(1) << " radial profile..." << std::flush;
@@ -273,8 +273,8 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         // Calculating integral of input density profile and current
         double totmass_req=0, totmass_curr=0;
         for (int i=0; i<outr->nr; i++) {
-            totmass_req  += outr->dens[i];              // In cm^-2
-            totmass_curr += ell.getSurfDensFaceOn(i);   // In JY*KM/S/pc2
+            totmass_req  += outr->dens[i];                                  // In cm^-2
+            totmass_curr += ell.getSurfDensFaceOn(i)/in->Head().BeamArea(); // In JY*KM/S/pc2
         }
         
         // Converting everything to Msun/pc2
@@ -283,7 +283,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         totmass_curr = 2.36E-07*totmass_curr/(arctorad*arctorad);
 
         // Re-normalization
-        for (auto i=in->NumPix(); i--;) outarray[i] *= totmass_req/totmass_curr;
+        //for (auto i=in->NumPix(); i--;) outarray[i] *= totmass_req/totmass_curr;
         if (verb) std::cout << " Done." << std::endl;
         
         if (verb) std::cout << "    Writing model..." << std::flush;
@@ -928,7 +928,7 @@ int Galfit<T>::plotAll_Python() {
     std::ofstream pyf;
 
     float crpix3_kms = in->Head().Crpix(2);
-    float cdelt3_kms = DeltaVel<float>(in->Head());
+    float cdelt3_kms = DeltaVel(in->Head());
     float crval3_kms = AlltoVel(in->Head().Crval(2),in->Head());
     float bmaj = in->Head().Bmaj()/in->Head().PixScale();
     float bmin = in->Head().Bmin()/in->Head().PixScale();
@@ -971,8 +971,8 @@ int Galfit<T>::plotAll_Python() {
         float max_v=*max_element(&maxv[0],&maxv[0]+outr->nr);
         disp = fabs((outr->radii.back()/arcconv+2*in->Head().Bmaj())/in->Head().PixScale());
         int z_vsys = (vsys_av-crval3_kms)/cdelt3_kms+crpix3_kms-1;
-        //int disp_v = ceil((1.5*max_vrot)*sin(inc_av*M_PI/180.)/fabs(DeltaVel<float>(in->Head())));
-        int disp_v = ceil((1.5*max_v)/fabs(DeltaVel<float>(in->Head())));
+        //int disp_v = ceil((1.5*max_vrot)*sin(inc_av*M_PI/180.)/fabs(DeltaVel(in->Head())));
+        int disp_v = ceil((1.5*max_v)/fabs(DeltaVel(in->Head())));
         zmin = z_vsys-2*disp_v>0 ? z_vsys-2*disp_v : 0;
         zmax = z_vsys+2*disp_v<in->DimZ() ? z_vsys+2*disp_v : in->DimZ()-1;
     }

@@ -43,7 +43,8 @@ def reshapePointer (p, shape):
 def isIterable (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
     return isinstance(p,(list,tuple,np.ndarray))
-    
+
+
 def isNumber (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
     return isinstance(p,(float,int,np.int32,np.int64,np.float32,np.float64))

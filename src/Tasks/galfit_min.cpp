@@ -519,12 +519,11 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
         if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
         else Convolve(modp, bsize);
     }
-
+    
     //<<<<< Normalizing & calculating the residuals....
     double minfunc = (this->*func_norm)(dring,modp,bhi,blo);
     
     delete mod;
-    
 	return minfunc; 
 }
 template float Galfit<float>::getFuncValue(Rings<float>*,Galmod<float> *);
@@ -620,8 +619,6 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
-    if (!in->StatsDef()) in->setCubeStats();
-
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
     int bweight = par.BWEIGHT;
@@ -657,7 +654,7 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
                 array[modPix] *= factor;
-                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : data_noise;
                 T mod = array[modPix];
 
                 if (mask[obsPix]==0) {
@@ -686,8 +683,6 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     std::cout << "AOCOOADC" << std::endl;
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
-
-    if (!in->StatsDef()) in->setCubeStats();
 
     std::vector<Pixel<T> > *anulus = getRingRegion(dring, bhi, blo);
 
@@ -722,13 +717,13 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
             long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
             long obsPix = in->nPix(x+blo[0],y+blo[1],z);
             array[modPix] *= factor;
-            T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+            T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : data_noise;
             T mod = array[modPix];
 
             if (mask[obsPix]==0 && mod==0) continue;
             else if (mask[obsPix]==0 && mod!=0) {
                 numBlanks++;
-                obs = in->stat().getSpread();
+                obs = data_noise;
             }
 
             numPix_tot++;
@@ -750,8 +745,6 @@ template <class T>
 double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
-
-    if (!in->StatsDef()) in->setCubeStats();
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
@@ -780,7 +773,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     if (modSum!=0) factor = obsSum/modSum;
     else factor=0;
-
+    
     for (uint y=bsize[1]; y--;) {
         for (uint x=bsize[0]; x--;) {
             double theta;
@@ -796,7 +789,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
                 array[modPix] *= factor;
-                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : data_noise;
                 T mod = array[modPix];
 
                 if (mask[obsPix]==0) {
@@ -809,6 +802,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
             }
         }
     }
+    
     //numPix_ring=1;
     //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
     return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
@@ -822,8 +816,6 @@ template <class T>
 double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
-
-    if (!in->StatsDef()) in->setCubeStats();
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
@@ -849,7 +841,7 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
             for (uint z=in->DimZ(); z--;) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : in->stat().getSpread();
+                T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : data_noise;
                 T mod = array[modPix];
 
                 if (mask[obsPix]==0) {

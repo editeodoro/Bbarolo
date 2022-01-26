@@ -129,8 +129,10 @@ int wcsToPixSingle(struct wcsprm *wcs, const double *world, double *pix);
 
 /// Other functions. Defined in utils.cpp
 bool mkdirp(const char* path, mode_t mode = DEFAULT_MODE);
-template <class T> T AlltoVel (T in, Header &h, std::string veldef="relativistic");
-template <class T> T DeltaVel (Header &h);
+double Freq2Vel(double v, double freq0, std::string veldef);
+double Wave2Vel(double v, double wave0, std::string veldef);
+double AlltoVel (double in, Header &h);
+double DeltaVel (Header &h);
 template <class T> T FluxtoJyBeam (T in, Header &h);
 template <class T> T FluxtoJy (T in, Header &h);
 template <class T> T Pbcor (PixelInfo::Voxel<T> &v, Header &h);

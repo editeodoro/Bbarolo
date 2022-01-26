@@ -425,7 +425,7 @@ bool GalWind<T>::makePlots(){
         << "norm = ImageNormalize(vmin=lims[0], vmax=lims[1], stretch=PowerStretch(1))\n"
         << "cont = np.array([1,2,4,16,64,256,1024])*0.04 \n"
         << "crpix3_kms = " << in->Head().Crpix(2) << std::endl
-        << "cdelt3_kms = " << DeltaVel<float>(in->Head()) << std::endl
+        << "cdelt3_kms = " << DeltaVel(in->Head()) << std::endl
         << "crval3_kms = " << AlltoVel(in->Head().Crval(2),in->Head()) << "\n"    
         << "velos = (np.arange(0,d.shape[0])+1-crpix3_kms)*cdelt3_kms+crval3_kms\n\n";
         

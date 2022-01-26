@@ -107,10 +107,12 @@ protected:
     Cube<T>  *line_im;                      //< Line Image;
     bool     line_imDefined = false;
     float    *chan_noise;                   //< Noise in each channel map.
+    T        data_noise;                    //< Global noise in the cube. 
     bool     chan_noiseAllocated = false;
     bool     global = false;                //< Whether to fit all parameters at once.
     bool     reverse = false;               //< Using reverse cumulative fitting
     bool     verb = true;
+    
 
 
     /// Pointer to the function to be minimized (3d or 2d slit)
