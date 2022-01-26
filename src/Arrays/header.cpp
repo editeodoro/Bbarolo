@@ -934,7 +934,7 @@ std::string Header::getSpectralType() {
         cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
     else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
     else if (ct2.find("vel")!=f || ct2.find("vopt")!=f || 
-        ct2.find("vrad")!=f || cu2.find("m//s")!=f) sptype="velo";
+        ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo";
     else sptype="none";
     
     return sptype;

@@ -283,7 +283,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         totmass_curr = 2.36E-07*totmass_curr/(arctorad*arctorad);
 
         // Re-normalization
-        //for (auto i=in->NumPix(); i--;) outarray[i] *= totmass_req/totmass_curr;
+        for (auto i=in->NumPix(); i--;) outarray[i] *= totmass_req/totmass_curr;
         if (verb) std::cout << " Done." << std::endl;
         
         if (verb) std::cout << "    Writing model..." << std::flush;

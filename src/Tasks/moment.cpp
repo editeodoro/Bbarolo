@@ -100,7 +100,7 @@ void MomentMap<T>::HIMassDensityMap (bool msk) {
     
     // Check that input units are jy / beam or Kelvin
     std::string bunit = makelower(in->Head().Bunit());
-    bool isJY = bunit.find("//b")!=std::string::npos;
+    bool isJY = bunit.find("/b")!=std::string::npos;
     bool isK  = bunit=="k" || bunit=="kelvin";
     if (isJY || isK) {      
         if(msk && !in->MaskAll()) in->BlankMask();

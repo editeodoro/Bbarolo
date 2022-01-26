@@ -217,7 +217,7 @@ T FluxtoJyBeam (T in, Header &h) {
     
     if (b.find("w.u.")!=f || b.find("wu")!=f) 
         fluxJYB *= 5E-3;
-    else if (b.find("jy//b")!=f || b.find("j//b")!=f) 
+    else if (b.find("jy/b")!=f || b.find("j/b")!=f) 
         fluxJYB = fluxJYB;
     else if (b.find("jy")!=f && h.BeamArea()!=0)
         fluxJYB *= h.BeamArea();

@@ -98,7 +98,7 @@ int main (int argc, char *argv[]) {
         }
 
         par->setImageFile(par->getImage(im));
-
+        
         if (!BBcore(par)) {
             if(par->getListSize()-im>1) std::cout << "Skipping to next file...\n";
             else {std::cout << "Exiting ...\n\n"; return EXIT_FAILURE;}
