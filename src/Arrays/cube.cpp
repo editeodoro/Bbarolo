@@ -453,15 +453,18 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     Statistics::Stats<T> *st = new Statistics::Stats<T>;
     st->setRobust(par.getFlagRobustStats());
     
+    double bmaj,bmin,bpa,nbmaj,nbmin,nbpa,factor;
+    bmaj=bmin=bpa=nbmaj=nbmin=nbpa=factor=0;
+    
     if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
         // Smoothing first and searching for the largest object
-        double bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
-        double bmin  = head.Bmin()*arcsconv(head.Cunit(0));
-        double bpa   = head.Bpa();
-        float factor = par.getFactor()==-1 ? 2 : par.getFactor();
-        double nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
-        double nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
-        double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
+        bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
+        bmin  = head.Bmin()*arcsconv(head.Cunit(0));
+        bpa   = head.Bpa();
+        factor = par.getFactor()==-1 ? 2 : par.getFactor();
+        nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
+        nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
+        nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
         Beam oldbeam = {bmaj,bmin,bpa};
         Beam newbeam = {nbmaj,nbmin,nbpa};
         
@@ -538,13 +541,13 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     }
     else if (par.getMASK()=="SMOOTH") {
         // Smooth and cut
-        double bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
-        double bmin  = head.Bmin()*arcsconv(head.Cunit(0));
-        double bpa   = head.Bpa();
-        float factor = par.getFactor()==-1 ? 2 : par.getFactor();
-        double nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
-        double nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
-        double nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();   
+        bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
+        bmin  = head.Bmin()*arcsconv(head.Cunit(0));
+        bpa   = head.Bpa();
+        factor = par.getFactor()==-1 ? 2 : par.getFactor();
+        nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
+        nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
+        nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();   
         //if (nbmaj/bmaj<1.1) nbmaj = factor*bmaj;
         //if (nbmin/bmin<1.1) nbmin = factor*bmin;
         Beam oldbeam = {bmaj,bmin,bpa};
@@ -651,13 +654,60 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
 
     delete st;
     
+    
     // Writing mask to FITS file
     Cube<short> *m = new Cube<short>(axisDim);
     m->saveHead(head);
     m->saveParam(par);
-    m->Head().setMinMax(0.,0);
+    m->Head().setMinMax(0,0);
+    // Writing masking info in header history
+    std::string sh = "HISTORY BBAROLO MASKING: ";
+    std::vector<std::string> &s = m->Head().Keys();
+    s.clear();
+    s.push_back(sh+"mask built with MASK="+par.getMASK());
+    s.push_back(sh+"FITSFILE="+par.getImageFile());
+    
+    if (par.getMASK().find("SMOOTH")!=std::string::npos) {
+        s.push_back(sh+"FACTOR="+to_string(factor));
+        s.push_back(sh+"NEWBMAJ="+to_string(nbmaj));
+        s.push_back(sh+"NEWBMIN="+to_string(nbmin));
+        s.push_back(sh+"NEWBPA="+to_string(nbpa));
+        if (par.getMASK()=="SMOOTH") s.push_back(sh+"BLANKCUT="+to_string(par.getBlankCut()));
+    }
+    
+    if (par.getMASK().find("SEARCH")!=std::string::npos) {
+        s.push_back(sh+"SEARCHTYPE="+(par.getParSE().searchType));
+        
+        if (par.getParSE().threshold!=0) s.push_back(sh+"THRESHOLD="+to_string(par.getParSE().threshold));
+        else s.push_back(sh+"SNRCUT="+to_string(par.getParSE().snrCut));
+        
+        s.push_back(sh+"FLAGGROWTH="+stringize(par.getParSE().flagGrowth));
+        if (par.getParSE().flagGrowth) {
+            if (par.getParSE().growthThreshold!=0) s.push_back(sh+"GROWTHTHRESHOLD="+to_string(par.getParSE().threshold));
+            else s.push_back(sh+"GROWTHCUT="+to_string(par.getParSE().growthCut));
+        }
+        
+        s.push_back(sh+"REJECTBEFOREMERGE="+stringize(par.getParSE().RejectBeforeMerge));
+        s.push_back(sh+"TWOSTAGEMERGING="+stringize(par.getParSE().TwoStageMerging));
+        s.push_back(sh+"THRESHVELOCITY="+to_string(par.getParSE().threshVelocity));
+        if (par.getParSE().flagAdjacent) s.push_back(sh+"THRESHSPATIAL=1");
+        else s.push_back(sh+"THRESHSPATIAL="+to_string(par.getParSE().threshSpatial));
+        
+        s.push_back(sh+"MINCHANNELS="+to_string(par.getParSE().minChannels));
+        if (par.getParSE().minPix==-1) s.push_back(sh+"MINPIX=beam_area");
+        else s.push_back(sh+"MINPIX="+to_string(par.getParSE().minPix));
+        if (par.getParSE().minVoxels==-1) s.push_back(sh+"MINVOXELS=MINPIX*MINCHANNELS");
+        else s.push_back(sh+"MINVOXELS="+to_string(par.getParSE().minVoxels));
+        
+        if (par.getParSE().maxChannels!=-1) s.push_back(sh+"MAXCHANNELS="+to_string(par.getParSE().maxChannels));
+        if (par.getParSE().maxAngSize!=-1) s.push_back(sh+"MAXANGSIZE="+to_string(par.getParSE().maxAngSize));
+
+    }
+    
+     if (par.getMASK()=="THRESHOLD") s.push_back(sh+"THRESHOLD="+to_string(par.getParSE().threshold));
+    
     for (size_t i=numPix; i--;) m->Array(i) = short(mask[i]);
-    m->fitswrite_3d((par.getOutfolder()+"mask.fits").c_str());
+    m->fitswrite_3d((par.getOutfolder()+"mask.fits").c_str(),true);
     delete m;
 
     if (verb) {
@@ -701,7 +751,10 @@ Cube<T>* Cube<T>::Reduce (int fac, std::string rtype) {
     reduced->saveParam(par);
     reduced->saveHead(head);
     
+    int nthreads = par.getThreads();
+    
     if (rtype=="spectral") {                // Spectral reduction
+#pragma omp parallel for num_threads(nthreads)
         for (int i=0; i<dim[0]*dim[1]; i++) {
             for (int z=0; z<dim[2]; z++) {
                 T sum = 0;

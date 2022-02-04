@@ -1225,8 +1225,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     if (p.getOutfolder()!="" || defaults)
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
     recordParam(Str, "[LOGFILE]", "Redirect output messages to a file?", stringize(p.getLogFile()));
-    recordParam(Str, "[flagRobustStats]", "Using robust statistics?", stringize(p.getFlagRobustStats()));
-    
+    recordParam(Str, "[flagRobustStats]", "Using robust statistics?", stringize(p.getFlagRobustStats()));    
     
     if (p.getFlagDebug()) recordParam(Str, "[DEBUG]", "Debugging mode?", stringize(p.getFlagDebug()));
 
@@ -1458,7 +1457,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
             recordParam(Str, "[REVERSE]", "   Using reverse-cumulative fitting?", p.getParGF().REVERSE);
             recordParam(Str, "[NORMALCUBE]", "   Normalizing cube to help convergence?", stringize(p.getParGF().NORMALCUBE));
 	    recordParam(Str, "[BADOUT]", "   Write unconverged rings in output (with flag)?", stringize(p.getParGF().flagBADOUT));
-
+        recordParam(Str, "[VELDEF]",   "   Definition for velocity conversion?", p.getParMA().veldef);
         }
 
         recordParam(Str, "[NOISERMS]", "   RMS noise to add to the model", p.getParGF().NOISERMS);
@@ -1586,7 +1585,6 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[massdensMap]",   "Saving HI mass density map to FITS file?", stringize(p.getParMA().massdensmap));
     if (p.getParMA().velocitymap || (defaults && isAll)) {
         recordParam(Str, "[velocityMap]",   "Saving velocity map to FITS file?", stringize(p.getParMA().velocitymap));
-        recordParam(Str, "[veldef]",   "   Definition for velocity conversion?", p.getParMA().veldef);
     }
     if (p.getParMA().dispersionmap || (defaults && isAll))
         recordParam(Str, "[dispersionMap]", "Saving velocity dispersion map to FITS file?", stringize(p.getParMA().dispersionmap));

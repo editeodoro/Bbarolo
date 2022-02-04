@@ -194,12 +194,9 @@ bool Header::header_read (std::string fname) {
     int status=0, nfound;
     char comment[72];
     
-
     fitsname = fname;
-    char filename[100];
-    strcpy(filename, fname.c_str());
  
-    if (fits_open_file(&fptr, filename, READONLY, &status)) {
+    if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status)) {
         fits_report_error(stderr, status);
         return false;
     }
@@ -628,9 +625,9 @@ void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
     //fits_update_key_flt(fptr, "BLANK", blank, 10, com, &status);
     
     if (object!="NONE") fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
-    if (epoch!=0) fits_update_key_flt(fptr, "EPOCH", epoch, 10, com, &status);
+    if (epoch!=0) fits_update_key_flt(fptr, "EQUINOX", epoch, 10, com, &status);
     if (telescope!="NONE") fits_update_key_str(fptr, "TELESCOP", telescope.c_str(), com, &status);
-    if (freq0!=0) fits_update_key_dbl(fptr, "FREQ0", freq0, 10, com, &status);
+    if (freq0!=0) fits_update_key_dbl(fptr, "RESTFREQ", freq0, 10, com, &status);
     if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);
     if (datamin!=0) fits_update_key_dbl(fptr, "DATAMIN", datamin, 10, com, &status);
 
@@ -657,7 +654,6 @@ void Header::headwrite_3d (fitsfile *fptr, bool fullHead) {
         }
         
     }
-    
     
     fits_report_error(stderr, status); 
 }
@@ -918,6 +914,7 @@ bool Header::checkHeader() {
 
 }
 
+
 std::string Header::getSpectralType() {
 
     // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis ig numAxes>3
@@ -939,6 +936,7 @@ std::string Header::getSpectralType() {
     
     return sptype;
 }
+
 
 template <class T>
 bool Header::read_keyword(std::string keyword, T &key, bool err) {

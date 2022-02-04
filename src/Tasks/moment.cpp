@@ -367,7 +367,8 @@ bool MomentMap<T>::setHead(int type) {
         if (type==0) {
             this->head.setBtype("intensity");
             std::string bunit;
-            if (FluxtoJyBeam(1,in->Head())==1) {
+            std::string b = deblankAll(makelower(in->Head().Bunit()));
+            if (FluxtoJyBeam(1,in->Head())==1 && b.find("jy/b")==std::string::npos) {
                 bunit = in->Head().Bunit() + " * KM/S";
             }
             else bunit = "JY/BEAM * KM/S";

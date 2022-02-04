@@ -222,7 +222,7 @@ T FluxtoJyBeam (T in, Header &h) {
     else if (b.find("jy")!=f && h.BeamArea()!=0)
         fluxJYB *= h.BeamArea();
     else if (b=="k") {
-        // Converting from Kelvin -> Jy/Beam -> Jy (only ok for HI)
+        // Converting from Kelvin -> Jy/Beam (only ok for HI)
         fluxJYB = in*(h.Bmaj()*3600.*h.Bmin()*3600.)/(1360.*21.106*21.106);
     }
     

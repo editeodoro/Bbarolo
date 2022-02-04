@@ -11,7 +11,7 @@ class Bbarolo < Formula
   # To install instead latest non-stable version, use --devel option
   head do
     url "https://github.com/editeodoro/Bbarolo/archive/master.tar.gz"
-    sha256 "3db5d9080b17e2f5b1d70954db2fa06191c9fd9cac31132f0dc48019d7a9f7e2"
+    #sha256 "fb91ff62a33dbda6fb2c9da04e0746017d4e905e981929b8ca7d1336fff0810a"
     version "1.6dev"
   end
 
