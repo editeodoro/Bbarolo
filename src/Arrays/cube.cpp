@@ -1493,7 +1493,7 @@ int Cube<T>::plotDetections(){
 #ifdef HAVE_PYTHON
     if (par.getFlagPlots()) {
         if (par.isVerbose()) std::cout << " Making " << randomAdjective(1) << " plots for sources..." << std::flush;
-        std::string cmd = "python "+outfolder+"plot_sources.py > /dev/null 2>&1";
+        std::string cmd = "python \""+outfolder+"plot_sources.py\" > /dev/null 2>&1";
         ret = system(cmd.c_str());
         if (par.isVerbose()) {
             if (ret==0) std::cout << " Done.\n";

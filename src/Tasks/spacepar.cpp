@@ -412,7 +412,7 @@ void Spacepar<T>::plotAll_Python() {
 
 
 #ifdef HAVE_PYTHON
-    std::string cmd = "python "+outfold+"plotscripts/"+scriptname +" > /dev/null 2>&1 ";
+    std::string cmd = "python \""+outfold+"plotscripts/"+scriptname +"\" > /dev/null 2>&1 ";
     if (this->in->pars().getFlagPlots()) {
         if (verb) std::cout << "\n\nProducing " << randomAdjective(1) << " parameter space plots..." << std::flush;
         int ret = std::system(cmd.c_str());

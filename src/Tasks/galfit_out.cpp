@@ -1579,7 +1579,7 @@ int Galfit<T>::plotAll_Python() {
         << std::endl
         << "for f in os.listdir(scriptdir): \n"
         << "\tif '.py' in f and f!='plot_all.py': \n"
-        << "\t\tcmd += 'python %s/%s & '%(scriptdir,f) \n"
+        << "\t\tcmd += 'python \"%s/%s\" & '%(scriptdir,f) \n"
         << std::endl
         << "os.system(cmd[:-2]) \n";
 
@@ -1592,7 +1592,7 @@ int Galfit<T>::plotAll_Python() {
     // This will execute the four scripts concurrently
     std::string cmd;
     for (int i=0; i<scriptnames.size(); i++)
-        cmd += "python "+in->pars().getOutfolder()+"plotscripts/"+scriptnames[i]+" > /dev/null 2>&1 & ";
+        cmd += "python \""+in->pars().getOutfolder()+"plotscripts/"+scriptnames[i]+"\" > /dev/null 2>&1 & ";
     cmd.erase (cmd.end()-2);
     returnValue = system(cmd.c_str());
     //cmd = "python "+in->pars().getOutfolder()+"plotscripts/plot_all.py > /dev/null 2>&1";
