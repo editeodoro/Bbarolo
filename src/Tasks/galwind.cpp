@@ -498,7 +498,7 @@ bool GalWind<T>::makePlots(){
 #ifdef HAVE_PYTHON
     // Now plotting everything
     if (in->pars().isVerbose()) std::cout << " Producing " << randomAdjective(1) << " plots..." << std::flush;
-    std::string cmd = "python "+in->pars().getOutfolder()+scriptname+" > /dev/null 2>&1";
+    std::string cmd = "python \""+in->pars().getOutfolder()+scriptname+"\" > /dev/null 2>&1";
     int ret = system(cmd.c_str());
     if (in->pars().isVerbose()) {
         if (ret==0) std::cout << " Done." << std::endl;
