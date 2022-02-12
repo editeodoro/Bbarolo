@@ -246,9 +246,9 @@ Galfit<T>::Galfit(Cube<T> *c) {
         if (nr==1) radsep = file_rings.radii[0]/2.;
         else if (nr==2) radsep = file_rings.radii[1]-file_rings.radii[0];
         else {
-            for (uint i=1; i<file_rings.radii.size()-1; i++)
+            for (auto i=1; i<file_rings.radii.size(); i++)
                 radsep += file_rings.radii[i]-file_rings.radii[i-1];
-            radsep/=(file_rings.radii.size()-2);
+            radsep/=(file_rings.radii.size()-1);
         }
     }
 
@@ -435,10 +435,11 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     verb = c->pars().isVerbose();
 
     // Check that radii are ok.
-    for (int ir=0; ir<inr->nr-1; ir++) {
-        if (ir!=inr->nr-1) {
-            if (inr->radii[ir+1]<=inr->radii[ir]) {
-                std::cout  << "3DFIT WARNING: Radii not in increasing order.\n";
+    for (int ir=0; ir<inr->nr; ir++) {
+        if (ir!=0) {
+            if (inr->radii[ir]<=inr->radii[ir-1]) {
+                std::cerr  << "3DFIT ERROR: Radii not in increasing order.\n";
+                std::terminate();
             }
         }
         if (inr->radii[ir]<0) {
@@ -1198,7 +1199,7 @@ Model::Galmod<T>* Galfit<T>::getModel() {
     // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.
     Rings<T> *dr = new Rings<T>;
     *dr = *outr;
-    dr->radii[0] -= dr->radsep/2.;
+    dr->radii[0] = max(double(dr->radii[0]-dr->radsep/2.),0.);
     dr->radii[dr->nr-1] += dr->radsep/2.; 
     mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();

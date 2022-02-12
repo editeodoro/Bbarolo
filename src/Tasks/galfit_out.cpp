@@ -189,7 +189,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         
 
         double factor = totflux_data/totflux_model;
-        
         for (auto i=in->NumPix(); i--;) outarray[i] *= factor;
         if (verb) std::cout << " Done." << std::endl;
 
