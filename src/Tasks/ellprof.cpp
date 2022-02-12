@@ -174,7 +174,7 @@ Ellprof<T>::Ellprof(Cube<T> *c) {
 
     // Reading input rings from parameter file
     Rings<T> *inR = readRings<T>(c->pars().getParGF(), c->Head());
-    setFromCube(c,inR);    
+    setFromCube(c,inR);
     delete inR;
 
 }
@@ -263,8 +263,14 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
         Radius[r] = rings->radii[r];
         Phi[r] = toangle(rings->phi[r]);
         Inc[r] = rings->inc[r];
-        Width[r] = rings->radsep;
-
+        
+        // Handling the case of a single ring
+        if (rings->nr==1) Width[r] = rings->radsep>0 ? rings->radsep : rings->radii[0]/2.;
+        else {
+            if (r==rings->nr-1) Width[r] = (rings->radii[r]-rings->radii[r-1]);
+            else Width[r] = (rings->radii[r+1]-rings->radii[r]);
+        }
+        
         /* Setup angle arrays */
         /*---------------------------------------------------------------*/
         /* The values are needed to rotate back so invert sign of angle  */
@@ -282,7 +288,7 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
 
         Annuli[r][0] = max(Radius[r] - 0.5*Width[r], 0.0);
         Annuli[r][1] = max(Radius[r] + 0.5*Width[r], 0.0);
-
+        
         Rmax = max(Rmax, Annuli[r][1]);
     }
 

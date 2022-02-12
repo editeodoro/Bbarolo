@@ -241,10 +241,15 @@ Galfit<T>::Galfit(Cube<T> *c) {
 
     nr = nr>0 && nr<max_size ? nr : max_size;
     if (radii_b) {
+        // Setting a average radsep if rings are given in a file
         radsep = 0;
-        for (uint i=1; i<file_rings.radii.size()-1; i++)
-            radsep += file_rings.radii[i+1]-file_rings.radii[i];
-        radsep/=(file_rings.radii.size()-2);
+        if (nr==1) radsep = file_rings.radii[0]/2.;
+        else if (nr==2) radsep = file_rings.radii[1]-file_rings.radii[0];
+        else {
+            for (uint i=1; i<file_rings.radii.size()-1; i++)
+                radsep += file_rings.radii[i]-file_rings.radii[i-1];
+            radsep/=(file_rings.radii.size()-2);
+        }
     }
 
     Rings<T> *inR = new Rings<T>;
@@ -283,7 +288,6 @@ Galfit<T>::Galfit(Cube<T> *c) {
         else inR->zcyl.push_back(zcyl);
     }
     
-
     if (!c->pars().getflagGalMod()) {
         if (!onefile && verb) showInitial(inR, std::cout);
         printInitial(inR, c->pars().getOutfolder()+"rings_initial.txt");
@@ -681,7 +685,7 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
 
         float width1=0, width2=0;
         // Handling the case of a single ring
-        if (inr->nr==1) width1 = width2 = inr->radii[0];
+        if (inr->nr==1) width1 = width2 = inr->radsep>0 ? inr->radsep/2. : inr->radii[0]/2.;
         else {
             if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
             else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
@@ -718,7 +722,6 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
             fitok[ir]=false;
             continue;
         }
-
 
         // Fitting
         fitok[ir] = minimize(dring, minimum, pmin, nullptr);
@@ -798,7 +801,7 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
 
         float width1=0, width2=0;
         // Handling the case of a single ring
-        if (inr->nr==1) width1 = width2 = inr->radii[0];
+        if (inr->nr==1) width1 = width2 = inr->radsep>0 ? inr->radsep/2. : inr->radii[0]/2.;
         else {
             if (ir==0) width1 = width2 = (inr->radii[1]-inr->radii[0])/2.;
             else if (ir==inr->nr-1) width1 = width2 = (inr->radii[ir]-inr->radii[ir-1])/2.;
@@ -1191,9 +1194,16 @@ Model::Galmod<T>* Galfit<T>::getModel() {
     int blo[2] = {0,0};
     int nv = par.NV;
     if (nv==-1) nv=in->DimZ();
-    mod->input(in,bhi,blo,outr,nv,par.LTYPE,1,par.CDENS);
+    
+    // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.
+    Rings<T> *dr = new Rings<T>;
+    *dr = *outr;
+    dr->radii[0] -= dr->radsep/2.;
+    dr->radii[dr->nr-1] += dr->radsep/2.; 
+    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();
     if (par.SM) mod->smooth();
+    delete dr;
     return mod;
 }
 template Model::Galmod<float>* Galfit<float>::getModel();

@@ -195,10 +195,9 @@ template <class T>
 void MomentMap<T>::SNMap(bool msk){
     
     // Computes the 0th moment, the noise and S/N maps of a masked datacube.
-    // (see appendixes in Verheijen & Sancisi 01 and Lelli et al 2014)
+    // (see appendixes in Verheijen & Sancisi 2001 and Lelli et al 2014)
     //
-    // Maps are written in a 4-channel FITS cube, with ch0 = moment0, 
-    // ch1 = noise, ch2 = S/N, ch3 = channels.
+    // Noise and S/N are written in separate FITS files.
 
     // First of all we compute the 0th moment
     if (storedtype!=0) this->ZeroMoment(msk,"MOMENT");
@@ -236,7 +235,7 @@ void MomentMap<T>::SNMap(bool msk){
     long imsize = in->DimX()*in->DimY();
     int nthreads = in->pars().getThreads();
 
-    // Cube to store the 3 maps
+    // Images to store 2D maps
     int dim[] = {in->DimX(),in->DimY()}; 
     Image2D<T> *nmap  = new Image2D<T>(dim);
     Image2D<T> *snmap = new Image2D<T>(dim);

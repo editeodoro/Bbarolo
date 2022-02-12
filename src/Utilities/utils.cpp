@@ -856,15 +856,21 @@ T* RingRegion (Rings<T> *r, Header &h) {
     T *ringregion = new T[bsize[0]*bsize[1]];
     for (int i=0;i<bsize[0]*bsize[1];i++) ringregion[i]=log(-1);	
 
-    T R1  = std::max((r->radii.front()-r->radsep/2.)/pscale,0.); //#+sqrt(in->Head().BeamArea()/M_PI);
-    T R2  = (r->radii.back()+r->radsep/2.)/pscale;    
+    float radsep = r->radsep;
+    if (radsep<0) {
+        if (r->nr>1) radsep = r->radii[1]-r->radii[0];
+        else radsep = r->radii[0]/2.;
+    }
+    
+    T R1  = std::max((r->radii.front()-radsep/2.)/pscale,0.); //#+sqrt(in->Head().BeamArea()/M_PI);
+    T R2  = (r->radii.back()+radsep/2.)/pscale;
     T phi = r->phi.back();
     T inc = r->inc.back();
     T psi = 0.;
     T z0  = 3*r->z0.back()/(pscale); //prima prendevo 3*dring->....
     T x0  = r->xpos.back()-1;
     T y0  = r->ypos.back()-1;
-        
+
     double **matrices = RotMatrices(inc,psi,-phi-90);
     int size[2] = {3,3};
     double *rotmatrix = MatrixProduct(&matrices[2][0], size, &matrices[0][0],size);

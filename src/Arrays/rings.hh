@@ -61,7 +61,7 @@ class Rings
 {
 public:
     int     nr;                 //< Number of rings.
-    double radsep;              //< Separation between rings.
+    double radsep = -1;         //< Separation between rings.
     std::vector<T> radii;
     std::vector<T> xpos;
     std::vector<T> ypos;
@@ -110,8 +110,29 @@ public:
         
         this->nr = this->radii.size();
     }
+    
+    void insertRing (unsigned where, T radii, T xpos, T ypos, T vsys, T vrot, T vdisp, 
+                     T vrad, T vvert, T dvdz, T zcyl, T dens, T z0, T inc, T phi) {
         
+        this->radii.insert(this->radii.begin()+where,radii);
+        this->xpos.insert(this->xpos.begin()+where,xpos);
+        this->ypos.insert(this->ypos.begin()+where,ypos);
+        this->vsys.insert(this->vsys.begin()+where,vsys);
+        this->vrot.insert(this->vrot.begin()+where,vrot);
+        this->vdisp.insert(this->vdisp.begin()+where,vdisp);
+        this->vrad.insert(this->vrad.begin()+where,vrad);
+        this->vvert.insert(this->vvert.begin()+where,vvert);
+        this->dvdz.insert(this->dvdz.begin()+where,dvdz);
+        this->zcyl.insert(this->zcyl.begin()+where,zcyl);
+        this->dens.insert(this->dens.begin()+where,dens);
+        this->z0.insert(this->z0.begin()+where,z0);
+        this->inc.insert(this->inc.begin()+where,inc);
+        this->phi.insert(this->phi.begin()+where,phi);
+        //this->pa.insert(this->pa.begin()+where,0);
         
+        this->nr = this->radii.size();
+    }
+
     void addRings(int size, T *radii, T *xpos, T *ypos, T *vsys, T *vrot, T *vdisp, 
                   T *vrad, T *vvert, T *dvdz, T *zcyl, T *dens, T *z0, T *inc, T *phi) {
         for (int i=0; i<size; i++) {

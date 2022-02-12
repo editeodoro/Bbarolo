@@ -76,8 +76,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         }
     }
 
-    float mass = 2.365E5*FluxtoJy(totflux_data,in->Head())*fabs(DeltaVel(in->Head()))*distance*distance;
-
     // Calculate radial profile along the output rings
     if (verb) std::cout << "    Deriving " << randomAdjective(1) << " radial profile..." << std::flush;
     T meanPA = findMean(&outr->phi[0], outr->nr);
@@ -134,7 +132,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     Model::Galmod<T> *mod = getModel();
     mod->Out()->Head().setMinMax(0.,0.);
     mod->Out()->Head().setName(object+"mod");
-
+    
     T *outarray = mod->Out()->Array();
 
     if (normtype=="AZIM" || normtype=="BOTH") {
@@ -191,6 +189,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         
 
         double factor = totflux_data/totflux_model;
+        
         for (auto i=in->NumPix(); i--;) outarray[i] *= factor;
         if (verb) std::cout << " Done." << std::endl;
 
