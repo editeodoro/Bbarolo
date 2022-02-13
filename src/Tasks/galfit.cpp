@@ -134,13 +134,14 @@ Galfit<T>::Galfit(Cube<T> *c) {
     /// This constructor reads all needed parameters from the Cube object.
     /// Cube object must contain a Param method with all information.
 
+    in   = c;
     par  = c->pars().getParGF();
     verb = c->pars().isVerbose();
-
+    
     c->checkBeam();
 
+    // Read all rings from a BBarolo output file, if given as input
     if (!par.ringfile.empty()) {
-        // Read all rings from a BBarolo output file
         if (par.RADII=="-1" && (par.NRADII==-1 || par.RADSEP==-1))
                 par.RADII = "file("+par.ringfile+",2)";
         if (par.VROT=="-1") par.VROT  = "file("+par.ringfile+",3)";
@@ -155,143 +156,53 @@ Galfit<T>::Galfit(Cube<T> *c) {
         if (par.VRAD=="-1") par.VRAD  = "file("+par.ringfile+",13)";
     }
 
-    // Building Rings object 
-    // Try to read ring information from an input file
-    Rings<T> file_rings;
-    bool radii_b = getDataColumn(file_rings.radii,par.RADII);
-    bool xpos_b  = getDataColumn(file_rings.xpos,par.XPOS);
-    bool ypos_b  = getDataColumn(file_rings.ypos,par.YPOS);
-    bool vsys_b  = getDataColumn(file_rings.vsys,par.VSYS);
-    bool vrot_b  = getDataColumn(file_rings.vrot,par.VROT);
-    bool vrad_b  = getDataColumn(file_rings.vrad,par.VRAD);
-    bool vdisp_b = getDataColumn(file_rings.vdisp,par.VDISP);
-    bool z0_b    = getDataColumn(file_rings.z0,par.Z0);
-    bool dens_b  = getDataColumn(file_rings.dens,par.DENS);
-    bool inc_b   = getDataColumn(file_rings.inc,par.INC);
-    bool pa_b    = getDataColumn(file_rings.phi,par.PHI);
-    bool vvert_b = getDataColumn(file_rings.vvert,par.VVERT);
-    bool dvdz_b  = getDataColumn(file_rings.dvdz,par.DVDZ);
-    bool zcyl_b  = getDataColumn(file_rings.zcyl,par.ZCYL);
-    bool onefile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||dens_b||inc_b||pa_b||vrad_b||vvert_b||dvdz_b||zcyl_b;
-
-    size_t size[MAXPAR+4] = {file_rings.radii.size(),file_rings.xpos.size(), file_rings.ypos.size(), 
-                             file_rings.vsys.size(),file_rings.vrot.size(),file_rings.vdisp.size(),
-                             file_rings.z0.size(),file_rings.dens.size(),file_rings.inc.size(),file_rings.phi.size(),
-                             file_rings.vrad.size(),file_rings.vvert.size(),file_rings.dvdz.size(),file_rings.zcyl.size()};
-
-    size_t max_size=UINT_MAX;
-    for (int i=0; i<MAXPAR+4; i++) if (size[i]!=0 && size[i]<max_size) max_size=size[i];
-    
-    int nr=0;
-    T radsep, xpos, ypos, vsys, vrot, vdisp, z0, dens, inc, pa, vrad, vvert, zcyl, dvdz;
-
+    // Estimate initial parameters, if needed
     bool toEstimate =  (par.RADII=="-1" && (par.NRADII==-1 || par.RADSEP==-1)) ||
                         par.XPOS=="-1" || par.YPOS=="-1" || par.VSYS=="-1" ||
                         par.VROT=="-1" || par.PHI=="-1"  || par.INC=="-1";
 
     ParamGuess<T> *ip = nullptr;
-
     if (toEstimate) {
-
         ip = EstimateInitial(c,&par);
-
-        string pos[2] = {par.XPOS, par.YPOS};
-        double *pixs = getCenterCoordinates(pos, c->Head());
-
-        nr    = par.NRADII!=-1 ? par.NRADII :  ip->nrings;
-        radsep= par.RADSEP!=-1 ? par.RADSEP : ip->radsep;
-        xpos  = par.XPOS!="-1" ? pixs[0] : ip->xcentre;
-        ypos  = par.YPOS!="-1" ? pixs[1] : ip->ycentre;
-        vsys  = par.VSYS!="-1" ? atof(par.VSYS.c_str()) : ip->vsystem;
-        if (distance==-1) distance = VeltoDist(fabs(vsys));
-        vrot  = par.VROT!="-1" ? atof(par.VROT.c_str()) : ip->vrot;
-        vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;// default is 8 km/s
-        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.; // default is infinitely thin disk
-        dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
-        inc   = par.INC!="-1" ? atof(par.INC.c_str()) : ip->inclin;
-        pa    = par.PHI!="-1" ? atof(par.PHI.c_str()) : ip->posang;
-        vrad  = par.VRAD!="-1" ? atof(par.VRAD.c_str()) : 0.;
-    }
-    else {
-        nr    = par.NRADII;
-        radsep= par.RADSEP;
-        string pos[2] = {par.XPOS, par.YPOS};
-        double *pixs = getCenterCoordinates(pos, c->Head());
-        xpos  = pixs[0];
-        ypos  = pixs[1];
-        vsys  = atof(par.VSYS.c_str());
-        if (par.DISTANCE==-1) par.DISTANCE = VeltoDist(fabs(vsys));
-        vrot  = atof(par.VROT.c_str());
-        vdisp = par.VDISP!="-1" ? atof(par.VDISP.c_str()): 8.;      // default is 8 km/s
-        z0    = par.Z0!="-1" ? atof(par.Z0.c_str()) : 0.;           // default is infinitely thin disk
-        vrad  = par.VRAD!="-1" ? atof(par.VRAD.c_str()) : 0.;
-        dens  = par.DENS!="-1" ? atof(par.DENS.c_str()) : 1.;
-        inc   = atof(par.INC.c_str());
-        pa    = atof(par.PHI.c_str());
+        if (par.NRADII==-1) par.NRADII = ip->nrings;
+        if (par.RADSEP==-1) par.RADSEP = ip->radsep;
+        if (par.XPOS=="-1") par.XPOS   = to_string(ip->xcentre);
+        if (par.YPOS=="-1") par.YPOS   = to_string(ip->ycentre);
+        if (par.VSYS=="-1") par.VSYS   = to_string(ip->vsystem);
+        if (par.VROT=="-1") par.VROT   = to_string(ip->vrot);
+        if (par.INC=="-1")  par.INC    = to_string(ip->inclin);
+        if (par.PHI=="-1")  par.PHI    = to_string(ip->posang);
     }
     
-    vvert = par.VVERT!="-1" ? atof(par.VVERT.c_str()) : 0.;
-    dvdz  = par.DVDZ!="-1" ? atof(par.DVDZ.c_str()) : 0.;
-    zcyl  = par.ZCYL!="-1" ? atof(par.ZCYL.c_str()) : 0.;
-    
-    if (nr==0) {
+    // Setting defaults for other parameters, if not given
+    if (par.VDISP=="-1") par.VDISP = to_string(8.);
+    if (par.Z0=="-1")    par.Z0    = to_string(0.);
+    if (par.VRAD=="-1")  par.VRAD  = to_string(0.);
+    if (par.DENS=="-1")  par.DENS  = to_string(1.);
+    if (par.VVERT=="-1") par.VVERT = to_string(0.);
+    if (par.DVDZ=="-1")  par.DVDZ  = to_string(0.);
+    if (par.ZCYL=="-1")  par.ZCYL  = to_string(0.);
+
+    // Now reading rings with general purpose function
+    bool fromfile = false;
+    Rings<T> *inR = readRings<T>(par,c->Head(),&fromfile);
+        
+    if (inR->nr==0) {
         std::cerr << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
         std::terminate();
     }
-
-    nr = nr>0 && nr<max_size ? nr : max_size;
-    if (radii_b) {
-        // Setting a average radsep if rings are given in a file
-        radsep = 0;
-        if (nr==1) radsep = file_rings.radii[0]/2.;
-        else if (nr==2) radsep = file_rings.radii[1]-file_rings.radii[0];
-        else {
-            for (auto i=1; i<file_rings.radii.size(); i++)
-                radsep += file_rings.radii[i]-file_rings.radii[i-1];
-            radsep/=(file_rings.radii.size()-1);
-        }
-    }
-
-    Rings<T> *inR = new Rings<T>;
-    inR->nr     = nr;
-    inR->radsep = radsep;
-    for (int i=0; i<inR->nr; i++) {
-        if (radii_b) inR->radii.push_back(file_rings.radii[i]);
-        else inR->radii.push_back(i*radsep+radsep/2.);
-        if (vrot_b) inR->vrot.push_back(file_rings.vrot[i]);
-        else inR->vrot.push_back(vrot);
-        if (vdisp_b) inR->vdisp.push_back(file_rings.vdisp[i]);
-        else inR->vdisp.push_back(vdisp);
-        if (z0_b) inR->z0.push_back(file_rings.z0[i]);
-        else inR->z0.push_back(z0);
-        if (dens_b) inR->dens.push_back(file_rings.dens[i]*1.E20);
-        else inR->dens.push_back(dens*1.E20);
-        if (inc_b) inR->inc.push_back(file_rings.inc[i]);
-        else inR->inc.push_back(inc);
-        if (pa_b) inR->phi.push_back(file_rings.phi[i]);
-        else inR->phi.push_back(pa);
-        if (xpos_b) inR->xpos.push_back(file_rings.xpos[i]);
-        else inR->xpos.push_back(xpos);
-        if (ypos_b) inR->ypos.push_back(file_rings.ypos[i]);
-        else inR->ypos.push_back(ypos);
-        if (vsys_b) inR->vsys.push_back(file_rings.vsys[i]);
-        else inR->vsys.push_back(vsys);
-        if (vrad_b) inR->vrad.push_back(file_rings.vrad[i]);
-        else inR->vrad.push_back(vrad);
-        
-        // In the current version, vertical motions, and gradients are not fitted
-        if (vvert_b) inR->vvert.push_back(file_rings.vvert[i]);
-        else inR->vvert.push_back(vvert);
-        if (dvdz_b) inR->vvert.push_back(file_rings.dvdz[i]);
-        else inR->dvdz.push_back(dvdz);
-        if (zcyl_b) inR->vvert.push_back(file_rings.zcyl[i]);
-        else inR->zcyl.push_back(zcyl);
-    }
     
-    if (!c->pars().getflagGalMod()) {
-        if (!onefile && verb) showInitial(inR, std::cout);
-        printInitial(inR, c->pars().getOutfolder()+"rings_initial.txt");
+    if (distance==-1) distance = VeltoDist(fabs(inr->vsys[0]));
+    
+    // Writing initial rings on screen and in a file
+    std::string initfile;
+    if (c->pars().getflagGalMod()) initfile = c->pars().getOutfolder()+"rings_model.txt";
+    else {
+        if (!fromfile && verb) showInitial(inR, std::cout);
+        initfile = c->pars().getOutfolder()+"rings_initial.txt";
     }
+    printInitial(inR,initfile);
+    
     
     // Deciding whether to use reverse fitting based on galaxy inclination
     if (par.REVERSE.find("auto")!=std::string::npos && !c->pars().getflagGalMod()) {
@@ -332,10 +243,10 @@ Galfit<T>::Galfit(Cube<T> *c) {
 
         double topix = c->Head().PixScale()*arcsconv(c->Head().Cunit(0));
         // Initializing rings
-        T *radii = new T[nr];
-        T *wids  = new T[nr];
+        T *radii = new T[inR->nr];
+        T *wids  = new T[inR->nr];
 
-        for (int i=0; i<nr; i++) {
+        for (int i=0; i<inR->nr; i++) {
             radii[i] = inR->radii[i]/topix;
             wids[i]  = inR->radsep/topix;
         }
@@ -356,7 +267,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
         //tr.printfinal(std::cout,c->Head());
 
         // Updating initial rings
-        for (int i=1; i<nr; i++) {
+        for (int i=1; i<inR->nr; i++) {
             if (!isNaN(tr.getPosaf(i)) && tr.getVrotf(i)>0) inR->phi[i] = tr.getPosaf(i);
             if (!isNaN(tr.getVrotf(i)) && tr.getVrotf(i)>0) inR->vrot[i] = tr.getVrotf(i);
         }
@@ -1199,8 +1110,11 @@ Model::Galmod<T>* Galfit<T>::getModel() {
     // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.
     Rings<T> *dr = new Rings<T>;
     *dr = *outr;
+    if (dr->nr==1) 
+        dr->addRing(dr->radii[0]+dr->radsep/2., dr->xpos[0], dr->ypos[0], dr->vsys[0], dr->vrot[0], dr->vdisp[0], 
+                    dr->vrad[0], dr->vvert[0], dr->dvdz[0], dr->zcyl[0], dr->dens[0], dr->z0[0], dr->inc[0], dr->phi[0]);
+    else dr->radii[dr->nr-1] += dr->radsep/2.;
     dr->radii[0] = max(double(dr->radii[0]-dr->radsep/2.),0.);
-    dr->radii[dr->nr-1] += dr->radsep/2.; 
     mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();
     if (par.SM) mod->smooth();
@@ -1320,68 +1234,6 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
 template bool Galfit<float>::AsymmetricDrift(float*,float*,float*,float*,int);
 template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,int);
 
-
-
-template <class T>
-ParamGuess<T>* Galfit<T>::EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
-    
-    // Running the source finder to detect the source
-    if (!c->getIsSearched()) c->search();
-    Detection<T> *largest = c->getSources()->LargestDetection();
-
-    c->pars().setVerbosity(false);
-    if (verb) std::cout << "\n Estimating initial parameters... " << std::flush;
-
-    if (largest==NULL) {
-        std::cout << " 3DFIT ERROR: No sources detected in the datacube. Cannot fit!!! \n";
-        std::terminate();
-    }
-
-    ParamGuess<T> *ip = new ParamGuess<T>(c,largest);
-
-    // Estimating systemic velocity if not given
-    if (p->VSYS!="-1") ip->vsystem = atof(p->VSYS.c_str());
-    else ip->findSystemicVelocity();
-
-    // Estimating centre if not given
-    string pos[2] = {p->XPOS, p->YPOS};
-    double *pixs = getCenterCoordinates(pos, c->Head());
-    if (p->XPOS!="-1" && p->YPOS!="-1") {
-        ip->xcentre = pixs[0];
-        ip->ycentre = pixs[1];
-    }
-    else ip->findCentre();
-    
-    // Estimating position angle if not given
-    if (p->PHI!="-1") ip->posang = atof(p->PHI.c_str());
-    else ip->findPositionAngle(1);
-
-    // Estimating rotation velocity angle if not given
-    // In findInclination: 1=axis ratio, 2=ellipse, 3=totalmap
-    ip->findInclination(2);
-    if (p->INC!="-1") ip->inclin = atof(p->INC.c_str());
-
-    // Estimating rings if not given
-    if (p->NRADII!=-1 && p->RADSEP!=-1) {
-        ip->radsep = p->RADSEP;
-        ip->nrings = p->NRADII;
-    }
-    else ip->findRings();
-
-    if (p->VROT!="-1") ip->vrot = atof(p->VROT.c_str());
-    else ip->findRotationVelocity();
-
-    // This performs an additional step with a 2D tilted ring model
-    if (c->pars().getFlagPlots()>=3) ip->plotGuess("initialguesses_"+c->Head().Name()+"_0.pdf");
-    if (ip->nrings>3) ip->tuneWithTiltedRing();
-    if (c->pars().getFlagPlots()>=2) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
-
-    if (verb) std::cout << "Done." << std::endl;
-    c->pars().setVerbosity(verb);
-    return ip;
-}
-template ParamGuess<float>* Galfit<float>::EstimateInitial(Cube<float>*,GALFIT_PAR*);
-template ParamGuess<double>* Galfit<double>::EstimateInitial(Cube<double>*,GALFIT_PAR*);
 
 
 /////////////////////////////////////////////////////////////////////

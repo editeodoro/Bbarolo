@@ -68,7 +68,6 @@ public:
     void galfit();
     Galmod<T>* getModel();
     bool SecondStage();
-    ParamGuess<T>* EstimateInitial(Cube<T> *c, GALFIT_PAR *p);
     
 
     /// Functions defined in galfit_out.cpp

@@ -67,9 +67,9 @@ Galfit<float>* Galfit_new_all(Cube<float> *c, Rings<float> *inrings, float DELTA
 void Galfit_delete(Galfit<float> *g) {delete g;}
 float* Galfit_initialGuesses(Cube<float> *c, const char* xpos, const char* ypos, const char* inc, const char* pa) {
                              GALFIT_PAR p; p.XPOS=string(xpos); p.YPOS=string(ypos); p.INC=string(inc); p.PHI=string(pa);
-                             Galfit<float> *gf = new Galfit<float>; ParamGuess<float> *ip = gf->EstimateInitial(c,&p);
-                             float *r =  new float[8]; r[0]=ip->nrings; r[1]=ip->radsep; r[2]=ip->xcentre; r[3]=ip->ycentre;
-                             r[4]=ip->vsystem; r[5]=ip->vrot; r[6]=ip->inclin; r[7]=ip->posang; delete gf; delete ip; return r;}
+                             ParamGuess<float> *ip = EstimateInitial(c,&p); float *r =  new float[8]; r[0]=ip->nrings; 
+                             r[1]=ip->radsep; r[2]=ip->xcentre; r[3]=ip->ycentre; r[4]=ip->vsystem; r[5]=ip->vrot; 
+                             r[6]=ip->inclin; r[7]=ip->posang; delete ip; return r;}
 bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit(); return true;}
 bool Galfit_secondStage(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->SecondStage();}
 void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(SIGINT, signalHandler); g->writeModel(string(norm),plots);}

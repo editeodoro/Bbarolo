@@ -1649,6 +1649,7 @@ void Galfit<T>::showInitial (Rings<T> *inr, std::ostream& Stream) {
 
     int m=9;
     int n=12;
+    GALFIT_PAR &pp = in->pars().getParGF();
     Stream << showpoint << fixed << setprecision(2) << endl;
 
     Stream << setfill('=') << setw(44) << right << " Initial parameters " << setw(25) << " ";
@@ -1658,69 +1659,69 @@ void Galfit<T>::showInitial (Rings<T> *inr, std::ostream& Stream) {
 
     string s;
     s = "   Fitting #" + to_string<int>(inr->nr);
-    if (par.NRADII==-1) s += "(e) ";
+    if (pp.NRADII==-1) s += "(e) ";
     else s += "(i) ";
     s += "rings of width " + to_string<T>(inr->radsep);
-    if (par.RADSEP==-1) s += "(e) ";
+    if (pp.RADSEP==-1) s += "(e) ";
     else s += "(i) ";
     s += "arcsec";
     Stream << s << endl << endl;
 
 
     s = "    Xpos";
-    if (par.XPOS=="-1") s += " (e)";
+    if (pp.XPOS=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->xpos[0] << left << setw(m) << "  pix";
 
 
     s = "        Ypos";
-    if (par.YPOS=="-1") s += " (e)";
+    if (pp.YPOS=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
          << setw(m-1) << inr->ypos[0]
          << left << setw(m) << "  pix" << endl;
 
     s = "    Vsys";
-    if (par.VSYS=="-1") s += " (e)";
+    if (pp.VSYS=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->vsys[0] << left << setw(m) << "  km/s";
 
     s = "        Vrot";
-    if (par.VROT=="-1") s += " (e)";
+    if (pp.VROT=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
          << setw(m-1) << inr->vrot[0]
          << left << setw(m) << "  km/s" << endl;
 
     s = "    Inc";
-    if (par.INC=="-1") s += " (e)";
+    if (pp.INC=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->inc[0] << left << setw(m) << "  deg";
 
     s = "        PA";
-    if (par.PHI=="-1") s += " (e)";
+    if (pp.PHI=="-1") s += " (e)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
            << setw(m-1) << inr->phi[0] << left << setw(m) << "  deg" << endl;
 
     s = "    Z0";
-    if (par.Z0=="-1") s += " (d)";
+    if (pp.Z0=="-1") s += " (d)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->z0[0] << left << setw(m) << "  arcs";
 
     s = "        Disp";
-    if (par.VDISP=="-1") s += " (d)";
+    if (pp.VDISP=="-1") s += " (d)";
     else s += " (i)";
     Stream << setw(n+4) << left << s << setw(3) << right << "= "
          << setw(m-1) << inr->vdisp[0]
          << left << setw(m) << "  km/s" << endl;
     
     s = "    Vrad";
-    if (par.VRAD=="-1") s += " (d)";
+    if (pp.VRAD=="-1") s += " (d)";
     else s += " (i)";
     Stream << setw(n) << left << s << setw(3) << right << "= "
            << setw(m) << inr->vrad[0] << left << setw(m) << "  km/s";

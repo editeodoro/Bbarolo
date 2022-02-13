@@ -25,6 +25,7 @@
 #define PARAMGUESS_HH_
 
 #include <iostream>
+#include <Arrays/param.hh>
 #include <Arrays/cube.hh>
 #include <Map/detection.hh>
 
@@ -99,4 +100,8 @@ double funcEllipse(std::vector<double> &mypar, Cube<T> *c, double pa, double xce
 template <class T>
 double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, double Rmax,
                       double pa, double xcen, double ycen, double vsys, T* Imap, double totflux);
+
+template <class T>
+ParamGuess<T>* EstimateInitial(Cube<T> *c, GALFIT_PAR *p);
+
 #endif

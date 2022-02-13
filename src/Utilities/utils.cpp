@@ -675,8 +675,8 @@ bool getDataColumn (std::vector<T> &data, std::string filestring) {
     checkHome(filename);
     std::ifstream filein(filename.c_str());
     if (!filein) {
-        std::cout << "\n ERROR: " << filename << " doesn't exist!";
-        return false;
+        std::cerr << "\n ERROR: " << filename << " doesn't exist! \n";
+        std::terminate();
     }
     
     int row_n=0, col_n=0;
@@ -700,11 +700,11 @@ template bool getDataColumn (std::vector<short> &,std::string);
 template bool getDataColumn (std::vector<int> &,std::string);
 template bool getDataColumn (std::vector<long> &,std::string);
 template bool getDataColumn (std::vector<float> &,std::string);
-template bool getDataColumn (std::vector<double> &,std::string);    
+template bool getDataColumn (std::vector<double> &,std::string);
 
 
 template <class T> 
-Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
+Rings<T>* readRings(GALFIT_PAR &par, Header &h, bool *fromfile) {
     
     const short NPAR = 14;
     
@@ -715,7 +715,7 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     bool ypos_b  = getDataColumn(fr.ypos,par.YPOS);
     bool vsys_b  = getDataColumn(fr.vsys,par.VSYS);
     bool vrot_b  = getDataColumn(fr.vrot,par.VROT);
-    bool vrad_b  = getDataColumn(fr.vrad,par.VRAD);
+    bool vrad_b  = getDataColumn(fr.vrad,par.VRAD);    
     bool vvert_b = getDataColumn(fr.vvert,par.VVERT);
     bool dvdz_b  = getDataColumn(fr.dvdz,par.DVDZ);
     bool zcyl_b  = getDataColumn(fr.zcyl,par.ZCYL);
@@ -724,7 +724,40 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     bool dens_b  = getDataColumn(fr.dens,par.DENS); 
     bool inc_b   = getDataColumn(fr.inc,par.INC);
     bool pa_b    = getDataColumn(fr.phi,par.PHI);
-
+    
+    if (fromfile!=nullptr) 
+        *fromfile = radii_b||xpos_b||ypos_b||vsys_b||vrot_b||vdisp_b||z0_b||
+                    dens_b||inc_b||pa_b||vrad_b||vvert_b||dvdz_b||zcyl_b;;
+        
+    // If not given in file, check if radii are given as a RADII parameter
+    if (!radii_b && par.RADII!="-1") {
+        stringstream ss(par.RADII);
+        std::vector<string> s = readVec<string>(ss);
+        size_t f1 = s[0].find("~");
+        size_t f2 = s[0].find(":");
+        bool isrange = f1!=std::string::npos && f2!=std::string::npos;
+        
+        if (s.size()==1 && isrange) {
+            // Case of a Rmin~Rmax:step format
+            float Rmin = std::stof(s[0].substr(0,f1));
+            float Rmax = std::stof(s[0].substr(f1+1,f2-f1-1));
+            float step = std::stof(s[0].substr(f2+1));
+            if (Rmin>Rmax || step<0) {
+                std::cerr << " INPUT ERROR: RADII parameter format is \"Rmin~Rmax:step\".\n";
+                std::terminate();
+            }
+            fr.radii.push_back(Rmin);
+            while (fr.radii.back()<=Rmax-step)
+                fr.radii.push_back(fr.radii.back()+step);
+        }
+        else {
+            // Case of a list of radii
+            for (int i=0; i<s.size(); i++) 
+                fr.radii.push_back(atof(s[i].c_str()));
+        }
+        if (fr.radii.size()>0) radii_b = true;
+    }
+    
     // Determine maximum number of rings (= minimum number of entries)
     size_t s[NPAR] = {fr.radii.size(),fr.xpos.size(), fr.ypos.size(),fr.vsys.size(),
                       fr.vrot.size(),fr.vrad.size(),fr.vvert.size(),fr.dvdz.size(),
@@ -758,13 +791,19 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     size_t nr     = par.NRADII;
     double radsep = par.RADSEP;
     nr = nr>0 && nr<max_size ? nr : max_size;
-    if (radii_b) {
-        radsep = 0;
-        for (unsigned i=1; i<fr.radii.size()-1; i++)
-            radsep += fr.radii[i+1]-fr.radii[i];
-        radsep/=(fr.radii.size()-2);
-    }
     
+    if (radii_b) {
+        if (nr==1) {
+            if (radsep==-1) radsep = fr.radii[0]/2.;
+        }
+        else {
+            radsep=0;
+            for (auto i=1; i<fr.radii.size(); i++)
+                radsep += fr.radii[i]-fr.radii[i-1];
+            radsep/=(fr.radii.size()-1);
+        }
+    }
+
     // Filling rings with values
     Rings<T> *inR = new Rings<T>;
     inR->nr     = nr;
@@ -802,8 +841,8 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h) {
     
     return inR;
 }
-template Rings<float>* readRings(GALFIT_PAR &, Header &);
-template Rings<double>* readRings(GALFIT_PAR &, Header &);
+template Rings<float>* readRings(GALFIT_PAR&,Header&,bool*);
+template Rings<double>* readRings(GALFIT_PAR&,Header&,bool*);
 
 
 double* getCenterCoordinates(std::string *pos, Header &h) {

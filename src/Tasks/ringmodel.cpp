@@ -38,6 +38,7 @@
 #include <Utilities/utils.hh>
 #include <Utilities/progressbar.hh>
 #include <Utilities/allocator.hpp>
+#include <Utilities/paramguess.hh>
 
 
 #define nint(x)     (x>0.0?(int)(x+0.5):(int)(x-0.5))
@@ -132,9 +133,32 @@ Ringmodel<T>::~Ringmodel() {
 template <class T>
 Ringmodel<T>::Ringmodel (Cube<T> *c)  {
     
-    // Reading ring inputs
     defaults();
-    Rings<T> *r = readRings<T>(c->pars().getParGF(),c->Head());
+
+    // Reading ring inputs
+    GALFIT_PAR par = c->pars().getParGF();
+    // Estimate initial parameters, if needed
+    bool toEstimate =  (par.RADII=="-1" && (par.NRADII==-1 || par.RADSEP==-1)) ||
+                        par.XPOS=="-1" || par.YPOS=="-1" || par.VSYS=="-1" ||
+                        par.VROT=="-1" || par.PHI=="-1"  || par.INC=="-1";
+
+    if (toEstimate) {
+        ParamGuess<T> *ip = EstimateInitial(c,&par);
+        if (par.NRADII==-1) par.NRADII = ip->nrings;
+        if (par.RADSEP==-1) par.RADSEP = ip->radsep;
+        if (par.XPOS=="-1") par.XPOS   = to_string(ip->xcentre);
+        if (par.YPOS=="-1") par.YPOS   = to_string(ip->ycentre);
+        if (par.VSYS=="-1") par.VSYS   = to_string(ip->vsystem);
+        if (par.VROT=="-1") par.VROT   = to_string(ip->vrot);
+        if (par.INC=="-1")  par.INC    = to_string(ip->inclin);
+        if (par.PHI=="-1")  par.PHI    = to_string(ip->posang);
+        delete ip;
+    }
+    
+    // Setting defaults for other parameters, if not given
+    if (par.VRAD=="-1")  par.VRAD  = to_string(0.);
+    
+    Rings<T> *r = readRings<T>(par,c->Head());
     setfromCube(c,r);
 }
 

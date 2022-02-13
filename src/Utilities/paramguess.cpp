@@ -877,6 +877,68 @@ double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, dou
 }
 
 
+template <class T>
+ParamGuess<T>* EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
+    
+    // Running the source finder to detect the source
+    if (!c->getIsSearched()) c->search();
+    Detection<T> *largest = c->getSources()->LargestDetection();
+
+    bool verb = c->pars().isVerbose();
+    c->pars().setVerbosity(false);
+    if (verb) std::cout << "\n Estimating initial parameters... " << std::flush;
+
+    if (largest==NULL) {
+        std::cout << " 3DFIT ERROR: No sources detected in the datacube. Cannot fit!!! \n";
+        std::terminate();
+    }
+
+    ParamGuess<T> *ip = new ParamGuess<T>(c,largest);
+
+    // Estimating systemic velocity if not given
+    if (p->VSYS!="-1") ip->vsystem = atof(p->VSYS.c_str());
+    else ip->findSystemicVelocity();
+
+    // Estimating centre if not given
+    string pos[2] = {p->XPOS, p->YPOS};
+    double *pixs = getCenterCoordinates(pos, c->Head());
+    if (p->XPOS!="-1" && p->YPOS!="-1") {
+        ip->xcentre = pixs[0];
+        ip->ycentre = pixs[1];
+    }
+    else ip->findCentre();
+    
+    // Estimating position angle if not given
+    if (p->PHI!="-1") ip->posang = atof(p->PHI.c_str());
+    else ip->findPositionAngle(1);
+
+    // Estimating rotation velocity angle if not given
+    // In findInclination: 1=axis ratio, 2=ellipse, 3=totalmap
+    ip->findInclination(2);
+    if (p->INC!="-1") ip->inclin = atof(p->INC.c_str());
+
+    // Estimating rings if not given
+    if (p->NRADII!=-1 && p->RADSEP!=-1) {
+        ip->radsep = p->RADSEP;
+        ip->nrings = p->NRADII;
+    }
+    else ip->findRings();
+
+    if (p->VROT!="-1") ip->vrot = atof(p->VROT.c_str());
+    else ip->findRotationVelocity();
+
+    // This performs an additional step with a 2D tilted ring model
+    if (c->pars().getFlagPlots()>=3) ip->plotGuess("initialguesses_"+c->Head().Name()+"_0.pdf");
+    if (ip->nrings>3) ip->tuneWithTiltedRing();
+    if (c->pars().getFlagPlots()>=2) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
+
+    if (verb) std::cout << "Done." << std::endl;
+    c->pars().setVerbosity(verb);
+    return ip;
+}
+template ParamGuess<float>* EstimateInitial(Cube<float> *, GALFIT_PAR *);
+template ParamGuess<double>* EstimateInitial(Cube<double> *, GALFIT_PAR *);
+
 
 // Explicit instantiation of the class
 template class ParamGuess<float>;
