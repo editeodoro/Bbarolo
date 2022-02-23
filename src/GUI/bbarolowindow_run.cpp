@@ -404,15 +404,16 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         if (hanning_window%2==0) hanning_window+=1;
         ui->HanningspinBox->setValue(hanning_window);
     }
-     
+    
+    MAPS_PAR &pp = par->getParMA();
     ui->MomentmapsgroupBox->setChecked(par->getMaps());
     if (ui->MomentmapsgroupBox->isChecked()) {
-        ui->ProfilecheckBox->setChecked(par->getGlobProf());
-        ui->TotalmapcheckBox->setChecked(par->getTotalMap());
-        ui->VfieldcheckBox->setChecked(par->getVelMap());
-        ui->DispmapcheckBox->setChecked(par->getDispMap());
-        ui->rmsmapcheckBox->setChecked(par->getRMSMap());
-        if (makelower(par->getMapType())=="gaussian") ui->MaptypecomboBox->setCurrentIndex(1);
+        ui->ProfilecheckBox->setChecked(pp.globprof);
+        ui->TotalmapcheckBox->setChecked(pp.totalmap);
+        ui->VfieldcheckBox->setChecked(pp.velocitymap);
+        ui->DispmapcheckBox->setChecked(pp.dispersionmap);
+        ui->rmsmapcheckBox->setChecked(pp.rmsmap);
+        if (makelower(pp.maptype)=="gaussian") ui->MaptypecomboBox->setCurrentIndex(1);
         else ui->MaptypecomboBox->setCurrentIndex(0);
     }
 

@@ -10,8 +10,8 @@ MAKEFILE      = Makefile
 
 ####### Compiler, tools and options
 
-CC            = mpicc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
-CXX           = mpicxx -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
+CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
+CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
 DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -Wall -W -fPIC $(DEFINES)
@@ -34,7 +34,7 @@ TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = BBaroloGUI1.0.0
 DISTDIR = /Users/edt/Dropbox/Codex/BBarolo/src/Build/BBaroloGUI1.0.0
-LINK          = mpicxx -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
+LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
 LFLAGS        = -headerpad_max_install_names -Wl,-rpath,/Users/edt/Programs/QT/5.7/clang_64/lib
 LIBS          = $(SUBLIBS) -F/Users/edt/Programs/QT/5.7/clang_64/lib -L/usr/local/lib -lfftw3 -lcfitsio -lwcs -lm -static-libgcc -static-libstdc++ -framework QtPrintSupport -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL 
 AR            = ar cq

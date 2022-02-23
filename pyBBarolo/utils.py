@@ -79,7 +79,7 @@ def emptyfits(axisDim,cdelts,crpixs=None,crvals=None,ctypes=None,cunits=None,\
     h['OBJECT'] = 'NONE'
     if obj is not None: h['OBJECT'] = obj
     if bunit is not None: h['BUNIT'] = bunit
-    h['EPOCH'] = 2000
+    h['EQUINOX'] = 2000.
     
     # Defining empty data
     if data is None:
@@ -495,4 +495,5 @@ class SimulatedGalaxyCube(object):
         bb.run(exe=exe,stdout=stdout)
         
         # Copy galaxy parameter file to outfolder
+        #bb.write_parameterfile(f'{outfolder}/BBparams.par')
         os.system(f'cp {p} {outfolder}/{obj}_params.txt')

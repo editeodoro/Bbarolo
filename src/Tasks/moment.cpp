@@ -274,7 +274,7 @@ void MomentMap<T>::SNMap(bool msk){
     
     snmap->copyHeader(in->Head());
     snmap->Head().setBtype("S/N");
-    nmap->Head().setBunit("NONE");
+    snmap->Head().setBunit("NONE");
     
     std::string s = in->pars().getOutfolder()+in->Head().Name();
     nmap->fitswrite_2d((s+"map_0th_RMS.fits").c_str());
