@@ -1009,12 +1009,24 @@ void Cube<T>::search() {
     p.minVoxels = minvox;
     p.maxAngSize = p.maxAngSize/(head.PixScale()*arcsconv(head.Cunit(1))/60.);
 
+    // Searching cube
     if (isSearched) delete sources;
     sources = new Search<T>(p);
     sources->search(array,stats,axisDim[0],axisDim[1],axisDim[2],
                     par.getFlagRobustStats(),par.getThreads(),par.isVerbose(),par.getShowbar());
 
     isSearched = true;
+
+    // Calculating parameters for detections
+    for (int i=0; i<getNumObj(); i++){
+        Detection<T> *obj = sources->pObject(i);
+        obj->calcFluxes(obj->getPixelSet(array, axisDim));
+        obj->calcWCSparams(head);
+        obj->calcIntegFlux(DimZ(), obj->getPixelSet(array, axisDim), head);
+    }
+
+    // Sorting detections
+    SortDetections(sources->pObjectList(),p.sortsrcs);
 
 }
 
@@ -1122,12 +1134,9 @@ void Cube<T>::printDetections (std::ostream& Stream) {
 
     Stream  << setfill(' ');
 
+
     for (int i=0; i<numObj; i++){
         Detection<T> *obj = sources->pObject(i);
-
-        obj->calcFluxes(obj->getPixelSet(array, axisDim));
-        obj->calcWCSparams(head);
-        obj->calcIntegFlux(DimZ(), obj->getPixelSet(array, axisDim), head);
 
         float Xcenter = obj->getXcentre();
         float Ycenter = obj->getYcentre();

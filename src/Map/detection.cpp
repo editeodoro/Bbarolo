@@ -995,82 +995,80 @@ void getIntSpec(Detection<T> &object, float *fluxArray, long *dimArray, std::vec
 }
 
 
-template <class T> 
-void SortByZ(std::vector<Detection<T> > *inputList)
-{
-  /// A Function that takes a list of Detections and sorts them in
-  /// order of increasing z-pixel value.  Upon return, the inputList
-  /// is sorted.
-  /// 
-  /// We use the std::stable_sort function, so that the order of
-  /// objects with the same z-value is preserved.
-  /// \param inputList List of Detections to be sorted.
-  /// \return The inputList is returned with the elements sorted.
+//===================================================================================
 
-  std::multimap<T, size_t> complist;
-  std::vector<Detection<T> > sorted;
-  typename std::multimap<T, size_t>::iterator comp;
-  typename std::vector<Detection<T> >::iterator det;
-  size_t ct=0;
-  for (det=inputList->begin();det<inputList->end();det++){
-    complist.insert(std::pair<float, size_t>(det->getZcentre(), ct++));    
-  }
 
-  for (comp = complist.begin(); comp != complist.end(); comp++) 
-    sorted.push_back(inputList->at(comp->second));
 
-  inputList->clear();
-  for (det=sorted.begin();det<sorted.end();det++) inputList->push_back( *det );
-  
-  sorted.clear();
-  
-}
+template <class T>
+void SortDetections(std::vector <Detection<T> > *inputList, std::string parameter) {
+    ///
+    /// A Function that takes a list of Detections and sorts them in order of
+    /// decreasing (default) or increasing value of the parameter given.
+    ///
+    /// For parameters that need the WCS (iflux, vel, ra, dec, w50), a check is made
+    /// that the WCS is valid. If it is not, the list is returned unsorted.
+    ///
+    /// \param inputList    List of Detections to be sorted.
+    /// \param parameter    The name of the parameter to be sorted on.
+    ///                     Options are listed below ('-' indicates increasing sorting)
+    ///
+    /// \return The inputList is returned with the elements sorted, unless the WCS is
+    ///         not good for at least one element, in which case it is returned unaltered.
 
-//======================================================================
+    const int n = 13;
+    const std::string sortingParam[n]={"xvalue","yvalue","zvalue","ra","dec","vel","w20","w50","iflux","pflux","snr","npix","nvox"};
 
-template <class T> 
-void SortByVel(std::vector <Detection<T> > *inputList) {
-  /// @details
-  /// A Function that takes a list of Detections and sorts them in 
-  ///  order of increasing velocity.
-  /// Every member of the vector needs to have WCS defined, (and if so,
-  ///   then vel is assumed to be defined for all), otherwise no sorting
-  ///   is done.
-  /// 
-  /// We use the std::stable_sort function, so that the order of
-  /// objects with the same z-value is preserved.
-  /// 
-  /// \param inputList List of Detections to be sorted.
-  /// \return The inputList is returned with the elements sorted,
-  /// unless the WCS is not good for at least one element, in which
-  /// case it is returned unaltered.
+    bool OK = false, reverseSort=(parameter[0]=='-');
+    std::string checkParam;
+    if(reverseSort) checkParam = parameter.substr(1);
+    else checkParam = parameter;
+    for(int i=0; i<n; i++) OK = OK || (checkParam == sortingParam[i]);
 
-  bool isGood = true;
-  for(size_t i=0;i<inputList->size();i++) isGood = isGood && inputList->at(i).isWCS();
-
-  if(isGood){
-
-    std::multimap<double, size_t> complist;
-    std::vector<Detection<T> > sorted;
-    std::multimap<double, size_t>::iterator comp;
-    typename std::vector<Detection<T> >::iterator det;
-    size_t ct=0;
-    for (det=inputList->begin();det<inputList->end();det++){
-        complist.insert(std::pair<double, size_t>(det->getVel(), ct++));
+    if(!OK){
+        std::cerr << "SEARCH WARNING: Invalid sorting parameter: " << parameter << ". Not doing any sorting." << std::endl;
+        return;
     }
 
-    for (comp = complist.begin(); comp != complist.end(); comp++) 
-        sorted.push_back(inputList->at(comp->second));
+    bool isGood = true;
+    if(checkParam!="zvalue" && checkParam!="pflux"  && checkParam!="snr"  &&
+       checkParam!="xvalue" && checkParam!="yvalue" && checkParam!="npix" && checkParam!="nvox"){
+        for(size_t i=0;i<inputList->size();i++) isGood = isGood && inputList->at(i).isWCS();
+    }
 
-    inputList->clear();
-    for (det=sorted.begin();det<sorted.end();det++) inputList->push_back( *det );
-    
-    sorted.clear();
+    if(isGood){
 
+        std::vector<Detection<T> > sorted;
+        typename std::vector<Detection<T> >::iterator det;
 
-  }
+        std::multimap<double, size_t> complist;
+        std::multimap<double, size_t>::iterator comp;
+        size_t ct=0;
+        double reverse = reverseSort ? 1. : -1.;
+        for (det=inputList->begin();det<inputList->end();det++){
+            if(checkParam=="ra")          complist.insert(std::pair<double, size_t>(reverse*det->getRA(), ct++));
+            else if(checkParam=="dec")    complist.insert(std::pair<double, size_t>(reverse*det->getDec(), ct++));
+            else if(checkParam=="vel")    complist.insert(std::pair<double, size_t>(reverse*det->getVel(), ct++));
+            else if(checkParam=="w50")    complist.insert(std::pair<double, size_t>(reverse*det->getW50(), ct++));
+            else if(checkParam=="w20")    complist.insert(std::pair<double, size_t>(reverse*det->getW20(), ct++));
+            else if(checkParam=="xvalue") complist.insert(std::pair<double, size_t>(reverse*det->getXcentre(), ct++));
+            else if(checkParam=="yvalue") complist.insert(std::pair<double, size_t>(reverse*det->getYcentre(), ct++));
+            else if(checkParam=="zvalue") complist.insert(std::pair<double, size_t>(reverse*det->getZcentre(), ct++));
+            else if(checkParam=="iflux")  complist.insert(std::pair<double, size_t>(reverse*det->getIntegFlux(), ct++));
+            else if(checkParam=="pflux")  complist.insert(std::pair<double, size_t>(reverse*det->getPeakFlux(), ct++));
+            else if(checkParam=="snr")    complist.insert(std::pair<double, size_t>(reverse*det->getPeakSNR(), ct++));
+            else if(checkParam=="npix")   complist.insert(std::pair<double, size_t>(reverse*det->getSpatialSize(), ct++));
+            else if(checkParam=="nvox")   complist.insert(std::pair<double, size_t>(reverse*det->getSize(), ct++));
+        }
 
-}  
+        for (comp = complist.begin(); comp != complist.end(); comp++)
+            sorted.push_back(inputList->at(comp->second));
+
+        inputList->clear();
+        for (det=sorted.begin();det<sorted.end();det++) inputList->push_back( *det );
+        sorted.clear();
+
+    }
+}
 
 //======================================================================
 

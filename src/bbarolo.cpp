@@ -348,7 +348,8 @@ bool BBcore (Param *par) {
     // Repixeling task ------------------------------------------------
     if (par->getflagReduce() && !(par->getflagSmooth() || par->getflagSmoothSpectral())) {
         std::string name = c->pars().getOutfolder()+c->Head().Name()+"_red.fits";
-        Cube<BBreal> *red = c->Reduce(floor(c->pars().getFactor()));
+        std::string redtype = par->getReduce()=="spectral" ? "spectral" : "spatial";
+        Cube<BBreal> *red = c->Reduce(floor(c->pars().getFactor()),redtype);
         red->fitswrite_3d(name.c_str(),true);
         delete red;
     }

@@ -1,4 +1,5 @@
 FLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @OPENMP_CXXFLAGS@ @CFLAGS@
+#-march=native
 #FLAGS = -O0 -g -fbounds-check -Wall -Wextra @OPENMP_CXXFLAGS@ @CFLAGS@
 #FLAGS = -fast -Wall @OPENMP_CXXFLAGS@ @CFLAGS@
 #WCSFLAGS = `pkg-config --cflags --libs wcslib`

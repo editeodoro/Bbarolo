@@ -158,7 +158,7 @@ public:
     void        setYOffset(long o){ySubOffset = o;}
     long        getZOffset(){return zSubOffset;}
     void        setZOffset(long o){zSubOffset = o;}
-    
+
     bool        hasParams(){return haveParams;}
     
     float       getTotalFlux(){return totalFlux;}
@@ -261,26 +261,25 @@ public:
     float          v50max;         ///< Maximum velocity at 50% of peak flux
     float          w50;            ///< Velocity width at 50% of peak flux  
  
-  };
+};
 
-  //==========================================================================
+//==========================================================================
 
-  //////////////////////////////////////////////////////
-  /// Prototypes for functions that use above classes
-  //////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+/// Prototypes for functions that use above classes
+//////////////////////////////////////////////////////
 
-  //----------------
-  // These are in detection.cpp
-  //
-  /// @brief Sort a list of Detections by Z-pixel value. 
-  template <class T>  void SortByZ(std::vector <Detection<T> > *inputList);
+//----------------
+// These are in detection.cpp
+//
+///Sort a list of Detections by a nominated parameter
+template <class T> void SortDetections(std::vector<Detection<T> > *inputList, std::string parameter);
 
-  /// @brief Sort a list of Detections by Velocity.
-  template <class T> void SortByVel(std::vector <Detection<T> > *inputList);
-  
-  /// @brief Sort a list of Detections by a nominated parameter
-  //void SortDetections(std::vector <Detection> &inputList, std::string parameter);
+/// Sort a list of Detections by Z-pixel value.
+template <class T>  void SortByZ(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"zvalue");}
 
+/// Sort a list of Detections by Velocity.
+template <class T> void SortByVel(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"vel");}
 
 #include "detection.cpp"
 #endif

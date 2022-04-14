@@ -110,7 +110,7 @@ void Param::defaultValues() {
     linear              = -1;
     factor              = 2;
     scalefactor         = -1;
-    flagReduce          = false;
+    reduce              = "false";
     smo_out             = "NONE";
     for (int i=0; i<6; i++) BOX[i] = -1;
 
@@ -213,7 +213,7 @@ Param& Param::operator= (const Param& p) {
     this->linear            = p.linear; 
     this->factor            = p.factor; 
     this->scalefactor       = p.scalefactor;
-    this->flagReduce        = p.flagReduce;
+    this->reduce            = p.reduce;
     this->smo_out           = p.smo_out;
 
     this->flagSmoothSpectral= p.flagSmoothSpectral;
@@ -496,6 +496,7 @@ void Param::setParam(string &parstr) {
     }
     if(arg=="cubelets")          parSE.cubelets = readFlag(ss);
     if(arg=="edges")             parSE.edges = readval<int>(ss);
+    if(arg=="sortsources")       parSE.sortsrcs = makelower(readFilename(ss));
 
     // MAP PARAMETERS
     if(arg=="globalprofile")    parMA.globprof = readFlag(ss);
@@ -600,7 +601,7 @@ void Param::setParam(string &parstr) {
     if(arg=="factor")    factor = readval<double>(ss);
     if(arg=="scalefactor") scalefactor = readval<double>(ss);
     if(arg=="fft")       flagFFT = readFlag(ss);
-    if(arg=="reduce")    flagReduce = readFlag(ss);
+    if(arg=="reduce")    reduce = makelower(readFilename(ss));
     if(arg=="smoothoutput") smo_out = readFilename(ss);
 
     if(arg=="smoothspec")  flagSmoothSpectral = readFlag(ss);
@@ -1001,6 +1002,13 @@ bool Param::checkPars() {
         }
     }
 
+    // Checking REDUCE parameter
+    if (reduce!="true" && reduce!="false" && reduce!="spatial" && reduce!="spectral") {
+        cout << "GENERAL PARAM warning: REDUCE parameter can only be TRUE, FALSE, SPECTRAL or SPATIAL. ";
+        cout << "Defaulting to TRUE."<< "\n";
+        reduce = "true";
+    }
+
     if (getMaps()) {
         if (parMA.maptype!="GAUSSIAN" && parMA.maptype!="MOMENT")
             cout << "MAP warning: MAPTYPE is either MOMENT or GAUSSIAN. Reverting to MOMENT.\n";
@@ -1257,7 +1265,8 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     toPrint = isAll || p.getParSE().flagSearch || (defaults && whichtask=="SEARCH");
     if (toPrint) {
         recordParam(Str, "[SEARCH]", "Searching for sources in cube?", stringize(p.getParSE().flagSearch));
-        recordParam(Str, "[searchType]", "   Type of searching performed", p.getParSE().searchType);
+        recordParam(Str, "[SEARCHTYPE]", "   Type of searching performed", p.getParSE().searchType);
+        recordParam(Str, "[SORTSOURCES]", "   Sorting detections based on?", p.getParSE().sortsrcs);
         recordParam(Str, "[ITERNOISE]", "   Estimating noise with iterative algorithm?", stringize(p.getParSE().iternoise));
         recordParam(Str, "[CUBELETS]", "   Writing sub-cubes of detections?", stringize(p.getParSE().cubelets));
         if(p.getParSE().cubelets || defaults)
@@ -1298,7 +1307,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[threshVelocity]", "   Max. velocity separation for merging", p.getParSE().threshVelocity);
         recordParam(Str, "[RejectBeforeMerge]", "   Reject objects before merging?", stringize(p.getParSE().RejectBeforeMerge));
         recordParam(Str, "[TwoStageMerging]", "   Merge objects in two stages?", stringize(p.getParSE().TwoStageMerging));
-        
+
     }
     
     // PARAMETERS FOR SMOOTH
@@ -1333,7 +1342,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
                 recordParam(Str, "[FACTOR]", "   New beam factor (times old beam)", p.getFactor());
         }
         recordParam(Str, "[FFT]", "   Using FFT for convolution?", stringize(p.getflagFFT()));
-        recordParam(Str, "[REDUCE]", "   Reducing datacube?", stringize(p.getflagReduce()));
+        recordParam(Str, "[REDUCE]", "   Averaging pixels to reduce datacube?", p.getReduce());
     }
     
     // PARAMETERS FOR SPECTRAL SMOOTHING
@@ -1342,6 +1351,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[SMOOTHSPEC]", "Spectral smoothing of the datacube?", stringize(p.getflagSmoothSpectral()));
         recordParam(Str, "[WINDOW_TYPE]", "   Type of smoothing window ", p.getWindowType());
         recordParam(Str, "[WINDOW_SIZE]", "   Size of smoothing window (channels)", p.getWindowSize());
+        recordParam(Str, "[REDUCE]", "   Averaging channels to reducing datacube?", p.getReduce());
     }
     
     // GALMOD & 3DFIT parameters

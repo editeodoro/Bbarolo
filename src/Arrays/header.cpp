@@ -381,8 +381,9 @@ bool Header::header_read (std::string fname) {
     
     status=0;
     if (fits_read_key_flt (fptr, "EPOCH", &epoch, comment, &status)) {
+        status=0;
         if (fits_read_key_flt (fptr, "EQUINOX", &epoch, comment, &status))
-        epoch = 0;
+            epoch = 0;
     }
     
     status=0;

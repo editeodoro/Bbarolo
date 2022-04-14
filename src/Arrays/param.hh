@@ -130,6 +130,7 @@ struct SEARCH_PAR {
     float  growthThreshold   = 0;         ///< The threshold for growing objects down to
     bool   cubelets          = false;     ///< If true, produce a sub-cube of each detection.
     int    edges             = 20;        ///< Number of pixels at the edges of a cubelet.
+    string sortsrcs          = "nvox";    ///< Type of sorting for detections.
 
 };
 
@@ -243,8 +244,9 @@ public:
     float   getFactor () {return factor;}
     float   getScaleFactor () {return scalefactor;}
     void    setFactor (float f) {factor=f;}
-    bool    getflagReduce() {return flagReduce;}
-    void    setflagReduce(bool b) {flagReduce=b;}
+    bool    getflagReduce() {return (reduce=="false" ? false : true);}
+    void    setflagReduce(bool f) {f ? reduce=="true" : reduce=="false";}
+    string  getReduce() {return reduce;}
     string  getSmoothOut () {return smo_out;}
     
     bool    getflagSmoothSpectral () {return flagSmoothSpectral;}
@@ -331,7 +333,7 @@ private:
     float           linear;             ///< Linear resolution to be achieved.
     float           factor;             ///< The newbeam is a factor of the old.
     float           scalefactor;
-    bool            flagReduce;
+    string          reduce;             ///< Whether to average pixel spatially/spectrally.
     string          smo_out;            ///< Output file.
     
     bool            flagSmoothSpectral; ///< Spectral smoothing the datacube?
