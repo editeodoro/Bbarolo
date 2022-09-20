@@ -570,10 +570,11 @@ void Param::setParam(string &parstr) {
     if(arg=="startrad")  parGF.STARTRAD   = readval<int>(ss);
     if(arg=="distance")  parGF.DISTANCE   = readval<float>(ss);
     if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
-    if(arg=="plotmask")  parGF.PLOTMASK   = readFlag(ss);
     if(arg=="reverse")   parGF.REVERSE    = makelower(readFilename(ss));
     if(arg=="normalcube")parGF.NORMALCUBE = readFlag(ss);
-    if(arg=="badout")    parGF.flagBADOUT     = readFlag(ss);
+    if(arg=="badout")    parGF.flagBADOUT = readFlag(ss);
+    if(arg=="plotmask")  parGF.PLOTMASK   = readFlag(ss);
+    if(arg=="plotmincon")parGF.PLOTMINCON = readval<float>(ss);
 
 
     // GALWIND ONLY PARAMETERS
@@ -1462,12 +1463,13 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
                 recordParam(Str, "[REGTYPE]", "     Degree of polynomial fitting angles?", p.getParGF().REGTYPE);
             recordParam(Str, "[FLAGERRORS]", "   Estimating errors?", stringize(p.getParGF().flagERRORS));
         
-            recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));
-            recordParam(Str, "[PLOTMASK]", "   Overlaying mask to output plots?", stringize(p.getParGF().PLOTMASK));
+            recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));            
             recordParam(Str, "[REVERSE]", "   Using reverse-cumulative fitting?", p.getParGF().REVERSE);
             recordParam(Str, "[NORMALCUBE]", "   Normalizing cube to help convergence?", stringize(p.getParGF().NORMALCUBE));
 	    recordParam(Str, "[BADOUT]", "   Write unconverged rings in output (with flag)?", stringize(p.getParGF().flagBADOUT));
         recordParam(Str, "[VELDEF]",   "   Definition for velocity conversion?", p.getParMA().veldef);
+        recordParam(Str, "[PLOTMASK]", "   Overlaying mask to output plots?", stringize(p.getParGF().PLOTMASK));
+        recordParam(Str, "[PLOTMINCON]", "   Minimum flux contour for output plots", p.getParGF().PLOTMINCON);
         }
 
         recordParam(Str, "[NOISERMS]", "   RMS noise to add to the model", p.getParGF().NOISERMS);

@@ -381,7 +381,7 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
             case VSYS:
                 for (int j=0; j<n; j++) {
                     vsys[j] = (zpar[np]<mins[VSYS] || zpar[np]>maxs[VSYS]) ? inr->vsys[w_r] : zpar[np];
-                    zpar[np] = vsys[j];
+                    zpar[np++] = vsys[j];
                 }
                 break;
             

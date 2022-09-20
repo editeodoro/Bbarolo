@@ -941,13 +941,26 @@ int Galfit<T>::plotAll_Python() {
     int xmax=in->DimX()-1, ymax=in->DimY()-1, zmax=in->DimZ()-1;
     float vsys_av = findMedian(&outr->vsys[0],outr->nr);
 
-    if (in->pars().getMASK()=="SEARCH") {
-        if (in->pars().getParSE().flagUserGrowthT) cont = in->pars().getParSE().growthThreshold;
-        else if (in->pars().getParSE().UserThreshold) cont = in->pars().getParSE().threshold;
-        else {
-            if (in->pars().getParSE().flagGrowth) cont = in->pars().getParSE().growthCut*in->stat().getSpread();
-            else cont = in->pars().getParSE().snrCut*in->stat().getSpread();
+    // Determining contour levels for plots
+    if (in->pars().getParGF().PLOTMINCON>0) cont = in->pars().getParGF().PLOTMINCON;
+    else {
+        if (in->pars().getMASK()=="SEARCH") {
+            if (in->pars().getParSE().flagUserGrowthT) cont = in->pars().getParSE().growthThreshold;
+            else if (in->pars().getParSE().UserThreshold) cont = in->pars().getParSE().threshold;
+            else {
+                if (in->pars().getParSE().flagGrowth) cont = in->pars().getParSE().growthCut*in->stat().getSpread();
+                else cont = in->pars().getParSE().snrCut*in->stat().getSpread();
+            }
         }
+        else {
+            if (!in->StatsDef()) in->setCubeStats();
+            cont = 2.5*in->stat().getSpread();
+            //if (in->pars().getParSE().UserThreshold) cont=in->pars().getParSE().threshold;
+        }
+    }
+
+    // Determining x-y-z extension of plots
+    if (in->pars().getMASK()=="SEARCH") {
         Detection<T> *larg = in->getSources()->LargestDetection();
         long ext[4] = {abs(xpos-lround(larg->getXmin()-2*in->Head().Bmaj()/in->Head().PixScale())),
                        abs(xpos-lround(larg->getXmax()+2*in->Head().Bmaj()/in->Head().PixScale())),
@@ -960,9 +973,6 @@ int Galfit<T>::plotAll_Python() {
         if (zmax>=in->DimZ()) zmax=in->DimZ()-1;
     }
     else {
-        if (!in->StatsDef()) in->setCubeStats();
-        cont = 2.5*in->stat().getSpread();
-        if (in->pars().getParSE().UserThreshold) cont=in->pars().getParSE().threshold;
         std::vector<T> maxv(outr->nr);
         for (int i=0; i<outr->nr; i++) maxv[i]=outr->vrot[i]*sin(outr->inc[i]*M_PI/180.)+outr->vdisp[i];
        //float max_vrot = *max_element(&outr->vrot[0],&outr->vrot[0]+outr->nr);

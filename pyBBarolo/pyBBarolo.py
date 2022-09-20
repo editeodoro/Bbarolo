@@ -641,7 +641,7 @@ class FitMod3D(Model3D):
         sys.stdout.flush()
         ret = libBB.Galfit_plotModel(self._mod) 
         if ret==0: print ("Done.")
-        else: print(" Something went wrong! Check pyscript.py in the output folder.");
+        else: print(" Something went wrong! Check the plotscripts/ directory in your output directory.");
          
          
     def _check_options(self):

@@ -82,11 +82,11 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   flagERRORS = false;    ///< Whether estimating errors.
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
     bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.
-    bool   PLOTMASK   = false;    ///< Whether to show the mask in output plots
     string REVERSE    = "false";  ///< Whether to use a reverse cumulative fitting.
     bool   NORMALCUBE = true;     ///< Whether to normalize the input flux values.
     bool   flagBADOUT = false;    ///< Whether to write bad rings (with flag) in output.
-    
+    bool   PLOTMASK   = false;    ///< Whether to show the mask in output plots
+    float  PLOTMINCON = -1;       ///< Whether to show the mask in output plots
 };
 
 // Container for input parameters for GALWIND (generates a 3D biconical outflow)
