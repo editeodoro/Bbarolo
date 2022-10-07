@@ -133,6 +133,7 @@ double Freq2Vel(double v, double freq0, std::string veldef);
 double Wave2Vel(double v, double wave0, std::string veldef);
 double AlltoVel (double in, Header &h);
 double DeltaVel (Header &h);
+bool isFluxUnitKnown (Header &h);
 template <class T> T FluxtoJyBeam (T in, Header &h);
 template <class T> T FluxtoJy (T in, Header &h);
 template <class T> T Pbcor (PixelInfo::Voxel<T> &v, Header &h);

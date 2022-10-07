@@ -205,6 +205,19 @@ double DeltaVel(Header &h) {
 }
 
 
+bool isFluxUnitKnown (Header &h) {
+    
+    bool isKnown = false;
+    std::string b = deblankAll(makelower(h.Bunit()));
+    size_t f = std::string::npos;
+    if (b.find("w.u.")!=f || b.find("wu")!=f) isKnown = true;
+    else if (b.find("jy")!=f) isKnown = true;
+    else if (b=="k") isKnown = true;
+    
+    return isKnown;
+}
+
+
 template <class T> 
 T FluxtoJyBeam (T in, Header &h) {
 

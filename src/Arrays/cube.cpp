@@ -238,7 +238,7 @@ bool Cube<T>::readCube (std::string fname) {
     // be stored in Header(). I should think something better
     head.setRedshift(par.getRedshift());
     head.setWave0(par.getRestwave());
-
+    
     // Setting velocity conversion
     if (par.getParMA().veldef=="auto") {
         std::string sptype = head.getSpectralType();
@@ -254,9 +254,51 @@ bool Cube<T>::readCube (std::string fname) {
         }
     }
     else head.setVelDef(par.getParMA().veldef);
-
+    
+    // Reading in fits array
     numPix = axisDim[0]*axisDim[1]*axisDim[2];
     if (!fitsread_3d()) return false;
+    
+    // Giving some information on conversion factors that will be used
+    std::cout << fixed << setprecision(6);
+    if (axisDim[2]>1) {
+        
+        std::cout << "Spectral axis is ";
+        if (head.getSpectralType()=="velo") std::cout << "VELOCITY.\n";
+        else if (head.getSpectralType()=="freq") { 
+            std::cout << "FREQUENCY.\n";
+            std::cout << "  Rest frequency  = " << head.Freq0() << " " << head.Cunit(2) << std::endl;
+            if (par.getRedshift()!=0.)
+                std::cout << "  Redshift (z)    = " << par.getRedshift() << std::endl; 
+        }
+        else if (head.getSpectralType()=="wave") {
+            std::cout << "WAVELENGTH.\n";
+            if (head.Wave0()!=-1) {
+                std::cout << "  Rest wavelength = " << head.Wave0() << " " << head.Cunit(2) << std::endl; 
+                if (par.getRedshift()!=0.)
+                    std::cout << "  Redshift (z)    = " << par.getRedshift() << std::endl; 
+            }
+        }
+        else std::cout << "UNKNOWN.\n";
+
+        std::cout << "  Channel width   = " << head.Cdelt(2) << " " << head.Cunit(2) 
+                  << " = " << DeltaVel(head) << " KM/S." << std::endl;
+    }
+    
+    std::string bunit = head.Bunit();
+    std::cout << "Flux units are " << bunit << ".\n";
+    if (isFluxUnitKnown(head)) {
+        std::cout << "  Conversion to Jy/beam: 1 " << bunit << " = " << FluxtoJyBeam(1.,head) << " Jy/beam.\n";
+        std::cout << "  Conversion to Jy     : 1 " << bunit << " = " << FluxtoJy(1.,head) << " Jy.\n";
+    }
+    else std::cout << "  No known conversion to Jy.\n";
+
+    std::cout << "Beam size is " << head.Bmaj()*3600 << "\" x " << head.Bmin()*3600 << "\" (angle = "
+              << head.Bpa() << " deg).\n";
+    std::cout << "Beam area is " << head.BeamArea() << " pixels.\n";
+    
+ 
+    
     return true;
 }
 
