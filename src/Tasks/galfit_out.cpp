@@ -961,7 +961,7 @@ int Galfit<T>::plotAll_Python() {
 
     // Determining x-y-z extension of plots
     if (in->pars().getMASK()=="SEARCH") {
-		// Using largest detection to set the spatial displacement from the center and the spectral range
+        // Using largest detection to set the spatial displacement from the center and the spectral range
         Detection<T> *larg = in->getSources()->LargestDetection();
         long ext[4] = {abs(xpos-lround(larg->getXmin()-2*in->Head().Bmaj()/in->Head().PixScale())),
                        abs(xpos-lround(larg->getXmax()+2*in->Head().Bmaj()/in->Head().PixScale())),
@@ -973,23 +973,23 @@ int Galfit<T>::plotAll_Python() {
         if (zmin<0) zmin=0;
         if (zmax>=in->DimZ()) zmax=in->DimZ()-1;
     }
-	else if (in->pars().getMASK()=="SMOOTH&SEARCH") {
-		// Using mask to set the spatial displacement from the center and the spectral range
-		bool *m = in->Mask();
-		int Xmax=0,Xmin=in->DimX();
-		int Ymax=0,Ymin=in->DimY();
-		int Zmax=0,Zmin=in->DimZ();
-		for (auto x=0; x<in->DimX(); x++) {
-			for (auto y=0; y<in->DimY(); y++) {
-				for (auto z=0; z<in->DimZ(); z++) {
-					if (m[in->nPix(x,y,z)]) {
-						if (x>Xmax) Xmax=x; if (y>Ymax) Ymax=y; 
-						if (z>Zmax) Zmax=z; if (x<Xmin) Xmin=x; 
-						if (y<Ymin) Ymin=y; if (z<Zmin) Zmin=z; 
-					}
-				}
-			}
-		}
+    else if (in->pars().getMASK()=="SMOOTH&SEARCH") {
+        // Using mask to set the spatial displacement from the center and the spectral range
+        bool *m = in->Mask();
+        int Xmax=0,Xmin=in->DimX();
+        int Ymax=0,Ymin=in->DimY();
+        int Zmax=0,Zmin=in->DimZ();
+        for (auto x=0; x<in->DimX(); x++) {
+            for (auto y=0; y<in->DimY(); y++) {
+                for (auto z=0; z<in->DimZ(); z++) {
+                    if (m[in->nPix(x,y,z)]) {
+                        if (x>Xmax) Xmax=x; if (y>Ymax) Ymax=y; 
+                        if (z>Zmax) Zmax=z; if (x<Xmin) Xmin=x; 
+                        if (y<Ymin) Ymin=y; if (z<Zmin) Zmin=z; 
+                    }
+                }
+            }
+        }
         long ext[4] = {abs(xpos-lround(Xmin-2*in->Head().Bmaj()/in->Head().PixScale())),
                        abs(xpos-lround(Xmax+2*in->Head().Bmaj()/in->Head().PixScale())),
                        abs(ypos-lround(Ymin-2*in->Head().Bmaj()/in->Head().PixScale())),
@@ -997,9 +997,7 @@ int Galfit<T>::plotAll_Python() {
         disp = *max_element(&ext[0],&ext[0]+4);
         zmin = Zmin-3;
         zmax = Zmax+3;
-		
-		std::cout << Zmin << " " << Zmax << " " << Xmin << " " << Xmax << " " << Ymin << " " << Ymax << std::endl;
-	}
+    }
     else {
         std::vector<T> maxv(outr->nr);
         for (int i=0; i<outr->nr; i++) maxv[i]=outr->vrot[i]*sin(outr->inc[i]*M_PI/180.)+outr->vdisp[i];
@@ -1011,8 +1009,6 @@ int Galfit<T>::plotAll_Python() {
         int disp_v = ceil((1.5*max_v)/fabs(DeltaVel(in->Head())));
         zmin = z_vsys-2*disp_v>0 ? z_vsys-2*disp_v : 0;
         zmax = z_vsys+2*disp_v<in->DimZ() ? z_vsys+2*disp_v : in->DimZ()-1;
-		
-		std::cout << zmin << " " << zmax << std::endl;
     }
 
     xmin = xpos-disp>=0 ? xpos-disp : 0;
