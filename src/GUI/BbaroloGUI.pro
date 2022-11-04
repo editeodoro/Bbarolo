@@ -74,4 +74,4 @@ ICON = resources/Bbarolo.icns
 RESOURCES += \
     resources.qrc
 
-INCLUDEPATH += /usr/local/include ../
+INCLUDEPATH += /usr/local/include ../ /opt/homebrew/include

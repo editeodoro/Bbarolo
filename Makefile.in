@@ -217,7 +217,7 @@ builddir:
 	mkdir -p $(OBJDIR)
 
 .PHONY: clean	
-clean : cleanup cleangui
+clean : cleanup
 	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
 
 .PHONY: cleanest

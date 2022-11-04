@@ -4,9 +4,9 @@
 # Macro can be installed with the autoconf-archive. After that, run aclocal before autoconf
 # to pull the required macros into aclocal.m4
 
-AC_PREREQ(2.59)
-AC_INIT([BBAROLO], [1.6], [enrico.diteodoro@gmail.com])
-#AC_CONFIG_HEADER([src/config.h])
+AC_PREREQ([2.71])
+AC_INIT([BBAROLO],[1.6],[enrico.diteodoro@gmail.com])
+#AC_CONFIG_HEADERS([src/config.h])
 #AC_PREFIX_DEFAULT(/usr/local)
 
 ##### ------ Macro that checks for specific modules in python ----- ######
@@ -37,7 +37,7 @@ fi
 
 ######### ------ Macro that checks for MPI implementation ----- ###########
 AC_DEFUN([AX_PROG_CXX_MPI], [
-AC_PREREQ(2.50)
+AC_PREREQ([2.71])
 
 # Check for compiler
 # Needs to be split off into an extra macro to ensure right expansion
@@ -301,8 +301,7 @@ done
 
 AC_MSG_NOTICE([  -- CFITSIO -- ])
 AC_ARG_WITH(cfitsio,
-	AC_HELP_STRING([--with-cfitsio=<dir>],
-		       [The CFITSIO library and include files are in directory <dir>.]),
+	AS_HELP_STRING([--with-cfitsio=<dir>],[The CFITSIO library and include files are in directory <dir>.]),
 [ #if we specify a directory...
 if test "x$withval" = xno; then
   AC_MSG_NOTICE([
@@ -383,8 +382,7 @@ AC_SUBST([CFITSIOLIB])
 AC_MSG_NOTICE([  -- FFTW3 -- ])
 FFTW3INCDIR=""
 AC_ARG_WITH(fftw3,
-	AC_HELP_STRING([--with-fftw3=<dir>],
-		       [The FFTW3 library and include files are in directory <dir>.]),
+	AS_HELP_STRING([--with-fftw3=<dir>],[The FFTW3 library and include files are in directory <dir>.]),
 [ #if we specify a directory...
 if test "x$withval" = xno; then
   AC_MSG_NOTICE([
@@ -480,8 +478,7 @@ AC_SUBST([FFTW3], "-DHAVE_FFTW3")
 AC_MSG_NOTICE([  -- WCSLIB -- ])
 WCSINCDIR=""
 AC_ARG_WITH(wcslib,
-	AC_HELP_STRING([--with-wcslib=<dir>],
-		       [The WCSLIB library and include files are in directory <dir>.]),
+	AS_HELP_STRING([--with-wcslib=<dir>],[The WCSLIB library and include files are in directory <dir>.]),
 [ #if we specify a directory...
 if test "x$withval" = xno; then
   AC_MSG_NOTICE([

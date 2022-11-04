@@ -274,7 +274,7 @@ bool Cube<T>::readCube (std::string fname) {
         else if (head.getSpectralType()=="wave") {
             std::cout << "WAVELENGTH.\n";
             if (head.Wave0()!=-1) {
-                std::cout << "  Rest wavelength = " << head.Wave0() << " " << head.Cunit(2) << std::endl; 
+                std::cout << "  Rest wavelength = " << head.Wave0() << " " << head.Cunit(2) << std::endl;
                 if (par.getRedshift()!=0.)
                     std::cout << "  Redshift (z)    = " << par.getRedshift() << std::endl; 
             }
@@ -282,7 +282,10 @@ bool Cube<T>::readCube (std::string fname) {
         else std::cout << "UNKNOWN.\n";
 
         std::cout << "  Channel width   = " << head.Cdelt(2) << " " << head.Cunit(2) 
-                  << " = " << DeltaVel(head) << " KM/S." << std::endl;
+                  << " = " << DeltaVel(head) << " km/s";
+        if (head.getSpectralType()=="wave" || head.getSpectralType()=="freq") 
+            std::cout << " (" << head.VelDef() << ").\n";
+        else std::cout << ".\n";
     }
     
     std::string bunit = head.Bunit();
@@ -295,7 +298,7 @@ bool Cube<T>::readCube (std::string fname) {
 
     std::cout << "Beam size is " << head.Bmaj()*3600 << "\" x " << head.Bmin()*3600 << "\" (angle = "
               << head.Bpa() << " deg).\n";
-    std::cout << "Beam area is " << head.BeamArea() << " pixels.\n";
+    std::cout << "Beam area is " << head.BeamArea() << " pixels.\n\n";
     
  
     
@@ -462,24 +465,26 @@ void Cube<T>::BlankCube (T *Array, size_t size) {
 template <class T>
 void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     
-     ///////////////////////////////////////////////////////////////////////////////////
-     /// This function builds a mask for the cube. The type of mask depends on the
-     /// parameter MASK:
-     ///
-     /// - SEARCH:      Uses the source finding algorith and masks the largest object.
-     ///                All search-related parameters can be used.
-     /// - THRESHOLD:   Applies a simple threshold cut given by THRESHOLD parameter.
-     /// - SMOOTH:      Smooths the cube by a factor FACTOR and applies a S/N threshold
-     ///                on the smoothed cube given by BLANKCUT. Default are FACTOR=2
-     ///                and BLANKCUT=3. If BMAJ and BMIN parameters are, it smooths to
-     ///                these values.
-     /// - NEGATIVE:    Calculates the noise statitistics just on the negative pixels
-     ///                and builds the mask based on the S/N threshold BLANKCUT.
-     /// - FILE(Name):  User-provided mask. 'Name' is a fitsfile with same size of the
-     ///                cube and filled with 0(false) or 1(true).
-     /// - NONE:        No mask.
-     ///
-     ///////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////
+    /// This function builds a mask for the cube. The type of mask depends on the
+    /// parameter MASK:
+    ///
+    /// - SEARCH:        Uses the source finding algorith and masks the largest object.
+    ///                  All search-related parameters can be used.
+    /// - THRESHOLD:     Applies a simple threshold cut given by THRESHOLD parameter.
+    /// - SMOOTH:        Smooths the cube by a factor FACTOR and applies a S/N threshold
+    ///                  on the smoothed cube given by BLANKCUT. Default are FACTOR=2
+    ///                  and BLANKCUT=3. If BMAJ and BMIN parameters are, it smooths to
+    ///                  these values.
+    /// - SMOOTH&SEARCH: Smooths the cube by a factor FACTOR and then runs the source 
+ 	///                  finder on the smoothed cube.
+    /// - NEGATIVE:      Calculates the noise statitistics just on the negative pixels
+    ///                  and builds the mask based on the S/N threshold BLANKCUT.
+    /// - FILE(Name):    User-provided mask. 'Name' is a fitsfile with same size of the
+    ///                  cube and filled with 0(false) or 1(true).
+    /// - NONE:          No mask.
+    ///
+    ///////////////////////////////////////////////////////////////////////////////////
 
     if (maskAllocated) delete [] mask;
     mask = new bool[numPix];
