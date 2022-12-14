@@ -66,7 +66,7 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   flagGALFIT = false;    ///< Enable task 
     float  DELTAINC   = 5;        ///< Inclination angle variation (degrees).
     float  DELTAPHI   = 15;       ///< Position angle variation (degrees).
-    float  DELTAVROT  = 600;      ///< Rotation velocity variation (km/s).
+    float  DELTAVROT  = 1000.;    ///< Rotation velocity variation (km/s).
     float  MAXVDISP   = 1000.;    ///< Maximum velocity dispersion.
     float  MINVDISP   = 0.1;      ///< Minimum velocity dispersion.
     int    FTYPE      = 2;        ///< Type of function to be minimized;

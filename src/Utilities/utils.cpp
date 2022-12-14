@@ -212,7 +212,7 @@ bool isFluxUnitKnown (Header &h) {
     size_t f = std::string::npos;
     if (b.find("w.u.")!=f || b.find("wu")!=f) isKnown = true;
     else if (b.find("jy")!=f) isKnown = true;
-    else if (b=="k") isKnown = true;
+    else if (b=="k" || b=="k(tmb)") isKnown = true;
     
     return isKnown;
 }
@@ -234,7 +234,7 @@ T FluxtoJyBeam (T in, Header &h) {
         fluxJYB = fluxJYB;
     else if (b.find("jy")!=f && h.BeamArea()!=0)
         fluxJYB *= h.BeamArea();
-    else if (b=="k") {
+    else if (b=="k" || b=="k(tmb)") {
         // Converting from Kelvin -> Jy/Beam (only ok for HI)
         fluxJYB = in*(h.Bmaj()*3600.*h.Bmin()*3600.)/(1360.*21.106*21.106);
     }

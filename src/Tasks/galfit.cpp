@@ -559,10 +559,8 @@ void Galfit<T>::galfit() {
     
     // Scaling back to original values
     if (par.NORMALCUBE) {
-        for (auto i=in->NumPix(); i--;) {
-            in->Array(i) /= scaling;
-            data_noise /= scaling;
-        }
+        for (auto i=in->NumPix(); i--;) in->Array(i) /= scaling;
+        data_noise /= scaling;
     }
 
 }
@@ -813,7 +811,6 @@ bool Galfit<T>::SecondStage() {
                     mpar[XPOS]|| mpar[YPOS] || mpar[VSYS];
     if (!isNeeded) {par.TWOSTAGE=false; return isNeeded;}
     second = true;
-    if (!in->pars().getFlagSlitfit()) func_norm = &Model::Galfit<T>::norm_local;
 
     int nr = outr->nr;
     

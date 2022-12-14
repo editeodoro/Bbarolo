@@ -291,14 +291,21 @@ bool Cube<T>::readCube (std::string fname) {
     std::string bunit = head.Bunit();
     std::cout << "Flux units are " << bunit << ".\n";
     if (isFluxUnitKnown(head)) {
-        std::cout << "  Conversion to Jy/beam: 1 " << bunit << " = " << FluxtoJyBeam(1.,head) << " Jy/beam.\n";
-        std::cout << "  Conversion to Jy     : 1 " << bunit << " = " << FluxtoJy(1.,head) << " Jy.\n";
+        double ftoJy = FluxtoJy(1.,head);
+        double ftoJyb = FluxtoJyBeam(1.,head);
+        if (ftoJy<1E-05 || ftoJyb<1E-05) std::cout << scientific;
+        std::cout << "  Conversion to Jy/beam: 1 " << bunit << " = " << ftoJyb << " Jy/beam.\n";
+        std::cout << "  Conversion to Jy     : 1 " << bunit << " = " << ftoJy << " Jy.\n";
+        std::cout << fixed;
     }
     else std::cout << "  No known conversion to Jy.\n";
 
-    std::cout << "Beam size is " << head.Bmaj()*3600 << "\" x " << head.Bmin()*3600 << "\" (angle = "
-              << head.Bpa() << " deg).\n";
-    std::cout << "Beam area is " << head.BeamArea() << " pixels.\n\n";
+    if (head.BeamArea()==0) std::cout << "Beam information has not been found in the header.\n\n";
+    else {
+        std::cout << "Beam size is " << head.Bmaj()*3600 << "\" x " << head.Bmin()*3600 << "\" (angle = "
+                  << head.Bpa() << " deg).\n";
+        std::cout << "Beam area is " << head.BeamArea() << " pixels.\n\n";
+    }
     
  
     

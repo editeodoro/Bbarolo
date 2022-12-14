@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.6.6dev"
+#define BBVERSION "1.6.7dev"
 
 struct Entry {string name; string descr;};
 
@@ -282,6 +282,7 @@ bool Param::getopts(int argc, char **argv) {
                 {"listhead",  no_argument,       nullptr, 'L'},
                 {"fitscopy",  no_argument,       nullptr, 'C'},
                 {"fitsarith", no_argument,       nullptr, 'A'},
+                {"upgrade",   no_argument,       nullptr, 'U'},
                 {0, 0, 0, 0}
         };
         
@@ -357,6 +358,11 @@ bool Param::getopts(int argc, char **argv) {
 
             case 'A':                    // Operations on a fits image
                 fitsarith(argc,argv);
+                break;
+            
+            case 'U':                    // Upgrade BBarolo to latest version
+                cout << "BBarolo automated upgrade is not implemented yet! Try again in next versions...\n";
+                system("ls");
                 break;
 
             case '?':                    // Unrecognized option
