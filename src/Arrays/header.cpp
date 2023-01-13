@@ -399,27 +399,29 @@ bool Header::header_read (std::string fname) {
     status=0;
     if (fits_read_key_dbl (fptr, "FREQR", &freq0, comment, &status)) {
         status=0;
-        if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
-            status=0;
+        if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
+        status=0;
             if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
                 status=0;
-                if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
-                    if (dunit3=="NONE" || drval3==0 || (cunit[2]!="HZ" && cunit[2]!="hz" &&
-                                                        cunit[2]!="MHZ" && cunit[2]!="Mhz" && cunit[2]!="mhz" &&
-                                                        cunit[2]!="GHZ" && cunit[2]!="Ghz" && cunit[2]!="ghz" &&
-                                                        dunit3!="KM/S" && dunit3!="km/s" && dunit3!="M/S"  && dunit3!="m/s")) {
-                        Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
-                        freq0 = 0.1420405751786E10;
-                    }
-                    else {
-                        double drval3ms=0.;
-                        double crval3hz=0.;
-                        if (dunit3=="KM/S" || dunit3=="km/s") drval3ms=drval3*1000;
-                        else if (dunit3=="M/S" || dunit3=="m/s") drval3ms=drval3;
-                        if (cunit[2]=="HZ" || cunit[2]=="hz") crval3hz = crval[2];
-                        else if (cunit[2]=="MHZ" || cunit[2]=="Mhz" || cunit[2]=="mhz") crval3hz=crval[2]*1.E06;
-                        else if (cunit[2]=="GHZ" || cunit[2]=="Ghz" || cunit[2]=="ghz") crval3hz=crval[2]*1.E09;
-                        freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
+                if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
+                    status=0;
+                    if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
+                        if (dunit3=="NONE" || drval3==0 || (cunit[2]!="HZ" && cunit[2]!="hz" &&
+                                                            cunit[2]!="MHZ" && cunit[2]!="Mhz" && cunit[2]!="mhz" &&
+                                                            cunit[2]!="GHZ" && cunit[2]!="Ghz" && cunit[2]!="ghz" &&
+                                                            dunit3!="KM/S" && dunit3!="km/s" && dunit3!="M/S"  && dunit3!="m/s")) {
+                            Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
+                            freq0 = 0.1420405751786E10;
+                        }
+                        else {
+                            double drval3ms=0.,crval3hz=0.;
+                            if (dunit3=="KM/S" || dunit3=="km/s") drval3ms=drval3*1000;
+                            else if (dunit3=="M/S" || dunit3=="m/s") drval3ms=drval3;
+                            if (cunit[2]=="HZ" || cunit[2]=="hz") crval3hz = crval[2];
+                            else if (cunit[2]=="MHZ" || cunit[2]=="Mhz" || cunit[2]=="mhz") crval3hz=crval[2]*1.E06;
+                            else if (cunit[2]=="GHZ" || cunit[2]=="Ghz" || cunit[2]=="ghz") crval3hz=crval[2]*1.E09;
+                            freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
+                        }
                     }
                 }
             }

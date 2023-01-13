@@ -286,10 +286,10 @@ void MomentMap<T>::SNMap(bool msk){
 
 
 template <class T> 
-void MomentMap<T>::RMSMap (float level, float sncut) {
+void MomentMap<T>::RMSMap (bool msk, float sncut, float level) {
     
     // Compute the RMS map, i.e. the RMS in each spectrum.
-    // Use an iterative way: calculate rms, cut at 1.5*rms, 
+    // Use an iterative way: calculate rms, cut at sncut*rms, 
     // start again until convergence at level "level".
 
     if (!this->arrayAllocated) {
@@ -311,46 +311,66 @@ void MomentMap<T>::RMSMap (float level, float sncut) {
     // Progress bar
     ProgressBar bar(true,in->pars().isVerbose(),in->pars().getShowbar());
     
+    if(msk && !in->MaskAll()) in->BlankMask();
+
 #pragma omp parallel num_threads(nthreads)
 {
-   bar.init(" Computing RMS map... ",xs*ys);
+    bar.init(" Computing RMS map... ",xs*ys);
 #pragma omp for
     for (size_t xy=0; xy<xs*ys; xy++) {
         bar.update(xy+1);
-            
-        // Getting the spectrum at x,y pixel
-        std::vector<float> sp(zs);
-        for (size_t z=0; z<zs; z++) 
-            if (in->Array(xy+z*xs*ys)==in->Array(xy+z*xs*ys)) 
-                sp[z] = in->Array(xy+z*xs*ys);
-            
-        // Start main loop
-        float orms = 1E10;
-        size_t count = 0;
-        while (true) {
-            // Calculate median and MADFM
+        
+        if (msk) {    // Calculating RMS map with previous knowledge of a mask
+            // Getting the spectrum at x,y pixel
             float rms = 0;
+            std::vector<float> sp;
+            for (size_t z=0; z<zs; z++) 
+                if (in->Array(xy+z*xs*ys)==in->Array(xy+z*xs*ys) && !in->Mask(xy+z*xs*ys)) 
+                    sp.push_back(in->Array(xy+z*xs*ys));
+        
             if (rob) {
                 float median = findMedian(&sp[0],sp.size(),false);
                 rms = findMADFM(&sp[0],sp.size(),median,false)/0.6745;
             }
-            else {
-                rms = findStddev(&sp[0],sp.size());
-            }
-            // Calculate improvement wrt previous step
-            float rat = (orms - rms)/orms;
-            // If meet criteria, exit 
-            if (rat<level || count++>100 || sp.size()<5) break;
-            // Else S/N cut the spectrum 
-            orms = rms;
-            for (int z=sp.size(); z--;) 
-                if (sp[z]>sncut*rms) sp.erase(sp.begin()+z);
+            else rms = findStddev(&sp[0],sp.size());
+            this->array[xy] = rms;
         }
-        this->array[xy] = orms;
+        else {      // Calculating RMS map with iterative method
+            // Getting the spectrum at x,y pixel
+            std::vector<float> sp(zs);
+            for (size_t z=0; z<zs; z++) 
+                if (in->Array(xy+z*xs*ys)==in->Array(xy+z*xs*ys)) 
+                    sp[z] = in->Array(xy+z*xs*ys);
+    
+            // Start main loop
+            float orms = 1E10;
+            size_t count = 0;
+            while (true) {
+                // Calculate median and MADFM
+                float rms = 0;
+                if (rob) {
+                    float median = findMedian(&sp[0],sp.size(),false);
+                    rms = findMADFM(&sp[0],sp.size(),median,false)/0.6745;
+                }
+                else rms = findStddev(&sp[0],sp.size());
+
+                // Calculate improvement wrt previous step
+                float rat = (orms - rms)/orms;
+                // If meet criteria, exit 
+                if (rat<level || count++>100 || sp.size()<5) break;
+                // Else S/N cut the spectrum 
+                orms = rms;
+                for (int z=sp.size(); z--;) 
+                    if (sp[z]>sncut*rms) sp.erase(sp.begin()+z);
+            }
+            this->array[xy] = orms;
+        }
     }
 }
+
     storedtype = 4;
     bar.fillSpace("Done.\n");
+
 
 }
 

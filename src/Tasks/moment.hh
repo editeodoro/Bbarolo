@@ -48,7 +48,7 @@ public:
     void ZeroMoment  (bool msk, std::string mtype="MOMENT") {storeMap(msk,0,mtype);}
     void FirstMoment (bool msk, std::string mtype="MOMENT") {storeMap(msk,1,mtype);}
     void SecondMoment(bool msk, std::string mtype="MOMENT") {storeMap(msk,2,mtype);}
-    void RMSMap (float level=0.1, float sncut = 1.5);
+    void RMSMap (bool msk, float sncut = 1.5, float level=0.1);
     void SNMap(bool msk);
     bool setHead(int type); 
     

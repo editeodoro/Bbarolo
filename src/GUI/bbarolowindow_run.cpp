@@ -241,22 +241,22 @@ void BBaroloWindow::readParamFromFile(std::string filein) {
         ui->BoxcheckBox->setChecked(true);
         int firstp = filename.indexOf("[");
         int lastp = filename.indexOf("]");
-        QStringList range = filename.mid(firstp+1,lastp-firstp-1).split(",",QString::SkipEmptyParts);
+        QStringList range = filename.mid(firstp+1,lastp-firstp-1).split(",",Qt::SkipEmptyParts);
         filename = filename.mid(0,firstp);
         ui->FitslineEdit->setText(filename);
         on_FitslineEdit_editingFinished();
         if (!range[0].contains("*")) {
-            QStringList xrange = range[0].split(":",QString::SkipEmptyParts);
+            QStringList xrange = range[0].split(":",Qt::SkipEmptyParts);
             ui->XminspinBox->setValue(xrange[0].toInt());
             ui->XmaxspinBox->setValue(xrange[1].toInt());
         }
         if (!range[1].contains("*")) {
-            QStringList yrange = range[1].split(":",QString::SkipEmptyParts);
+            QStringList yrange = range[1].split(":",Qt::SkipEmptyParts);
             ui->YminspinBox->setValue(yrange[0].toInt());
             ui->YmaxspinBox->setValue(yrange[1].toInt());
         }
         if (!range[2].contains("*")) {
-            QStringList zrange = range[2].split(":",QString::SkipEmptyParts);
+            QStringList zrange = range[2].split(":",Qt::SkipEmptyParts);
             ui->ZminspinBox->setValue(zrange[0].toInt());
             ui->ZmaxspinBox->setValue(zrange[1].toInt());
         }

@@ -112,9 +112,11 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     }
     if (mpar[VDISP]) {
         for (int j=0;j<n;j++) {
-            if (dring->vdisp[j]>12) dels[k]=10.;
+            //dels[k] = 0.5*dring->vdisp.front();
+            if (dring->vdisp[j]>80) dels[k]=20.;
+            else if (dring->vdisp[j]>20. && dring->vdisp[j]<=80.) dels[k]=10.;
             else if (dring->vdisp[j]<=2) dels[k]=0.2;
-            else dels[k]=1;
+            else dels[k]=5;
             point[k++]=dring->vdisp[j];
         }
     }
@@ -127,12 +129,19 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     if (mpar[VSYS])  for (int j=0;j<n;j++) {dels[k]=(maxs[VSYS]-mins[VSYS])/4.; point[k++]=dring->vsys[j];}
     if (mpar[VRAD])  for (int j=0;j<n;j++) {dels[k]=15; point[k++]=dring->vrad[j];}
 
+    // Following line offsets the initial simplex such that the initial point given is at the centre
+    // of the simplex instead of just one of the verteces.
+    //for (int j=0; j<ndim; j++) point[j] -= dels[j]/2.;
+
     // Build the initial matrix.
     for (int i=0; i<mpts; i++) {
         for (int j=0; j<ndim; j++) p[i][j]=point[j];
         if (i!=0) p[i][i-1] += dels[i-1];
+        // Following to print initial simplex
+        //for (int j=0; j<ndim; j++) std::cout << p[i][j] << " ";
+        //std::cout << std::endl;
     }
-
+    
     delete [] point;
     delete [] dels;
 
@@ -300,6 +309,10 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
       vrad[j]  = dring->vrad[j];
     }
 
+    // Following to print current paraemters
+    // for (int i=0;i<nfree;i++) std::cout << zpar[i] << " ";
+    // std::cout << std::endl;
+        
     for (int i=0; i<MAXPAR; i++) {
         if (mpar[i]) {
             switch(i) {

@@ -811,7 +811,10 @@ bool Galfit<T>::SecondStage() {
                     mpar[XPOS]|| mpar[YPOS] || mpar[VSYS];
     if (!isNeeded) {par.TWOSTAGE=false; return isNeeded;}
     second = true;
-
+    // Following line is questionable, although I see a slight improvement in using local
+    // in the second step in many cases.
+    //if (!in->pars().getFlagSlitfit()) func_norm = &Model::Galfit<T>::norm_local;
+    
     int nr = outr->nr;
     
     // Deciding how to regularize the parameters

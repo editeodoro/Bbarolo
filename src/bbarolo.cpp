@@ -317,7 +317,7 @@ bool BBcore (Param *par) {
             map.fitswrite_2d((s+"map_massdens.fits").c_str());
         }
         if (par->getParMA().rmsmap) {
-            map.RMSMap();
+            map.RMSMap(masking);
             map.fitswrite_2d((s+"map_RMS.fits").c_str());
         }
         if (par->getParMA().globprof) {
