@@ -664,41 +664,51 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     
     theStream << "# ELLPROF results for " << im->Head().Name() << std::endl;
     theStream << fixed << setprecision(5);
-    theStream << "#\n# Map units: unit = " << unit << std::endl;
+    theStream << "#\n# Map units: u = " << unit << std::endl;
     theStream << "# Pixel area: " << fabs(Dx*Dy) << " arcs2" << std::endl << "#\n";
-    theStream << "# Columns 2-6  : ring stats (sum, mean, median, standard deviation and median absolute deviation from the median).\n";
-    theStream << "# Column  7    : number of valid pixels within the ring.\n";
+    theStream << "# Columns 2-6  : ring statistics (sum, mean, median, standard deviation and median absolute deviation from the median) in map units (see above).\n";
+    theStream << "# Column  7    : effective number of valid pixels within the ring.\n";
     theStream << "# Columns 8-10 : surface density, its error and face-on surface density (inclination corrected).\n";
+    theStream << "# Columns 11   : effective number of blank pixels within the ring.\n";
+    theStream << "# Columns 12-13: surface density and face-on surface density including area covered by blank pixels (total area: NPIX + NPIXBL).\n";
+    
+    
     
     if (isJy)
-        theStream << "# Columns 11-13 (ONLY FOR HI DATA!): face-on (inclination corrected) number surface density and mass surface densities with two different techniques.\n";
+        theStream << "# Columns 14-16: (ONLY FOR HI DATA!) face-on (inclination corrected) number surface density and mass surface densities with two different techniques.\n";
     
-    int m=11;
+    int m=9;
     theStream << "#\n#" << setw(m-1) << "RADIUS" << " "
               << setw(m) << "SUM" << " "
               << setw(m) << "MEAN" << " "
               << setw(m) << "MEDIAN" << " "
               << setw(m) << "STDDEV" << " "
               << setw(m) << "MAD" << " "
-              << setw(m-5) << "NPIX" << " "
-              << setw(m+1) << "SURFDENS" << " "
-              << setw(m+1) << "ERR_SD" << " "
-              << setw(m+1) << "SURFDENS_FO" << " ";
+              << setw(m) << "NPIX" << " "
+              << setw(m) << "SDENS" << " "
+              << setw(m) << "ERR_SD" << " "
+              << setw(m) << "SDENS_FO" << " "
+              << setw(m) << "NPIXBL" << " "
+              << setw(m) << "SDENSBL" << " "
+              << setw(m+1) << "SDENSBL_FO" << " ";
     if (isJy)
-        theStream << setw(m) << "SURFDENS_FO" << " "
-                  << setw(m) << "MSURFDENS" << " "
-                  << setw(m) << "MSURFDENS2" << " ";    
+        theStream << setw(m) << "SDENS_FO" << " "
+                  << setw(m) << "MASSDENS" << " "
+                  << setw(m) << "MASSDENS2" << " ";
 
     theStream << "\n#" << setw(m-1) << "arcsec" << " "
-              << setw(m) << "unit" << " "
-              << setw(m) << "unit" << " "
-              << setw(m) << "unit" << " "
-              << setw(m) << "unit" << " "
-              << setw(m) << "unit" << " "
-              << setw(m-5) << "#" << " "
-              << setw(m+1) << "unit/arcs2" << " "
-              << setw(m+1) << "unit/arcs2" << " " 
-              << setw(m+1) << "unit/arcs2" << " ";
+              << setw(m) << "u" << " "
+              << setw(m) << "u" << " "
+              << setw(m) << "u" << " "
+              << setw(m) << "u" << " "
+              << setw(m) << "u" << " "
+              << setw(m) << "pix" << " "
+              << setw(m) << "u/arcs2" << " "
+              << setw(m) << "u/arcs2" << " "
+              << setw(m) << "u/arcs2" << " "
+              << setw(m) << "pix" << " "
+              << setw(m) << "u/arcs2" << " "
+              << setw(m+1) << "u/arcs2" << " ";
     if (isJy)
         theStream << setw(m) << "1E20/cm2" << " "
                   << setw(m) << "Msun/pc2" << " "
@@ -720,10 +730,14 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
                   << setw(m) << Median[i][seg] << " "
                   << setw(m) << sqrt(fabs(Var[i][seg])) << " "
                   << setw(m) << MAD[i][seg] << " "
-                  << setw(m-5) << int(Area[i][seg]) << " "
-                  << setw(m+1) << Surfdens[i][seg] << " "
-                  << setw(m+1) << sqrt(fabs(Var[i][seg]))/fabs(Dx*Dy) << " "
-                  << setw(m+1) << getSurfDensFaceOn(i,seg) << " ";
+                  << setw(m) << Area[i][seg] << " "
+                  << setw(m) << Surfdens[i][seg] << " "
+                  << setw(m) << sqrt(fabs(Var[i][seg]))/fabs(Dx*Dy) << " "
+                  << setw(m) << getSurfDensFaceOn(i,seg) << " "
+                  << setw(m) << Blankarea[i][seg] << " "
+                  << setw(m) << Surfdens_Bl[i][seg] << " "
+                  << setw(m+1) << getSurfDensFaceOn_Bl(i,seg) << " ";
+        
         if (isJy) {
             // This simply calculates mass surface density for HI data
             double massdsurfdens  = 2.36E-07*getSurfDensFaceOn(i,seg)/(arctorad*arctorad);
@@ -741,7 +755,8 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
                       << setw(m) << massdsurfdens << " "
                       << setw(m) << massdsurfdens2 << " ";
         }
-        theStream << std::endl;
+        
+        theStream << fixed << std::endl;
     }
 }
 

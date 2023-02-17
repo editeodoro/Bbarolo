@@ -289,8 +289,9 @@ template <class T>
 void MomentMap<T>::RMSMap (bool msk, float sncut, float level) {
     
     // Compute the RMS map, i.e. the RMS in each spectrum.
-    // Use an iterative way: calculate rms, cut at sncut*rms, 
-    // start again until convergence at level "level".
+    // If a mask is used, it calculates RMS outside the mask, 
+    // otherwise it uses an iterative way: calculate rms, 
+    // cut at sncut*rms, start again until convergence at level "level".
 
     if (!this->arrayAllocated) {
         std::cout << "MOMENT MAPS error: ";

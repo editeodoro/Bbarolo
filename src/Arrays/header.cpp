@@ -400,7 +400,7 @@ bool Header::header_read (std::string fname) {
     if (fits_read_key_dbl (fptr, "FREQR", &freq0, comment, &status)) {
         status=0;
         if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
-        status=0;
+            status=0;
             if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
                 status=0;
                 if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
