@@ -1127,7 +1127,6 @@ void Param::createTemplate() {
     parf << "// = 1: chi-squared.\n";
     parf << "// = 2: |mod-obs|.\n";
     parf << "// = 3: |mod-obs|/|mod+obs|.\n";
-    parf << "// = 4: (mod-obs)^2.\n";
     parf << setw(m) << left << "FTYPE" << setw(m) << left << "1\n"<< endl;
 
     parf << "// OPTIONAL: Weighting function (default is " << parGF.WFUNC << "):\n";
@@ -1375,7 +1374,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[REDSHIFT]", "   Redshift of the galaxy?", p.getParGF().REDSHIFT);
         if (p.getParGF().RESTWAVE[0]!=-1 || defaults) {
             string rstr = "";
-            for (unsigned i=0; i<p.getParGF().RESTWAVE.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RESTWAVE[i],2) + " ";
+            for (unsigned i=0; i<p.getParGF().RESTWAVE.size(); i++) rstr = rstr + to_string<double>(p.getParGF().RESTWAVE[i],5) + " ";
             recordParam(Str, "[RESTWAVE]", "   Transition wavelength at rest?", rstr);
         }
         if (p.getParGF().RESTFREQ[0]!=-1 || defaults) {

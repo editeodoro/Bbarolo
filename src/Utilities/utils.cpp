@@ -96,14 +96,32 @@ double Freq2Vel(double v, double freq0, std::string veldef) {
 
 double Wave2Vel(double v, double wave0, std::string veldef) {
     
-    // Convert a wavelenght into a velocity in km/s.
+    // Convert a wavelength into a velocity in km/s.
     
     const double c = 299792.458;
-    double vel_km_s = c*(v*v-wave0*wave0)/(v*v+wave0*wave0);  // Relativistic velocity definition (default)
+    double vel_km_s = c*(v*v-wave0*wave0)/(v*v+wave0*wave0);  // Relativistic velocity definition 
     if (veldef=="radio") vel_km_s = c*(v-wave0)/v;            // Radio velocity definition
     else if (veldef=="optical") vel_km_s = c*(v-wave0)/wave0; // Optical velocity definition
     return vel_km_s;
     //return Freq2Vel(c/v,c/wave0,veldef); 
+}
+
+double Vel2Freq(double v, double freq0, std::string veldef) {
+    
+    // Convert a velocity in km/s into a frequency in the same units as freq0.
+    
+    const double c = 299792.458;
+    double freq = freq0*sqrt((1-v/c)/(1+v/c));                // Relativistic velocity definition (default)
+    if (veldef=="radio") freq = freq0*(1-v/c);                // Radio velocity definition
+    else if (veldef=="optical") freq = freq0/(1+v/c);         // Optical velocity definition
+    return freq;
+}
+
+double Vel2Wave(double v, double wave0, std::string veldef) {
+    
+    // Convert a velocity in km/s into wavelength in the same units as freq0.
+    const double c = 299792.458;
+    return c/Vel2Freq(v,c/wave0,veldef); 
 }
 
 
@@ -142,6 +160,40 @@ double AlltoVel (double in, Header &h) {
     
 }
 
+double Vel2Spec (double in, Header &h) {
+    
+  /// This function convert a velocity input value "in" in km/s 
+  /// and return an output value in units of spectral axis.
+  /// No errors if can not convert, just return input value
+    
+    std::string cunit2 = makelower(h.Cunit(h.NumAx()-1));
+    if (h.NumAx()>3) cunit2 = makelower(h.Cunit(2));
+    
+    double out = in;
+
+    if (cunit2=="km/s" || cunit2=="kms") out = in;
+    else if (cunit2=="m/s" || cunit2=="ms") out = in*1000.;
+    else if (cunit2=="hz" || cunit2=="mhz") {
+        // Redshifted rest frequency
+        double frest = h.Freq0()/(1+h.Redshift());
+        out = Vel2Freq(in,frest,h.VelDef());
+    }
+    else if (cunit2=="mum" || cunit2=="um" || cunit2=="micron" ||
+             cunit2=="a" || cunit2=="ang"  || cunit2=="angstrom") {
+        //int z_cent = floor(h.DimAx(2)/2.)-1;
+        double z_cent = h.Crpix(2)-1;
+        double restw = h.Wave0(), reds = h.Redshift();
+        if (restw!=-1) {
+            z_cent = (restw*(1+reds)-h.Crval(2))/h.Cdelt(2)+h.Crpix(2)-1;
+        }
+        double wrest = (z_cent+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2);
+        
+        out = Vel2Wave(in,wrest,h.VelDef());
+    }
+    
+    return out;
+    
+}
 
 double DeltaVel(Header &h) {
 

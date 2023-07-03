@@ -999,16 +999,20 @@ int Galfit<T>::plotAll_Python() {
         zmax = Zmax+3;
     }
     else {
+        // Using the LOS velocity and model extension to decide plotting boundaries.
         std::vector<T> maxv(outr->nr);
         for (int i=0; i<outr->nr; i++) maxv[i]=outr->vrot[i]*sin(outr->inc[i]*M_PI/180.)+outr->vdisp[i];
-       //float max_vrot = *max_element(&outr->vrot[0],&outr->vrot[0]+outr->nr);
         float max_v=*max_element(&maxv[0],&maxv[0]+outr->nr);
-        disp = fabs((outr->radii.back()/arcconv+2*in->Head().Bmaj())/in->Head().PixScale());
-        int z_vsys = (vsys_av-crval3_kms)/cdelt3_kms+crpix3_kms-1;
-        //int disp_v = ceil((1.5*max_vrot)*sin(inc_av*M_PI/180.)/fabs(DeltaVel(in->Head())));
-        int disp_v = ceil((1.5*max_v)/fabs(DeltaVel(in->Head())));
+    
+        double vsys_spec = Vel2Spec(vsys_av,in->Head());
+        int z_vsys = lround(in->getZgrid(vsys_spec));
+        int disp_v = ceil((1.5*max_v)/fabs(cdelt3_kms));
+        
         zmin = z_vsys-2*disp_v>0 ? z_vsys-2*disp_v : 0;
         zmax = z_vsys+2*disp_v<in->DimZ() ? z_vsys+2*disp_v : in->DimZ()-1;
+        
+        // Spatial boundaries to add 
+        disp = fabs((outr->radii.back()/arcconv+2*in->Head().Bmaj())/in->Head().PixScale());
     }
 
     xmin = xpos-disp>=0 ? xpos-disp : 0;

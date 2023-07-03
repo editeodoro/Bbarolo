@@ -7,7 +7,6 @@
 #include <Arrays/param.hh>
 #include <csignal>
 
-
 void sigsegv_handler(int signal) {
   // this signal handler is not POSIX-compliant, but apparently signals
   // in MPI are a mess anyway, so I guess don't worry too much...

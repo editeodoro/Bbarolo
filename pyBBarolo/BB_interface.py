@@ -34,7 +34,7 @@ except OSError:
 
 
 # Type definitions
-array_1d_int    = ndpointer(dtype=np.int, ndim=1,flags="CONTIGUOUS")
+array_1d_int    = ndpointer(dtype=np.int64, ndim=1,flags="CONTIGUOUS")
 array_1d_float  = ndpointer(dtype=np.float32, ndim=1,flags="CONTIGUOUS")
 array_1d_double = ndpointer(dtype=np.double, ndim=1,flags="CONTIGUOUS")
 
