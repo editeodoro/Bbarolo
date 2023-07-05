@@ -82,6 +82,8 @@ struct GALFIT_PAR : GALMOD_PAR {
     bool   flagERRORS = false;    ///< Whether estimating errors.
     float  DISTANCE   = -1;       ///< Distance of the galaxy to convert arcs to kpc.
     bool   flagADRIFT = false;    ///< Whether correcting for asymmetric drift.
+    int    ADRIFTPOL1 = 3;        ///< Degree of polynomial for fit of sigma in ADRIFT
+    int    ADRIFTPOL2 = 3;        ///< Degree of polynomial for fit of log(density*disp2) in ADRIFT
     string REVERSE    = "false";  ///< Whether to use a reverse cumulative fitting.
     bool   NORMALCUBE = true;     ///< Whether to normalize the input flux values.
     bool   flagBADOUT = false;    ///< Whether to write bad rings (with flag) in output.

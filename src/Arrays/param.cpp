@@ -576,6 +576,8 @@ void Param::setParam(string &parstr) {
     if(arg=="startrad")  parGF.STARTRAD   = readval<int>(ss);
     if(arg=="distance")  parGF.DISTANCE   = readval<float>(ss);
     if(arg=="adrift")    parGF.flagADRIFT = readFlag(ss);
+    if(arg=="adriftpol1")parGF.ADRIFTPOL1 = readval<int>(ss);
+    if(arg=="adriftpol2")parGF.ADRIFTPOL2 = readval<int>(ss);
     if(arg=="reverse")   parGF.REVERSE    = makelower(readFilename(ss));
     if(arg=="normalcube")parGF.NORMALCUBE = readFlag(ss);
     if(arg=="badout")    parGF.flagBADOUT = readFlag(ss);
@@ -903,6 +905,13 @@ bool Param::checkPars() {
                 std::cerr <<  parGF.REVERSE << std::endl;
                 std::cerr << "3DFIT ERROR: accepted values for REVERSE are 'true', 'false' or 'auto'. Setting it to 'auto'.";
                 parGF.REVERSE = "auto";
+        }
+        
+        if (parGF.flagADRIFT==true) {
+            if (parGF.ADRIFTPOL2<0) {
+                std::cerr << "3DFIT ERROR: ADRIFTPOL2 needs to be >0. Defaulting it to 3.";
+                parGF.ADRIFTPOL2 = 3;
+            }
         }
     }
     
@@ -1468,7 +1477,12 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
                 recordParam(Str, "[REGTYPE]", "     Degree of polynomial fitting angles?", p.getParGF().REGTYPE);
             recordParam(Str, "[FLAGERRORS]", "   Estimating errors?", stringize(p.getParGF().flagERRORS));
         
-            recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));            
+            recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));
+            if (p.getParGF().flagADRIFT || defaults) {
+                recordParam(Str, "[ADRIFTPOL1]", "     Polynomial for VDISP regularisation?", p.getParGF().ADRIFTPOL1);
+                recordParam(Str, "[ADRIFTPOL2]", "     Polynomial for log(VDISP^2*SIGMA) reg.?", p.getParGF().ADRIFTPOL2);
+                
+            }
             recordParam(Str, "[REVERSE]", "   Using reverse-cumulative fitting?", p.getParGF().REVERSE);
             recordParam(Str, "[NORMALCUBE]", "   Normalizing cube to help convergence?", stringize(p.getParGF().NORMALCUBE));
 	    recordParam(Str, "[BADOUT]", "   Write unconverged rings in output (with flag)?", stringize(p.getParGF().flagBADOUT));

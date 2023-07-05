@@ -98,6 +98,12 @@ T polyn (T *c, T *p, int npar) {
     return value;
 }
 
+template <class T>
+T dpolyn_dx (T *c, T *p, int npar) {
+    T value=0;
+    for (int i=1; i<npar; i++) value += p[i]*i*std::pow(double(c[0]),double(i-1));
+    return value;
+}
 
 template <class T>
 void polynd (T *c, T *p, T *d, int npar) {
