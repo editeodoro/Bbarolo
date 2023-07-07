@@ -74,7 +74,7 @@ public:
     void writeModel(std::string normtype, bool makeplots=true);
     void writePVs(Cube<T> *mod, std::string suffix="");
     int  plotAll_Python ();
-    bool AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn);
+    bool AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn);
 
     /// Functions defined in slitfit.cpp
     void slit_init(Cube<T> *c);
@@ -137,7 +137,7 @@ protected:
     double norm_none (Rings<T> *dring, T *array, int *bhi, int *blo);
     void   getModelSize(Rings<T> *dring, int *blo, int *bhi, int *bsize);
 
-    double slitfunc  (Rings<T> *dring, T *array, int *bhi, int *blo);
+    double slitfunc (Rings<T> *dring, T *array, int *bhi, int *blo);
     bool IsIn (int x, int y, int *blo, Rings<T> *dr, double &th);
     inline bool getSide (double theta);
     inline double getResValue(T obs, T mod, double weight, double noise_weight);

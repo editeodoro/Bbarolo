@@ -334,7 +334,8 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         T *dens_m = new T[outr->nr];
         int strad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
         for (int i=0; i<outr->nr; i++) dens_m[i] = ell.getMedian(i);
-        bool ok = AsymmetricDrift(&outr->radii[strad],&dens_m[strad],&outr->vdisp[strad],&outr->inc[strad],outr->nr-strad);
+        bool ok = AsymmetricDrift(&outr->radii[strad],&dens_m[strad],&outr->vdisp[strad],
+                                  &outr->vrot[strad],&outr->inc[strad],outr->nr-strad);
         if (verb) {
             if (ok) std::cout << " Done." << std::endl;
             else std::cout << " Failed." << std::endl;
@@ -1155,7 +1156,7 @@ int Galfit<T>::plotAll_Python() {
 
     if (par.flagADRIFT) {
         pyf << "\n#Asymmetric drift correction\n"
-            << "va, dispr, fun, funr = np.genfromtxt(outfolder+'asymdrift.txt',usecols=(1,2,3,4),unpack=True)\n"
+            << "vcirc, va2, dispr, fun, funr = np.genfromtxt(outfolder+'asymdrift.txt',usecols=(1,2,3,4,5),unpack=True)\n"
             << "if twostage: \n"
             << "\tvrot, disp = vrot2, disp2 \n"
             << "\terr1_l, err1_h = err2_l, err2_h\n"
@@ -1163,12 +1164,11 @@ int Galfit<T>::plotAll_Python() {
             << "ax1 = fig.add_axes([0.10,0.1,0.3,0.25])\n"
             << "ax2 = fig.add_axes([0.48,0.1,0.3,0.25])\n"
             << "ax3 = fig.add_axes([0.86,0.1,0.3,0.25])\n"
-            << "vcirc = np.sqrt(vrot**2+va**2)\n"
             << "ax1.set_xlim(0,max_rad)\n"
             << "ax1.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
             << "ax1.set_ylabel('V (km/s)', fontsize=11)\n"
             << "ax1.plot(rad,vrot,'-', color=color2,label=r'V$_\\mathrm{rot}$',zorder=1)\n"
-            << "ax1.plot(rad,va,'--', color='#FABC11',label=r'V$_\\mathrm{A}$',zorder=2)\n"
+            << "ax1.plot(rad,np.sqrt(va2),'--', color='#FABC11',label=r'V$_\\mathrm{A}$',zorder=2)\n"
             << "ax1.errorbar(rad,vcirc, yerr=[err1_l[0],-err1_h[0]],fmt='o', color='#43A8D4',label=r'V$_\\mathrm{circ}$',zorder=0)\n"
             << "ax1.legend()\n"
             << "ax2.set_xlim(0,max_rad)\n"

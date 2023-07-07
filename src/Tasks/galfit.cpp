@@ -1163,17 +1163,16 @@ template void Galfit<double>::setFree();
 
 
 template <class T>
-bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn) {
+bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn) {
     
     // Compute an asymmetric drift correction, following procedure in Iorio+17, sec 4.3
         
     // Fitting dispersion with a polynomial function
     int npar1 = in->pars().getParGF().ADRIFTPOL1 + 1;
     T cdisp[npar1], cdisperr[npar1], ww[nn];
-    bool mp[npar1];
-    
-    
+    bool mp[npar1]; 
     if (npar1>0) { // If ADRIFTPOL1<0, just use the density profile
+        if (npar1>=nn) npar1 = nn-1;
         for (int i=0; i<npar1; i++) mp[i] = true;
         for (int i=0; i<nn; i++) ww[i] = 1;
         Lsqfit<T> lsq1(rad,1,dispprof,ww,nn,cdisp,cdisperr,mp,npar1,&polyn,&polynd);
@@ -1187,6 +1186,7 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
     // Now fitting log(density*disp2) with a polynomial function 
     T *fun = new T[nn];
     int npar2 = in->pars().getParGF().ADRIFTPOL2 + 1;
+    if (npar2>=nn) npar2 = nn-1;
     T cfun[npar2], cfunerr[npar2];
     bool mpp[npar2];
     for (int i=0; i<npar2; i++) mpp[i] = true;
@@ -1205,13 +1205,14 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
     // Now writing to a text file
     std::ofstream fout(in->pars().getOutfolder()+"asymdrift.txt");
     
-    int m=16;
+    int m=20;
     fout << fixed << setprecision(4);
     fout << "#" << setw(m-1) << "RAD(arcs)"
-         << setw(m) << "ASYMDRIFT(km/s)"
+         << setw(m) << "VCIRC(km/s)"
+         << setw(m) << "ASYMDRIFT_SQ(km/s)"
          << setw(m) << "DISP_REG(km/s)"
          << setw(m) << "FUN" 
-         << setw(m) << "FUN_REG\n";
+         << setw(m) << "FUN_REG" << std::endl;
         
     for (int i=0; i<nn; i++) {
         // Getting regularized functions
@@ -1220,9 +1221,10 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
         // Derivative of regularized fun
         T fun_der = dpolyn_dx(&rad[i],cfun,npar2);
         // Asymmetric drift correction
-        T asdrift = sqrt(-rad[i]*disp_reg*disp_reg*fun_der);
+        T asdrift_squared = -rad[i]*disp_reg*disp_reg*fun_der;
+        T vcirc = sqrt(rotcur[i]*rotcur[i]+asdrift_squared);
         
-        fout << setw(m) << rad[i] << setw(m) << asdrift
+        fout << setw(m) << rad[i] << setw(m) << vcirc << setw(m) << asdrift_squared 
              << setw(m) << disp_reg << setw(m) << fun[i] << setw(m) << fun_reg << std::endl;
     }
     
@@ -1233,8 +1235,8 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *inc, int nn
     return true;
     
 }
-template bool Galfit<float>::AsymmetricDrift(float*,float*,float*,float*,int);
-template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,int);
+template bool Galfit<float>::AsymmetricDrift(float*,float*,float*,float*,float*,int);
+template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,double*,int);
 
 
 
