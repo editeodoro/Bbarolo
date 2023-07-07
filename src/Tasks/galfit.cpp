@@ -1209,7 +1209,7 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *
     fout << fixed << setprecision(4);
     fout << "#" << setw(m-1) << "RAD(arcs)"
          << setw(m) << "VCIRC(km/s)"
-         << setw(m) << "ASYMDRIFT_SQ(km/s)"
+         << setw(m) << "ASYMDRIFT_SQ(km/s)2"
          << setw(m) << "DISP_REG(km/s)"
          << setw(m) << "FUN" 
          << setw(m) << "FUN_REG" << std::endl;
