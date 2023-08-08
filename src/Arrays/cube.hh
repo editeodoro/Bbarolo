@@ -103,7 +103,7 @@ public:
 
     /// Functions for Fitsfile I/O:
     void    setCube  (T *input, int *dim);
-    bool    readCube (std::string fname);                                   /// Front-end to read array from Fits.
+    bool    readCube (std::string fname,bool printInfo=true);               /// Front-end to read array from Fits.
     bool    fitsread_3d ();                                                 /// Read data array from Fits file.                                             
     bool    fitswrite_3d (const char *outfile, bool fullHead=false);        /// Write a Fits cube.                                      
     
