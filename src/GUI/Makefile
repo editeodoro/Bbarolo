@@ -12,11 +12,11 @@ EQ            = =
 
 ####### Compiler, tools and options
 
-CC            = /Library/Developer/CommandLineTools/usr/bin/clang
-CXX           = /Library/Developer/CommandLineTools/usr/bin/clang++
+CC            = gcc -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
+CXX           = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
 DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 $(EXPORT_ARCH_ARGS) -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mmacosx-version-min=10.13 -Wall -Wextra -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -stdlib=libc++ -O2 -std=gnu++11 $(EXPORT_ARCH_ARGS) -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mmacosx-version-min=10.13 -Wall -Wextra -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -O2 -std=gnu++11 $(EXPORT_ARCH_ARGS) -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mmacosx-version-min=10.13 -Wall -Wextra -fPIC $(DEFINES)
 INCPATH       = -I. -I/usr/local/include -I.. -I/opt/homebrew/include -I/Users/edt/Programs/mambaforge/include/qt -I/Users/edt/Programs/mambaforge/include/qt/QtPrintSupport -I/Users/edt/Programs/mambaforge/include/qt/QtWidgets -I/Users/edt/Programs/mambaforge/include/qt/QtGui -I/Users/edt/Programs/mambaforge/include/qt/QtCore -I../Build -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework/Headers -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/AGL.framework/Headers -I. -I/Users/edt/Programs/mambaforge/mkspecs/macx-clang
 QMAKE         = /Users/edt/Programs/mambaforge/bin/qmake
 DEL_FILE      = rm -f
@@ -37,10 +37,10 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = BBaroloGUI1.0.0
-DISTDIR = /Users/edt/Dropbox/Codex/BBarolo/src/Build/BBaroloGUI1.0.0
-LINK          = /Library/Developer/CommandLineTools/usr/bin/clang++
-LFLAGS        = -stdlib=libc++ -headerpad_max_install_names $(EXPORT_ARCH_ARGS) -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mmacosx-version-min=10.13 -Wl,-rpath,@executable_path/../Frameworks -Wl,-rpath,/Users/edt/Programs/mambaforge/lib
-LIBS          = $(SUBLIBS) /Users/edt/Programs/mambaforge/lib/libQt5PrintSupport.dylib /Users/edt/Programs/mambaforge/lib/libQt5Widgets.dylib /Users/edt/Programs/mambaforge/lib/libQt5Gui.dylib /Users/edt/Programs/mambaforge/lib/libQt5Core.dylib -framework OpenGL -framework AGL   
+DISTDIR = /Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/Build/BBaroloGUI1.0.0
+LINK          = g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX
+LFLAGS        = -headerpad_max_install_names $(EXPORT_ARCH_ARGS) -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mmacosx-version-min=10.13 -Wl,-rpath,@executable_path/../Frameworks -Wl,-rpath,/Users/edt/Programs/mambaforge/lib
+LIBS          = $(SUBLIBS) -L/opt/homebrew/lib -lfftw3 -lcfitsio -lwcs -lm -static-libgcc -static-libstdc++ /Users/edt/Programs/mambaforge/lib/libQt5PrintSupport.dylib /Users/edt/Programs/mambaforge/lib/libQt5Widgets.dylib /Users/edt/Programs/mambaforge/lib/libQt5Gui.dylib /Users/edt/Programs/mambaforge/lib/libQt5Core.dylib -framework OpenGL -framework AGL   
 AR            = /Library/Developer/CommandLineTools/usr/bin/ar cq
 RANLIB        = /Library/Developer/CommandLineTools/usr/bin/ranlib -s
 SED           = sed
@@ -255,6 +255,7 @@ DIST          = /Users/edt/Programs/mambaforge/mkspecs/features/spec_pre.prf \
 		/Users/edt/Programs/mambaforge/mkspecs/features/qt_config.prf \
 		/Users/edt/Programs/mambaforge/mkspecs/macx-clang/qmake.conf \
 		/Users/edt/Programs/mambaforge/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/Users/edt/Programs/mambaforge/mkspecs/features/exclusive_builds.prf \
 		/Users/edt/Programs/mambaforge/mkspecs/features/mac/sdk.prf \
 		/Users/edt/Programs/mambaforge/mkspecs/features/toolchain.prf \
@@ -305,14 +306,14 @@ TARGET        = ../../BBaroloGUI.app/Contents/MacOS/BBaroloGUI
 EXPORT_QMAKE_MAC_SDK = macosx
 EXPORT_QMAKE_MAC_SDK_VERSION = 13.1
 EXPORT_QMAKE_XCODE_DEVELOPER_PATH = /Library/Developer/CommandLineTools
-EXPORT__QMAKE_STASH_ = 
+EXPORT__QMAKE_STASH_ = /Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/GUI/.qmake.stash
 EXPORT_VALID_ARCHS = arm64
 EXPORT_ACTIVE_ARCHS = $(filter $(EXPORT_VALID_ARCHS), $(ARCHS))
 EXPORT_ARCH_ARGS = $(foreach arch, $(if $(EXPORT_ACTIVE_ARCHS), $(EXPORT_ACTIVE_ARCHS), $(EXPORT_VALID_ARCHS)), -arch $(arch))
-EXPORT__PRO_FILE_ = /Users/edt/Dropbox/Codex/BBarolo/src/GUI/BbaroloGUI.pro
+EXPORT__PRO_FILE_ = /Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/GUI/BbaroloGUI.pro
 
 
-include /Users/edt/Programs/mambaforge/mkspecs/features/mac/sdk.mk
+#include /Users/edt/Programs/mambaforge/mkspecs/features/mac/sdk.mk
 first: all
 ####### Build rules
 
@@ -496,6 +497,7 @@ Makefile: BbaroloGUI.pro /Users/edt/Programs/mambaforge/mkspecs/macx-clang/qmake
 		/Users/edt/Programs/mambaforge/mkspecs/features/qt_config.prf \
 		/Users/edt/Programs/mambaforge/mkspecs/macx-clang/qmake.conf \
 		/Users/edt/Programs/mambaforge/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/Users/edt/Programs/mambaforge/mkspecs/features/exclusive_builds.prf \
 		/Users/edt/Programs/mambaforge/mkspecs/features/mac/sdk.prf \
 		/Users/edt/Programs/mambaforge/mkspecs/features/toolchain.prf \
@@ -702,6 +704,7 @@ Makefile: BbaroloGUI.pro /Users/edt/Programs/mambaforge/mkspecs/macx-clang/qmake
 /Users/edt/Programs/mambaforge/mkspecs/features/qt_config.prf:
 /Users/edt/Programs/mambaforge/mkspecs/macx-clang/qmake.conf:
 /Users/edt/Programs/mambaforge/mkspecs/features/spec_post.prf:
+.qmake.stash:
 /Users/edt/Programs/mambaforge/mkspecs/features/exclusive_builds.prf:
 /Users/edt/Programs/mambaforge/mkspecs/features/mac/sdk.prf:
 /Users/edt/Programs/mambaforge/mkspecs/features/toolchain.prf:
@@ -779,6 +782,7 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) -r ../../BBaroloGUI.app
+	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 
@@ -808,7 +812,7 @@ compiler_moc_predefs_make_all: ../Build/moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) ../Build/moc_predefs.h
 ../Build/moc_predefs.h: /Users/edt/Programs/mambaforge/mkspecs/features/data/dummy.cpp
-	/Library/Developer/CommandLineTools/usr/bin/clang++ -pipe -stdlib=libc++ -O2 -std=gnu++11 $(EXPORT_ARCH_ARGS) -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mmacosx-version-min=10.13 -dM -E -o ../Build/moc_predefs.h /Users/edt/Programs/mambaforge/mkspecs/features/data/dummy.cpp
+	g++ -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 -fopenmp -DHAVE_GNUPLOT -DHAVE_FFTW3 -DHAVE_PYTHON -DMACOSX -pipe -O2 -std=gnu++11 $(EXPORT_ARCH_ARGS) -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mmacosx-version-min=10.13 -dM -E -o ../Build/moc_predefs.h /Users/edt/Programs/mambaforge/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: ../Build/moc_bbarolowindow.cpp ../Build/moc_qcustomplot.cpp
 compiler_moc_header_clean:
@@ -828,6 +832,7 @@ compiler_moc_header_clean:
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbackingstore.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbitmap.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbrush.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qclipboard.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolor.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolorspace.h \
@@ -836,6 +841,7 @@ compiler_moc_header_clean:
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdesktopservices.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdrag.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qevent.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfont.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontdatabase.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontinfo.h \
@@ -854,13 +860,13 @@ compiler_moc_header_clean:
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qimagewriter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qinputmethod.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qkeysequence.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix4x4.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmovie.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qoffscreensurface.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengl.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglbuffer.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglcontext.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengldebug.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglextrafunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglframebufferobject.h \
@@ -871,7 +877,6 @@ compiler_moc_header_clean:
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltexture.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltextureblitter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltimerquery.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglvertexarrayobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglwindow.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpagedpaintdevice.h \
@@ -915,9 +920,9 @@ compiler_moc_header_clean:
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextoption.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtexttable.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtransform.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvalidator.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtCore/qregexp.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector2d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector3d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector4d.h \
@@ -931,7 +936,7 @@ compiler_moc_header_clean:
 		../Arrays/param.hh \
 		../Build/moc_predefs.h \
 		/Users/edt/Programs/mambaforge/bin/moc
-	/Users/edt/Programs/mambaforge/bin/moc $(DEFINES) --include /Users/edt/Dropbox/Codex/BBarolo/src/Build/moc_predefs.h -I/Users/edt/Programs/mambaforge/mkspecs/macx-clang -I/Users/edt/Dropbox/Codex/BBarolo/src/GUI -I/usr/local/include -I/Users/edt/Dropbox/Codex/BBarolo/src -I/opt/homebrew/include -I/Users/edt/Programs/mambaforge/include/qt -I/Users/edt/Programs/mambaforge/include/qt/QtPrintSupport -I/Users/edt/Programs/mambaforge/include/qt/QtWidgets -I/Users/edt/Programs/mambaforge/include/qt/QtGui -I/Users/edt/Programs/mambaforge/include/qt/QtCore -I/opt/homebrew/include -I. -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1 -I/Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/usr/include bbarolowindow.h -o ../Build/moc_bbarolowindow.cpp
+	/Users/edt/Programs/mambaforge/bin/moc $(DEFINES) --include /Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/Build/moc_predefs.h -I/Users/edt/Programs/mambaforge/mkspecs/macx-clang -I/Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/GUI -I/usr/local/include -I/Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src -I/opt/homebrew/include -I/Users/edt/Programs/mambaforge/include/qt -I/Users/edt/Programs/mambaforge/include/qt/QtPrintSupport -I/Users/edt/Programs/mambaforge/include/qt/QtWidgets -I/Users/edt/Programs/mambaforge/include/qt/QtGui -I/Users/edt/Programs/mambaforge/include/qt/QtCore -I/opt/homebrew/include -I. -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1 -I/Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/usr/include bbarolowindow.h -o ../Build/moc_bbarolowindow.cpp
 
 ../Build/moc_qcustomplot.cpp: qcustomplot.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/QObject \
@@ -942,8 +947,10 @@ compiler_moc_header_clean:
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qwidget.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPainter \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpainter.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPaintEvent \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qevent.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QMouseEvent \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPixmap \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpixmap.h \
@@ -985,7 +992,7 @@ compiler_moc_header_clean:
 		/Users/edt/Programs/mambaforge/include/qt/QtPrintSupport/qtprintsupportversion.h \
 		../Build/moc_predefs.h \
 		/Users/edt/Programs/mambaforge/bin/moc
-	/Users/edt/Programs/mambaforge/bin/moc $(DEFINES) --include /Users/edt/Dropbox/Codex/BBarolo/src/Build/moc_predefs.h -I/Users/edt/Programs/mambaforge/mkspecs/macx-clang -I/Users/edt/Dropbox/Codex/BBarolo/src/GUI -I/usr/local/include -I/Users/edt/Dropbox/Codex/BBarolo/src -I/opt/homebrew/include -I/Users/edt/Programs/mambaforge/include/qt -I/Users/edt/Programs/mambaforge/include/qt/QtPrintSupport -I/Users/edt/Programs/mambaforge/include/qt/QtWidgets -I/Users/edt/Programs/mambaforge/include/qt/QtGui -I/Users/edt/Programs/mambaforge/include/qt/QtCore -I/opt/homebrew/include -I. -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1 -I/Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/usr/include qcustomplot.h -o ../Build/moc_qcustomplot.cpp
+	/Users/edt/Programs/mambaforge/bin/moc $(DEFINES) --include /Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/Build/moc_predefs.h -I/Users/edt/Programs/mambaforge/mkspecs/macx-clang -I/Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/GUI -I/usr/local/include -I/Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src -I/opt/homebrew/include -I/Users/edt/Programs/mambaforge/include/qt -I/Users/edt/Programs/mambaforge/include/qt/QtPrintSupport -I/Users/edt/Programs/mambaforge/include/qt/QtWidgets -I/Users/edt/Programs/mambaforge/include/qt/QtGui -I/Users/edt/Programs/mambaforge/include/qt/QtCore -I/opt/homebrew/include -I. -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1 -I/Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/usr/include qcustomplot.h -o ../Build/moc_qcustomplot.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -1005,8 +1012,10 @@ ui_bbarolowindow.h: bbarolowindow.ui \
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qwidget.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPainter \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpainter.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPaintEvent \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qevent.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QMouseEvent \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPixmap \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpixmap.h \
@@ -1062,6 +1071,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 
 ../Build/main.o: main.cpp /Users/edt/Programs/mambaforge/include/qt/QtWidgets/QApplication \
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qapplication.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qdesktopwidget.h \
 		bbarolowindow.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/QMainWindow \
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qmainwindow.h \
@@ -1077,6 +1087,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbackingstore.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbitmap.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbrush.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qclipboard.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolor.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolorspace.h \
@@ -1085,6 +1096,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdesktopservices.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdrag.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qevent.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfont.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontdatabase.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontinfo.h \
@@ -1103,13 +1115,13 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qimagewriter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qinputmethod.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qkeysequence.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix4x4.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmovie.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qoffscreensurface.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengl.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglbuffer.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglcontext.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengldebug.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglextrafunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglframebufferobject.h \
@@ -1120,7 +1132,6 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltexture.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltextureblitter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltimerquery.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglvertexarrayobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglwindow.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpagedpaintdevice.h \
@@ -1164,9 +1175,9 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextoption.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtexttable.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtransform.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvalidator.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtCore/qregexp.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector2d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector3d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector4d.h \
@@ -1195,6 +1206,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbackingstore.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbitmap.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbrush.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qclipboard.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolor.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolorspace.h \
@@ -1203,6 +1215,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdesktopservices.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdrag.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qevent.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfont.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontdatabase.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontinfo.h \
@@ -1221,13 +1234,13 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qimagewriter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qinputmethod.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qkeysequence.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix4x4.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmovie.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qoffscreensurface.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengl.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglbuffer.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglcontext.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengldebug.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglextrafunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglframebufferobject.h \
@@ -1238,7 +1251,6 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltexture.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltextureblitter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltimerquery.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglvertexarrayobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglwindow.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpagedpaintdevice.h \
@@ -1282,9 +1294,9 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextoption.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtexttable.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtransform.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvalidator.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtCore/qregexp.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector2d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector3d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector4d.h \
@@ -1297,6 +1309,8 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qlistwidget.h \
 		../Arrays/param.hh \
 		ui_bbarolowindow.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/QAction \
+		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qaction.h \
 		qcustomplot.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/QObject \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/qobject.h \
@@ -1355,6 +1369,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbackingstore.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbitmap.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qbrush.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qclipboard.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolor.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qcolorspace.h \
@@ -1363,6 +1378,7 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdesktopservices.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qdrag.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qevent.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfont.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontdatabase.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qfontinfo.h \
@@ -1381,13 +1397,13 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qimagewriter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qinputmethod.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qkeysequence.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix4x4.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmovie.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qoffscreensurface.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengl.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglbuffer.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglcontext.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengldebug.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglextrafunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglframebufferobject.h \
@@ -1398,7 +1414,6 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltexture.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltextureblitter.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopengltimerquery.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglversionfunctions.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglvertexarrayobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qopenglwindow.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpagedpaintdevice.h \
@@ -1442,9 +1457,9 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextobject.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtextoption.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtexttable.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtransform.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvalidator.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtCore/qregexp.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector2d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector3d.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qvector4d.h \
@@ -1462,6 +1477,8 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qlistwidget.h \
 		../Arrays/param.hh \
 		ui_bbarolowindow.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/QAction \
+		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qaction.h \
 		qcustomplot.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/QObject \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/qobject.h \
@@ -1582,8 +1599,10 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qwidget.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPainter \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpainter.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qmatrix.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPaintEvent \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qevent.h \
+		/Users/edt/Programs/mambaforge/include/qt/QtGui/qtouchdevice.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QMouseEvent \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/QPixmap \
 		/Users/edt/Programs/mambaforge/include/qt/QtGui/qpixmap.h \

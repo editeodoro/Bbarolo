@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.6.9dev"
+#define BBVERSION "1.7"
 
 struct Entry {string name; string descr;};
 
