@@ -116,9 +116,9 @@ class BBaroloWrapper(object):
         """ Run BBarolo with the given parameters after checking executable and stdout
     
         Args:
-            exe (str):      Path to BBarolo executable. If None, search in $PATH
-            stdout (str):   How to report BBarolo's messages. 
-                            None=screen, str=file, 'null'=NULL
+          exe (str):      Path to BBarolo executable. If None, search in $PATH
+          stdout (str):   How to report BBarolo's messages. 
+                          None=screen, str=file, 'null'=NULL
         """
         
         # Check if given BBarolo executable exists
@@ -227,7 +227,7 @@ def read_parameter_file(filein):
     """ This function reads in a BBarolo's parameter file 
     
     Args:
-        filein (str):   Parameter file name
+      filein (str):   Parameter file name
     """
     if not os.path.exists(filein):
         raise FileNotFoundError(f"File {filein} does not exist")
