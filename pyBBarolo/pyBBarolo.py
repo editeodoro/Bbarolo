@@ -43,7 +43,8 @@ def reshapePointer (p, shape):
 def isIterable (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
     return isinstance(p,(list,tuple,np.ndarray))
-    
+
+
 def isNumber (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
     return isinstance(p,(float,int,np.int32,np.int64,np.float32,np.float64))
@@ -229,8 +230,8 @@ class Model3D(Task):
         # The output model cube (astropy PrimaryHDU)
         self.outmodel = None
         super(Model3D,self).__init__(fitsname=fitsname)
-        self._opts.update ({'cdens' : [10, np.int, "Surface density of clouds in a ring (1E20)"],
-                            'nv'    : [-1, np.int, "Number of subclouds per profile"]})
+        self._opts.update ({'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
+                            'nv'    : [-1, np.int32, "Number of subclouds per profile"]})
         
 
     def smooth(self,beam=None):
@@ -285,9 +286,9 @@ class GalMod(Model3D):
     def __init__(self,fitsname):
         super(GalMod,self).__init__(fitsname=fitsname)
         self.taskname = "GALMOD"
-        self._opts.update({'ltype' : [2, np.int, "Layer type along z"],
-                           'cmode' : [1, np.int, "Mode of clouds-surface density"],
-                           'iseed' : [-1, np.int, "Seed for random number generator"]})
+        self._opts.update({'ltype' : [2, np.int32, "Layer type along z"],
+                           'cmode' : [1, np.int32, "Mode of clouds-surface density"],
+                           'iseed' : [-1, np.int32, "Seed for random number generator"]})
         self._args = {'radii': [None,'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None,'X-center of the galaxy in pixels'],
                       'ypos' : [None,'Y center of the galaxy in pixels'],
@@ -389,8 +390,8 @@ class GalWind(Model3D):
        super(GalWind,self).__init__(fitsname=fitsname)
        # Task name
        self.taskname = "GALWIND"
-       self._opts.update({'ntot'  : [25, np.int, "Total number of cylinders"],
-                          'dtype' : [1, np.int, "Vertical density type"]})
+       self._opts.update({'ntot'  : [25, np.int32, "Total number of cylinders"],
+                          'dtype' : [1, np.int32, "Vertical density type"]})
        self._opts["nv"][0] = 10
        self._args = {'xpos'   : [None, 'X-center of the galaxy in pixels'],
                      'ypos'   : [None, 'Y center of the galaxy in pixels'],
@@ -498,13 +499,13 @@ class FitMod3D(Model3D):
         # The output final rings
         self.bfit = None
         # A dictionary with options and defaults values
-        self._opts.update({'ltype'   : [2, np.int, "Layer type along z"],
+        self._opts.update({'ltype'   : [2, np.int32, "Layer type along z"],
                            'smooth'  : [True, np.bool, "If false, disable smoothing"],
                            'deltainc': [5., np.float32,"Inclination angle variation (degrees)"],
                            'deltaphi': [15., np.float32, "Position angle variation (degrees)"],
-                           'ftype'   : [2, np.int, "Residual function to minimize" ],
-                           'wfunc'   : [2, np.int, "Weighting function for major axis"],
-                           'bweight' : [1, np.int, "Weighting function for Blank pixels"],
+                           'ftype'   : [2, np.int32, "Residual function to minimize" ],
+                           'wfunc'   : [2, np.int32, "Weighting function for major axis"],
+                           'bweight' : [1, np.int32, "Weighting function for Blank pixels"],
                            'tol'     : [1E-03, np.float64, "Tolerance for minimization."],
                            'mask'    : ['SMOOTH', str, "Mask type"],
                            'norm'    : ['LOCAL', str, "Normalization type"],
@@ -512,7 +513,7 @@ class FitMod3D(Model3D):
                            'side'    : ['B', str, "Which side of the galaxy to fit"],
                            'twostage': [True, np.bool, "Regularize and fit a second model"],
                            'polyn'   : ['bezier', str, "Type of regularization"],
-                           'startrad': [0, np.int, "Starting radius"],
+                           'startrad': [0, np.int32, "Starting radius"],
                            'errors'  : [False, np.bool, "Whether estimating errors"],
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
@@ -640,7 +641,7 @@ class FitMod3D(Model3D):
         sys.stdout.flush()
         ret = libBB.Galfit_plotModel(self._mod) 
         if ret==0: print ("Done.")
-        else: print(" Something went wrong! Check pyscript.py in the output folder.");
+        else: print(" Something went wrong! Check the plotscripts/ directory in your output directory.");
          
          
     def _check_options(self):
@@ -686,12 +687,12 @@ class Search(Task):
                        "snrcut"      : [5, np.float32, "S/N cut for detection when sigma-clipping"],
                        "threshold"   : [0, np.float32, "Flux threshold for a detection"],
                        "adjacent"    : [True, np.bool, "Use the adjacent criterion for objects merger?" ],
-                       "thrspatial"  : [-1, np.int, "Maximum spatial separation between objects"],
-                       "thrvelocity" : [2,  np.int, "Maximum channels separation between objects"],
-                       "minchannels" : [2,  np.int, "Minimum channels to make an object"],
-                       "minpixels"   : [-1, np.int, "Minimum pixels required in an object"],
-                       "minvoxels"   : [-1, np.int, "Minimum voxels required in an object"],
-                       "maxchannels" : [-1, np.int, "Maximum channels to accept an object"],
+                       "thrspatial"  : [-1, np.int32, "Maximum spatial separation between objects"],
+                       "thrvelocity" : [2,  np.int32, "Maximum channels separation between objects"],
+                       "minchannels" : [2,  np.int32, "Minimum channels to make an object"],
+                       "minpixels"   : [-1, np.int32, "Minimum pixels required in an object"],
+                       "minvoxels"   : [-1, np.int32, "Minimum voxels required in an object"],
+                       "maxchannels" : [-1, np.int32, "Maximum channels to accept an object"],
                        "maxangsize"  : [-1, np.float32, "Maximum angular size in an object (arcmin)"],
                        "growth"      : [True, np.bool, "Growing objects once they are found?"],
                        "growthcut"   : [3, np.float32, "The SNR that we are growing objects down to"],
@@ -752,7 +753,7 @@ class FitMod2D(Task):
         # Options and arguments
         self._opts = { 'free'    : ['VROT', str, "Free parameters"],
                        'side'    : ['B', str, "Which side of the galaxy to fit"],
-                       'wfunc'   : [2, np.int, "Weighting function for major axis"],
+                       'wfunc'   : [2, np.int32, "Weighting function for major axis"],
                        'mask'    : ['SMOOTH', str, "Mask type"]}
         self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None, 'X-center of the galaxy in pixels'],

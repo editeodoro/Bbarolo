@@ -63,7 +63,7 @@ Parameters
 
 * **WINDOW_SIZE** [3]. Size of the smoothing window in channels. 
 
-* **REDUCE** [false]. If *true*, output data will be averaged over (WINDOW_SIZE+1)/2 channels.
+* **REDUCE** [false]. Whether to do channel resampling. If *true*, output data will be averaged over (WINDOW_SIZE+1)/2 channels.
 
 Outputs
 ========

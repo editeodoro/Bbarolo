@@ -9,19 +9,25 @@ BBarolo can be used to extract global profiles, moment maps and position velocit
 Parameters for maps
 ===================
 
-* **GLOBALPROFILE** [false]. It *true*, calculate the total line profile from a datacube and write it to a text file.
+* **GLOBALPROFILE** [false]. If *true*, calculate the total line profile from a datacube and write it to a text file.
 
-* **TOTALMAP** [false]. It *true*, calculate the total intensity map from a datacube and write it to a FITS file. 
+* **TOTALMAP** [false]. If *true*, calculate the total intensity map from a datacube and write it to a FITS file. 
 
-* **VELOCITYMAP** [false]. It *true*, calculate the velocity field from a datacube and write it to a FITS file. 
+* **VELOCITYMAP** [false]. If *true*, calculate the velocity field from a datacube and write it to a FITS file. If spectral axis in the datacube is frequency/wavelength, the velocity definition can be chosen through the **VELDEF** parameter (see :ref:`3DFIT advanced options <3dfitopt_add>`).
 
-* **DISPERSIONMAP** [false]. It *true*, calculate the velocity dispersion field from a datacube and write it to a FITS file. 
+* **DISPERSIONMAP** [false]. If *true*, calculate the velocity dispersion field from a datacube and write it to a FITS file. 
 
 * **MAPTYPE** [MOMENT]. It specifies the way the kinematic maps are derived. Can be either *MOMENT* (classical moments) or *GAUSSIAN* (gaussian fit).
 
-* **RMSMAP** [false]. It *true*, calculate the RMS map, i.e. the RMS in each spectrum, from a datacube and write it to a FITS file. The RMS is calculated in an iterative way. RMS is the standard deviation for normal statistics and MADFM/0.6745 for robust statistics (**FLAGROBUSTSTATS** parameter).
+* **RMSMAP** [false]. If *true*, calculate the RMS map, i.e. the RMS in each spectrum, from a datacube and write it to a FITS file. The RMS is calculated in an iterative way. RMS is the standard deviation for normal statistics and MADFM/0.6745 for robust statistics (**FLAGROBUSTSTATS** parameter).
 
-* **MASSDENSMAP** [false]. It *true*, calculate a mass surface-density map in units of Msun/pc^2 from a datacube and write it to a FITS file. This is just for HI data and the input datacube is required to have JY/BEAM flux density units.
+* **MASSDENSMAP** [false]. If *true*, calculate a mass surface-density map in units of Msun/pc^2 from a datacube and write it to a FITS file. This is just for HI data and the input datacube is required to have JY/BEAM flux density units.
+
+* **SNMAP** [false]. If *true*, calculate a signal-to-noise map for the masked total map, following the prescriptions by `Verheijen & Sancisi (2001) <https://ui.adsabs.harvard.edu/abs/2001A%26A...370..765V/abstract>`_ and `Lelli et al. (2014) <https://ui.adsabs.harvard.edu/abs/2014MNRAS.445.1694L/abstract>`_ (see their appendixes). It has to be combined with **TOTALMAP** = *true*. The noise and S/N maps are written in individual FITS files.
+
+* **CONTCHANS** [1E06 1E06]. Number of line-free channels at the low/high velocity ends of the data that have been used to calculate and subtract the continuum. If a single number is given, it will assume the same number of channels have been used at both velocity ends. If no continuum subtraction has been done, use large numbers (default). Only relevant if **SNMAP** is *true*.
+
+* **TAPER** [UNIFORM]. Type of online tapering used during data acquisition. Accepted values are *UNIFORM* (uniform taper), *HANNING1* (hanning taper with all channels kept) and *HANNING2* (hanning taper with half channels thrown away). Only relevant if **SNMAP** is *true*.
 
 Parameters for PV slices
 ========================

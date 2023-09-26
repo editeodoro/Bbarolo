@@ -26,7 +26,7 @@ If any of the following parameters is not explicitly specified, BBarolo will est
 
 * **RADSEP** [none]. The separation between rings in *arcsec*. If N radii have been requested, the rings will be placed at N*RADSEP + RADSEP/2. If not given, it will be equal to the FWHM of the beam major axis.
 
-* **RADII** [none]. This parameter can be used as an alternative to NRADII and RADSEP. This needs to be a text file (see above).
+* **RADII** [none]. This parameter can be used as an alternative to NRADII and RADSEP. RADII can be 1) a text file (see above) with ring specified or 2) a list of radii or 3) a string in the format *Rmin~Rmax:step* (for example *60~180:60* will center rings at 60, 120 and 180 arcsec).
 
 * **XPOS** [none]. X-center of rings. Accepted format are in *pixels* (starting from 0, unlike GIPSY) or in WCS coordinates in the format +000.0000d (*degrees*) or +00:00:00.00 (*sexagesimal*). If not specified, it is determined from the centroids of the emission.
 
@@ -91,6 +91,9 @@ Some important parameters that can be used to control 3DFIT. All following param
 
 * **ADRIFT** [false]. If true, calculate the asymmetric drift correction. First regularize velocity dispersion and density profile and then compute the correction following classical prescription (see e.g. `Iorio et al. 2017 <http://adsabs.harvard.edu/abs/2017MNRAS.466.4159I>`_).
 
+* **ADRIFTPOL1** [3]. Degree of polynomial function used to regularize the velocity dispersion in the computation of the asymmetric drift correction. If set to -1, it will not regularize it and just use the ring-by-ring best fit.
+
+* **ADRIFTPOL2** [3]. Degree of polynomial function used to regularize the function log(VDISP**2*SIGMA) in the computation of the asymmetric drift correction. 
 
 .. _3dfitopt_add:
 
@@ -103,7 +106,7 @@ Additional optional parameters to refine the fit for advanced users.
 
 * **DELTAPA** [15]. This parameter fixes the boundaries of parameter space at [PA-DELTAINC, PA+DELTAPA]. It is not advisable to let the position angle varying over the whole range [0,360].
 
-* **DELTAVROT** [inf]. This parameter fixes the boundaries of parameter space at [VROT-DELTAVROT, VROT+DELTAVROT]. Default is not to limit rotation velocity.
+* **DELTAVROT** [inf]. This parameter fixes the boundaries of parameter space at [VROT-DELTAVROT, VROT+DELTAVROT]. Default is no limit.
 
 * **MINVDISP** [0]. Minimum gas velocity dispersion allowed.
 
@@ -123,13 +126,18 @@ Additional optional parameters to refine the fit for advanced users.
 
 * **STARTRAD** [0]. This parameter allows the user to start the fit from the given ring. Indexing from 0.
 
-* **PLOTMASK** [false]. If true, the mask contour is overlaid on the channel maps and PVs plots.
-
 * **NOISERMS** [0] If > 0, Gaussian noise with rms = NOISERMS will be added to the final model cube.
 
 * **NORMALCUBE** [true]. If true, the input cube is normalized before the fit. This usually helps convergence and avoids issues with very small flux values.
 
 * **BADOUT** [false]. If true, it writes also unconverged/bad rings in the output ringfile (with a flag identifying them).
+
+* **VELDEF** [AUTO]. Velocity definition to convert frequency/wavelength axis into velocity. Accepted values are *RADIO*, *OPTICAL* or *RELATIVISTIC*. If *AUTO* (default), the code will use radio definition if spectral axis is frequency and relativistic definition if spectral axis is wavelength. 
+
+* **PLOTMASK** [false]. If true, the mask contour is overlaid on the channel maps and PVs plots.
+
+* **PLOTMINCON** [-1]. Minimum flux contour to use in channel map and PV plots. Must be positive. If not given or negative, the code will estimate an appropriate contour. Contour levels will be set at [1,2,4,8,...] x PLOTMINCON.
+
 
 
 Parameters for high-z galaxies 

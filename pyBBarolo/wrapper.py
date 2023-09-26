@@ -103,12 +103,12 @@ class BBaroloWrapper(object):
 
 
     def add_options(self,**kwargs):
-        " Add new options to the parameter list"
+        """ Add new options to the parameter list """
         if kwargs: self.opts.update(kwargs)
 
     
     def remove_option(self,toremove):
-        " Remove an option from the parameter list"
+        """ Remove an option from the parameter list """
         self.opts.pop(toremove, None)
     
     
@@ -161,7 +161,7 @@ class BBaroloWrapper(object):
     
 
     def reset(self):
-        "Reset options"
+        """ Reset options """
         self.opts.clear()
 
 
