@@ -5612,13 +5612,15 @@ fi
 INCDIRS="$INCDIRS           \
          /usr/include       \
          /usr/local/include \
-         /opt/local/include"
+         /opt/local/include \
+         /opt/homebrew/include"
 
 LIBDIRS="$LIBDIRS           \
          /usr/lib           \
          /usr/local/lib     \
          /local/lib         \
-         /opt/local/lib"
+         /opt/local/lib     \
+         /opt/homebrew/lib"
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: LIBDIRS" >&5
 printf "%s\n" "$as_me: LIBDIRS" >&6;}

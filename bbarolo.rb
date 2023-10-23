@@ -19,8 +19,14 @@ class Bbarolo < Formula
   depends_on "cfitsio"
   depends_on "fftw"
   depends_on "wcslib"
+  depends_on "gcc"
   depends_on "gnuplot" => :optional
-
+  
+  # With Clang gives a segfault, using gcc instead
+  fails_with :clang do
+    cause "Miscompilation resulting in segfault on queries"
+  end
+  
   def install
     # BBarolo requires a c++11 compiler
     ENV.cxx11

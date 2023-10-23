@@ -279,13 +279,15 @@ AC_SUBST([SHRLN])
 INCDIRS="$INCDIRS           \
          /usr/include       \
          /usr/local/include \
-         /opt/local/include"
+         /opt/local/include \
+         /opt/homebrew/include"
 
 LIBDIRS="$LIBDIRS           \
          /usr/lib           \
          /usr/local/lib     \
          /local/lib         \
-         /opt/local/lib"
+         /opt/local/lib     \
+         /opt/homebrew/lib"
 
 AC_MSG_NOTICE(LIBDIRS)
 
