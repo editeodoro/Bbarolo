@@ -313,7 +313,7 @@ EXPORT_ARCH_ARGS = $(foreach arch, $(if $(EXPORT_ACTIVE_ARCHS), $(EXPORT_ACTIVE_
 EXPORT__PRO_FILE_ = /Users/edt/Library/CloudStorage/Dropbox/Codex/BBarolo/src/GUI/BbaroloGUI.pro
 
 
-#include /Users/edt/Programs/mambaforge/mkspecs/features/mac/sdk.mk
+include /Users/edt/Programs/mambaforge/mkspecs/features/mac/sdk.mk
 first: all
 ####### Build rules
 
@@ -1309,8 +1309,6 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qlistwidget.h \
 		../Arrays/param.hh \
 		ui_bbarolowindow.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/QAction \
-		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qaction.h \
 		qcustomplot.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/QObject \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/qobject.h \
@@ -1477,8 +1475,6 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qlistwidget.h \
 		../Arrays/param.hh \
 		ui_bbarolowindow.h \
-		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/QAction \
-		/Users/edt/Programs/mambaforge/include/qt/QtWidgets/qaction.h \
 		qcustomplot.h \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/QObject \
 		/Users/edt/Programs/mambaforge/include/qt/QtCore/qobject.h \

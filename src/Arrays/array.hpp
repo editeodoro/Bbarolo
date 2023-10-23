@@ -19,7 +19,7 @@ public:
     Array(size_t *Dim) {setArray(Dim);}
     Array(size_t *Dim, Type v) {setArray(Dim, v);}
     Array(size_t *Dim, Type *vp) {setArray(Dim,vp);}
-    Array(const Array& a) {this->operator=(a);};
+    Array(const Array& a) {this->operator=(a);}
     ~Array() {if(pAllocated) delete[] p;}
 
     // SPECIAL CONSTRUCTORS FOR 4D,3D,2D and 1D ARRAYS
