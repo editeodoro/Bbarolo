@@ -5,7 +5,7 @@ class Bbarolo < Formula
   # Default is v1.7 stable
   stable do
     url "https://github.com/editeodoro/Bbarolo/archive/1.7.tar.gz"
-    sha256 "f9ad7d7a32b9141e76d21867ebe17fde777e40a998e08290785d8a284bc3973d"
+    sha256 "4e06182dc98ecbac85ee9e1af1602470fbfa77ac45583486d1a6e5242ad5d563"
   end
 
   # To install instead latest non-stable version, use --devel option
