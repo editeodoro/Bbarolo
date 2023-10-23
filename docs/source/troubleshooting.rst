@@ -36,7 +36,17 @@ Frequently Asked Questions
 
     .. container:: header
 
-        **2) BBarolo seems to run smoothly but suddenly it gets "Killed"**. 
+        **2) On my Mac OS, BBarolo compiles correctly but then it crashes with no error message**. 
+       
+    This may be due to Apple default compiler, Clang. The latest versions of Clang++ does not compile the code correctly, resulting in a SEGSEV error (like "zsh: abort"). To fix this, recompile the code using another compile (for example GNU GCC).
+
+|
+
+.. container:: toggle
+
+    .. container:: header
+
+        **3) BBarolo seems to run smoothly but suddenly it gets "Killed"**. 
        
     The code has been killed by the system kernel for some reason. For example, you can       check that with::
 
