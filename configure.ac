@@ -5,7 +5,7 @@
 # to pull the required macros into aclocal.m4
 
 AC_PREREQ([2.71])
-AC_INIT([BBAROLO],[1.6],[enrico.diteodoro@gmail.com])
+AC_INIT([BBAROLO],[1.7],[enrico.diteodoro@gmail.com])
 #AC_CONFIG_HEADERS([src/config.h])
 #AC_PREFIX_DEFAULT(/usr/local)
 
