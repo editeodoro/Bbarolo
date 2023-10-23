@@ -247,7 +247,7 @@ public:
     float   getScaleFactor () {return scalefactor;}
     void    setFactor (float f) {factor=f;}
     bool    getflagReduce() {return (reduce=="false" ? false : true);}
-    void    setflagReduce(bool f) {f ? reduce=="true" : reduce=="false";}
+    void    setflagReduce(bool f) {f ? reduce="true" : reduce="false";}
     string  getReduce() {return reduce;}
     string  getSmoothOut () {return smo_out;}
     
