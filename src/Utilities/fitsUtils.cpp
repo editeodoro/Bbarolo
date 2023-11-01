@@ -25,6 +25,7 @@
 #include <cstring>
 #include <fitsio.h>
 #include <Utilities/utils.hh>
+#include <Arrays/cube.hh>
 
 template <> int selectBitpix<short>() {return SHORT_IMG;}
 template <> int selectBitpix<int>() {return SHORT_IMG;}
@@ -529,4 +530,99 @@ int fitsarith(int argc, char *argv[]) {
  
     if (status) fits_report_error(stderr, status);
     return status;
+}
+
+
+int ConvertFluxUnits(int argc, char *argv[], std::string whichtype) {
+    
+    // This function converts flux units between Jy/beam and K 
+    
+    if (whichtype!="j2k" && whichtype!="k2j") {
+        std::cerr << " ConvertFluxUnits function: '" << whichtype << "' is not an acceptable conversion type.\n";
+        return 1;
+    }
+    
+    std::string taskname = whichtype=="j2k" ? "JYBEAM2K" : "K2JYBEAM"; 
+    
+    if (argc!=3 && argc!=4) {
+        std::cout << "\n BBarolo's " << taskname << " FITS utility: \n\n"
+                  << " Convert flux units between Jy/Beam <-> Kelvin. \n"
+                     " NB: It requires the beam info (BMAJ, BMIN, BPA, in deg) \n"
+                     "     and RESTFREQ (in Hz) keywords to be present in the FITS header. \n\n"
+                  << " Usage:\n   BBarolo --" << makelower(taskname) << " filename[ext] {outputfile}  \n\n"
+                  << " Examples: \n"
+                  << "   BBarolo --" << makelower(taskname) << " in.fits              \n"
+                  << "   BBarolo --" << makelower(taskname) << " in.fits out.fits     \n\n"
+                  << " NOTE: it may be necessary to enclose the input file name in single \n"
+                  << " quote characters on some Unix shells.\n\n";
+        return 0;
+    }
+    
+    std::string bunit;
+    
+    Cube<double> c;
+    Header &h = c.Head();
+    h.setFitsName(argv[2]);
+    //h.setWarning(false);
+    
+    if (!h.read_keyword("BUNIT",bunit,false)) {
+        // BUNIT keyword is not found, so assuming it's the correct one (hopefully).
+        std::cerr << "BUNIT Keyword does not exist. Assuming ";
+        bunit = whichtype=="j2k" ? "JY/BEAM" : "K";
+        std::cerr << bunit << std::endl;
+    }
+    
+    std::string b = deblankAll(makelower(bunit));
+    // Checking that starting BUNIT is either Jy/beam or K
+    if (b.find("jy/b")==std::string::npos && b.find("j/b")==std::string::npos && b.find("k")==std::string::npos) {
+        std::cerr << " " << taskname << " ERROR: unknown BUNIT=" << b << ". Cannot make conversions!\n";
+        return 0;
+    }
+    // Checking current BUNIT are consistent with requested conversion. 
+    if (whichtype=="k2j" && (b.find("jy/b")!=std::string::npos || b.find("j/b")!=std::string::npos)) {
+        std::cout << " " << taskname << ": flux units are already in JY/BEAM. Doing nothing!!\n";
+        return 0;
+    }
+    if (whichtype=="j2k" && b.find("k")!=std::string::npos) {
+        std::cout << " " << taskname << ": flux units are already in KELVIN. Doing nothing!!\n";
+        return 0;
+    }
+    
+    // Now reading the FITS file and updating the data 
+    if (!c.readCube(argv[2],false)) {
+        std::cerr << argv[2] << " is not a readable FITS file!\n";
+        return 1;
+    };
+
+    // Calculating the constant factor between JY/BEAM and K
+    double beam    = h.Bmaj()*3600.*h.Bmin()*3600.;
+    double freqGHz = h.Freq0()/1E09;
+    double factor  = 1.22222E06/(beam*freqGHz*freqGHz);
+    
+    std::string endbunit;
+    if (whichtype=="k2j") { // Kelvin -> Jy/beam
+        factor = 1/factor;
+        endbunit = "JY/BEAM";
+    }
+    else { // Jy/beam -> Kelvin
+        endbunit = "K";
+    }
+        
+    // Writing conversion parameters
+    std::cout << " Converting " << h.Bunit() << " --> " << endbunit << ":\n\n" << setprecision(6)
+              << "  Rest frequency = " << freqGHz << " GHz" << std::endl
+              << "       Beam size = " << h.Bmaj()*3600 << "\" x " << h.Bmin()*3600 << "\" " << std::endl
+              << "    Scale factor = " << factor << std::endl;
+    
+    for (auto i=0; i<c.NumPix(); i++) c(i) *= factor;
+    h.setBunit(endbunit);
+    h.addKey("HISTORY BBAROLO " + taskname + ": Converted from " + bunit + " to " + endbunit + " with factor " + to_string(factor,4));
+    
+    // Writing output file
+    std::string outfile = argc==3 ? argv[2] : argv[3];
+    c.fitswrite_3d(outfile.c_str(),true);
+    std::cout << "\n New FITS file written to " << outfile << std::endl;
+    
+    return 0;
+
 }

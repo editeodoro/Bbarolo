@@ -1115,7 +1115,7 @@ int Galfit<T>::plotAll_Python() {
         << std::endl
         << "# Plotting surface density \n"
         << "ax[2].set_xlim(0,max_rad) \n"
-        << "ax[2].set_ylabel('$\\Sigma}$ ("<< bunit << ")', fontsize=lsize) \n"
+        << "ax[2].set_ylabel('$\\Sigma$ ("<< bunit << ")', fontsize=lsize) \n"
         << "ax[2].errorbar(rad_sd,surfdens, yerr=sd_err,fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting inclination angle \n"
@@ -1289,7 +1289,8 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\t\tax.annotate('', xy=(4.5, 1.4), xycoords='axes fraction', xytext=(5, 1.4),arrowprops=dict(arrowstyle='<->', color='k'))\n"
         << "\t\t\t\tax.text(4.75,1.50,ltex,transform=ax.transAxes,fontsize=11, ha='center')\n"
         << "\t\t\t\tbmaj, bmin, bpa = " << bmaj << "/float(xmax-xmin), " << bmin << "/float(ymax-ymin)," << bpa << std::endl
-        << "\t\t\t\tbeam = mpl.patches.Ellipse((3.5, 1.4), bmaj, bmin, bpa+90, color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
+        << "\t\t\t\tbeam = mpl.patches.Ellipse(xy=(3.5, 1.4), width=bmaj, height=bmin, angle=bpa+90, \\\n"
+        << "\t\t\t\t                           color='#5605D0', clip_on=False, transform=ax.transAxes, alpha=0.2) \n"
         << "\t\t\t\tax.add_artist(beam) \n"
         << "\t\t\t\tax.text(3.6+bmaj/1.8,1.4,'Beam',transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
         << "\t\t\tax = plt.subplot(grid[j][1,i]) \n"

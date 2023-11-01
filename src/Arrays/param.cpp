@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.7"
+#define BBVERSION "1.7.1dev"
 
 struct Entry {string name; string descr;};
 
@@ -66,6 +66,9 @@ vector<Entry> fitsUtilsList = {
   {"remhead",   "Delete a header keyword in a FITS file."},
   {"fitscopy",  "Copy a input file to a new FITS file with filtering."},
   {"fitsarith", "Arithmetic operations with FITS files."},
+  {"jybeam2k",  "Convert flux units from Jy/beam to K."},
+  {"k2jybeam",  "Convert flux units from K to Jy/beam."}
+  
 };
 
 
@@ -282,6 +285,8 @@ bool Param::getopts(int argc, char **argv) {
                 {"listhead",  no_argument,       nullptr, 'L'},
                 {"fitscopy",  no_argument,       nullptr, 'C'},
                 {"fitsarith", no_argument,       nullptr, 'A'},
+                {"jybeam2k",  no_argument,       nullptr, 'J'},
+                {"k2jybeam",  no_argument,       nullptr, 'K'},
                 {"upgrade",   no_argument,       nullptr, 'U'},
                 {0, 0, 0, 0}
         };
@@ -358,6 +363,14 @@ bool Param::getopts(int argc, char **argv) {
 
             case 'A':                    // Operations on a fits image
                 fitsarith(argc,argv);
+                break;
+            
+            case 'J':                    // Convert from Jy/beam to K
+                ConvertFluxUnits(argc,argv,"j2k");
+                break;
+            
+            case 'K':                    // Convert from Jy/beam to K
+                ConvertFluxUnits(argc,argv,"k2j");
                 break;
             
             case 'U':                    // Upgrade BBarolo to latest version

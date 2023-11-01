@@ -122,6 +122,7 @@ int  remhead(int argc, char *argv[]);
 int  listhead(int argc, char *argv[]);
 int  fitscopy(int argc, char *argv[]);
 int  fitsarith(int argc, char *argv[]);
+int  ConvertFluxUnits(int argc, char *argv[], std::string whichtype);
 
 /// WCS Utilities, defined in wcsUtils.cpp
 int pixToWCSSingle(struct wcsprm *wcs, const double *pix, double *world);

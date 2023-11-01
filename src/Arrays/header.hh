@@ -110,6 +110,7 @@ public:
     void setBtype (std::string s) {btype = s;}
     void setName  (std::string s) {object = s;}
     void setTelesc(std::string s) {telescope = s;}
+    void setFitsName(std::string s) {fitsname = s;}
     void setPointAllocated (bool b) {pointAllocated=b;}
     void setWarning (bool b) {warning=b;}
     void setWave0 (double w) {wave0=w;}
