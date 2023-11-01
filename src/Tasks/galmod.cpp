@@ -146,7 +146,7 @@ void Galmod<T>::defaults() {
     modCalculated = false;
     ltype         = 1;
     cmode         = 1; 
-    iseed           = -1;      
+    iseed           = -1;
     crota2        = 0; 
     cdens         = 1.0;
     freq0         = 0.1420405751786E10;

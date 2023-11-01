@@ -971,8 +971,6 @@ int Galfit<T>::plotAll_Python() {
         disp = *max_element(&ext[0],&ext[0]+4);
         zmin = larg->getZmin()-3;
         zmax = larg->getZmax()+3;
-        if (zmin<0) zmin=0;
-        if (zmax>=in->DimZ()) zmax=in->DimZ()-1;
     }
     else if (in->pars().getMASK()=="SMOOTH&SEARCH") {
         // Using mask to set the spatial displacement from the center and the spectral range
@@ -1020,6 +1018,9 @@ int Galfit<T>::plotAll_Python() {
     xmax = xpos+disp<in->DimX() ? xpos+disp : in->DimX()-1;
     ymin = ypos-disp>=0 ? ypos-disp : 0;
     ymax = ypos+disp<in->DimY() ? ypos+disp : in->DimY()-1;
+    if (zmin<0) zmin=0;
+    if (zmax>=in->DimZ()) zmax=in->DimZ()-1;
+
 
     int *nc = getErrorColumns();
 
