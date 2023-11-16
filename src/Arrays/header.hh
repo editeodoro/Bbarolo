@@ -126,8 +126,7 @@ public:
     void    setNumAx (int n);
     void    calcArea ();                                        /// Calculate beam area from bmaj & bmin.
     bool    header_read (std::string fname);                    /// Read from header of a Fits file.
-    void    headwrite_3d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits cube.
-    void    headwrite_2d (fitsfile *fptr, bool fullHead);       /// Write header of a Fits image.
+    void    headwrite (fitsfile *fptr, short numDim, bool fullHead); /// Write header of a Fits cube.
     void    updateWCS();                                        /// Update WCS structure
     bool    checkHeader();                                      /// Check header is ok for BBarolo
     int     wcsToPix(const double *world, double *pix, size_t npts=1);

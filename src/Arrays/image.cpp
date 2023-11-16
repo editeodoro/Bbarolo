@@ -214,7 +214,7 @@ bool Image2D<Type>::fitswrite_2d (const char *outname, bool fullHead) {
         return false;
     }
     
-    if (headDefined) head.headwrite_2d (fptr,fullHead);
+    if (headDefined) head.headwrite(fptr,2,fullHead);
     
     if (fits_write_img (fptr, selectDatatype<Type>(), firstPix, numPix, array, &status)){
         fits_report_error (stderr, status);

@@ -382,8 +382,8 @@ bool Cube<T>::fitswrite_3d(const char *outfile, bool fullHead) {
     }
     
     if (headDefined) {
-        if (head.NumAx()==2) head.headwrite_2d(fptr,fullHead);
-        else head.headwrite_3d (fptr, fullHead);
+        if (head.NumAx()==2) head.headwrite(fptr,2,fullHead);
+        else head.headwrite(fptr,3,fullHead);
     }
     
     status=0;
