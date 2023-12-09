@@ -1823,8 +1823,8 @@ void versionInfo(std::ostream& ostr, char **argv) {
 #if defined(HAVE_FFTW3)
     flags += "FFTW3 ";
 #endif
-#if defined(MACOSX)
-    flags += "MACOSX ";
+#if defined(MACOS)
+    flags += "MACOS ";
 #endif
 #if defined(_OPENMP)
     flags += "OPENMP ";

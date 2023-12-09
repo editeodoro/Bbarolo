@@ -16,9 +16,8 @@ LIBDIR = @prefix@/lib
 INCDIR = @prefix@/include/bbarolo
 
 V = @PACKAGE_VERSION@
-EXEC = BBarolo-$(V)
 EXEC-STUB = BBarolo
-
+EXEC = $(EXEC-STUB)-$(V)
 
 AR = ar cq
 LIB = libBBarolo-$(V).a
@@ -45,8 +44,10 @@ PYINC = @PYTHON_INCLUDE@
 PYLIB = @PYTHON_LIBS@
 
 OPT = @GNUPLOT@ @FFTW3@ @HAVEPYTHON@ @HAVEMPI@
-ifeq ($(OPS),MACOSX)
-	OPT += -DMACOSX
+STATICGCC = -static
+ifeq ($(OPS),MACOS)
+	OPT += -DMACOS
+	STATICGCC = -static-libgcc -static-libstdc++
 endif
 #OPT += -DDOUBLE_PRECISION
 
@@ -65,43 +66,13 @@ TASKDIR = $(BASE)/Tasks
 PYBBDIR = $(BASE)/../pyBBarolo
 OBJDIR = $(BASE)/Build
 
-HEADS = $(ARRAYDIR)/param.hh\
-	$(ARRAYDIR)/header.hh\
-	$(ARRAYDIR)/array.hpp\
-	$(ARRAYDIR)/cube.hh\
-	$(ARRAYDIR)/image.hh\
-	$(ARRAYDIR)/stats.hh\
-	$(ARRAYDIR)/rings.hh\
-	$(MAPDIR)/voxel.hh\
-	$(MAPDIR)/scan.hh\
-	$(MAPDIR)/object2D.hh\
-	$(MAPDIR)/object3D.hh\
-	$(MAPDIR)/detection.hh\
-	$(MAPDIR)/objectgrower.hh\
-	$(UTILDIR)/gnuplot.hh\
-	$(UTILDIR)/progressbar.hh\
-	$(UTILDIR)/lsqfit.hh\
-	$(UTILDIR)/paramguess.hh\
-	$(UTILDIR)/conv2D.hh\
-	$(UTILDIR)/utils.hh\
-	$(UTILDIR)/converter.hh\
-	$(UTILDIR)/allocator.hpp\
-	$(UTILDIR)/optimization.hh\
-	$(TASKDIR)/galmod.hh\
-	$(TASKDIR)/ringmodel.hh\
-	$(TASKDIR)/galfit.hh\
-	$(TASKDIR)/smooth3D.hh\
-	$(TASKDIR)/galwind.hh\
-	$(TASKDIR)/ellprof.hh\
-	$(TASKDIR)/moment.hh\
-	$(TASKDIR)/spacepar.hh\
-	$(TASKDIR)/search.hh\
-	$(TASKDIR)/rendering3D.hh\
+HEADS := $(wildcard $(BASE)/*.h*)\
+	$(wildcard $(ARRAYDIR)/*.h*)\
+	$(wildcard $(MAPDIR)/*.h*)\
+	$(wildcard $(UTILDIR)/*.h*)\
+	$(wildcard $(TASKDIR)/*.h*)\
     
-    
-
-OBJECTS = $(OBJDIR)/bbarolo.o\
-	 $(OBJDIR)/header.o\
+OBJECTS = $(OBJDIR)/header.o\
 	 $(OBJDIR)/param.o\
 	 $(OBJDIR)/stats.o\
 	 $(OBJDIR)/cube.o\
@@ -134,14 +105,15 @@ OBJECTS = $(OBJDIR)/bbarolo.o\
 	 $(OBJDIR)/paramguess.o\
 	 $(OBJDIR)/BB_interface.o\
 
-bbarolo : builddir $(OBJECTS)
-	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(LIBS) $(OPT)
+$(EXEC-STUB) : $(OBJDIR) $(OBJECTS)
+#	$(LINK) -o $@ $(OBJECTS) $(LIBS) $(OPT)
+	$(LINK) -o $@ $(CINC) $(BASE)/bbarolo.cpp $(OBJECTS) $(LIBS) $(OPT)
+
+$(OBJDIR) :
+	mkdir -p $(OBJDIR)
 
 $(OBJECTS) : $(HEADS)
 
-%.o: %.cpp
-	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
-    
 $(OBJDIR)/%.o: $(BASE)/%.cpp
 	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 
@@ -157,13 +129,16 @@ $(OBJDIR)/%.o: $(UTILDIR)/%.cpp
 $(OBJDIR)/%.o: $(TASKDIR)/%.cpp
 	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 
-.cc.o:
-	$(CXX) -c $< $(CINC) -o $@ $(OPT)
+#%.o: %.cpp
+#	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 
-.c.o:
-	$(CC) -c $< $(CINC) -o $@ $(OPT)
+#.cc.o:
+#	$(CXX) -c $< $(CINC) -o $@ $(OPT)
+
+#.c.o:
+#	$(CC) -c $< $(CINC) -o $@ $(OPT)
     
-lib : builddir $(OBJECTS)
+lib : $(OBJDIR) $(OBJECTS)
 	$(AR) $(LIB) $(OBJECTS)
 	$(RANLIB) $(LIB)
 	$(SHAREDLIB) $(CINC) $(LIBS) -o $(LIBSO) $(OBJECTS)
@@ -213,22 +188,18 @@ uninstall :
 	cd $(LIBDIR) && $(RM) $(LIB) $(LIB_LN) $(LIBSO) $(LIBSO_LN)
 	$(RM) -r $(INCDIR) 
 	
-builddir: 
-	mkdir -p $(OBJDIR)
 
-.PHONY: clean	
+.PHONY: clean cleanup cleanest cleangui gui justgui all static guistatic
+
 clean : cleanup
 	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
 
-.PHONY: cleanest
 cleanest: clean
 	rm -rf Makefile $(EXEC) $(EXEC-STUB)
 
-.PHONY: cleanup	
 cleanup:
 	rm -rf autom4te.cache config.log config.status setup.log
 
-.PHONY: cleangui
 cleangui:
 	cd ./src/GUI && make clean
 
@@ -245,26 +216,29 @@ gui :
 	qmake && \
 	rm BbaroloGUI.pro && mv BbaroloGUI.or BbaroloGUI.pro && \
 	make
-ifeq ($(OPS),MACOSX)
+ifeq ($(OPS),MACOS)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 endif
 
 justgui : 
 	cd ./src/GUI && make
-ifeq ($(OPS),MACOSX)
+ifeq ($(OPS),MACOS)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 endif
     
 all: 
 	make && make gui
 
-static: builddir $(OBJECTS)
-	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT) -static-libgcc -static-libstdc++
+static: $(OBJDIR) $(OBJECTS)
+	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT) $(STATICGCC)
+ifeq ($(OPS),LINUX)
+	strip -s $(EXEC-STUB)
+endif
 
 guistatic :
 	rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
 	macdeployqt ./BBaroloGUI.app
-	$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
+	$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) $(STATICGCC)
 
 guistaticlinux :
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \
@@ -283,10 +257,9 @@ guistaticlinux :
 	cd ../.. &&\
 	$(LINK) -o BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
 
-mpi: lib
-	mpicxx $(FLAGS) -o BBarolo_MPI $(BASE)/bbarolo_mpi.cpp $(LIB) $(LIBS) $(OPT) $(CINC)
-    
-   
+mpi: $(OBJDIR) $(OBJECTS)
+	mpicxx $(FLAGS) -DMPI -o BBarolo_MPI $(CINC) $(BASE)/bbarolo.cpp $(OBJECTS) $(LIBS) $(OPT)  
+
 pybb : lib
 	mv $(LIB) $(PYBBDIR)
 	mv $(LIB_LN) $(PYBBDIR)
@@ -299,9 +272,7 @@ pybbdist :
 	twine upload --repository-url  https://upload.pypi.org/legacy/  dist/*
 	rm -rf build dist MANIFEST
     
-pybbinst:
+pybbinst :
 	python setup.py install
 	rm -rf build dist MANIFEST
 	rm -rf pyBBarolo/BBarolo pyBBarolo/libBB*
-
-

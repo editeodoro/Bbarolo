@@ -43,7 +43,7 @@ void ProgressBar::defaults() {
     showbar = true;
     verbose = true;
     backs = 8;
-#ifdef MACOSX
+#ifdef MACOS
     backs = 7;
 #endif 
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);

@@ -623,7 +623,7 @@ void Header::headwrite (fitsfile *fptr, short numDim, bool fullHead) {
         //if (drval3!=0) fits_update_key_dbl(fptr, "DRVAL3", drval3, 10, com, &status);
         //if (dunit3!="NONE") fits_update_key_str(fptr, "DUNIT3", dunit3.c_str(), com, &status);
     }
-    
+        
     fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
     if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
     

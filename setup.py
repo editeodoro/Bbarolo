@@ -34,7 +34,10 @@ def compileBB():
     ret = subprocess.call("make lib", shell=True, stdout=f)
     if ret!=0: sys.exit("\nLibrary linking failed. Check %s for errors.\n"%logfile)
     print ("OK.")
-    
+
+if len(sys.argv)<2:
+    exit("Usage: python setup.py [option]")
+
 
 if sys.argv[1]=='sdist':  
     # If we are creating the sdist package, make a tar with BB source

@@ -251,6 +251,8 @@ void Image2D<Type>::copyHeader (Header &c) {
         head.setBpa(c.Bpa());
         head.setEpoch(c.Epoch());
         head.setName(c.Name());
+        head.setTelesc(c.Telesc());
+        head.setFreq0(c.Freq0());
     }
 }
 

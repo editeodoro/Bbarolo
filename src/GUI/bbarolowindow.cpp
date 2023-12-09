@@ -69,7 +69,7 @@ BBaroloWindow::BBaroloWindow(QWidget *parent) :
     ui->MaskThreshSpinBox->setHidden(true);
 
     QFont log_font;
-#ifdef MACOSX
+#ifdef MACOS
     log_font.setFamily(QString::fromUtf8("Monaco"));
     log_font.setPointSize(12);
 #else

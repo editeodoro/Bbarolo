@@ -155,7 +155,7 @@ AC_SUBST([ARCH])
 case $build_os in
   darwin* )
         # Do something specific for mac
-        OP="MACOSX"
+        OP="MACOS"
 				;;
   linux*)
         # Do something specific for linux
