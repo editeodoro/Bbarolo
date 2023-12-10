@@ -135,5 +135,5 @@ namespace PixelInfo
   };
 
 }
-//#include "object2D.cpp"
+
 #endif //OBJECT2D_H

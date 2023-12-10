@@ -49,8 +49,7 @@ namespace PixelInfo
     friend std::ostream& operator<<( std::ostream& theStream, Voxel<T>& vox);
     template <class Type>
     friend bool operator== (Voxel<T> lhs, Voxel<T> rhs);     
-    
-    
+        
     /// Accessor functions to private class members.
     
     void   setX(long x){itsX = x;}
@@ -97,7 +96,5 @@ namespace PixelInfo
   };
 
 }
-
-#include "voxel.cpp"
 
 #endif 

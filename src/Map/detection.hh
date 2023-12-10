@@ -273,13 +273,21 @@ public:
 // These are in detection.cpp
 //
 ///Sort a list of Detections by a nominated parameter
-template <class T> void SortDetections(std::vector<Detection<T> > *inputList, std::string parameter);
+template <class T> 
+void SortDetections(std::vector<Detection<T> > *inputList, std::string parameter);
 
 /// Sort a list of Detections by Z-pixel value.
-template <class T>  void SortByZ(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"zvalue");}
+template <class T> 
+void SortByZ(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"zvalue");}
 
 /// Sort a list of Detections by Velocity.
-template <class T> void SortByVel(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"vel");}
+template <class T> 
+void SortByVel(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"vel");}
 
-#include "detection.cpp"
+/// Get integrated spectrum for a detection
+template <class T>
+void getIntSpec(Detection<T> &object, T *fluxArray, long *dimArray, std::vector<bool> mask, 
+                float beamCorrection, T *spec);
+
+
 #endif

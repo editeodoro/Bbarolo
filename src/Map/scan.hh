@@ -108,6 +108,4 @@ namespace PixelInfo
 
 }
 
-#include "scan.cpp"
-
 #endif 

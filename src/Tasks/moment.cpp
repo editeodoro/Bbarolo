@@ -21,8 +21,9 @@
     Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 #include <iostream>
-#include <fitsio.h>
+#include <cfloat>
 #include <vector>
+#include <fitsio.h>
 #include <Tasks/moment.hh>
 #include <Arrays/array.hpp>
 #include <Arrays/cube.hh>

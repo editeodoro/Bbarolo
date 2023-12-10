@@ -22,11 +22,13 @@
 -----------------------------------------------------------------------*/
 
 #include <iostream>
+#include <iomanip>
 #include <Tasks/search.hh>
 #include <Arrays/stats.hh>
 #include <Map/objectgrower.hh>
 #include <Map/detection.hh>
 #include <Utilities/progressbar.hh>
+#include <Utilities/utils.hh>
 
 #ifdef _OPENMP
 #include <omp.h>

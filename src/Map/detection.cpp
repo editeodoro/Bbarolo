@@ -38,9 +38,6 @@
 
 using namespace PixelInfo;
 
-template <class T>
-void getIntSpec(Detection<T> &object, float *fluxArray, long *dimArray, std::vector<bool> mask, 
-                float beamCorrection, float *spec);
 
 template <class T>
 void Detection<T>::defaultDetection() {
@@ -387,7 +384,7 @@ bool Detection<T>::voxelListsMatch(std::vector<Voxel<T> > voxelList) {
     listsMatch = listsMatch && voxelListCovered(voxelList);
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxelList.begin();vox<voxelList.end();vox++)
-        listsMatch = listsMatch && isInObject(*vox);
+        listsMatch = listsMatch && this->isInObject(*vox);
     return listsMatch;
 
 }
@@ -876,10 +873,10 @@ void Detection<T>::calcVelWidths(T *fluxArray, long *dim, Header &head) {
     ///  \param head FitsHeader object that contains the WCS information.
 
     if(dim[2]>2){
-        float *intSpec = new float[dim[2]];
+        T *intSpec = new T[dim[2]];
         long size=dim[0]*dim[1]*dim[2];
         std::vector<bool> mask(size,true); 
-        getIntSpec(*this,fluxArray,dim,mask,1.,intSpec);
+        getIntSpec(*this,fluxArray,dim,mask,float(1.),intSpec);
         calcVelWidths(dim[2],intSpec,head);
         delete [] intSpec;
     }
@@ -957,8 +954,8 @@ std::vector<int> Detection<T>::getVertexSet() {
 
 
 template <class T> 
-void getIntSpec(Detection<T> &object, float *fluxArray, long *dimArray, std::vector<bool> mask, 
-                float beamCorrection, float *spec) {
+void getIntSpec(Detection<T> &object, T *fluxArray, long *dimArray, std::vector<bool> mask, 
+                float beamCorrection, T *spec) {
                     
     /// @details
     ///  The base function that extracts an integrated spectrum for a
@@ -993,11 +990,14 @@ void getIntSpec(Detection<T> &object, float *fluxArray, long *dimArray, std::vec
     delete [] done;
 
 }
-
+template void getIntSpec(Detection<short>&,short*,long*,std::vector<bool>,float,short*); 
+template void getIntSpec(Detection<int>&,int*,long*,std::vector<bool>,float,int*); 
+template void getIntSpec(Detection<long>&,long*,long*,std::vector<bool>,float,long*); 
+template void getIntSpec(Detection<float>&,float*,long*,std::vector<bool>,float,float*); 
+template void getIntSpec(Detection<double>&,double*,long*,std::vector<bool>,float,double*); 
 
 //===================================================================================
-
-
+ 
 
 template <class T>
 void SortDetections(std::vector <Detection<T> > *inputList, std::string parameter) {
@@ -1069,6 +1069,19 @@ void SortDetections(std::vector <Detection<T> > *inputList, std::string paramete
 
     }
 }
+template void SortDetections(std::vector <Detection<short> > *, std::string);
+template void SortDetections(std::vector <Detection<int> > *, std::string);
+template void SortDetections(std::vector <Detection<long> > *, std::string);
+template void SortDetections(std::vector <Detection<float> > *, std::string);
+template void SortDetections(std::vector <Detection<double> > *, std::string);
 
+
+
+// Explicit instantiation of the class
+template class Detection<short>;
+template class Detection<int>;
+template class Detection<long>;
+template class Detection<float>;
+template class Detection<double>;
 //======================================================================
 

@@ -122,7 +122,4 @@ void fpolyn (T x, T *p, int npar, T &y, T *dydp) {
     y = value;
 }
 
-
-#include "lsqfit.cpp"
-
 #endif

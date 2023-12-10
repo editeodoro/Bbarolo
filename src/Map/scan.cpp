@@ -179,7 +179,12 @@ namespace PixelInfo
     else if(lhs.itsX != rhs.itsX) return (lhs.itsX    < rhs.itsX);
     else                          return (lhs.itsXLen < rhs.itsXLen);
   }
- 
+  template bool operator< (Scan<short>, Scan<short>);
+  template bool operator< (Scan<int>, Scan<int>);
+  template bool operator< (Scan<long>, Scan<long>);
+  template bool operator< (Scan<float>, Scan<float>);
+  template bool operator< (Scan<double>, Scan<double>);
+  
  
   template <class T>
   bool operator== (Scan<T> lhs, Scan<T> rhs) {
@@ -190,7 +195,11 @@ namespace PixelInfo
       (lhs.itsX == rhs.itsX) &&
       (lhs.itsXLen == rhs.itsXLen);
   }
-  
+  template bool operator== (Scan<short>, Scan<short>);
+  template bool operator== (Scan<int>, Scan<int>);
+  template bool operator== (Scan<long>, Scan<long>);
+  template bool operator== (Scan<float>, Scan<float>);
+  template bool operator== (Scan<double>, Scan<double>);
 
 //=============================================================== 
 
@@ -202,7 +211,12 @@ namespace PixelInfo
 
     return overlap(scan1,scan2) || adjacent(scan1,scan2);
   }
-
+  template bool touching(Scan<short>&, Scan<short>&);
+  template bool touching(Scan<int>&, Scan<int>&);
+  template bool touching(Scan<long>&, Scan<long>&);
+  template bool touching(Scan<float>&, Scan<float>&);
+  template bool touching(Scan<double>&, Scan<double>&);
+  
 
   template <class T>
   bool overlap(Scan<T> &scan1, Scan<T> &scan2) {
@@ -217,6 +231,11 @@ namespace PixelInfo
         return (scan1.getX() <= scan2.getXmax());
   
   }
+  template bool overlap(Scan<short>&, Scan<short>&);
+  template bool overlap(Scan<int>&, Scan<int>&);
+  template bool overlap(Scan<long>&, Scan<long>&);
+  template bool overlap(Scan<float>&, Scan<float>&);
+  template bool overlap(Scan<double>&, Scan<double>&);
  
  
   template <class T>
@@ -231,7 +250,12 @@ namespace PixelInfo
     else
         return (scan1.getX() == scan2.getXmax()+1);
   }
-
+  template bool adjacent(Scan<short>&, Scan<short>&);
+  template bool adjacent(Scan<int>&, Scan<int>&);
+  template bool adjacent(Scan<long>&, Scan<long>&);
+  template bool adjacent(Scan<float>&, Scan<float>&);
+  template bool adjacent(Scan<double>&, Scan<double>&);
+  
 
   template <class T>
   std::ostream& operator<< ( std::ostream& theStream, Scan<T>& scan) {
@@ -246,7 +270,12 @@ namespace PixelInfo
     }
     return theStream;
   }
- 
+  template std::ostream& operator<< (std::ostream&, Scan<short>&);
+  template std::ostream& operator<< (std::ostream&, Scan<int>&);
+  template std::ostream& operator<< (std::ostream&, Scan<long>&);
+  template std::ostream& operator<< (std::ostream&, Scan<float>&);
+  template std::ostream& operator<< (std::ostream&, Scan<double>&);
+
 
   template <class T>
   float minSep(Scan<T> &s1, Scan<T> &s2) {
@@ -256,7 +285,12 @@ namespace PixelInfo
     else return float(labs(s1.getY()-s2.getY()));
    
   }
-  
+  template float minSep(Scan<short>&, Scan<short>&);
+  template float minSep(Scan<int>&, Scan<int>&);
+  template float minSep(Scan<long>&, Scan<long>&);
+  template float minSep(Scan<float>&, Scan<float>&);
+  template float minSep(Scan<double>&, Scan<double>&);
+
 
   template <class T>  
   void mergeList(std::vector<Scan<T> > scanlist) {
@@ -278,8 +312,18 @@ namespace PixelInfo
         } while(compCounter < scanlist.size());
         counter++;
     }
-
   }
+  template void mergeList(std::vector<Scan<short> >);
+  template void mergeList(std::vector<Scan<int> >);
+  template void mergeList(std::vector<Scan<long> >);
+  template void mergeList(std::vector<Scan<float> >);
+  template void mergeList(std::vector<Scan<double> >);
 
 
+// Explicit instantiation of the class
+  template class Scan<short>;
+  template class Scan<int>;
+  template class Scan<long>;
+  template class Scan<float>;
+  template class Scan<double>;
 }

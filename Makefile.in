@@ -71,73 +71,33 @@ HEADS := $(wildcard $(BASE)/*.h*)\
 	$(wildcard $(MAPDIR)/*.h*)\
 	$(wildcard $(UTILDIR)/*.h*)\
 	$(wildcard $(TASKDIR)/*.h*)\
-    
-OBJECTS = $(OBJDIR)/header.o\
-	 $(OBJDIR)/param.o\
-	 $(OBJDIR)/stats.o\
-	 $(OBJDIR)/cube.o\
-	 $(OBJDIR)/search.o\
-	 $(OBJDIR)/image.o\
-	 $(OBJDIR)/object2D.o\
-	 $(OBJDIR)/object3D.o\
-	 $(OBJDIR)/objectgrower.o\
-	 $(OBJDIR)/utils.o\
-	 $(OBJDIR)/conv2D.o\
-	 $(OBJDIR)/smooth3D.o\
-	 $(OBJDIR)/moment.o\
-	 $(OBJDIR)/galmod.o\
-	 $(OBJDIR)/galwind.o\
-	 $(OBJDIR)/galfit.o\
-	 $(OBJDIR)/galfit_min.o\
-	 $(OBJDIR)/galfit_errors.o\
-	 $(OBJDIR)/galfit_out.o\
-	 $(OBJDIR)/slitfit.o\
-	 $(OBJDIR)/spacepar.o\
-	 $(OBJDIR)/ringmodel.o\
-	 $(OBJDIR)/progressbar.o\
-	 $(OBJDIR)/ellprof.o\
-	 $(OBJDIR)/string.o\
-	 $(OBJDIR)/statistics.o\
-	 $(OBJDIR)/interpolation.o\
-	 $(OBJDIR)/converter.o\
-	 $(OBJDIR)/wcsUtils.o\
-	 $(OBJDIR)/fitsUtils.o\
-	 $(OBJDIR)/paramguess.o\
-	 $(OBJDIR)/BB_interface.o\
+
+SOURCES := $(BASE)/BB_interface.cpp\
+	$(wildcard $(ARRAYDIR)/*.cpp)\
+	$(wildcard $(MAPDIR)/*.cpp)\
+	$(wildcard $(UTILDIR)/*.cpp)\
+	$(wildcard $(TASKDIR)/*.cpp)\
+
+# VPATH set a search list for both prerequisites and targets of rules
+VPATH := $(dir $(SOURCES))
+
+OBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.cpp=.o)))
 
 $(EXEC-STUB) : $(OBJDIR) $(OBJECTS)
 #	$(LINK) -o $@ $(OBJECTS) $(LIBS) $(OPT)
-	$(LINK) -o $@ $(CINC) $(BASE)/bbarolo.cpp $(OBJECTS) $(LIBS) $(OPT)
+	$(LINK) -o $@ $(CINC) $(LIBS) $(OPT) $(BASE)/bbarolo.cpp $(OBJECTS)
 
 $(OBJDIR) :
 	mkdir -p $(OBJDIR)
 
 $(OBJECTS) : $(HEADS)
 
-$(OBJDIR)/%.o: $(BASE)/%.cpp
+$(OBJDIR)/%.o: %.cpp
 	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 
-$(OBJDIR)/%.o: $(ARRAYDIR)/%.cpp
-	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
+.PHONY: lib linux install installall uninstall clean cleanup cleanest cleangui\
+		gui justgui all static guistatic guistaticlinux mpi pybb pybbdist pybbinst
 
-$(OBJDIR)/%.o: $(MAPDIR)/%.cpp
-	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
-
-$(OBJDIR)/%.o: $(UTILDIR)/%.cpp
-	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
-
-$(OBJDIR)/%.o: $(TASKDIR)/%.cpp
-	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
-
-#%.o: %.cpp
-#	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
-
-#.cc.o:
-#	$(CXX) -c $< $(CINC) -o $@ $(OPT)
-
-#.c.o:
-#	$(CC) -c $< $(CINC) -o $@ $(OPT)
-    
 lib : $(OBJDIR) $(OBJECTS)
 	$(AR) $(LIB) $(OBJECTS)
 	$(RANLIB) $(LIB)
@@ -188,9 +148,6 @@ uninstall :
 	cd $(LIBDIR) && $(RM) $(LIB) $(LIB_LN) $(LIBSO) $(LIBSO_LN)
 	$(RM) -r $(INCDIR) 
 	
-
-.PHONY: clean cleanup cleanest cleangui gui justgui all static guistatic
-
 clean : cleanup
 	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
 

@@ -49,7 +49,7 @@ Lsqfit<T>::Lsqfit (T *x, int xd, T *y, T *w, int n, T *par, T *errpar,
                     labda = fabs(lab)*LABFAC;
                     
                     matrix1 = allocate_2D<double>(npar, npar);
-                    matrix2 = allocate_2D<double>(npar, npar);              
+                    matrix2 = allocate_2D<double>(npar, npar);
                     vector = new double [npar];     
                     parptr = new int [npar];    
                     allAllocated = true;                
@@ -310,3 +310,10 @@ int Lsqfit<T>::invmat () {
    
     return 0;
 }
+
+// Explicit instantiation of the class
+template class Lsqfit<short>;
+template class Lsqfit<int>;
+template class Lsqfit<long>;
+template class Lsqfit<float>;
+template class Lsqfit<double>;

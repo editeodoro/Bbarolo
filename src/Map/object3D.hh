@@ -109,6 +109,4 @@ namespace PixelInfo
 
 }
 
-//#include "object3D.cpp"
-
 #endif

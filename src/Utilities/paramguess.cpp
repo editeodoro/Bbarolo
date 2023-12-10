@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <functional>
+#include <cfloat>
 #include <Arrays/cube.hh>
 #include <Map/detection.hh>
 #include <Tasks/galmod.hh>

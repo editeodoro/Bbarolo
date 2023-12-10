@@ -144,4 +144,17 @@ namespace PixelInfo
   }
 
 
+// Explicit instantiation of the class
+  template class Pixel<short>;
+  template class Pixel<int>;
+  template class Pixel<long>;
+  template class Pixel<float>;
+  template class Pixel<double>;
+  
+  template class Voxel<short>;
+  template class Voxel<int>;
+  template class Voxel<long>;
+  template class Voxel<float>;
+  template class Voxel<double>;
+
 }

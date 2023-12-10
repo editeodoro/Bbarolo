@@ -36,6 +36,7 @@
 #include <Tasks/smooth3D.hh>
 #include <Tasks/ringmodel.hh>
 #include <Utilities/utils.hh>
+#include <Utilities/allocator.hpp>
 #include <Utilities/lsqfit.hh>
 #include <Utilities/progressbar.hh>
 #include <Utilities/paramguess.hh>

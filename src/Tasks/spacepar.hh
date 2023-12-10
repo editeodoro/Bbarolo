@@ -54,7 +54,4 @@ private:
     void setOutSpacepar(int p1_nsteps, int p2_nsteps);
 };
 
-
-
-
 #endif
