@@ -1,14 +1,24 @@
+#######################################################################
+# Makefile for compiling BBarolo and pyBBarolo codes
+#######################################################################
+
+#######################################################################
+# General settings and variables
+#######################################################################
+
 FLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++11 @OPENMP_CXXFLAGS@ @CFLAGS@
 #-march=native
-#FLAGS = -O0 -g -fbounds-check -Wall -Wextra -std=c++11  @OPENMP_CXXFLAGS@ @CFLAGS@
+#FLAGS = -O0 -g -fbounds-check -Wall -Wextra -std=c++11 @OPENMP_CXXFLAGS@ @CFLAGS@
 #FLAGS = -fast -Wall @OPENMP_CXXFLAGS@ @CFLAGS@
 #WCSFLAGS = `pkg-config --cflags --libs wcslib`
 
-OPS = @OP@
 CC  = @CC@ $(CFLAGS) $(FLAGS)
 CXX = @CXX@ $(CFLAGS) $(FLAGS)
 LINK= @CXX@ $(CFLAGS) $(FLAGS) -flto
+INSTALL = @INSTALL@
+LN_S = @LN_S@
 
+OPS  = @OP@
 BASE = @BASEDIR@
 
 INSTALLDIR = @prefix@/bin
@@ -19,17 +29,12 @@ V = @PACKAGE_VERSION@
 EXEC-STUB = BBarolo
 EXEC = $(EXEC-STUB)-$(V)
 
-AR = ar cq
 LIB = libBBarolo-$(V).a
 LIB_LN = libBBarolo.a
-RANLIB = ranlib
 SHAREDLIB = @SHRLD@
 #SHAREDFLAGS = -shared -Wl,-soname,@SHRLIB@
 LIBSO = @SHRLIB@
 LIBSO_LN = @SHRLN@
-
-INSTALL = @INSTALL@
-LN_S = @LN_S@
 
 CFITSIOINC = @CFITSIOINC@
 CFITSIOLIB = @CFITSIOLIB@
@@ -78,14 +83,22 @@ SOURCES := $(BASE)/BB_interface.cpp\
 	$(wildcard $(UTILDIR)/*.cpp)\
 	$(wildcard $(TASKDIR)/*.cpp)\
 
+OBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.cpp=.o)))
+
 # VPATH set a search list for both prerequisites and targets of rules
 VPATH := $(dir $(SOURCES))
 
-OBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.cpp=.o)))
+.PHONY: lib linux install installall uninstall clean cleanup cleanest cleangui\
+		gui justgui all static guistatic guistaticlinux mpi pybb pybbdist pybbinst
+
+
+#######################################################################
+# Compiling and installation rules for BBarolo
+#######################################################################
 
 $(EXEC-STUB) : $(OBJDIR) $(OBJECTS)
-#	$(LINK) -o $@ $(OBJECTS) $(LIBS) $(OPT)
 	$(LINK) -o $@ $(CINC) $(LIBS) $(OPT) $(BASE)/bbarolo.cpp $(OBJECTS)
+#	$(LINK) -o $@ $(OBJECTS) $(LIBS) $(OPT)
 
 $(OBJDIR) :
 	mkdir -p $(OBJDIR)
@@ -95,12 +108,9 @@ $(OBJECTS) : $(HEADS)
 $(OBJDIR)/%.o: %.cpp
 	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
 
-.PHONY: lib linux install installall uninstall clean cleanup cleanest cleangui\
-		gui justgui all static guistatic guistaticlinux mpi pybb pybbdist pybbinst
-
 lib : $(OBJDIR) $(OBJECTS)
-	$(AR) $(LIB) $(OBJECTS)
-	$(RANLIB) $(LIB)
+	ar cq $(LIB) $(OBJECTS)
+	@RANLIB@ $(LIB)
 	$(SHAREDLIB) $(CINC) $(LIBS) -o $(LIBSO) $(OBJECTS)
 	rm -rf $(LIBSO_LN) $(LIB_LN)
 	$(LN_S) $(LIBSO) $(LIBSO_LN)
@@ -110,7 +120,13 @@ lib : $(OBJDIR) $(OBJECTS)
 linux : $(OBJECTS)
 	$(LINK) -o BBarololinux $(OBJECTS) $(LIBS)
 
-install : 
+static: $(OBJDIR) $(OBJECTS)
+	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT) $(STATICGCC)
+ifeq ($(OPS),LINUX)
+	strip -s $(EXEC-STUB)
+endif
+
+install : $(EXEC-STUB)
 	$(INSTALL) -d -m 2755 $(INSTALLDIR)
 ifneq ("$(wildcard BBarolo)","")
 	cp $(EXEC-STUB) $(EXEC)
@@ -118,8 +134,6 @@ ifneq ("$(wildcard BBarolo)","")
 	$(INSTALL) -m 755 $(EXEC) $(INSTALLDIR)
 	$(LN_S) $(INSTALLDIR)/$(EXEC) $(INSTALLDIR)/$(EXEC-STUB)
 	$(RM) $(EXEC)
-else
-	@echo "BBarolo executable not found: run 'make' before 'make install'"
 endif
 ifneq ("$(wildcard BBarolo_MPI)","")
 	$(RM) $(INSTALLDIR)/BBarolo_MPI
@@ -135,7 +149,6 @@ installall : lib install
 		cd $(LIBDIR) && $(RM) $(LIBSO_LN) && $(LN_S) $(LIBSO) $(LIBSO_LN); \
 	fi
 	$(INSTALL) -d -m 2755 $(INCDIR)
-	$(INSTALL) -m 644 $(BASE)/*.hh $(INCDIR)
 	$(INSTALL) -d -m 2755 $(INCDIR)/Arrays
 	$(INSTALL) -m 644 $(ARRAYDIR)/*.hh $(INCDIR)/Arrays
 	$(INSTALL) -d -m 2755 $(INCDIR)/Map
@@ -146,21 +159,19 @@ installall : lib install
 uninstall :
 	$(RM) $(INSTALLDIR)/$(EXEC-STUB) $(INSTALLDIR)/$(EXEC) $(INSTALLDIR)/BBarolo_MPI
 	cd $(LIBDIR) && $(RM) $(LIB) $(LIB_LN) $(LIBSO) $(LIBSO_LN)
-	$(RM) -r $(INCDIR) 
-	
-clean : cleanup
-	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
+	$(RM) -r $(INCDIR)
 
-cleanest: clean
-	rm -rf Makefile $(EXEC) $(EXEC-STUB)
+mpi: $(OBJDIR) $(OBJECTS)
+	mpicxx $(FLAGS) -DMPI -o BBarolo_MPI $(CINC) $(BASE)/bbarolo.cpp $(OBJECTS) $(LIBS) $(OPT)  
 
-cleanup:
-	rm -rf autom4te.cache config.log config.status setup.log
+all : $(EXEC-STUB) gui
 
-cleangui:
-	cd ./src/GUI && make clean
 
-gui :
+#######################################################################
+# Rules to make the Graphical User Interface
+#######################################################################
+
+gui : $(EXEC-STUB)
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \
 	cp BbaroloGUI.or BbaroloGUI.pro && \
 	echo "QMAKE_CC = $(CC) $(OPT) " >> BbaroloGUI.pro &&\
@@ -177,27 +188,18 @@ ifeq ($(OPS),MACOS)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 endif
 
-justgui : 
+justgui : $(EXEC-STUB)
 	cd ./src/GUI && make
 ifeq ($(OPS),MACOS)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 endif
     
-all: 
-	make && make gui
-
-static: $(OBJDIR) $(OBJECTS)
-	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT) $(STATICGCC)
-ifeq ($(OPS),LINUX)
-	strip -s $(EXEC-STUB)
-endif
-
-guistatic :
+guistatic : $(EXEC-STUB)
 	rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
 	macdeployqt ./BBaroloGUI.app
 	$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) $(STATICGCC)
 
-guistaticlinux :
+guistaticlinux : $(EXEC-STUB)
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \
 	cp BbaroloGUI.or BbaroloGUI.pro && \
 	echo "LIBS += $(STATICLIBS) -static-libgcc -static-libstdc++ " >> BbaroloGUI.pro && \
@@ -214,8 +216,10 @@ guistaticlinux :
 	cd ../.. &&\
 	$(LINK) -o BBarolo $(OBJECTS) $(STATICLIBS) -static-libgcc -static-libstdc++
 
-mpi: $(OBJDIR) $(OBJECTS)
-	mpicxx $(FLAGS) -DMPI -o BBarolo_MPI $(CINC) $(BASE)/bbarolo.cpp $(OBJECTS) $(LIBS) $(OPT)  
+
+#######################################################################
+# Rules to make pyBBarolo
+#######################################################################
 
 pybb : lib
 	mv $(LIB) $(PYBBDIR)
@@ -223,13 +227,32 @@ pybb : lib
 	mv $(LIBSO) $(PYBBDIR)
 	mv $(LIBSO_LN) $(PYBBDIR)
 
-pybbdist : 
-	#python setup.py sdist upload
-	python setup.py sdist
+pybbdist : pybb
+#	python setup.py sdist upload
+#	python setup.py sdist
+	python -m build --sdist
 	twine upload --repository-url  https://upload.pypi.org/legacy/  dist/*
 	rm -rf build dist MANIFEST
-    
-pybbinst :
-	python setup.py install
+
+pybbinst : pybb
+#	python setup.py install
+	pip install .
 	rm -rf build dist MANIFEST
 	rm -rf pyBBarolo/BBarolo pyBBarolo/libBB*
+
+
+#######################################################################
+# Cleaning rules
+#######################################################################
+
+clean : cleanup
+	rm -rf $(OBJDIR) $(LIB) $(LIBSO) $(LIB_LN) $(LIBSO_LN)
+
+cleanest : clean
+	rm -rf Makefile $(EXEC) $(EXEC-STUB)
+
+cleanup :
+	rm -rf autom4te.cache config.log config.status setup.log
+
+cleangui :
+	cd $(BASE)/GUI && make clean
