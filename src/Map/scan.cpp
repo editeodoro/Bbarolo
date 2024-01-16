@@ -28,28 +28,24 @@
 
 namespace PixelInfo
 {
-  template <class T>
-  Scan<T>::Scan() {
-    
+  
+  Scan::Scan() {
     itsY=-1;
     itsX=-1;
     itsXLen=0;
   }
 
-  template <class T>
-  Scan<T>::Scan(long y, long x, long xl):
-    itsY(y), itsX(x),itsXLen(xl) {}
+  
+  Scan::Scan(long y, long x, long xl): itsY(y), itsX(x), itsXLen(xl) {}
 
-  template <class T>
-  Scan<T>::Scan(const Scan<T>& s) {
-    
-    operator=(s);
+  
+  Scan::Scan(const Scan& s) {
+      operator=(s);
   }
   
 
-  template <class T>  
-  Scan<T>& Scan<T>::operator= (const Scan<T>& s) {  
-        
+  Scan& Scan::operator= (const Scan& s) {
+
     if(this == &s) return *this;
     this->itsY=s.itsY; 
     this->itsX=s.itsX; 
@@ -57,9 +53,8 @@ namespace PixelInfo
     return *this;
   }
  
-
-  template <class T>
-  bool Scan<T>::addScan(const Scan<T> &other) {
+  
+  bool Scan::addScan(const Scan &other) {
       
     bool altered=touches(other);
     if(altered){
@@ -72,71 +67,17 @@ namespace PixelInfo
   }
 
 
-  template <class T> 
-  Scan<T> nullScan() {
-      
-    /// A simple way of returning a scan with zero length.
-    Scan<T> null(-1,-1,0); 
-    return null;
+  bool Scan::isNull() {
+      return (itsY==-1 && itsX==-1 && itsXLen==0);
   }
 
-
-  template <class T>
-  bool Scan<T>::isNull() {
-    
-    return (itsY==-1 && itsX==-1 && itsXLen==0);
-  }
-
-
-  template <class T>
-  Scan<T> unite(Scan<T> &scan1, Scan<T> &scan2) {
-      
-  /// Return a scan that includes all pixels from both scans, but
-  /// only if they overlap. If they do not, return the null scan.
-
-    Scan<T> joined;
-    if(!touching(scan1,scan2)){
-        joined = nullScan<T>();
-    }
-    else {
-        long y = scan1.getY();
-        long x = std::min(scan1.getX(),scan2.getX());
-        long xmax = std::max(scan1.getXmax(),scan2.getXmax());
-        joined.define(y,x,xmax-x+1);
-    }
-    return joined;
-  }
-
-
-  template <class T>
-  Scan<T> intersect(Scan<T> &scan1, Scan<T> &scan2) {
-      
-  /// Return a scan that includes all pixels that lie in both scans. 
-  /// If they do not overlap, return the null scan.
-
-    Scan<T> intersection;
-    if(!scan1.overlaps(scan2)){
-        intersection = nullScan<T>();
-    }
-    else {
-        long y = scan1.getY();
-        long x = std::max(scan1.getX(),scan2.getX());
-        long xmax = std::min(scan1.getXmax(),scan2.getXmax());
-        intersection.define(y,x,xmax-x+1);
-    }
-    return intersection;
-  }
   
-
-  template <class T>
-  bool Scan<T>::touches(const Scan<T> &other) {
-      
+  bool Scan::touches(const Scan &other) {
     return overlaps(other) || isAdjacentTo(other);
   }
 
  
-  template <class T>
-  bool Scan<T>::overlaps(const Scan<T> &other) {
+  bool Scan::overlaps(const Scan &other) {
       
     if(itsY != other.itsY) return false;
     else if(itsX <= other.itsX){
@@ -148,8 +89,7 @@ namespace PixelInfo
   }
 
 
-  template <class T>  
-  bool Scan<T>::isAdjacentTo(const Scan<T> &other) {
+  bool Scan::isAdjacentTo(const Scan &other) {
       
     if(itsY != other.itsY) return false;
     else if(itsX <= other.itsX){
@@ -161,15 +101,12 @@ namespace PixelInfo
   }
 
 
-  template <class T>  
-  bool Scan<T>::isInScan(long x, long y) {
-      
+  bool Scan::isInScan(long x, long y) {
     return (y == itsY) && ((x>= itsX) && (x < (itsXLen+itsX)));
   }
   
 
-  template <class T>  
-  bool operator< (Scan<T> lhs, Scan<T> rhs) {
+  bool operator< (Scan lhs, Scan rhs) {
       
   /// Test for less-than first on the y-values, and if they are
   /// equal, test on the starting x-value, and then finally on the
@@ -178,48 +115,75 @@ namespace PixelInfo
     if(lhs.itsY != rhs.itsY)      return (lhs.itsY    < rhs.itsY);
     else if(lhs.itsX != rhs.itsX) return (lhs.itsX    < rhs.itsX);
     else                          return (lhs.itsXLen < rhs.itsXLen);
-  }
-  template bool operator< (Scan<short>, Scan<short>);
-  template bool operator< (Scan<int>, Scan<int>);
-  template bool operator< (Scan<long>, Scan<long>);
-  template bool operator< (Scan<float>, Scan<float>);
-  template bool operator< (Scan<double>, Scan<double>);
-  
+  }  
  
-  template <class T>
-  bool operator== (Scan<T> lhs, Scan<T> rhs) {
+  
+  bool operator== (Scan lhs, Scan rhs) {
     
   /// For two scans to be equal, all three parameters must be equal.
-
     return (lhs.itsY == rhs.itsY) &&
       (lhs.itsX == rhs.itsX) &&
       (lhs.itsXLen == rhs.itsXLen);
   }
-  template bool operator== (Scan<short>, Scan<short>);
-  template bool operator== (Scan<int>, Scan<int>);
-  template bool operator== (Scan<long>, Scan<long>);
-  template bool operator== (Scan<float>, Scan<float>);
-  template bool operator== (Scan<double>, Scan<double>);
 
 //=============================================================== 
 
-  template <class T>
-  bool touching(Scan<T> &scan1, Scan<T> &scan2) {
+  Scan nullScan() {
+      
+    /// A simple way of returning a scan with zero length.
+    Scan null(-1,-1,0); 
+    return null;
+  }
+  
+    
+  Scan unite(Scan &scan1, Scan &scan2) {
+      
+  /// Return a scan that includes all pixels from both scans, but
+  /// only if they overlap. If they do not, return the null scan.
+
+    Scan joined;
+    if(!touching(scan1,scan2)){
+        joined = nullScan();
+    }
+    else {
+        long y = scan1.getY();
+        long x = std::min(scan1.getX(),scan2.getX());
+        long xmax = std::max(scan1.getXmax(),scan2.getXmax());
+        joined.define(y,x,xmax-x+1);
+    }
+    return joined;
+  }
+
+
+  Scan intersect(Scan &scan1, Scan &scan2) {
+      
+  /// Return a scan that includes all pixels that lie in both scans. 
+  /// If they do not overlap, return the null scan.
+
+    Scan intersection;
+    if(!scan1.overlaps(scan2)){
+        intersection = nullScan();
+    }
+    else {
+        long y = scan1.getY();
+        long x = std::max(scan1.getX(),scan2.getX());
+        long xmax = std::min(scan1.getXmax(),scan2.getXmax());
+        intersection.define(y,x,xmax-x+1);
+    }
+    return intersection;
+  }
+  
+  
+  bool touching(Scan &scan1, Scan &scan2) {
       
   ///  Test whether two scans either overlap, or lie adjacent
   ///  (ie. there are no pixels lying between the two scans).
 
     return overlap(scan1,scan2) || adjacent(scan1,scan2);
-  }
-  template bool touching(Scan<short>&, Scan<short>&);
-  template bool touching(Scan<int>&, Scan<int>&);
-  template bool touching(Scan<long>&, Scan<long>&);
-  template bool touching(Scan<float>&, Scan<float>&);
-  template bool touching(Scan<double>&, Scan<double>&);
-  
+  }  
 
-  template <class T>
-  bool overlap(Scan<T> &scan1, Scan<T> &scan2) {
+  
+  bool overlap(Scan &scan1, Scan &scan2) {
       
   ///  Test whether two scans overlap, ie. they have pixels in
   ///  common.
@@ -230,16 +194,10 @@ namespace PixelInfo
     else
         return (scan1.getX() <= scan2.getXmax());
   
-  }
-  template bool overlap(Scan<short>&, Scan<short>&);
-  template bool overlap(Scan<int>&, Scan<int>&);
-  template bool overlap(Scan<long>&, Scan<long>&);
-  template bool overlap(Scan<float>&, Scan<float>&);
-  template bool overlap(Scan<double>&, Scan<double>&);
+  } 
  
- 
-  template <class T>
-  bool adjacent(Scan<T> &scan1, Scan<T> &scan2) {
+  
+  bool adjacent(Scan &scan1, Scan &scan2) {
       
   /// Test whether two scans lie adjacent (ie. there are no pixels
   /// lying between the two scans).  If they overlap, return false.
@@ -249,16 +207,10 @@ namespace PixelInfo
         return (scan2.getX() == scan1.getXmax()+1);
     else
         return (scan1.getX() == scan2.getXmax()+1);
-  }
-  template bool adjacent(Scan<short>&, Scan<short>&);
-  template bool adjacent(Scan<int>&, Scan<int>&);
-  template bool adjacent(Scan<long>&, Scan<long>&);
-  template bool adjacent(Scan<float>&, Scan<float>&);
-  template bool adjacent(Scan<double>&, Scan<double>&);
-  
+  }  
 
-  template <class T>
-  std::ostream& operator<< ( std::ostream& theStream, Scan<T>& scan) {
+  
+  std::ostream& operator<< (std::ostream& theStream, Scan& scan) {
     
   /// Output the three key parameters of the scan.
 
@@ -270,38 +222,26 @@ namespace PixelInfo
     }
     return theStream;
   }
-  template std::ostream& operator<< (std::ostream&, Scan<short>&);
-  template std::ostream& operator<< (std::ostream&, Scan<int>&);
-  template std::ostream& operator<< (std::ostream&, Scan<long>&);
-  template std::ostream& operator<< (std::ostream&, Scan<float>&);
-  template std::ostream& operator<< (std::ostream&, Scan<double>&);
 
 
-  template <class T>
-  float minSep(Scan<T> &s1, Scan<T> &s2) {
+  float minSep(Scan &s1, Scan &s2) {
  
     if(s1.getX() > s2.getXmax()) return hypot(s1.getX()-s2.getXmax(),s1.getY()-s2.getY());
     else if(s2.getX() > s1.getXmax()) return hypot(s2.getX()-s1.getXmax(),s1.getY()-s2.getY());
     else return float(labs(s1.getY()-s2.getY()));
    
   }
-  template float minSep(Scan<short>&, Scan<short>&);
-  template float minSep(Scan<int>&, Scan<int>&);
-  template float minSep(Scan<long>&, Scan<long>&);
-  template float minSep(Scan<float>&, Scan<float>&);
-  template float minSep(Scan<double>&, Scan<double>&);
 
 
-  template <class T>  
-  void mergeList(std::vector<Scan<T> > scanlist) {
+  void mergeList(std::vector<Scan> scanlist) {
       
-    typename std::vector<Scan<T> >::iterator iter;
+    typename std::vector<Scan>::iterator iter;
     unsigned int counter=0,compCounter;
     while(counter<(scanlist.size()-1)) { 
         compCounter = counter+1;
         do {    
             if(touching(scanlist[counter],scanlist[compCounter])){
-                Scan<T> temp = unite(scanlist[counter],scanlist[compCounter]);
+                Scan temp = unite(scanlist[counter],scanlist[compCounter]);
                 iter = scanlist.begin()+compCounter;
                 scanlist.erase(iter);
                 iter = scanlist.begin()+counter;
@@ -313,17 +253,5 @@ namespace PixelInfo
         counter++;
     }
   }
-  template void mergeList(std::vector<Scan<short> >);
-  template void mergeList(std::vector<Scan<int> >);
-  template void mergeList(std::vector<Scan<long> >);
-  template void mergeList(std::vector<Scan<float> >);
-  template void mergeList(std::vector<Scan<double> >);
 
-
-// Explicit instantiation of the class
-  template class Scan<short>;
-  template class Scan<int>;
-  template class Scan<long>;
-  template class Scan<float>;
-  template class Scan<double>;
 }

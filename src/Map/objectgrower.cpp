@@ -89,7 +89,7 @@ void ObjectGrower<T>::define(Cube<T> *theCube) {
     itsFlagArray = std::vector<STATE>(fullsize,AVAILABLE);
 
     for(int o=0;o<theCube->getNumObj();o++){
-        std::vector<Voxel<T> > voxlist = theCube->pObject(o)->getPixelSet();
+        std::vector<Voxel<T> > voxlist = theCube->pObject(o)->template getPixelSet<T>();
         for(size_t i=0; i<voxlist.size(); i++){
             size_t pos=voxlist[i].getX()+voxlist[i].getY()*itsArrayDim[0]+voxlist[i].getZ()*spatsize;
             itsFlagArray[pos] = DETECTED;
@@ -126,7 +126,7 @@ void ObjectGrower<T>::define(Statistics::Stats<T> stats, T *array, size_t xsize,
     itsFlagArray = std::vector<STATE>(fullsize,AVAILABLE);
 
     for(int o=0;o<objectList->size();o++){
-        std::vector<Voxel<T> > voxlist = objectList->at(o).getPixelSet();
+        std::vector<Voxel<T> > voxlist = objectList->at(o).template getPixelSet<T>();
         for(size_t i=0; i<voxlist.size(); i++){
             size_t pos=voxlist[i].getX()+voxlist[i].getY()*itsArrayDim[0]+voxlist[i].getZ()*spatsize;
             itsFlagArray[pos] = DETECTED;
@@ -177,7 +177,7 @@ void ObjectGrower<T>::grow(Detection<T> *theObject) {
 
     size_t spatsize=itsArrayDim[0]*itsArrayDim[1];
     long zero = 0;
-    std::vector<Voxel<T> > voxlist = theObject->getPixelSet();
+    std::vector<Voxel<T> > voxlist = theObject->template getPixelSet<T>();
     size_t origSize = voxlist.size();
     long xpt,ypt,zpt;
     long xmin,xmax,ymin,ymax,zmin,zmax,x,y,z;

@@ -22,12 +22,12 @@
 #include <iomanip>
 #include <sys/stat.h>
 #include <QtGui>
-#include "bbarolowindow.h"
-#include "ui_bbarolowindow.h"
-#include "qcustomplot.h"
-#include "../Arrays/param.hh"
-#include "../Arrays/header.hh"
-#include "../Utilities/utils.hh"
+#include <bbarolowindow.h>
+#include <ui_bbarolowindow.h>
+#include <qcustomplot.h>
+#include <param.hh>
+#include <header.hh>
+#include <utils.hh>
 
 
 void BBaroloWindow::on_FitslineEdit_editingFinished() {
@@ -113,7 +113,7 @@ void BBaroloWindow::on_FitslineEdit_editingFinished() {
 
 void BBaroloWindow::on_FitspushButton_clicked() {
     
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open FITSFILE"), QDir::currentPath(), tr("FITS files (*.fit *.fits *.FITS *.FIT);; All files (*.*)"), 0, QFileDialog::DontUseNativeDialog);
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open FITSFILE"), QDir::currentPath(), tr("FITS files (*.fit *.fits *.FITS *.FIT);; All files (*.*)"));
     if (!filename.isNull()) {
         ui->FitslineEdit->setText(filename);
         on_FitslineEdit_editingFinished();
@@ -123,7 +123,7 @@ void BBaroloWindow::on_FitspushButton_clicked() {
 
 void BBaroloWindow::on_ParampushButton_clicked() {
     
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open parameter file"), QDir::currentPath(), tr("Parameter files (*.par *.txt *.dat)"), 0, QFileDialog::DontUseNativeDialog);
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open parameter file"), QDir::currentPath(), tr("Parameter files (*.par *.txt *.dat)"));
     if( !filename.isNull()) {
         resetGUI();
         ui->ParamlineEdit->setText(filename);
@@ -167,7 +167,7 @@ void BBaroloWindow::updateExit() {
     QFile outfile(out_path+"output.log");
     outfile.open(QIODevice::ReadWrite |QIODevice::Truncate | QIODevice::Text);
     QTextStream out(&outfile);
-    out << ui->LogtextEdit->toPlainText() << endl;
+    out << ui->LogtextEdit->toPlainText() << "\n";
     proc->deleteLater();
 
 }

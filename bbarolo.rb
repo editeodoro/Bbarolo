@@ -22,8 +22,9 @@ class Bbarolo < Formula
   depends_on "gcc"
   depends_on "gnuplot" => :optional
   
-  # With Clang gives a segfault, using gcc instead
+  # With Clang 14 gives a segfault, using gcc instead
   fails_with :clang do
+    build 1400
     cause "Miscompilation resulting in segfault on queries"
   end
   

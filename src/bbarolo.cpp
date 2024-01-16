@@ -143,6 +143,7 @@ bool BBcore (Param *par) {
        std::string path = get_currentpath();
        Header h;
        h.setWarning(false);
+       
        if (!h.header_read(par->getImageFile())) {
            std::cout << par->getImageFile() << " is not a readable FITS file!\n";
            delete c;
@@ -452,7 +453,7 @@ bool BBauto (Cube<BBreal> *c) {
 
 
         // Now fitting a 3dmodel
-        Model::Galfit<BBreal> *fit = new Model::Galfit<BBreal>(cl);
+        //Model::Galfit<BBreal> *fit = new Model::Galfit<BBreal>(cl);
         //fit->galfit();
         //if (p.getParGF().TWOSTAGE) fit->SecondStage();
         //if (p.getFlagDebug()) fit->writeModel("BOTH",p.getFlagPlots());

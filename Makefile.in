@@ -84,6 +84,7 @@ SOURCES := $(BASE)/BB_interface.cpp\
 	$(wildcard $(TASKDIR)/*.cpp)\
 
 OBJECTS := $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.cpp=.o)))
+DEPENDS := $(OBJECTS:%.o=%.d)
 
 # VPATH set a search list for both prerequisites and targets of rules
 VPATH := $(dir $(SOURCES))
@@ -97,16 +98,18 @@ VPATH := $(dir $(SOURCES))
 #######################################################################
 
 $(EXEC-STUB) : $(OBJDIR) $(OBJECTS)
-	$(LINK) -o $@ $(CINC) $(LIBS) $(OPT) $(BASE)/bbarolo.cpp $(OBJECTS)
+	$(LINK) -o $@ $(CINC) $(BASE)/bbarolo.cpp $(OBJECTS) $(LIBS) $(OPT)
 #	$(LINK) -o $@ $(OBJECTS) $(LIBS) $(OPT)
+
+-include $(DEPENDS)
+
+#$(OBJECTS) : $(HEADS)
 
 $(OBJDIR) :
 	mkdir -p $(OBJDIR)
 
-$(OBJECTS) : $(HEADS)
-
 $(OBJDIR)/%.o: %.cpp
-	$(CXX) $(OPT) -c $< -o $@ $(CINC) 
+	$(CXX) $(OPT) -MMD -c $< -o $@ $(CINC) 
 
 lib : $(OBJDIR) $(OBJECTS)
 	ar cq $(LIB) $(OBJECTS)
@@ -121,7 +124,7 @@ linux : $(OBJECTS)
 	$(LINK) -o BBarololinux $(OBJECTS) $(LIBS)
 
 static: $(OBJDIR) $(OBJECTS)
-	$(LINK) -o $(EXEC-STUB) $(OBJECTS) $(STATICLIBS) $(OPT) $(STATICGCC)
+	$(LINK) -o $(EXEC-STUB) $(CINC) $(BASE)/bbarolo.cpp $(OBJECTS) $(STATICLIBS) $(OPT) $(STATICGCC)
 ifeq ($(OPS),LINUX)
 	strip -s $(EXEC-STUB)
 endif
@@ -194,10 +197,10 @@ ifeq ($(OPS),MACOS)
 	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 endif
     
-guistatic : $(EXEC-STUB)
+guistatic : static
 	rm -rf ./BBaroloGUI.app/Contents/Resources/qt.conf
 	macdeployqt ./BBaroloGUI.app
-	$(LINK) -o ./BBaroloGUI.app/Contents/MacOS/BBarolo $(OBJECTS) $(STATICLIBS) $(STATICGCC)
+	cp BBarolo ./BBaroloGUI.app/Contents/MacOS/
 
 guistaticlinux : $(EXEC-STUB)
 	cd ./src/GUI  && mv BbaroloGUI.pro BbaroloGUI.or && \

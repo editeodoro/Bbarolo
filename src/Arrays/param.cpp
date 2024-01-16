@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.7.1dev"
+#define BBVERSION "1.7.3dev"
 
 struct Entry {string name; string descr;};
 
@@ -800,13 +800,15 @@ bool Param::checkPars() {
             }
         }
 
-        if (parGF.NORM!="NONE" && parGF.NORM!="AZIM" && parGF.NORM!="LOCAL") {
+        if (parGF.NORM!="NONE" && parGF.NORM!="LOCAL" &&
+            parGF.NORM!="AZIM" && parGF.NORM!="AZIMUTHAL") {
             if (!(parGM.flagGALMOD && parGF.NORM=="BOTH")) {
                 cout << " ERROR: Unknown type of normalization: " << parGF.NORM << std::endl;
                 cout << "Setting to LOCAL" << std::endl;
                 parGF.NORM="LOCAL";
             }
         }
+        else if (parGF.NORM=="AZIMUTHAL") parGF.NORM="AZIM";
 
         if (parGF.flagGALFIT) {
             if (parGF.FREE=="") {

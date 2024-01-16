@@ -92,21 +92,21 @@ void Detection<T>::defaultDetection() {
 
 
 template <class T>
-Detection<T>::Detection(): Object3D<T>() {
+Detection<T>::Detection(): Object3D() {
     
     defaultDetection();
 }
 
 
 template <class T>  
-Detection<T>::Detection(const Object3D<T>& o): Object3D<T>(o) {
+Detection<T>::Detection(const Object3D& o): Object3D(o) {
     
     defaultDetection();
 }
 
 
 template <class T>  
-Detection<T>::Detection(const Detection<T>& d): Object3D<T>(d) {
+Detection<T>::Detection(const Detection<T>& d): Object3D(d) {
     
     operator=(d);
 }
@@ -115,7 +115,7 @@ Detection<T>::Detection(const Detection<T>& d): Object3D<T>(d) {
 template <class T>  
 Detection<T>& Detection<T>::operator= (const Detection<T>& d) {
     
-    ((Object3D<T> &) *this) = d;
+    ((Object3D &) *this) = d;
     this->xSubOffset   = d.xSubOffset;
     this->ySubOffset   = d.ySubOffset;
     this->zSubOffset   = d.zSubOffset;
@@ -169,7 +169,7 @@ template <class T>
 Detection<T> operator+ (Detection<T> &lhs, Detection<T> &rhs) {
     
     Detection<T> output = lhs;
-    for(typename std::map<long, Object2D<T> >::iterator it = rhs.chanlist.begin(); it!=rhs.chanlist.end();it++)
+    for(std::map<long, Object2D>::iterator it = rhs.chanlist.begin(); it!=rhs.chanlist.end();it++)
         output.addChannel(it->first, it->second);
     output.haveParams = false; 
     return output;
@@ -240,7 +240,7 @@ void Detection<T>::setOffsets(long Xoffset, long Yoffset, long Zoffset) {
 template <class T>
 void Detection<T>::addOffsets() {
       
-    Object3D<T>::addOffsets(xSubOffset,ySubOffset,zSubOffset);
+    Object3D::addOffsets(xSubOffset,ySubOffset,zSubOffset);
     xpeak+=xSubOffset; ypeak+=ySubOffset; zpeak+=zSubOffset;
     xCentroid+=xSubOffset; yCentroid+=ySubOffset; zCentroid+=zSubOffset;
 }
@@ -249,7 +249,7 @@ void Detection<T>::addOffsets() {
 template <class T>
 void Detection<T>::addPixel(PixelInfo::Voxel<T> point) {
         
-    Object3D<T>::addPixel(point.getX(),point.getY(),point.getZ());
+    Object3D::addPixel(point.getX(),point.getY(),point.getZ());
     totalFlux += point.getF();
     if(point.getF()>peakFlux){
         peakFlux = point.getF();
@@ -264,7 +264,7 @@ void Detection<T>::addPixel(PixelInfo::Voxel<T> point) {
 template <class T>
 void Detection<T>::addDetection(Detection<T> &other) {
     
-    for(typename std::map<long, Object2D<T> >::iterator it = other.chanlist.begin(); it!=other.chanlist.end();it++)
+    for(std::map<long, Object2D>::iterator it = other.chanlist.begin(); it!=other.chanlist.end();it++)
         this->addChannel(it->first, it->second);
     haveParams = false;
 }
@@ -349,14 +349,14 @@ bool Detection<T>::isClose(Detection<T> &other, SEARCH_PAR &par)  {
 
     std::vector<long> zlist1 = this->getChannelList();
     std::vector<long> zlist2 = other.getChannelList();
-    Scan<T> test1,test2;
+    Scan test1,test2;
 
     for(size_t ct1=0; (!close && (ct1<zlist1.size())); ct1++){
         for(size_t ct2=0; (!close && (ct2<zlist2.size())); ct2++){
             if(abs(zlist1[ct1]-zlist2[ct2])<=threshV){
           
-                Object2D<T> temp1 = this->getChanMap(zlist1[ct1]);
-                Object2D<T> temp2 = other.getChanMap(zlist2[ct2]);
+                Object2D temp1 = this->getChanMap(zlist1[ct1]);
+                Object2D temp2 = other.getChanMap(zlist2[ct2]);
                 close = temp1.canMerge(temp2,threshS,flagAdj);
 
             }
@@ -402,7 +402,7 @@ bool Detection<T>::voxelListCovered(std::vector<Voxel<T> > voxelList) {
 
     bool listsMatch = true;
     size_t v1=0;
-    std::vector<Voxel<T> > detpixlist = this->getPixelSet();
+    std::vector<Voxel<T> > detpixlist = this->template getPixelSet<T>();
     while(listsMatch && v1<detpixlist.size()){
         bool inList = false;
         size_t v2=0;
@@ -483,7 +483,7 @@ void Detection<T>::calcFluxes(T *fluxArray, long *dim) {
     totalFlux = peakFlux = 0;
     xCentroid = yCentroid = zCentroid = 0.;
 
-    std::vector<Voxel<T> > voxList = this->getPixelSet();
+    std::vector<Voxel<T> > voxList = this->template getPixelSet<T>();
     typename std::vector<Voxel<T> >::iterator vox=voxList.begin();
     for(;vox<voxList.end();vox++) {
         long x=vox->getX();
@@ -562,7 +562,7 @@ void Detection<T>::calcWCSparams(Header &head) {
     raWidth   = angularSeparation(raMin,dec,raMax,dec)*arcconv;
     decWidth  = angularSeparation(ra,deMin,ra,deMax)*arcconv;
 
-    Object2D<T> spatMap = this->getSpatialMap();
+    Object2D spatMap = this->getSpatialMap();
     std::pair<double,double> axes = spatMap.getPrincipleAxes();
     float PixScale = ((fabs(head.Cdelt(0))+fabs(head.Cdelt(1)))/2.)*arcconv;
     majorAxis = std::max(axes.first,axes.second)*PixScale;
@@ -702,7 +702,7 @@ void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head) {
     for(int i=0;i<size;i++) localFlux[i]=0.;
         
     // work out which pixels are object pixels
-    std::vector<Voxel<T> > voxlist = this->getPixelSet();
+    std::vector<Voxel<T> > voxlist = this->template getPixelSet<T>();
     for(typename std::vector<Voxel<T> >::iterator v=voxlist.begin();v<voxlist.end();v++){
         long pos=(v->getX()-this->xmin+1)+(v->getY()-this->ymin+1)*xsize+(v->getZ()-this->zmin+1)*xsize*ysize;
         Voxel<T> vox(v->getX(), v->getY(), v->getZ(), fluxArray[v->arrayIndex(dim)]);
@@ -889,10 +889,20 @@ void Detection<T>::calcVelWidths(T *fluxArray, long *dim, Header &head) {
 }
 
 
-  //--------------------------------------------------------------------
+template <class T>
+void Detection<T>::calcAllParams(T *fluxArray, int *dim, Header &head){
+
+    std::vector<Voxel<T> > voxlist = this->getPixelSet(fluxArray,dim);
+    calcFluxes(voxlist);
+    calcWCSparams(head);
+    calcIntegFlux(dim[2],voxlist,head);
+}
 
 
-  //--------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------
 
 template <class T>
 std::vector<int> Detection<T>::getVertexSet() {
@@ -913,7 +923,7 @@ std::vector<int> Detection<T>::getVertexSet() {
     int xsize = xmax - xmin + 1;
     int ysize = ymax - ymin + 1;
 
-    std::vector<Voxel<T> > voxlist = this->getPixelSet();
+    std::vector<Voxel<T> > voxlist = this->template getPixelSet<T>();
     std::vector<bool> isObj(xsize*ysize,false);
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxlist.begin();vox<voxlist.end();vox++){
@@ -974,7 +984,7 @@ void getIntSpec(Detection<T> &object, T *fluxArray, long *dimArray, std::vector<
     long xySize = dimArray[0]*dimArray[1];
     bool *done = new bool[xySize]; 
     for(int i=0;i<xySize;i++) done[i]=false;
-    std::vector<Voxel<T> > voxlist = object.getPixelSet();
+    std::vector<Voxel<T> > voxlist = object.template getPixelSet<T>();
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=voxlist.begin();vox<voxlist.end();vox++){
         long pos = vox->getX()+dimArray[0]*vox->getY();

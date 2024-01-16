@@ -62,7 +62,7 @@ void Rendering3D<T>::compute(float azangle) {
     out = new Cube<T>(axis);
     out->saveHead(in->Head());
     out->saveParam(in->pars());
-    for (int i=0; i<out->NumPix(); i++) out->Array(i)=0;
+    for (size_t i=0; i<out->NumPix(); i++) out->Array(i)=0;
 
     double e[3] = {0,1,0};
     int nthreads = in->pars().getThreads();

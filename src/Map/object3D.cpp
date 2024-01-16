@@ -33,8 +33,8 @@
 
 namespace PixelInfo
 {
-  template <class T>
-  Object3D<T>::Object3D() {
+  
+  Object3D::Object3D() {
       
     numVox=0;
     xSum = 0;
@@ -44,15 +44,13 @@ namespace PixelInfo
   }
   
   
-  template <class T>
-  Object3D<T>::Object3D(const Object3D<T>& o) {
+  Object3D::Object3D(const Object3D& o) {
       
     operator=(o);
   }
   
    
-  template <class T> 
-  Object3D<T>& Object3D<T>::operator= (const Object3D<T>& o) {
+  Object3D& Object3D::operator= (const Object3D& o) {
       
     if(this == &o) return *this;
     this->chanlist = o.chanlist;
@@ -70,60 +68,54 @@ namespace PixelInfo
   }
   
   
-  template <class T>
-  Object3D<T> operator+ (Object3D<T> lhs, Object3D<T> rhs) {
+  Object3D operator+ (Object3D lhs, Object3D rhs) {
       
-    Object3D<T> output = lhs;
-    for(typename std::map<long, Object2D<T> >::iterator it = rhs.chanlist.begin(); it!=rhs.chanlist.end();it++)
+    Object3D output = lhs;
+    for(std::map<long, Object2D>::iterator it = rhs.chanlist.begin(); it!=rhs.chanlist.end();it++)
         output.addChannel(it->first, it->second);
     return output;
   }
   
   
-  template <class T>  
-  float Object3D<T>::getXaverage() {
+  float Object3D::getXaverage() {
       
     if(numVox>0) return xSum/float(numVox); 
     else return 0.;
   }
   
  
-  template <class T>
-  float Object3D<T>::getYaverage() {
+  float Object3D::getYaverage() {
       
     if(numVox>0) return ySum/float(numVox);
     else return 0.;
   }
   
   
-  template <class T>
-  float Object3D<T>::getZaverage() {
+  float Object3D::getZaverage() {
       
     if(numVox>0) return zSum/float(numVox); 
     else return 0.;
   }
 
   
-  template <class T> 
-  bool Object3D<T>::isInObject(long x, long y, long z) {
+  bool Object3D::isInObject(long x, long y, long z) {
       
-    typename std::map<long,Object2D<T> >::iterator it=chanlist.begin();
+    std::map<long,Object2D>::iterator it=chanlist.begin();
     while(it!=chanlist.end() && it->first!=z) it++;
     if(it==chanlist.end()) return false;
     else return it->second.isInObject(x,y);
   }
   
     
-  template <class T>
-  void Object3D<T>::addPixel(long x, long y, long z) {
+  void Object3D::addPixel(long x, long y, long z) {
  
-    typename std::map<long,Object2D<T> >::iterator it=chanlist.begin();
+    std::map<long,Object2D>::iterator it=chanlist.begin();
     while(it!=chanlist.end() && it->first!=z) it++;
 
     if(it==chanlist.end()){ //new channel
-        Object2D<T> obj;
+        Object2D obj;
         obj.addPixel(x,y);
-        chanlist.insert( std::pair<int,Object2D<T> >(z,obj) );
+        chanlist.insert( std::pair<int,Object2D>(z,obj) );
         // update the centres, min & max, as well as the number of voxels
         if(numVox==0){
             xSum = xmin = xmax = x;
@@ -171,8 +163,7 @@ namespace PixelInfo
   }
   
    
-  template <class T>
-  void Object3D<T>::addScan(Scan<T> s, long z) {
+  void Object3D::addScan(Scan s, long z) {
       
     long y=s.getY();
     for(int x=s.getX(); x<=s.getXmax(); x++) 
@@ -180,14 +171,13 @@ namespace PixelInfo
   }
 
 
-  template <class T>
-  void Object3D<T>::addChannel(const long &z, Object2D<T> &obj) {
+  void Object3D::addChannel(const long &z, Object2D &obj) {
 
-    typename std::map<long,Object2D<T> >::iterator it=chanlist.begin();
+    std::map<long,Object2D>::iterator it=chanlist.begin();
     while(it!=chanlist.end() && it->first!=z) it++;
 
     if(it == chanlist.end()) { // channel z is not already in object, so add it.
-        chanlist.insert(std::pair<long,Object2D<T> >(z,obj));
+        chanlist.insert(std::pair<long,Object2D>(z,obj));
         if(numVox == 0) { // if there are no other pixels, so initialise mins,maxs,sums
             xmin = obj.xmin;
             xmax = obj.xmax;
@@ -229,19 +219,17 @@ namespace PixelInfo
   }
   
   
-  template <class T>
-  unsigned long Object3D<T>::getSpatialSize() {
+  unsigned long Object3D::getSpatialSize() {
       
-    Object2D<T> spatialMap = getSpatialMap();
+    Object2D spatialMap = getSpatialMap();
     return spatialMap.getSize();
   }
   
   
-  template <class T>
-  Object2D<T> Object3D<T>::getSpatialMap() {
+  Object2D Object3D::getSpatialMap() {
     
-    Object2D<T> spatialMap;
-    for(typename std::map<long, Object2D<T> >::iterator it = chanlist.begin(); 
+    Object2D spatialMap;
+    for(std::map<long, Object2D >::iterator it = chanlist.begin(); 
         it!=chanlist.end();it++){
         spatialMap = spatialMap + it->second;
     }
@@ -249,8 +237,7 @@ namespace PixelInfo
   }
   
   
-  template <class T> 
-  void Object3D<T>::calcParams() {
+  void Object3D::calcParams() {
       
     xSum = 0;
     ySum = 0;
@@ -259,7 +246,7 @@ namespace PixelInfo
 
     zmin = chanlist.begin()->first;
     zmax = chanlist.rbegin()->first;
-    for(typename std::map<long, Object2D<T> >::iterator it = chanlist.begin(); it!=chanlist.end();it++) {
+    for(std::map<long, Object2D>::iterator it = chanlist.begin(); it!=chanlist.end();it++) {
 
         it->second.calcParams();
         if(it==chanlist.begin()) {
@@ -283,11 +270,10 @@ namespace PixelInfo
   }
   
   
-  template <class T>
-  void Object3D<T>::print(std::ostream& theStream) {
+  void Object3D::print(std::ostream& theStream) {
       
-    for(typename std::map<long, Object2D<T> >::iterator it = chanlist.begin(); it!=chanlist.end();it++){
-        for(typename std::vector<Scan<T> >::iterator s=it->second.scanlist.begin();s!=it->second.scanlist.end();s++){
+    for(std::map<long, Object2D>::iterator it = chanlist.begin(); it!=chanlist.end();it++){
+        for(std::vector<Scan>::iterator s=it->second.scanlist.begin();s!=it->second.scanlist.end();s++){
             theStream << *s << "," << it->first << "\n";
         }
     }  
@@ -295,25 +281,24 @@ namespace PixelInfo
   }
 
 
-  template <class T>
-  std::ostream& operator<< ( std::ostream& theStream, Object3D<T>& obj) {
+  std::ostream& operator<< (std::ostream& theStream, Object3D& obj) {
     
     obj.print(theStream);
     return theStream;
   }
   
-    
+  
   template <class T>
-  std::vector<Voxel<T> > Object3D<T>::getPixelSet() {
+  std::vector<Voxel<T> > Object3D::getPixelSet() {
     
   /// Returns a vector of the Voxels in the object. All
   /// flux values are set to 0.
 
     std::vector<Voxel<T> > voxList(numVox);
     long count = 0;
-    for(typename std::map<long, Object2D<T> >::iterator it = chanlist.begin(); it!=chanlist.end();it++) {
+    for(std::map<long, Object2D>::iterator it = chanlist.begin(); it!=chanlist.end();it++) {
         long z = it->first;
-        for(typename std::vector<Scan<T> >::iterator s=it->second.scanlist.begin();s!=it->second.scanlist.end();s++) {
+        for(std::vector<Scan>::iterator s=it->second.scanlist.begin();s!=it->second.scanlist.end();s++) {
             long y = s->getY();
             for(long x=s->getX(); x<=s->getXmax(); x++) {
                 voxList[count].setXYZF(x,y,z,0);
@@ -322,12 +307,16 @@ namespace PixelInfo
         }
     }
     return voxList;
-
   }
+  template std::vector<Voxel<short> > Object3D::getPixelSet();
+  template std::vector<Voxel<int> > Object3D::getPixelSet();
+  template std::vector<Voxel<long> > Object3D::getPixelSet();
+  template std::vector<Voxel<float> > Object3D::getPixelSet();
+  template std::vector<Voxel<double> > Object3D::getPixelSet();
   
   
   template <class T>
-  std::vector<Voxel<T> > Object3D<T>::getPixelSet(T *array, int *dim) {
+  std::vector<Voxel<T> > Object3D::getPixelSet(T *array, int *dim) {
       
     /// Returns a vector of Voxels with the flux values for each voxel
     /// taken from the array provided. No check is made as to whether
@@ -338,9 +327,9 @@ namespace PixelInfo
 
     std::vector<Voxel<T> > voxList(numVox);
     long count = 0;
-    for(typename std::map<long, Object2D<T> >::iterator it = chanlist.begin(); it!=chanlist.end();it++) {
+    for(std::map<long, Object2D>::iterator it = chanlist.begin(); it!=chanlist.end();it++) {
         long z = it->first;
-        for(typename std::vector<Scan<T> >::iterator s=it->second.scanlist.begin();s!=it->second.scanlist.end();s++){
+        for(std::vector<Scan>::iterator s=it->second.scanlist.begin();s!=it->second.scanlist.end();s++){
             long y = s->getY();
             for(long x=s->getX(); x<=s->getXmax(); x++){
                 voxList[count].setXYZF(x,y,z,array[x+dim[0]*y+dim[0]*dim[1]*z]);
@@ -351,13 +340,17 @@ namespace PixelInfo
     return voxList;
 
   }
+  template std::vector<Voxel<short> > Object3D::getPixelSet(short *array, int *dim);
+  template std::vector<Voxel<int> > Object3D::getPixelSet(int *array, int *dim);
+  template std::vector<Voxel<long> > Object3D::getPixelSet(long *array, int *dim);
+  template std::vector<Voxel<float> > Object3D::getPixelSet(float *array, int *dim);
+  template std::vector<Voxel<double> > Object3D::getPixelSet(double *array, int *dim);
+
   
-  
-  template <class T>
-  std::vector<long> Object3D<T>::getChannelList() {
+  std::vector<long> Object3D::getChannelList() {
 
     std::vector<long> chanlist;
-    typename std::map<long, Object2D<T> >::iterator it;
+    std::map<long, Object2D>::iterator it;
     for(it = this->chanlist.begin(); it != this->chanlist.end(); it++) {
         chanlist.push_back(it->first);
     }
@@ -365,20 +358,18 @@ namespace PixelInfo
   }
   
   
-  template <class T>
-  Object2D<T> Object3D<T>::getChanMap(long z) {
+  Object2D Object3D::getChanMap(long z) {
     
-    Object2D<T> obj;
-    typename std::map<long,Object2D<T> >::iterator it=chanlist.begin();
+    Object2D obj;
+    std::map<long,Object2D>::iterator it=chanlist.begin();
     while(it!=chanlist.end() && it->first!=z) it++;
-    if(it==chanlist.end()) obj = Object2D<T>();
+    if(it==chanlist.end()) obj = Object2D();
     else obj = it->second;
     return obj;
   }
   
   
-  template <class T>
-  int Object3D<T>::getMaxAdjacentChannels() {
+  int Object3D::getMaxAdjacentChannels() {
       
   /// Find the maximum number of contiguous channels in the
   /// object. Since there can be gaps in the channels included in an
@@ -387,7 +378,7 @@ namespace PixelInfo
 
     int maxnumchan=0;
     int zcurrent=0, zprevious,zcount=0;
-    typename std::map<long, Object2D<T> >::iterator it;
+    std::map<long, Object2D>::iterator it;
     for(it = chanlist.begin(); it!=chanlist.end();it++) {
         if(it==chanlist.begin()){
             zcount++;
@@ -408,12 +399,11 @@ namespace PixelInfo
   }
   
   
-  template <class T> 
-  void Object3D<T>::addOffsets(long xoff, long yoff, long zoff) {
+  void Object3D::addOffsets(long xoff, long yoff, long zoff) {
       
-    std::map<long,Object2D<T> > newmap;
-    for(typename std::map<long, Object2D<T> >::iterator it = chanlist.begin(); it!=chanlist.end();it++){
-        std::pair<long, Object2D<T> > newOne(it->first+zoff, it->second);
+    std::map<long,Object2D> newmap;
+    for(std::map<long, Object2D>::iterator it = chanlist.begin(); it!=chanlist.end();it++){
+        std::pair<long, Object2D> newOne(it->first+zoff, it->second);
         newOne.second.addOffsets(xoff,yoff);
         newmap.insert(newOne);
     }
@@ -429,12 +419,4 @@ namespace PixelInfo
     }
   }
   
-  
-  // Explicit instantiation of the class
-  template class Object3D<short>;
-  template class Object3D<int>;
-  template class Object3D<long>;
-  template class Object3D<float>;
-  template class Object3D<double>;
-
 }

@@ -1,0 +1,10 @@
+{
+    "files": [
+        "BBaroloGUI.py",
+        "bbarolowindow.py",
+        "bbarolowindow_io.py",
+        "imports.py",
+        "resources.qrc",
+        "ui/bbarolowindow.ui"
+    ]
+}

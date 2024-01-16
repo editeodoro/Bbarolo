@@ -43,10 +43,9 @@ ParamGuess<T>::ParamGuess(Cube<T> *c, Detection<T> *object) {
     
     in  = c;
     obj = object;
-    obj->calcFluxes(obj->getPixelSet(in->Array(), in->AxisDim()));
-    obj->calcWCSparams(in->Head());
-    obj->calcIntegFlux(in->DimZ(), obj->getPixelSet(in->Array(), in->AxisDim()), in->Head());
-    
+    if (!obj->hasParams())
+        obj->calcAllParams(in->Array(),in->AxisDim(),in->Head());
+
     /// Extracting intensity and velocity field
     Vemap = new T[in->DimX()*in->DimY()];
     Intmap = new T[in->DimX()*in->DimY()];

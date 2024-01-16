@@ -27,13 +27,12 @@
 #include <Arrays/image.hh>
 #include <Arrays/stats.hh>
 #include <Map/detection.hh>
+#include <Tasks/smooth3D.hh>
+#include <Tasks/moment.hh>
 #include <Utilities/utils.hh>
 #include <Utilities/progressbar.hh>
 #include <Utilities/gnuplot.hh>
 #include <Utilities/lsqfit.hh>
-#include <Tasks/smooth3D.hh>
-#include <Tasks/moment.hh>
-
 
 template <class T>
 void Cube<T>::defaults() {
@@ -363,7 +362,7 @@ bool Cube<T>::fitsread_3d() {
 template <class T>
 bool Cube<T>::fitswrite_3d(const char *outfile, bool fullHead) {
     
-    fitsfile *fptr;      
+    fitsfile *fptr;
     long  fpixel = 1;
     long dnaxes[3] = {axisDim[0], axisDim[1], axisDim[2]};
     int status=0;
@@ -543,7 +542,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         
         if (onlyLargest || numObj==1) {
             Detection<T> *larg = smoothed->getSources()->LargestDetection();
-            std::vector<Voxel<T> > voxlist = larg->getPixelSet();
+            std::vector<Voxel<T> > voxlist = larg->template getPixelSet<T>();
             typename std::vector<Voxel<T> >::iterator vox;
             for(vox=voxlist.begin();vox<voxlist.end();vox++) {
                 mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
@@ -552,7 +551,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         else {
             for (size_t i=0; i<numObj; i++) {
                 Detection<T> *obj = smoothed->pObject(i);
-                std::vector<Voxel<T> > voxlist = obj->getPixelSet();
+                std::vector<Voxel<T> > voxlist = obj->template getPixelSet<T>();
                 typename std::vector<Voxel<T> >::iterator vox;
                 for(vox=voxlist.begin();vox<voxlist.end();vox++) {
                     mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
@@ -575,7 +574,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         
         if (onlyLargest || numObj==1) {
             Detection<T> *larg = sources->LargestDetection();
-            std::vector<Voxel<T> > voxlist = larg->getPixelSet();
+            std::vector<Voxel<T> > voxlist = larg->template getPixelSet<T>();
             typename std::vector<Voxel<T> >::iterator vox;
             for(vox=voxlist.begin();vox<voxlist.end();vox++) {
                 mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
@@ -584,7 +583,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         else {
             for (size_t i=0; i<numObj; i++) {
                 Detection<T> *obj = pObject(i);
-                std::vector<Voxel<T> > voxlist = obj->getPixelSet();
+                std::vector<Voxel<T> > voxlist = obj->template getPixelSet<T>();
                 typename std::vector<Voxel<T> >::iterator vox;
                 for(vox=voxlist.begin();vox<voxlist.end();vox++) {
                     mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
@@ -1074,9 +1073,7 @@ void Cube<T>::search() {
     // Calculating parameters for detections
     for (int i=0; i<getNumObj(); i++){
         Detection<T> *obj = sources->pObject(i);
-        obj->calcFluxes(obj->getPixelSet(array, axisDim));
-        obj->calcWCSparams(head);
-        obj->calcIntegFlux(DimZ(), obj->getPixelSet(array, axisDim), head);
+        obj->calcAllParams(array,axisDim,head);
     }
 
     // Sorting detections
@@ -1201,7 +1198,7 @@ void Cube<T>::printDetections (std::ostream& Stream) {
         int Ymax = obj->getYmax();
         int Zmin = obj->getZmin();
         int Zmax = obj->getZmax();
-
+        
         if (headDefined) {
             double pix[3] = {Xcenter,Ycenter,Zcenter};
             double world[3];
@@ -1280,15 +1277,29 @@ void Cube<T>::writeDetections() {
 
     // Writing a datacube with just the detected objects
     Cube<T> *det = new Cube<T>(axisDim);
-    for (size_t i=0; i<det->NumPix(); i++) det->Array()[i] = array[i]*isObj[i];
+    for (size_t i=0; i<det->NumPix(); i++) det->Array(i) = array[i]*isObj[i];
     det->saveHead(head);
     det->Head().setMinMax(0,0);
     det->fitswrite_3d((par.getOutfolder()+"detections.fits.gz").c_str());
     delete det;
 
+    // Writing a datacube with corresponding detection number of each objects
+    Cube<int> *detnum = new Cube<int>(axisDim);
+    for (size_t i=0; i<det->NumPix(); i++) detnum->Array(i) = 0;
+    for (int i=0; i<numObj; i++){
+        std::vector<Voxel<T> > vlist = sources->pObject(i)->template getPixelSet<T>();
+        typename std::vector<Voxel<T> >::iterator vox;
+        for(vox=vlist.begin(); vox<vlist.end(); vox++)
+            detnum->Array(vox->getX(),vox->getY(),vox->getZ()) = i+1;
+    }
+    detnum->saveHead(head);
+    detnum->Head().setMinMax(0,0);
+    detnum->fitswrite_3d((par.getOutfolder()+"detections_num.fits.gz").c_str());
+    delete detnum;
+    
     // Writing detection map    
     Image2D<int> *DetMap = new Image2D<int>(axisDim);
-    for (int i=0; i<axisDim[0]*axisDim[1];i++) DetMap->Array()[i] = sources->DetectMap(i);    
+    for (int i=0; i<axisDim[0]*axisDim[1];i++) DetMap->Array()[i] = sources->DetectMap(i);
     DetMap->copyHeader(head);
     DetMap->Head().setMinMax(0,0);
     DetMap->Head().setBtype("detected_chan");
@@ -1460,6 +1471,10 @@ int Cube<T>::plotDetections(){
 
     if (getNumObj()==0) return 1;
 
+    float bmaj = head.Bmaj()/head.PixScale();
+    float bmin = head.Bmin()/head.PixScale();
+    float bpa  = head.Bpa();
+
     std::string outfolder = par.getOutfolder()+"sources/";
     std::ofstream pyf((outfolder+"plot_sources.py").c_str());
 
@@ -1469,6 +1484,7 @@ int Cube<T>::plotDetections(){
         << "import os \n"
         << "import numpy as np \n"
         << "import matplotlib.pyplot as plt \n"
+        << "from matplotlib.patches import Ellipse \n"
         << "from astropy.io import fits \n"
         << "fsize=10 \n"
         << "plt.rc('font',family='sans-serif',serif='Helvetica',size=fsize) \n"
@@ -1497,6 +1513,9 @@ int Cube<T>::plotDetections(){
         << "\tim = ax[0].imshow(m0,**common,cmap=plt.get_cmap('Spectral_r')) \n"
         << "\tcb = plt.colorbar(im,cax=ax[1],orientation='horizontal') \n"
         << "\tax[0].text(-0.1,0.5,'%s'%s,ha='center',va='center',rotation=90,transform=ax[0].transAxes,fontsize=fsize+2) \n"
+        << "\tbmaj, bmin, bpa = " << bmaj << "/m0.shape[0], " << bmin << "/m0.shape[1]," << bpa << std::endl
+        << "\tbeam = Ellipse((0.95-bmaj/2.,0.1+bmaj/2.),width=bmaj,height=bmin,angle=bpa+90,color='gray',clip_on=False,transform=ax[0].transAxes,alpha=0.2)\n"
+        << "\tax[0].add_artist(beam)\n"
         << std::endl
         << "\t# Plotting velocity \n"
         << "\tim = ax[2].imshow(m1,**common,cmap=plt.get_cmap('RdBu_r',25)) \n"

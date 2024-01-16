@@ -38,7 +38,6 @@ namespace PixelInfo
   /// 
   /// This class is used by other classes to store objects in 2- and
   /// 3-dimensions.
-  template <class T>
   class Scan
   {
   public:
@@ -49,14 +48,9 @@ namespace PixelInfo
     virtual ~Scan(){}
     
     /// Overloaded operators:
-    template <class Type>
-    friend std::ostream& operator<< ( std::ostream& theStream, Scan<Type>& scan);
-    
-    template <class Type>
-    friend bool operator< (Scan<Type> lhs, Scan<Type> rhs); 
-    
-    template <class Type>
-    friend bool operator== (Scan<Type> lhs, Scan<Type> rhs);
+    friend std::ostream& operator<< ( std::ostream& theStream, Scan& scan);
+    friend bool operator< (Scan lhs, Scan rhs); 
+    friend bool operator== (Scan lhs, Scan rhs);
 
     /// Inline functions to access private members:
     
@@ -84,8 +78,8 @@ namespace PixelInfo
     bool isAdjacentTo(const Scan &other);
    
 
-    template <class Type> friend class Object2D; 
-    template <class Type> friend class Object3D;
+    friend class Object2D; 
+    friend class Object3D;
   
   protected:
     long itsY;                          ///< The y-value of each point in the scan.
@@ -97,14 +91,14 @@ namespace PixelInfo
   
   /// Other functions that use the class above:
   
-  template <class T> Scan<T> unite(Scan<T> &s1, Scan<T> &s2);               /// Combine two scans into one. 
-  template <class T> Scan<T> intersect(Scan<T> &s1, Scan<T> &s2);           /// Keep only the pixels in both the two scans.  
-  template <class T> bool touching(Scan<T> &s1, Scan<T> &s2);           /// Test whether two scans either overlap or are adjacent.  
-  template <class T> bool overlap(Scan<T> &s1, Scan<T> &s2);                /// Test whether two scans have pixels in common.   
-  template <class T> bool adjacent(Scan<T> &scan1, Scan<T> &scan2);     /// Test whether two scans lie adjacent to each other. 
-  template <class T> Scan<T> nullScan();                                /// Return the null scan, y=-1, x=-1, xlen=0.
-  template <class T> void mergeList(std::vector<Scan<T> > scanlist);    /// Merge Scans that are touching. 
-  template <class T> float minSep(Scan<T> &s1, Scan<T> &s2);                /// Get the minimum separation, in pixels, between two scans. 
+  Scan unite(Scan &s1, Scan &s2);                   /// Combine two scans into one. 
+  Scan intersect(Scan &s1, Scan &s2);               /// Keep only the pixels in both the two scans.  
+  bool touching(Scan &s1, Scan &s2);                /// Test whether two scans either overlap or are adjacent.  
+  bool overlap(Scan &s1, Scan &s2);                 /// Test whether two scans have pixels in common.   
+  bool adjacent(Scan &scan1, Scan &scan2);          /// Test whether two scans lie adjacent to each other. 
+  Scan nullScan();                                  /// Return the null scan, y=-1, x=-1, xlen=0.
+  void mergeList(std::vector<Scan> scanlist);       /// Merge Scans that are touching. 
+  float minSep(Scan &s1, Scan &s2);                 /// Get the minimum separation, in pixels, between two scans. 
 
 }
 

@@ -22,11 +22,7 @@
 #include <thread>
 #include <QtGui>
 #include <QListWidgetItem>
-// For redirecting stdout
-//#include "consolestream.h"
-//#include "q_streamdebug.h"
-//ConsoleStream cout(&std::cout,ui->LogtextEdit); <--- I prefer this one
-//new Q_DebugStream(std::cout, ui->LogtextEdit);
+
 
 BBaroloWindow::BBaroloWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -93,8 +89,8 @@ BBaroloWindow::BBaroloWindow(QWidget *parent) :
     ui->ThreadspinBox->setValue(threads);
 #endif
     
-    ui->restlineEdit->setValidator(new QRegExpValidator( QRegExp("[0-9]+.[0-9]+e[0-9]+")));
-    ui->redshiftlineEdit->setValidator(new QRegExpValidator( QRegExp("[0-9]+.[0-9]+")));
+    ui->restlineEdit->setValidator(new QRegularExpressionValidator( QRegularExpression("[0-9]+.[0-9]+e[0-9]+")));
+    ui->redshiftlineEdit->setValidator(new QRegularExpressionValidator( QRegularExpression("[0-9]+.[0-9]+")));
     
 
 }
@@ -516,7 +512,7 @@ void BBaroloWindow::Hide_All_3DFit_file(bool Hide) {
 
 void BBaroloWindow::Selected_3DFit_file(QLineEdit *le, QSpinBox *sb, QWidget *qw) {
 
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), QDir::currentPath(), tr("All files (*.*)"), 0, QFileDialog::DontUseNativeDialog);
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), QDir::currentPath(), tr("All files (*.*)"));
     if (!filename.isEmpty()) {
         le->setText(filename);
         Hide_3DFit_file(le,sb,qw, false);

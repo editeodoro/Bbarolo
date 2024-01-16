@@ -43,7 +43,6 @@ namespace PixelInfo
   /// minimum, and average values (actually stored as xSum, ySum) for
   /// the x and y pixel values.
     
-  template <class T> 
   class Object2D
   {
   public:
@@ -62,17 +61,19 @@ namespace PixelInfo
     void  addPixel(long &x, long &y);
 
     /// @brief Add a full Scan to the Object, making sure there are no overlapping scans afterwards. 
-    void  addScan(Scan<T> &scan);
+    void  addScan(Scan &scan);
 
     /// @brief Test whether a pixel (x,y) is in the Object. 
     bool  isInObject(long x, long y);
     /// @brief Test whether the (x,y) part of a Voxel is in the Object.
+    template <class T>
     bool  isInObject(Voxel<T> v){return this->isInObject(v.getX(),v.getY());}
     /// @brief Test whether a Pixel is in the Object.
+    template <class T>
     bool  isInObject(Pixel<T> p){return this->isInObject(p.getX(),p.getY());}
 
     /// @brief Test whether a given Scan overlaps with any pixels in the Object. 
-    bool  scanOverlaps(Scan<T> &scan);
+    bool  scanOverlaps(Scan &scan);
 
     bool canMerge(Object2D &other, float threshS, bool flagAdj);
     bool isNear(Object2D &other, long gap);
@@ -85,7 +86,7 @@ namespace PixelInfo
     long  getNumScan(){return scanlist.size();}
 
     /// @brief Order the Scans in the list, using the < operator for Scans. 
-     void  order(){std::stable_sort(scanlist.begin(),scanlist.end());}
+    void  order(){std::stable_sort(scanlist.begin(),scanlist.end());}
 
     /// @brief Add values to the x- and y-axes, making sure to add the offsets to the sums and min/max values. 
     void  addOffsets(long xoff, long yoff);
@@ -115,18 +116,16 @@ namespace PixelInfo
     std::pair<double,double> getPrincipleAxes();
 
     /// @brief A stream output operator. 
-    template <class Type>
-    friend std::ostream& operator<< (std::ostream& theStream, Object2D<Type>& obj);
+    friend std::ostream& operator<< (std::ostream& theStream, Object2D& obj);
 
     /// @brief Adding two Objects together.
-    template <class Type> 
-    friend Object2D<Type> operator+ (Object2D<Type> lhs, Object2D<Type> rhs);
+    friend Object2D operator+ (Object2D lhs, Object2D rhs);
     
-    template <class Type> friend class Object3D; 
-    template <class Type> friend class Detection;
+    friend class Object3D; 
+    template <class T> friend class Detection;
 
   protected:
-    std::vector<Scan<T> > scanlist;   ///< The list of Scans
+    std::vector<Scan> scanlist;       ///< The list of Scans
     unsigned long     numPix = 0 ;    ///< Number of pixels in the Object
     float             xSum;           ///< Sum of x values
     float             ySum;           ///< Sum of y values

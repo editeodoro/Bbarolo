@@ -43,11 +43,11 @@ using namespace PixelInfo;
   /// Also many functions with which to manipulate the Detections.
 
 template <class T>
-class Detection : public PixelInfo::Object3D<T>
+class Detection : public Object3D
 {
 public:
     Detection();
-    Detection(const Object3D<T>& o);
+    Detection(const Object3D& o);
     Detection(const Detection& d);
     Detection& operator= (const Detection& d);
     virtual ~Detection(){}
@@ -58,17 +58,17 @@ public:
     
     /// Utility functions;
     
-    float       getXcentre(std::string centreType="centroid");
-    float       getYcentre(std::string centreType="centroid");
-    float       getZcentre(std::string centreType="centroid");
-    float       getVsys();
+    float   getXcentre(std::string centreType="centroid");
+    float   getYcentre(std::string centreType="centroid");
+    float   getZcentre(std::string centreType="centroid");
+    float   getVsys();
 
     /// Add a single voxel to the pixel list.
-    void   addPixel(long x, long y, long z){Object3D<T>::addPixel(x,y,z);}
+    void   addPixel(long x, long y, long z){Object3D::addPixel(x,y,z);}
     void   addPixel(PixelInfo::Voxel<T> point);
 
     /// How many channels does the Detection have? 
-    long   getNumChannels(){return Object3D<T>::getNumChanMap();}
+    long   getNumChannels(){return Object3D::getNumChanMap();}
 
     /// Is there at least the acceptable minimum number of channels in the Detection?  
     bool   hasEnoughChannels(int minNumber);
@@ -77,7 +77,7 @@ public:
     void   setOffsets(long Xoffset=0, long Yoffset=0, long Zoffset=0); 
 
     /// Add the offset values to the pixel locations 
-    void   addOffsets(long xoff, long yoff, long zoff){Object3D<T>::addOffsets(xoff,yoff,zoff);}
+    void   addOffsets(long xoff, long yoff, long zoff){Object3D::addOffsets(xoff,yoff,zoff);}
     void   addOffsets();
     
     void   addDetection(Detection &other);
@@ -88,23 +88,23 @@ public:
     bool   isClose (Detection &other, SEARCH_PAR &par);
     
 
-    /// Test whether voxel lists match 
+    /// Test whether voxel lists match
     bool voxelListsMatch(std::vector<PixelInfo::Voxel<T> > voxelList);
 
-    /// Test whether a voxel list contains all detected voxels 
+    /// Test whether a voxel list contains all detected voxels
     bool voxelListCovered(std::vector<PixelInfo::Voxel<T> > voxelList);
 
     /// Calculate flux-related parameters of the Detection. 
-    void   calcFluxes(T *fluxArray, long *dim); 
-    void   calcFluxes(std::vector<PixelInfo::Voxel<T> > voxelList); 
+    void   calcFluxes(T *fluxArray, long *dim);
+    void   calcFluxes(std::vector<PixelInfo::Voxel<T> > voxelList);
 
     /// Calculate parameters related to the World Coordinate System. 
-    void   calcWCSparams(Header &head); 
+    void   calcWCSparams(Header &head);
 
     /// Calculate the integrated flux over the entire Detection. 
-    void   calcIntegFlux(T *fluxArray, long *dim, Header &head); 
+    void   calcIntegFlux(T *fluxArray, long *dim, Header &head);
     /// Calculate the integrated flux over the entire Detection. 
-    void   calcIntegFlux(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head); 
+    void   calcIntegFlux(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head);
 
     /// Calculate the 20%-/50%-peak-flux widths in a general fashion
     void calcVelWidths(long zdim, T *intSpec, Header &head);
@@ -116,8 +116,12 @@ public:
     /// Calculate systemic velocity
     void calcVsys();
 
+    /// Calculate all parameters at once
+    void calcAllParams(T *fluxArray, int *dim, Header &head);
+
     /// Get the location of the spatial borders. 
     std::vector<int> getVertexSet();
+        
     
    /* //
     //---------------------------------
@@ -273,20 +277,20 @@ public:
 // These are in detection.cpp
 //
 ///Sort a list of Detections by a nominated parameter
-template <class T> 
+template <class T>
 void SortDetections(std::vector<Detection<T> > *inputList, std::string parameter);
 
 /// Sort a list of Detections by Z-pixel value.
-template <class T> 
+template <class T>
 void SortByZ(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"zvalue");}
 
 /// Sort a list of Detections by Velocity.
-template <class T> 
+template <class T>
 void SortByVel(std::vector <Detection<T> > *inputList) {SortDetections(inputList,"vel");}
 
 /// Get integrated spectrum for a detection
 template <class T>
-void getIntSpec(Detection<T> &object, T *fluxArray, long *dimArray, std::vector<bool> mask, 
+void getIntSpec(Detection<T> &object, T *fluxArray, long *dimArray, std::vector<bool> mask,
                 float beamCorrection, T *spec);
 
 

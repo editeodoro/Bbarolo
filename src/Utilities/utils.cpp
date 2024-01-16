@@ -544,7 +544,7 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h) {
     }
     else if (makelower(h.Cunit(2))=="m/s") {
         const float HIrest = 1.420405751;
-        const float c = 299792458;
+        const float c = 299792458.;
         float vel = ((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2));
         freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
     }
@@ -780,7 +780,7 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h, bool *fromfile) {
     bool ypos_b  = getDataColumn(fr.ypos,par.YPOS);
     bool vsys_b  = getDataColumn(fr.vsys,par.VSYS);
     bool vrot_b  = getDataColumn(fr.vrot,par.VROT);
-    bool vrad_b  = getDataColumn(fr.vrad,par.VRAD);    
+    bool vrad_b  = getDataColumn(fr.vrad,par.VRAD);
     bool vvert_b = getDataColumn(fr.vvert,par.VVERT);
     bool dvdz_b  = getDataColumn(fr.dvdz,par.DVDZ);
     bool zcyl_b  = getDataColumn(fr.zcyl,par.ZCYL);

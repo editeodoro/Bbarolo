@@ -189,7 +189,7 @@ void Header::calcArea () {
 
 
 bool Header::header_read (std::string fname) {
-        
+
     fitsfile *fptr;
     int status=0, nfound;
     char comment[72];
@@ -460,7 +460,6 @@ bool Header::header_read (std::string fname) {
     }
     else telescope = Tel;
     
-    
     double clbmaj=0, clbmin=0;
     status=0;
     if (fits_read_key_dbl (fptr, "BMAJ", &bmaj, comment, &status)) {
@@ -591,8 +590,7 @@ bool Header::header_read (std::string fname) {
     calcArea();
 
     return true;
-
-}   
+}
 
 
 void Header::headwrite (fitsfile *fptr, short numDim, bool fullHead) {
@@ -722,7 +720,7 @@ int Header::wcsToPix(const double *world, double *pix, size_t npts) {
     // Add entries for any other axes that are present, keeping the
     //   order of pixel positions the same
     double *tempworld = new double[naxis*npts];
-    for(int pt=0;pt<npts;pt++){
+    for(size_t pt=0;pt<npts;pt++){
         for(int axis=0;axis<naxis;axis++)
             tempworld[pt*naxis+axis] = wcs->crval[axis];
         tempworld[pt*naxis + wcs->lng]  = world[pt*3+0];
@@ -745,7 +743,7 @@ int Header::wcsToPix(const double *world, double *pix, size_t npts) {
         // correct from 1-indexed to 0-indexed pixel array
         //  and return just the spatial/velocity information,
         //  keeping the order of the pixel positions the same.
-        for(int pt=0;pt<npts;pt++){
+        for(size_t pt=0; pt<npts; pt++){
             pix[pt*naxis + 0] = temppix[pt*naxis + wcs->lng] - 1.;
             pix[pt*naxis + 1] = temppix[pt*naxis + wcs->lat] - 1.;
             pix[pt*naxis + 2] = temppix[pt*naxis + specAxis] - 1.;
@@ -784,7 +782,7 @@ int Header::pixToWCS(const double *pix, double *world, size_t npts) {
     // keeping the order of pixel positions the same
 
     double *newpix = new double[naxis*npts];
-    for(int pt=0;pt<npts;pt++){
+    for(size_t pt=0;pt<npts;pt++){
       for(int i=0;i<naxis;i++) newpix[pt*naxis+i] = 1.;
       newpix[pt*naxis+wcs->lng]  += pix[pt*3+0];
       newpix[pt*naxis+wcs->lat]  += pix[pt*3+1];
@@ -805,7 +803,7 @@ int Header::pixToWCS(const double *pix, double *world, size_t npts) {
     else {
         // return just the spatial/velocity information, keeping the
         // order of the pixel positions the same.
-        for(int pt=0;pt<npts;pt++){
+        for(size_t pt=0; pt<npts; pt++){
             world[pt*3+0] = tempworld[pt*naxis + wcs->lng];
             world[pt*3+1] = tempworld[pt*naxis + wcs->lat];
             world[pt*3+2] = tempworld[pt*naxis + specAxis];

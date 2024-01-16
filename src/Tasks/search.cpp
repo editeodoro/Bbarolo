@@ -313,7 +313,7 @@ ScanVec<T> Search<T>::spectrumDetect(std::vector<bool> &arraybool, int minSize) 
 
     enum STATUS {NONOBJECT, OBJECT};
     STATUS status;
-    PixelInfo::Scan<T> obj;
+    PixelInfo::Scan obj;
     ScanVec<T> outputlist;
     bool isObject;
     long dim = zSize;
@@ -361,7 +361,7 @@ Obj2DVec<T> Search<T>::imageDetect(std::vector<bool> &arraybool, int minSize) {
     int ydim = ySize;
     Obj2DVec<T> outputlist;
     STATUS *status  = new STATUS[2];
-    Object2D<T> *store = new Object2D<T>[xdim+1];
+    Object2D *store = new Object2D[xdim+1];
     char *marker    = new char[xdim+1];
     for(int i=0; i<(xdim+1); i++) marker[i] = NULLMARKER;
     std::vector<FoundObject<T> > oS;
@@ -805,7 +805,7 @@ void Search<T>::updateDetectMap(Detection<T> obj) {
     ///  \param obj     A Detection object that is being
     ///                 incorporated into the map.
 
-    std::vector<Voxel<T> > vlist = obj.getPixelSet();
+    std::vector<Voxel<T> > vlist = obj.template getPixelSet<T>();
     typename std::vector<Voxel<T> >::iterator vox;
     for(vox=vlist.begin();vox<vlist.end();vox++)
         detectMap[vox->getX()+vox->getY()*xSize]++;

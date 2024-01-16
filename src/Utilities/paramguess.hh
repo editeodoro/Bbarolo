@@ -55,8 +55,8 @@ public:
     T   vrot    = 0;        //< Rotation velocity
     int nrings  = 0;        //< Number of rings
     T   radsep  = 0;        //< Ring width
-    T*      Intmap;         //< Intensity map
-    T*      Vemap;          //< Velocity field
+    T*  Intmap;             //< Intensity map
+    T*  Vemap;              //< Velocity field
 
     // Constructor and destructor
     ParamGuess(Cube<T> *c, Detection<T> *object);

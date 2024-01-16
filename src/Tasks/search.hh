@@ -36,8 +36,8 @@ using namespace std;
 
 // Some convenient aliases for detection classes
 template <typename T> using DetVec   = vector<Detection<T> >;
-template <typename T> using ScanVec  = vector<PixelInfo::Scan<T> >;
-template <typename T> using Obj2DVec = vector<Object2D<T> >;
+template <typename T> using ScanVec  = vector<PixelInfo::Scan>;
+template <typename T> using Obj2DVec = vector<Object2D>;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -153,7 +153,7 @@ public:
     FoundObject(){start=NULLSTART; end=NULLSTART;}
     int start;              //< Pixel on the current row where the detection starts.
     int end;                //< Pixel on the current row where the detection finishes.
-    Object2D<T> info;       //< Collection of detected pixels.
+    Object2D info;          //< Collection of detected pixels.
 };
 //*/
 #endif
