@@ -38,7 +38,7 @@ class MomentMap : public Image2D <T>
 public:
     MomentMap();
     ~MomentMap() {}
-    MomentMap(const MomentMap &i);      
+    MomentMap(const MomentMap &i);
     MomentMap& operator=(const MomentMap &i);
 
     void input (Cube<T> *c, int *Blo, int *Bhi, bool *m=nullptr);
@@ -49,19 +49,20 @@ public:
     void FirstMoment (bool msk, std::string mtype="MOMENT") {storeMap(msk,1,mtype);}
     void SecondMoment(bool msk, std::string mtype="MOMENT") {storeMap(msk,2,mtype);}
     void RMSMap (bool msk, float sncut = 1.5, float level=0.1);
-    void SNMap(bool msk);
+    void SNMap(bool msk, std::string outfolder="");
     bool setHead(int type); 
     
     bool fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar);
     bool calculateMoments (size_t x, size_t y, bool msk, double *moments);
     void storeMap(bool msk, int whichmap, std::string map_type);
 
+    int storedtype = -1;
+
 private:
     Cube<T> *in;
     int blo[3],bhi[3];
     int nsubs;
     bool *mask = nullptr;
-    int storedtype = -1;
     
     typedef bool (MomentMap<T>::*funcPtr) (size_t, size_t, bool, double*);
     funcPtr map_Type = &MomentMap<T>::calculateMoments;

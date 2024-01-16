@@ -1126,19 +1126,27 @@ void Cube<T>::printDetections (std::ostream& Stream) {
     int k=29;
     string str;
 
-    Stream  << showpoint << fixed;
     Stream  << "#" << endl;
 
-    if (headDefined) {
-        Stream  << "# Detections for " << head.Name() << " " << endl;
-        Stream  << "#" << setw(150) << setfill('_') << " " << endl << "#" << endl;
-    }
-    else {
-        Stream  << "# Detections for " << par.getImageFile() << " " << endl;
+    if (headDefined)
+        Stream  << "# Detections for " << head.Name() << "\n#\n";
+    else
+        Stream  << "# Detections for " << par.getImageFile() << "\n#\n";
 
-        Stream  << "#" << setw(104) << setfill('_') << " " << endl << endl;
-    }
+    // Writing information on flux thresholds used during the source finding.
+    T thresh1 = par.getParSE().UserThreshold ? par.getParSE().threshold : stats.getThreshold();
+    T thresh2 = 0;
+    if (par.getParSE().growthThreshold!=0) par.getParSE().growthThreshold;
+    else thresh2 = stats.getMiddle() + stats.getSpread()*par.getParSE().growthCut;
 
+    if (thresh1<1E-03 || thresh2<1E-03) Stream<< scientific;
+    else Stream << fixed;
+    Stream  << "# RMS Noise: " << stats.getSpread() << " " << head.Bunit() << endl
+            << "# Primary threshold: " << thresh1 << " " << head.Bunit() << endl
+           << "# Secondary threshold: " << thresh2 << " " << head.Bunit() << endl;
+
+    Stream  << showpoint << fixed;
+    Stream  << "#" << setw(150) << setfill('_') << " " << endl << "#" << endl;
     Stream  << setfill(' ');
 
     Stream  << "#" << setw(m-2) << left << "  Source"
@@ -1312,6 +1320,8 @@ void Cube<T>::writeDetections() {
     allmaps[1].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom1st.fits").c_str());
     allmaps[2].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom2nd.fits").c_str());
 
+    if (par.getParMA().SNmap) allmaps[0].SNMap(true);
+
     delete [] isObj;
 
 }
@@ -1414,6 +1424,11 @@ void Cube<T>::writeCubelets() {
         allmaps[0].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom0.fits").c_str());
         allmaps[1].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom1.fits").c_str());
         allmaps[2].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom2.fits").c_str());
+
+        if (par.getParMA().SNmap) {
+            allmaps[0].SNMap(true,outfold+srcname+"/"+srcname);
+        }
+
 
         delete [] isObj;
 

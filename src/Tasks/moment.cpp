@@ -192,8 +192,8 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
 }
 
 
-template <class T> 
-void MomentMap<T>::SNMap(bool msk){
+template <class T>
+void MomentMap<T>::SNMap(bool msk, std::string outfolder){
     
     // Computes the 0th moment, the noise and S/N maps of a masked datacube.
     // (see appendixes in Verheijen & Sancisi 2001 and Lelli et al 2014)
@@ -202,6 +202,12 @@ void MomentMap<T>::SNMap(bool msk){
 
     // First of all we compute the 0th moment
     if (storedtype!=0) this->ZeroMoment(msk,"MOMENT");
+
+    if(msk && mask==nullptr) {
+        if (in->pars().getMASK().find("LARGEST")!=std::string::npos) in->BlankMask(NULL,true);
+        else in->BlankMask(NULL,false);
+        mask = in->Mask();
+    }
 
     if (!in->StatsDef()) in->setCubeStats();
     double sigma = in->stat().getSpread();
@@ -253,15 +259,15 @@ void MomentMap<T>::SNMap(bool msk){
         // Collapsing mask
         int nchan = 0;
         if (msk) 
-            for (int z=0; z<nsubs; z++) nchan += in->Mask(i+z*imsize);
+            for (int z=0; z<nsubs; z++) nchan += mask[i+z*imsize];
         else nchan = nsubs;
         // Noise in map units
         T noise = sqrt(nchan-b+a*nchan*nchan)*c*sigmaBC;
         // Converting to  Jy/beam * km/s
         noise = FluxtoJyBeam(noise,in->Head())*fabs(DeltaVel(in->Head()));
-        // Noise map in channel 1 
+        // Noise map
         nmap->Array()[i] = noise!=0 ? noise : log(-1);
-        // S/N map in channel 2
+        // S/N map
         snmap->Array()[i] = this->array[i] / noise;
     }
 }
@@ -277,9 +283,9 @@ void MomentMap<T>::SNMap(bool msk){
     snmap->Head().setBtype("S/N");
     snmap->Head().setBunit("NONE");
     
-    std::string s = in->pars().getOutfolder()+in->Head().Name();
-    nmap->fitswrite_2d((s+"map_0th_RMS.fits").c_str());
-    snmap->fitswrite_2d((s+"map_0th_SN.fits").c_str());
+    if (outfolder=="") outfolder = in->pars().getOutfolder()+in->Head().Name();
+    nmap->fitswrite_2d((outfolder+"map_0th_RMS.fits").c_str());
+    snmap->fitswrite_2d((outfolder+"map_0th_SN.fits").c_str());
     
     delete nmap;
     delete snmap;
@@ -550,6 +556,7 @@ std::vector< MomentMap<T> > getAllMoments(Cube<T> *c, bool usemask, bool *mask, 
     for (int i=0; i<3; i++) {
         allmaps[i].input(c,mask);
         allmaps[i].setHeadDef(allmaps[i].setHead(i));
+        allmaps[i].storedtype = i;
     }
 
     ProgressBar bar(true,c->pars().isVerbose(),c->pars().getShowbar());
