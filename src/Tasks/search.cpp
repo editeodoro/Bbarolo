@@ -157,7 +157,7 @@ void Search<T>::search(T *Array, size_t xsize, size_t ysize, size_t zsize, bool 
     size_t numPix = xsize*ysize*zsize;
     bool *blanks = new bool[numPix];
     for (size_t i=0; i<numPix; i++) blanks[i] = isBlank(Array[i]) ? false : true;
-    stat.calculate(array,numPix,blanks);
+    stat.calculate(Array,numPix,blanks);
     stat.setThresholdSNR(par.snrCut);
     delete [] blanks;
 
@@ -174,7 +174,7 @@ DetVec<T> Search<T>::search3DArray() {
     /// list of object detected.
 
     std::string stype = par.searchType;
-    if (stype=="spatial" || zSize==1)
+    if (stype.find("spatial")!=std::string::npos || zSize==1)
         return search3DArraySpatial();
     else if(stype=="spectral" )
         return search3DArraySpectral();

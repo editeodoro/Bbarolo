@@ -1053,7 +1053,7 @@ void Cube<T>::search() {
     
     checkBeam();
 
-    float PixScale = (fabs(h.Cdelt(0))+fabs(h.Cdelt(1)))/2.;
+    float PixScale = head.PixScale();
     int thresS  = p.threshSpatial!=-1  ? p.threshSpatial     : ceil(h.Bmaj()/PixScale);
     int minpix  = p.minPix!=-1      ? p.minPix      : ceil(h.BeamArea());
     int minvox  = p.minVoxels!=-1   ? p.minVoxels   : p.minChannels*minpix;
@@ -1065,9 +1065,20 @@ void Cube<T>::search() {
     // Searching cube
     if (isSearched) delete sources;
     sources = new Search<T>(p);
-    sources->search(array,stats,axisDim[0],axisDim[1],axisDim[2],
-                    par.getFlagRobustStats(),par.getThreads(),par.isVerbose(),par.getShowbar());
 
+    if (p.searchType=="spatialsmooth") {
+        // Smoothing cube before giving it to the source finder.
+        Smooth3D<T> *sm = new Smooth3D<T>;
+        sm->cubesmooth(this);
+        sources->search(sm->Array(),axisDim[0],axisDim[1],axisDim[2],
+                        par.getFlagRobustStats(),par.getThreads(),par.isVerbose(),par.getShowbar());
+        delete sm;
+    }
+    else {
+        // Using original cube
+        sources->search(array,stats,axisDim[0],axisDim[1],axisDim[2],
+                        par.getFlagRobustStats(),par.getThreads(),par.isVerbose(),par.getShowbar());
+    }
     isSearched = true;
 
     // Calculating parameters for detections
@@ -1078,7 +1089,6 @@ void Cube<T>::search() {
 
     // Sorting detections
     SortDetections(sources->pObjectList(),p.sortsrcs);
-
 }
 
 
@@ -1141,9 +1151,13 @@ void Cube<T>::printDetections (std::ostream& Stream) {
 
     if (thresh1<1E-03 || thresh2<1E-03) Stream<< scientific;
     else Stream << fixed;
-    Stream  << "# RMS Noise: " << stats.getSpread() << " " << head.Bunit() << endl
-            << "# Primary threshold: " << thresh1 << " " << head.Bunit() << endl
-            << "# Secondary threshold: " << thresh2 << " " << head.Bunit() << endl;
+    Stream  << "# RMS Noise: " << stats.getSpread() << " " << head.Bunit() << endl;
+
+    if (par.getParSE().searchType!="spatialsmooth") {
+        // Writing threshold only if no smoothing performed so far (because stats are different).
+        Stream << "# Primary threshold: " << thresh1 << " " << head.Bunit() << endl
+               << "# Secondary threshold: " << thresh2 << " " << head.Bunit() << endl;
+    }
 
     Stream  << showpoint << fixed;
     Stream  << "#" << setw(150) << setfill('_') << " " << endl << "#" << endl;

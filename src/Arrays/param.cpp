@@ -489,7 +489,7 @@ void Param::setParam(string &parstr) {
     
     // SEARCH ONLY PARAMETERS
     if(arg=="search")            parSE.flagSearch = readFlag(ss);
-    if(arg=="searchtype")        parSE.searchType = readFilename(ss);
+    if(arg=="searchtype")        parSE.searchType = makelower(readFilename(ss));
     if(arg=="iternoise")         parSE.iternoise = readFlag(ss);
     
     if(arg=="flagadjacent")      parSE.flagAdjacent = readFlag(ss);
@@ -720,10 +720,10 @@ bool Param::checkPars() {
 
     // Checking parameters for source finder
     if (parSE.flagSearch) {
-        if(parSE.searchType != "spatial" && parSE.searchType != "spectral"){
+        if(parSE.searchType != "spatial" && parSE.searchType != "spatialsmooth" && parSE.searchType != "spectral"){
             cout << "You have requested a search type of \""<<parSE.searchType<<"\".\n"
-                      << "Only \"spectral\" and \"spatial\" are accepted. Setting to \"spectral\".\n";
-            parSE.searchType = "spectral";
+                      << "Only \"spectral\", \"spatial\" and \"spatialsmooth\" are accepted. Setting to \"spatial\".\n";
+            parSE.searchType = "spatial";
         }
     
         if(parSE.flagGrowth){

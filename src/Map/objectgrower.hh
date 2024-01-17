@@ -45,7 +45,7 @@ class ObjectGrower
 {
 public:
     ObjectGrower();
-    virtual ~ObjectGrower(){};
+    virtual ~ObjectGrower(){}
     ObjectGrower(ObjectGrower &o);
     ObjectGrower& operator=(const ObjectGrower &o);
 
