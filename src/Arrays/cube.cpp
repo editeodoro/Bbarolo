@@ -1143,7 +1143,7 @@ void Cube<T>::printDetections (std::ostream& Stream) {
     else Stream << fixed;
     Stream  << "# RMS Noise: " << stats.getSpread() << " " << head.Bunit() << endl
             << "# Primary threshold: " << thresh1 << " " << head.Bunit() << endl
-           << "# Secondary threshold: " << thresh2 << " " << head.Bunit() << endl;
+            << "# Secondary threshold: " << thresh2 << " " << head.Bunit() << endl;
 
     Stream  << showpoint << fixed;
     Stream  << "#" << setw(150) << setfill('_') << " " << endl << "#" << endl;
@@ -1425,10 +1425,7 @@ void Cube<T>::writeCubelets() {
         allmaps[1].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom1.fits").c_str());
         allmaps[2].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom2.fits").c_str());
 
-        if (par.getParMA().SNmap) {
-            allmaps[0].SNMap(true,outfold+srcname+"/"+srcname);
-        }
-
+        if (par.getParMA().SNmap) allmaps[0].SNMap(true,outfold+srcname+"/"+srcname);
 
         delete [] isObj;
 

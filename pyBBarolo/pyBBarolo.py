@@ -500,7 +500,7 @@ class FitMod3D(Model3D):
         self.bfit = None
         # A dictionary with options and defaults values
         self._opts.update({'ltype'   : [2, np.int32, "Layer type along z"],
-                           'smooth'  : [True, np.bool, "If false, disable smoothing"],
+                           'smooth'  : [True, bool, "If false, disable smoothing"],
                            'deltainc': [5., np.float32,"Inclination angle variation (degrees)"],
                            'deltaphi': [15., np.float32, "Position angle variation (degrees)"],
                            'ftype'   : [2, np.int32, "Residual function to minimize" ],
@@ -511,10 +511,10 @@ class FitMod3D(Model3D):
                            'norm'    : ['LOCAL', str, "Normalization type"],
                            'free'    : ['VROT VDISP', str, "Free parameters"],
                            'side'    : ['B', str, "Which side of the galaxy to fit"],
-                           'twostage': [True, np.bool, "Regularize and fit a second model"],
+                           'twostage': [True, bool, "Regularize and fit a second model"],
                            'polyn'   : ['bezier', str, "Type of regularization"],
                            'startrad': [0, np.int32, "Starting radius"],
-                           'errors'  : [False, np.bool, "Whether estimating errors"],
+                           'errors'  : [False, bool, "Whether estimating errors"],
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
                            'restwave': [-1., np.float64, "Rest wavelength of observed line"],
@@ -686,7 +686,7 @@ class Search(Task):
         self._opts = { "searchtype"  : ["spatial", str, "spectral or spatial search"],
                        "snrcut"      : [5, np.float32, "S/N cut for detection when sigma-clipping"],
                        "threshold"   : [0, np.float32, "Flux threshold for a detection"],
-                       "adjacent"    : [True, np.bool, "Use the adjacent criterion for objects merger?" ],
+                       "adjacent"    : [True, bool, "Use the adjacent criterion for objects merger?" ],
                        "thrspatial"  : [-1, np.int32, "Maximum spatial separation between objects"],
                        "thrvelocity" : [2,  np.int32, "Maximum channels separation between objects"],
                        "minchannels" : [2,  np.int32, "Minimum channels to make an object"],
@@ -694,11 +694,11 @@ class Search(Task):
                        "minvoxels"   : [-1, np.int32, "Minimum voxels required in an object"],
                        "maxchannels" : [-1, np.int32, "Maximum channels to accept an object"],
                        "maxangsize"  : [-1, np.float32, "Maximum angular size in an object (arcmin)"],
-                       "growth"      : [True, np.bool, "Growing objects once they are found?"],
+                       "growth"      : [True, bool, "Growing objects once they are found?"],
                        "growthcut"   : [3, np.float32, "The SNR that we are growing objects down to"],
                        "growththresh": [0, np.float32, "The threshold for growing objects down to"],
-                       "rejectbeforemerge" : [True, np.bool, "Whether to reject sources before merging"],
-                       "twostagemerge" : [True, np.bool, "Whether to do a partial merge during search"]}
+                       "rejectbeforemerge" : [True, bool, "Whether to reject sources before merging"],
+                       "twostagemerge" : [True, bool, "Whether to do a partial merge during search"]}
 
 
     def search(self,threads=1):
