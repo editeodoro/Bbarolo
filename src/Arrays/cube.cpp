@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <Arrays/cube.hh>
 #include <Arrays/image.hh>
 #include <Arrays/stats.hh>
@@ -918,8 +919,8 @@ void Cube<T>::CheckChannels () {
     }
     
     string name = par.getImageFile();
-    int found = name.find(".fits");
-    name.insert(found, "ean");
+    int found = makelower(name).find(".fits");
+    name.insert(found, "_clean");
     
     int NdatZ = axisDim[2]-bad.size(); 
     int ax[3] = {axisDim[0], axisDim[1], NdatZ};
@@ -1146,7 +1147,7 @@ void Cube<T>::printDetections (std::ostream& Stream) {
     // Writing information on flux thresholds used during the source finding.
     T thresh1 = par.getParSE().UserThreshold ? par.getParSE().threshold : stats.getThreshold();
     T thresh2 = 0;
-    if (par.getParSE().growthThreshold!=0) par.getParSE().growthThreshold;
+    if (par.getParSE().growthThreshold!=0) thresh2 = par.getParSE().growthThreshold;
     else thresh2 = stats.getMiddle() + stats.getSpread()*par.getParSE().growthCut;
 
     if (thresh1<1E-03 || thresh2<1E-03) Stream<< scientific;
@@ -1402,6 +1403,7 @@ void Cube<T>::writeCubelets() {
 
     std::string outfold = par.getOutfolder()+"sources/";
     std::string object  = head.Name();
+    std::filesystem::remove_all(outfold);
     mkdirp(outfold.c_str());
 
     ProgressBar bar(true,par.isVerbose(),par.getShowbar());

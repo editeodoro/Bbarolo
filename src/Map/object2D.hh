@@ -113,7 +113,7 @@ namespace PixelInfo
     /// @brief Return a measurement of the primary position angle
     double getPositionAngle();
     /// @brief Return the lengths of the principal axes.
-    std::pair<double,double> getPrincipleAxes();
+    double *getPrincipalAxes();
 
     /// @brief A stream output operator. 
     friend std::ostream& operator<< (std::ostream& theStream, Object2D& obj);

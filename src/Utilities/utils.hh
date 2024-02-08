@@ -64,8 +64,8 @@ template <class T> T findMADFM(T *array, bool *mask, size_t size, T median);
 
 
 /// Functions to manipulate strings. Defined in string.cpp
-std::string makelower( std::string s );
-std::string makeupper( std::string s );
+std::string makelower(std::string s);
+std::string makeupper(std::string s);
 std::string stringize(bool b);
 bool boolify(std::string s);
 std::string readFilename(std::stringstream& ss);

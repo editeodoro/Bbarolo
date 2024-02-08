@@ -563,11 +563,12 @@ void Detection<T>::calcWCSparams(Header &head) {
     decWidth  = angularSeparation(ra,deMin,ra,deMax)*arcconv;
 
     Object2D spatMap = this->getSpatialMap();
-    std::pair<double,double> axes = spatMap.getPrincipleAxes();
+    double *axes = spatMap.getPrincipalAxes();
     float PixScale = ((fabs(head.Cdelt(0))+fabs(head.Cdelt(1)))/2.)*arcconv;
-    majorAxis = std::max(axes.first,axes.second)*PixScale;
-    minorAxis = std::min(axes.first,axes.second)*PixScale;
+    majorAxis = std::max(axes[0],axes[1])*PixScale;
+    minorAxis = std::min(axes[0],axes[1])*PixScale;
     posang = spatMap.getPositionAngle()*180./M_PI;
+    delete [] axes;
 
     vel    = (this->getZcentre()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
     vel    = AlltoVel(vel, head);

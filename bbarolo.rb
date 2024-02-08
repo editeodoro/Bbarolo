@@ -29,8 +29,8 @@ class Bbarolo < Formula
   end
   
   def install
-    # BBarolo requires a c++11 compiler
-    ENV.cxx11
+    # BBarolo requires a c++17 compiler
+    ENV.cxx17
 
     # Configure script arguments
     args = %W[

@@ -301,7 +301,7 @@ namespace PixelInfo
   }
   
   
-  std::pair<double,double> Object2D::getPrincipleAxes() {
+  double *Object2D::getPrincipalAxes() {
 
     double theta = getPositionAngle();
     double x0 = getXaverage();
@@ -318,13 +318,12 @@ namespace PixelInfo
     std::sort(majorAxes.begin(),majorAxes.end());
     std::sort(minorAxes.begin(),minorAxes.end());
     int size = majorAxes.size();
-    std::pair<double,double> axes;
-    axes.first = fabs(majorAxes[0]-majorAxes[size-1]);
-    axes.second = fabs(minorAxes[0]-minorAxes[size-1]);
-    if(axes.first<0.5) axes.first=0.5;
-    if(axes.second<0.5) axes.second=0.5;
+    double *axes = new double[2];
+    axes[0] = fabs(majorAxes[0]-majorAxes[size-1]);
+    axes[1] = fabs(minorAxes[0]-minorAxes[size-1]);
+    if(axes[0]<0.5) axes[0]=0.5;
+    if(axes[1]<0.5) axes[1]=0.5;
     return axes;
-
   }
   
   
