@@ -256,9 +256,8 @@ bool Cube<T>::readCube (std::string fname, bool printInfo) {
     else head.setVelDef(par.getParMA().veldef);
     
     // Reading in fits array
-    numPix = axisDim[0]*axisDim[1]*axisDim[2];
+    numPix = size_t(axisDim[0])*size_t(axisDim[1])*size_t(axisDim[2]);
     if (!fitsread_3d()) return false;
-    
     
     if (printInfo) {
         // Giving some information on conversion factors that will be used
