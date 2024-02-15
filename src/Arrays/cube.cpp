@@ -1133,7 +1133,7 @@ void Cube<T>::printDetections (std::ostream& Stream) {
     float RA=-1, DEC=-1, VEL=-1;
     int numObj = getNumObj();
     int m = 10;
-    int k=29;
+    int k = 29;
     string str;
 
     Stream  << "#" << endl;
@@ -1182,23 +1182,23 @@ void Cube<T>::printDetections (std::ostream& Stream) {
     Stream  << endl;
 
     Stream  << "#" << setw(m-2)<< left  << "    [#]"
-            << setw(m+6)  << right << "[pix,pix,chan]";
+            << setw(m+7)  << right << "[pix,pix,chan]";
 
     if (headDefined) {
-        str = "["+head.Cunit(0)+","+head.Cunit(1)+",KM/S]      ";
+        str = "["+head.Cunit(0)+","+head.Cunit(1)+",KM/S]     ";
         Stream  << setw(k) << right << str;
     }
 
     Stream  << setw(m-3) << right << "[pix] "
             << setw(m-3) << right << "[pix] "
-            << setw(m-3) << right << "[chan]"
+            << setw(m-4) << right << "[chan]"
             << setw(m) << right << "[pix] "
             << setw(m) << right << "[pix] "
             << setw(m) << right << "[km/s]"
             << setw(m) << right << "[km/s]"
             << setw(m+5) << right << "[JY*km/s]"
             << setw(m-2) << right << " "
-            << setw(m) << right << head.Bunit();
+            << setw(m) << right << "["+head.Bunit()+"]";
 
     Stream  << endl;
 
@@ -1227,7 +1227,8 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             pixToWCSSingle(head.WCS(), pix, world);
             RA  = world[0];
             DEC = world[1];
-            VEL = AlltoVel (world[2],head);
+            //VEL = AlltoVel (world[2],head);
+            VEL = AlltoVel(getZphys(Zcenter), head);
             //float zval = ((Zcenter+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2));
             //VEL = AlltoVel(zval,head);
             if (RA<0) RA += 360;

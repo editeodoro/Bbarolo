@@ -215,13 +215,15 @@ namespace Statistics
     template <class Type> 
     std::ostream& operator<< (std::ostream& theStream, Stats<Type> &s) {
         
-    /// Prints out the four key statistics to the requested stream.
-    theStream << " Mean   = "   << setw(12) << s.mean   << "\t"
-              << " Std.Dev. = " << setw(12) <<s.stddev << "\n"
-              << " Median = "   << setw(12) <<s.median << "\t"
-              << " MADFM    = " << setw(12) <<s.madfm  << " (= " 
-              << madfmToSigma(s.madfm) << " as std.dev.)\n";
-    return theStream;
+        /// Prints out the four key statistics to the requested stream.
+        theStream << " Min    = "   << setw(12) << s.min_val << "\t"
+                  << " Max      = " << setw(12) << s.max_val << "\n"
+                  << " Mean   = "   << setw(12) << s.mean    << "\t"
+                  << " Std.Dev. = " << setw(12) << s.stddev  << "\n"
+                  << " Median = "   << setw(12) << s.median  << "\t"
+                  << " MADFM    = " << setw(12) << s.madfm   << " (= " 
+                 << madfmToSigma(s.madfm) << " as std.dev.)\n";
+        return theStream;
     }
     template std::ostream& operator<<<short> (std::ostream& theStream, Stats<short> &s);
     template std::ostream& operator<<<int> (std::ostream& theStream, Stats<int> &s);
