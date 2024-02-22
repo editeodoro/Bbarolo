@@ -467,7 +467,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     else if (in->Head().VelDef()=="optical") velsys=2;
     else if (in->Head().VelDef()=="relativistic") velsys=3;
     
-    std::string sptype = c->Head().getSpectralType();
+    std::string sptype = c->Head().SpectralType();
     
     if (sptype=="wave") {                 // Wavelength axis
         
@@ -541,7 +541,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
             }
         }
     }
-    else if (sptype=="velo") {                // Velocity axis
+    else if (sptype.find("velo")!=std::string::npos) {                // Velocity axis
         
         axtyp=4;
         

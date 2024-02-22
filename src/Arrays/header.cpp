@@ -547,7 +547,27 @@ bool Header::header_read (std::string fname) {
     if (clbmaj!=0) bmaj = clbmaj/3600.;
     if (clbmin!=0) bmin = clbmin/3600.;
 
+    
+    // Setting spectral type axis
+    // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis ig numAxes>3
+    std::string cu2 = makelower(cunit[numAxes-1]);
+    std::string ct2 = makelower(ctype[numAxes-1]);
+    if (numAxes>3) {
+        cu2 = makelower(cunit[2]);
+        ct2 = makelower(ctype[2]);
+    }
+    size_t f = std::string::npos;
+    
+    if (ct2.find("wav")!=f  || cu2.find("um")!=f || cu2.find("nm")!=f ||
+        cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
+    else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
+    else if (ct2.find("vopt")!=f || ct2.find("felo")!=f) sptype="velo-opt";
+    else if (ct2.find("vel")!=f  || ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo-radio";
+    else sptype="unknown";
 
+    std::cout << sptype << std::endl;
+    
+    // Reading in WCS
     int noComments = 1;     // fits_hdr2str will ignore COMMENT, HISTORY etc
     int nExc = 0;
     char *hdr=0;
@@ -862,29 +882,6 @@ bool Header::checkHeader() {
     
     return allgood;
 
-}
-
-
-std::string Header::getSpectralType() {
-
-    // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis ig numAxes>3
-    std::string cu2 = makelower(cunit[numAxes-1]);
-    std::string ct2 = makelower(ctype[numAxes-1]);
-    if (numAxes>3) {
-        cu2 = makelower(cunit[2]);
-        ct2 = makelower(ctype[2]);
-    }
-    size_t f = std::string::npos;
-    std::string sptype;
-    
-    if (ct2.find("wav")!=f  || cu2.find("um")!=f || cu2.find("nm")!=f ||
-        cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
-    else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
-    else if (ct2.find("vel")!=f || ct2.find("vopt")!=f || 
-        ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo";
-    else sptype="none";
-    
-    return sptype;
 }
 
 

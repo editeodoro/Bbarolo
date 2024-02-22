@@ -403,8 +403,8 @@ bool MomentMap<T>::setHead(int type) {
         }
         else if (type==1 || type==2) {
             if (type==1) {
-                std::string sptype = in->Head().getSpectralType();
-                if (sptype=="velo") this->head.setBtype("velocity");
+                std::string sptype = in->Head().SpectralType();
+                if (sptype.find("velo")!=std::string::npos) this->head.setBtype(sptype);
                 else {
                     std::string vdef = in->Head().VelDef();
                     if (vdef=="radio") this->head.setBtype("velo-radio");

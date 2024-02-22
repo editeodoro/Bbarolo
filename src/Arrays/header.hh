@@ -84,6 +84,7 @@ public:
     std::string Obname () {return object;}
     std::string Telesc () {return telescope;}
     std::string VelDef () {return veldef;}
+    std::string SpectralType() {return sptype;}
     
     void setBitpix (int i) {bitpix = i;}
     void setDimAx (int i, long val) {dimAxes[i] = val;}
@@ -131,7 +132,6 @@ public:
     bool    checkHeader();                                      /// Check header is ok for BBarolo
     int     wcsToPix(const double *world, double *pix, size_t npts=1);
     int     pixToWCS(const double *pix, double *world, size_t npts=1);
-    std::string getSpectralType();
 
     template <class T>                                          /// Read the request keyword and write on "key".
     bool read_keyword(std::string keyword, T &key, bool err=false); 
@@ -168,6 +168,7 @@ private:
     std::string dunit3;             ///< Secondary units of third axis.
     std::string telescope;          ///< Instrument.
     std::string veldef;             ///< Velocity definition.
+    std::string sptype;             ///< Spectral type (frequency, wavelength, velocity radio or optical)
     std::vector<std::string> keys;  ///< Whole header as strings.
 
     struct wcsprm *wcs;             ///< The WCS parameters in a struct from the wcslib library.

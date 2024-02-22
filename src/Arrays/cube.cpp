@@ -238,22 +238,27 @@ bool Cube<T>::readCube (std::string fname, bool printInfo) {
     // be stored in Header(). I should think something better
     head.setRedshift(par.getRedshift());
     head.setWave0(par.getRestwave());
-    
+
     // Setting velocity conversion
-    if (par.getParMA().veldef=="auto") {
-        std::string sptype = head.getSpectralType();
-        if (sptype=="freq") {
-            head.setVelDef("radio");
-            std::cout << "\nBBAROLO WARNING: I will use a radio definition for velocity. ";
-            std::cout << "This can be changed by using VELDEF parameter.\n";
+    std::string sptype = head.SpectralType();
+    if (sptype=="velo-radio") head.setVelDef("radio");
+    else if (sptype=="velo-radio") head.setVelDef("optical");
+    else { 
+        if (par.getParMA().veldef=="auto") {
+            if (sptype=="freq") {
+                head.setVelDef("radio");
+                std::cout << "\nBBAROLO WARNING: I will use a radio definition for velocity. ";
+                std::cout << "This can be changed by using VELDEF parameter.\n";
+            }
+            else if (sptype=="wave") {
+                head.setVelDef("relativistic");
+                std::cout << "\nBBAROLO WARNING: I will use a relativistic definition of velocity. ";
+                std::cout << "This can be changed by using VELDEF parameter.\n";
+            }
         }
-        else if (sptype=="wave") {
-            head.setVelDef("relativistic");
-            std::cout << "\nBBAROLO WARNING: I will use a relativistic definition of velocity. ";
-            std::cout << "This can be changed by using VELDEF parameter.\n";
-        }
+        else head.setVelDef(par.getParMA().veldef);
     }
-    else head.setVelDef(par.getParMA().veldef);
+    
     
     // Reading in fits array
     numPix = size_t(axisDim[0])*size_t(axisDim[1])*size_t(axisDim[2]);
@@ -264,14 +269,15 @@ bool Cube<T>::readCube (std::string fname, bool printInfo) {
         std::cout << fixed << setprecision(6);
         if (axisDim[2]>1) { 
             std::cout << "Spectral axis is ";
-            if (head.getSpectralType()=="velo") std::cout << "VELOCITY.\n";
-            else if (head.getSpectralType()=="freq") { 
+            if (sptype=="velo-radio") std::cout << "VELOCITY (RADIO).\n";
+            else if (sptype=="velo-opt") std::cout << "VELOCITY (OPTICAL).\n";
+            else if (sptype=="freq") { 
                 std::cout << "FREQUENCY.\n";
                 std::cout << "  Rest frequency  = " << head.Freq0() << " " << head.Cunit(2) << std::endl;
                 if (par.getRedshift()!=0.)
                     std::cout << "  Redshift (z)    = " << par.getRedshift() << std::endl; 
             }
-            else if (head.getSpectralType()=="wave") {
+            else if (sptype=="wave") {
                 std::cout << "WAVELENGTH.\n";
                 if (head.Wave0()!=-1) {
                     std::cout << "  Rest wavelength = " << head.Wave0() << " " << head.Cunit(2) << std::endl;
@@ -283,7 +289,7 @@ bool Cube<T>::readCube (std::string fname, bool printInfo) {
 
             std::cout << "  Channel width   = " << head.Cdelt(2) << " " << head.Cunit(2) 
                       << " = " << DeltaVel(head) << " km/s";
-            if (head.getSpectralType()=="wave" || head.getSpectralType()=="freq") 
+            if (sptype=="wave" || sptype=="freq") 
                 std::cout << " (" << head.VelDef() << ").\n";
             else std::cout << ".\n";
         }
