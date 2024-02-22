@@ -565,7 +565,6 @@ bool Header::header_read (std::string fname) {
     else if (ct2.find("vel")!=f  || ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo-radio";
     else sptype="unknown";
 
-    std::cout << sptype << std::endl;
     
     // Reading in WCS
     int noComments = 1;     // fits_hdr2str will ignore COMMENT, HISTORY etc

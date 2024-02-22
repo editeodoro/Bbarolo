@@ -242,7 +242,7 @@ bool Cube<T>::readCube (std::string fname, bool printInfo) {
     // Setting velocity conversion
     std::string sptype = head.SpectralType();
     if (sptype=="velo-radio") head.setVelDef("radio");
-    else if (sptype=="velo-radio") head.setVelDef("optical");
+    else if (sptype=="velo-opt") head.setVelDef("optical");
     else { 
         if (par.getParMA().veldef=="auto") {
             if (sptype=="freq") {
