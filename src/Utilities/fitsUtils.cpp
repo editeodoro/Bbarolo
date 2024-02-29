@@ -160,7 +160,7 @@ int modhead(int argc, char *argv[]) {
     // https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cexamples.html#modhead
     
     fitsfile *fptr;        
-    char card[FLEN_CARD], newcard[FLEN_CARD];
+    char card[FLEN_CARD], newcard[FLEN_CARD], dummycard[FLEN_CARD];
     char oldvalue[FLEN_VALUE], comment[FLEN_COMMENT];
     int status = 0;
     int iomode, keytype;
@@ -182,19 +182,44 @@ int modhead(int argc, char *argv[]) {
     }
 
     if (!fits_open_file(&fptr, argv[2], iomode, &status)) {
+        bool isHistory = false;
+        
         if (fits_read_card(fptr,argv[3],card, &status)) {
             std::cerr << "Keyword does not exist\n";
             card[0] = comment[0] = '\0';
             status = 0; 
         }
-        else std::cout << card << std::endl;
-
+        else {
+            // Check whether is history or comment keyword
+            std::string key = makeupper(std::string(argv[3]));
+            isHistory = key=="HISTORY" || key=="COMMENT";
+            if (isHistory && argc==4) {
+                // Printing all HISTORY or COMMENT lines
+                // Get # of keywords
+                fits_get_hdrspace(fptr, &keytype, NULL, &status);
+                for (int i = 1; i<=keytype; i++) {  
+                    if (fits_read_record(fptr, i, dummycard, &status)) break;
+                    if (std::string(dummycard).find(key)!=std::string::npos)
+                        std::cout << dummycard << std::endl;
+                }
+            }
+            if (!isHistory) std::cout << card << std::endl;
+        }
+        
         if (argc>=5) {      // Write or overwrite the keyword 
-            // Check if this is a protected keyword that must not be changed 
-            if (*card && fits_get_keyclass(card) == TYP_STRUC_KEY) 
+            
+            if (isHistory) {
+                // If it is a HISTORY or COMMENT key, just append it to the header
+                std::string newcard = makeupper(std::string(argv[3])) + " " + std::string(argv[4]);
+                fits_write_record(fptr, newcard.c_str(), &status);
+                std::cout << "Following entry has been added to the header:\n";
+                std::cout << newcard << std::endl;
+            }
+            else if (*card && fits_get_keyclass(card) == TYP_STRUC_KEY) 
+                // Check if this is a protected keyword that must not be changed 
                 std::cerr << "Protected keyword cannot be modified.\n";
             else {
-                
+                // Any other keyword
                 // Retrieve the comment string 
                 if (*card) fits_parse_value(card, oldvalue, comment, &status);
 
@@ -221,7 +246,7 @@ int modhead(int argc, char *argv[]) {
     
     // If error occured, print out error message 
     if (status) fits_report_error(stderr, status);
-    return status ;
+    return status;
 }
 
 
