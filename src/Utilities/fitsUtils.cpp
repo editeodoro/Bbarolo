@@ -166,15 +166,16 @@ int modhead(int argc, char *argv[]) {
     int iomode, keytype;
 
     if (argc==4) iomode = READONLY;
-    else if (argc==5) iomode = READWRITE;
+    else if (argc==5 || argc==6) iomode = READWRITE;
     else {
         std::cout << "\n BBarolo's MODHEAD FITS utility: \n\n"
                   << " Write or modify the value of a header keyword.\n"
                   << " If a newvalue is not specified, just print the current value.\n\n"
-                  << " Usage:\n   BBarolo --modhead filename[ext] keyword [newvalue]\n\n"
+                  << " Usage:\n   BBarolo --modhead filename[ext] keyword [newvalue] \"[comment]\"\n\n"
                   << " Examples: \n"
-                  << "   BBarolo --modhead in.fits cunit1      (list the CUNIT1 keyword)\n"
-                  << "   BBarolo --modhead in.fits cunit1 deg  (set CUNIT1 = 'deg')\n\n"
+                  << "   BBarolo --modhead in.fits cunit1               (list the CUNIT1 keyword)\n"
+                  << "   BBarolo --modhead in.fits cunit1 deg           (set CUNIT1 = 'deg')\n"
+                  << "   BBarolo --modhead in.fits cunit1 deg \"RA unit\" (set CUNIT1 = 'deg' with comment)\n\n" 
                   << " NOTE: it may be necessary to enclose the input file name in single \n"
                   << " quote characters on some Unix shells.\n\n";
         return 0;
@@ -188,7 +189,7 @@ int modhead(int argc, char *argv[]) {
         }
         else std::cout << card << std::endl;
 
-        if (argc==5) {      // Write or overwrite the keyword 
+        if (argc>=5) {      // Write or overwrite the keyword 
             // Check if this is a protected keyword that must not be changed 
             if (*card && fits_get_keyclass(card) == TYP_STRUC_KEY) 
                 std::cerr << "Protected keyword cannot be modified.\n";
@@ -199,10 +200,11 @@ int modhead(int argc, char *argv[]) {
 
                 // Construct template for new keyword */
                 std::string newcard = std::string(argv[3]) + " = ";
-                if (isdigit(argv[4][1])) newcard += std::string(argv[4]);
-                else newcard += "'" + std::string(argv[4]) + "'" ;
                 
-                if (*comment) newcard += "/ " + std::string(comment);
+                newcard += std::string((argv[4]));
+            
+                if (argc==6) newcard += "/ " + std::string(argv[5]);
+                else if (*comment) newcard += "/ " + std::string(comment);
                 
                 // Reformat the keyword string to conform to FITS rules
                 fits_parse_template(&newcard[0], card, &keytype, &status);

@@ -1235,8 +1235,6 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             DEC = world[1];
             //VEL = AlltoVel (world[2],head);
             VEL = AlltoVel(getZphys(Zcenter), head);
-            //float zval = ((Zcenter+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2));
-            //VEL = AlltoVel(zval,head);
             if (RA<0) RA += 360;
             else if (RA>360) RA -= 360;
         }
