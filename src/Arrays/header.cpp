@@ -43,7 +43,7 @@ Header::Header () {
     numAxes = bmaj = bmin = bpa = beamArea = freq0 = 0.;
     wave0 = -1;
     datamin = datamax = redshift = crota = 0.;
-    dunit3 = "";
+    dunit3 = radesys = specsys = "";
     object = "NONE";
     veldef = "auto";
     pointAllocated = false;
@@ -119,6 +119,7 @@ Header& Header::operator=(const Header& h) {
     this->beamArea  = h.beamArea;
     this->epoch     = h.epoch;
     this->radesys   = h.radesys;
+    this->specsys   = h.specsys;
     this->freq0     = h.freq0;
     this->wave0     = h.wave0;
     this->redshift  = h.redshift;
@@ -227,9 +228,9 @@ bool Header::header_read (std::string fname) {
       fits_report_error(stderr, status);
     }
 
-    char Bunit[20], Btype[20], name[20], Tel[20], Dunit3[20], Keys[100];
+    char dummy[20], Bunit[20], Btype[20], name[20], Tel[20], Dunit3[20], Keys[100];
     for (int i=0; i<20; i++) {
-            Bunit[i]=Btype[i]=name[i]=Tel[i]=Dunit3[i]=Keys[i]=' ';
+            dummy[i]=Bunit[i]=Btype[i]=name[i]=Tel[i]=Dunit3[i]=Keys[i]=' ';
     }
     for (int i=20; i<100; i++) Keys[i]=' ';
 
@@ -285,10 +286,10 @@ bool Header::header_read (std::string fname) {
     status=0;
     fits_read_keys_str (fptr, "CTYPE", 1, numAxes, Ctype, &nfound, &status);
     if (nfound==0) {
-        Warning("HEADER WARNING: CTYPEs keywords not found. Assuming [RA,DEC,VELO].");
+        Warning("HEADER WARNING: CTYPEs keywords not found. Assuming [RA,DEC,VRAD].");
         if (numAxes>0) ctype[0] = "RA---NCP";
         if (numAxes>1) ctype[1] = "DEC--NCP";
-        if (numAxes>2) ctype[2] = "VELO-HELO";
+        if (numAxes>2) ctype[2] = "VRAD";
     }
     else {
         for (int i=0; i<numAxes; i++) {
@@ -301,8 +302,8 @@ bool Header::header_read (std::string fname) {
     status=0;
     fits_read_keys_str (fptr, "CUNIT", 1, numAxes, Cunit, &nfound, &status);
     if (nfound==0) {
-        if (numAxes>0) cunit[0] = "DEGREE";
-        if (numAxes>1) cunit[1] = "DEGREE";
+        if (numAxes>0) cunit[0] = "deg";
+        if (numAxes>1) cunit[1] = "deg";
         if (numAxes>2) {
             if (makelower(ctype[2]).find("freq")!=std::string::npos) {
                 cunit[2] = "hz";
@@ -388,18 +389,21 @@ bool Header::header_read (std::string fname) {
     }
     
     status=0;
-    if (fits_read_key_str (fptr, "RADECSYS", Bunit, comment, &status)) {
+    if (fits_read_key_str (fptr, "RADECSYS", dummy, comment, &status)) {
         status=0;
-        if (fits_read_key_str (fptr, "RADESYS", Bunit, comment, &status)) {
+        if (fits_read_key_str (fptr, "RADESYS", dummy, comment, &status)) {
             if (epoch>1984) radesys = "FK5";
             else if (epoch!=0) radesys = "FK4";
             else radesys = "ICRS";
         }
-        else radesys = Bunit;
+        else radesys = dummy;
     }
-    else radesys = Bunit;
+    else radesys = dummy;
     
-    std::cout << radesys << std::endl;
+    status=0;
+    if (fits_read_key_dbl (fptr, "CROTA", &crota, comment, &status)) {
+        crota = 0;
+    }
     
     status=0;
     if (fits_read_key_dbl (fptr, "DATAMIN", &datamin, comment, &status)) {
@@ -411,36 +415,72 @@ bool Header::header_read (std::string fname) {
         datamax = 0;
     }
     
-    status=0;
-    if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
+    // Special keywords for spectral axis
+    if (numAxes>=3) {
+        // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis if numAxes>3
+        std::string cu2 = makelower(cunit[numAxes-1]);
+        std::string ct2 = makelower(ctype[numAxes-1]);
+        size_t f = std::string::npos;
+        if (numAxes>3) {
+            cu2 = makelower(cunit[2]);
+            ct2 = makelower(ctype[2]);
+        }
+        
         status=0;
-        if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
+        specsys = "";
+        if (fits_read_key_str (fptr, "SPECSYS", dummy, comment, &status)) {
+            // Looking for AIPS VELREF keyword
             status=0;
-            if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
-                if (dunit3=="NONE" || drval3==0 || (makelower(cunit[2]).find("hz")!=std::string::npos &&
-                                                    makelower(cunit[2]).find("m/s")!=std::string::npos)) {
-                        Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
-                        freq0 = 0.1420405751786E10;
-                }
-                else {
-                    double drval3ms=0., crval3hz=0.;
-                    if (makelower(dunit3)=="km/s") drval3ms=drval3*1000;
-                    else if (makelower(dunit3)=="m/s") drval3ms=drval3;
-                    if (makelower(cunit[2])=="hz") crval3hz = crval[2];
-                    else if (makelower(cunit[2])=="mhz") crval3hz=crval[2]*1.E06;
-                    else if (makelower(cunit[2])=="ghz") crval3hz=crval[2]*1.E09;
-                    freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
+            float velref = 0;
+            if (fits_read_key_flt (fptr, "VELREF", &velref, comment, &status)) {
+                // Check if CTYPE3 has some information
+                if      (ct2.find("lsr")!=f) specsys = "LSRK";
+                else if (ct2.find("hel")!=f) specsys = "BARYCENT";
+                else if (ct2.find("top")!=f) specsys = "TOPOCENT";
+            }
+            else {
+                if      (velref==1 || velref==257) specsys = "LSRK";
+                else if (velref==2 || velref==258) specsys = "BARYCENT";
+                else if (velref==3 || velref==259) specsys = "TOPOCENT";
+                specsys = "";
+            }
+        }
+        else specsys = dummy;
+        
+        
+        status=0;
+        if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
+            status=0;
+            if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
+                status=0;
+                if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
+                    if (dunit3=="NONE" || drval3==0 || (cu2.find("hz")!=f && cu2.find("m/s")!=f)) {
+                            Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
+                            freq0 = 0.1420405751786E10;
+                    }
+                    else {
+                        double drval3ms=0., crval3hz=0.;
+                        if (makelower(dunit3)=="km/s") drval3ms=drval3*1000;
+                        else if (makelower(dunit3)=="m/s") drval3ms=drval3;
+                        if (cu2=="hz") crval3hz = crval[2];
+                        else if (cu2=="mhz") crval3hz=crval[2]*1.E06;
+                        else if (cu2=="ghz") crval3hz=crval[2]*1.E09;
+                        freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
+                    }
                 }
             }
         }
+        
+        // Setting spectral type axis
+        if (ct2.find("wav")!=f  || cu2.find("um")!=f || cu2.find("nm")!=f ||
+            cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
+        else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
+        else if (ct2.find("vopt")!=f || ct2.find("felo")!=f) sptype="velo-opt";
+        else if (ct2.find("vel")!=f  || ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo-radio";
+        else sptype="unknown";
+        
     }
-
-
-    status=0;
-    if (fits_read_key_dbl (fptr, "CROTA", &crota, comment, &status)) {
-        crota = 0;
-    }
-
+    
     status=0;
     if (fits_read_key_str (fptr, "OBJECT", name, comment, &status)) {
         if (status==202) Warning("HEADER WARNING: OBJECT keyword not found.");
@@ -530,7 +570,7 @@ bool Header::header_read (std::string fname) {
                       << " BMAJ = " << bmaj << " " << cunit[0]
                       << "  BMIN = " << bmin << " " << cunit[0]
                       << "  BPA = "  << bpa  << " DEGREE\n";
-            std::cout << " It is heartly recommended to check these values before going on!!\n\n";
+            std::cout << " It is heartily recommended to check these values before going on!!\n\n";
         }
     }    
     
@@ -555,24 +595,6 @@ bool Header::header_read (std::string fname) {
     if (clbmin!=0) bmin = clbmin/3600.;
 
     
-    // Setting spectral type axis
-    // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis ig numAxes>3
-    std::string cu2 = makelower(cunit[numAxes-1]);
-    std::string ct2 = makelower(ctype[numAxes-1]);
-    if (numAxes>3) {
-        cu2 = makelower(cunit[2]);
-        ct2 = makelower(ctype[2]);
-    }
-    size_t f = std::string::npos;
-    
-    if (ct2.find("wav")!=f  || cu2.find("um")!=f || cu2.find("nm")!=f ||
-        cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
-    else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
-    else if (ct2.find("vopt")!=f || ct2.find("felo")!=f) sptype="velo-opt";
-    else if (ct2.find("vel")!=f  || ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo-radio";
-    else sptype="unknown";
-
-    
     // Reading in WCS
     int noComments = 1;     // fits_hdr2str will ignore COMMENT, HISTORY etc
     int nExc = 0;
@@ -591,7 +613,6 @@ bool Header::header_read (std::string fname) {
     // Parse the FITS header to fill in the wcsprm structure
     status=wcspih(hdr, nkeys, relax, ctrl, &nreject, &nwcs, &wcs);
 
-
     int stat[NWCSFIX];
     // Applies all necessary corrections to the wcsprm structure
     //  (missing cards, non-standard units or spectral types, ...)
@@ -605,7 +626,7 @@ bool Header::header_read (std::string fname) {
     char stype[5],scode[5],sname[22],units[8],ptype,xtype;
     int restreq;
     status = spctyp(wcs->ctype[wcs->spec],stype,scode,sname,units,&ptype,&xtype,&restreq);
-
+    
     if((wcs->lng!=-1) && (wcs->lat!=-1)) wcsIsGood = true;
 
     // Close the FITS File
@@ -658,6 +679,8 @@ void Header::headwrite (fitsfile *fptr, short numDim, bool fullHead) {
     if (object!="NONE") fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
     if (epoch!=0) fits_update_key_flt(fptr, "EQUINOX", epoch, 10, com, &status);
     fits_update_key_str(fptr, "RADESYS", radesys.c_str(), com, &status);
+    if (specsys!="") fits_update_key_str(fptr, "SPECSYS", specsys.c_str(), com, &status);
+    
     if (telescope!="NONE") fits_update_key_str(fptr, "TELESCOP", telescope.c_str(), com, &status);
     if (freq0!=0) fits_update_key_dbl(fptr, "RESTFRQ", freq0, 10, com, &status);
     if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);

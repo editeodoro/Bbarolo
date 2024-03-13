@@ -107,8 +107,7 @@ protected:
     bool    outDefined;
     double  crpix3, crval3, cdelt3;         //< Header keywords.
     double  cdelt[2];                       //<
-    std::string cunit3, ctype3;         
-    std::string ctype[2], cunit[2]; 
+    std::string cunit3, ctype3;
     
     int     blo[2], bhi[2], bsize[2];       //< Boxes.
     double  pixsize[2], pixarea;            //< Pixels information.

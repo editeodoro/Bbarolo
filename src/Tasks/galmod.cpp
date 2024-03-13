@@ -197,8 +197,6 @@ Galmod<T>& Galmod<T>::operator=(const Galmod &g) {
     this->ctype3    = g.ctype3;
     
     for(int i=0; i<2; i++) {
-        this->ctype[i]  = g.ctype[i];
-        this->cunit[i]  = g.cunit[i];
         this->cdelt[i]  = g.cdelt[i];
         this->blo[i]    = g.blo[i];
         this->bhi[i]    = g.bhi[i];
@@ -420,23 +418,16 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     for (int i=0; i<2; i++) {
         bhi[i] = Boxup[i];
         blo[i] = Boxlow[i];
-        ctype[i] = c->Head().Ctype(i);
-        cunit[i] = c->Head().Cunit(i);
+        std::string cunit = makelower(c->Head().Cunit(i));
         cdelt[i] = c->Head().Cdelt(i);
 
-        if (cunit[i]=="DEGREE" || cunit[i]=="DEGREES" || cunit[i]=="DEG" ||
-            cunit[i]=="degree" || cunit[i]=="degrees" || cunit[i]=="deg") 
-                arcmconv = 60.;
-        else if (cunit[i]=="ARCSEC" || cunit[i]=="ARCS" ||
-                 cunit[i]=="arcsec" || cunit[i]=="arcs")
-                arcmconv = 1/60.;
-        else if (cunit[i]=="ARCMIN" || cunit[i]=="ARCM" ||
-                 cunit[i]=="arcmin" || cunit[i]=="arcm") 
-                arcmconv = 1.;
+        if (cunit.find("deg")!=std::string::npos) arcmconv = 60.;
+        else if (cunit.find("arcs")!=std::string::npos) arcmconv = 1/60.;
+        else if (cunit.find("arcm")!=std::string::npos) arcmconv = 1.;
         else {
             std::cerr << "GALMOD error (unknown CUNIT for RA-DEC): ";
             std::cerr << "cannot convert to ARCMIN.\n";
-            std::cerr << cunit[i];
+            std::cerr << cunit;
             std::terminate(); 
         }
         cdelt[i]   = cdelt[i]*arcmconv;
