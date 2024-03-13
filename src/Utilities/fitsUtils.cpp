@@ -195,9 +195,8 @@ int modhead(int argc, char *argv[]) {
             isHistory = key=="HISTORY" || key=="COMMENT";
             if (isHistory && argc==4) {
                 // Printing all HISTORY or COMMENT lines
-                // Get # of keywords
                 fits_get_hdrspace(fptr, &keytype, NULL, &status);
-                for (int i = 1; i<=keytype; i++) {  
+                for (int i=1; i<=keytype; i++) {  
                     if (fits_read_record(fptr, i, dummycard, &status)) break;
                     if (std::string(dummycard).find(key)!=std::string::npos)
                         std::cout << dummycard << std::endl;

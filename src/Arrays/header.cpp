@@ -118,6 +118,7 @@ Header& Header::operator=(const Header& h) {
     this->blank     = h.blank;
     this->beamArea  = h.beamArea;
     this->epoch     = h.epoch;
+    this->radesys   = h.radesys;
     this->freq0     = h.freq0;
     this->wave0     = h.wave0;
     this->redshift  = h.redshift;
@@ -387,6 +388,20 @@ bool Header::header_read (std::string fname) {
     }
     
     status=0;
+    if (fits_read_key_str (fptr, "RADECSYS", Bunit, comment, &status)) {
+        status=0;
+        if (fits_read_key_str (fptr, "RADESYS", Bunit, comment, &status)) {
+            if (epoch>1984) radesys = "FK5";
+            else if (epoch!=0) radesys = "FK4";
+            else radesys = "ICRS";
+        }
+        else radesys = Bunit;
+    }
+    else radesys = Bunit;
+    
+    std::cout << radesys << std::endl;
+    
+    status=0;
     if (fits_read_key_dbl (fptr, "DATAMIN", &datamin, comment, &status)) {
         datamin = 0;
     }
@@ -397,32 +412,24 @@ bool Header::header_read (std::string fname) {
     }
     
     status=0;
-    if (fits_read_key_dbl (fptr, "FREQR", &freq0, comment, &status)) {
+    if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
         status=0;
-        if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
+        if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
             status=0;
-            if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
-                status=0;
-                if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
-                    status=0;
-                    if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
-                        if (dunit3=="NONE" || drval3==0 || (cunit[2]!="HZ" && cunit[2]!="hz" &&
-                                                            cunit[2]!="MHZ" && cunit[2]!="Mhz" && cunit[2]!="mhz" &&
-                                                            cunit[2]!="GHZ" && cunit[2]!="Ghz" && cunit[2]!="ghz" &&
-                                                            dunit3!="KM/S" && dunit3!="km/s" && dunit3!="M/S"  && dunit3!="m/s")) {
-                            Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
-                            freq0 = 0.1420405751786E10;
-                        }
-                        else {
-                            double drval3ms=0.,crval3hz=0.;
-                            if (dunit3=="KM/S" || dunit3=="km/s") drval3ms=drval3*1000;
-                            else if (dunit3=="M/S" || dunit3=="m/s") drval3ms=drval3;
-                            if (cunit[2]=="HZ" || cunit[2]=="hz") crval3hz = crval[2];
-                            else if (cunit[2]=="MHZ" || cunit[2]=="Mhz" || cunit[2]=="mhz") crval3hz=crval[2]*1.E06;
-                            else if (cunit[2]=="GHZ" || cunit[2]=="Ghz" || cunit[2]=="ghz") crval3hz=crval[2]*1.E09;
-                            freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
-                        }
-                    }
+            if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
+                if (dunit3=="NONE" || drval3==0 || (makelower(cunit[2]).find("hz")!=std::string::npos &&
+                                                    makelower(cunit[2]).find("m/s")!=std::string::npos)) {
+                        Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
+                        freq0 = 0.1420405751786E10;
+                }
+                else {
+                    double drval3ms=0., crval3hz=0.;
+                    if (makelower(dunit3)=="km/s") drval3ms=drval3*1000;
+                    else if (makelower(dunit3)=="m/s") drval3ms=drval3;
+                    if (makelower(cunit[2])=="hz") crval3hz = crval[2];
+                    else if (makelower(cunit[2])=="mhz") crval3hz=crval[2]*1.E06;
+                    else if (makelower(cunit[2])=="ghz") crval3hz=crval[2]*1.E09;
+                    freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
                 }
             }
         }
@@ -640,7 +647,7 @@ void Header::headwrite (fitsfile *fptr, short numDim, bool fullHead) {
         //if (drval3!=0) fits_update_key_dbl(fptr, "DRVAL3", drval3, 10, com, &status);
         //if (dunit3!="NONE") fits_update_key_str(fptr, "DUNIT3", dunit3.c_str(), com, &status);
     }
-        
+
     fits_update_key_str(fptr, "BUNIT", bunit.c_str(), com, &status);
     if (btype!="NONE") fits_update_key_str(fptr, "BTYPE", btype.c_str(), com, &status);
     
@@ -650,8 +657,9 @@ void Header::headwrite (fitsfile *fptr, short numDim, bool fullHead) {
     
     if (object!="NONE") fits_update_key_str(fptr, "OBJECT", object.c_str(), com, &status);
     if (epoch!=0) fits_update_key_flt(fptr, "EQUINOX", epoch, 10, com, &status);
+    fits_update_key_str(fptr, "RADESYS", radesys.c_str(), com, &status);
     if (telescope!="NONE") fits_update_key_str(fptr, "TELESCOP", telescope.c_str(), com, &status);
-    if (freq0!=0) fits_update_key_dbl(fptr, "RESTFREQ", freq0, 10, com, &status);
+    if (freq0!=0) fits_update_key_dbl(fptr, "RESTFRQ", freq0, 10, com, &status);
     if (datamax!=0) fits_update_key_dbl(fptr, "DATAMAX", datamax, 10, com, &status);
     if (datamin!=0) fits_update_key_dbl(fptr, "DATAMIN", datamin, 10, com, &status);
     

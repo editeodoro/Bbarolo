@@ -169,6 +169,7 @@ private:
     std::string telescope;          ///< Instrument.
     std::string veldef;             ///< Velocity definition.
     std::string sptype;             ///< Spectral type (frequency, wavelength, velocity radio or optical)
+    std::string radesys;            ///< System in RA and DEC.
     std::vector<std::string> keys;  ///< Whole header as strings.
 
     struct wcsprm *wcs;             ///< The WCS parameters in a struct from the wcslib library.

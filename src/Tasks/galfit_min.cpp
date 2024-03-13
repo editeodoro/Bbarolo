@@ -372,7 +372,7 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
                     double maxp = (inr->phi[w_r]+par.DELTAPHI)<maxs[PA] ? inr->phi[w_r]+par.DELTAPHI : maxs[PA];
                     if (zpar[np]>maxp) phi[j]= maxp;//- fran()*par.DELTAPHI;
                     else if (zpar[np]<minp) phi[j]= minp;//+ fran()*par.DELTAPHI;
-                    else phi[j] = zpar[np];                    
+                    else phi[j] = zpar[np];
                     zpar[np++] = phi[j];
                 }
                 break;
