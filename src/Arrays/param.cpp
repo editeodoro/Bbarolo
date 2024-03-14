@@ -87,7 +87,7 @@ void Param::defaultValues() {
     verbose             = true;
     showbar             = true;
     plots               = 1;
-    beamFWHM            = 30.;
+    beamFWHM            = -1;
     checkChannels       = false;
     flagStats           = false;
     flagRobustStats     = true;

@@ -162,17 +162,30 @@ void Cube<T>::checkBeam() {
         float bmin = par.getBmin()/3600.;
         float bpa  = par.getBpa();
         
-        if (bmaj>0 && bmin>0);
-        else if (bmaj>0 && bmin<0) bmin = bmaj;
-        else bmaj = bmin = par.getBeamFWHM();   // Try BEAMFWHM (is already in deg)
+        // Handling cases where only BMAJ or BMIN has been given.
+        if (bmaj>0 && bmin<0) bmin = bmaj;
+        if (bmin>0 && bmaj<0) bmaj = bmin;
         
-        std::cout << "\n WARNING: Beam not available in the header: using a " << setprecision(5)
-                  << bmaj*3600. << "x" << bmin*3600. << " arcsec (BPA=" << bpa
-                  << "). You can set the beam with BMAJ/BMIN/BPA or BeamFWHM params (in arcsec).\n\n";
-        head.setBmaj(bmaj);
-        head.setBmin(bmin);
-        head.setBpa(bpa);
-        head.calcArea();
+        // No BMAJ or BMIN parameters. Check BEAMFWHM (is already in deg).
+        if (bmaj<0 && bmin<0 && par.getBeamFWHM()>0) {
+            bmaj = bmin = par.getBeamFWHM();
+        }
+        
+        // Throwing an error if still no information is found
+        if (bmaj<0 && bmin<0) {
+            std::cerr << "\n ERROR: No beam information available for data.\n"
+                      << "        Please set the beam with BMAJ/BMIN/BPA or BeamFWHM params (in arcsec).\n\n";
+            std::exit(EXIT_FAILURE);
+        }
+        else {
+            std::cout << "\n WARNING: Beam not available in the header: using a " << setprecision(5)
+                      << bmaj*3600. << "x" << bmin*3600. << " arcsec (BPA=" << bpa << ").\n"
+                      << "          You can set the beam with BMAJ/BMIN/BPA or BeamFWHM params (in arcsec).\n\n";
+            head.setBmaj(bmaj);
+            head.setBmin(bmin);
+            head.setBpa(bpa);
+            head.calcArea();
+        }
     }
 }
 
@@ -183,7 +196,6 @@ void Cube<T>::checkBeam() {
 template <class T>
 void Cube<T>::setCube (T *input, int *dim) {
 
-    
     if (arrayAllocated) delete [] array;
     if (axisDimAllocated) delete [] axisDim;
     numAxes = 3;
@@ -210,9 +222,14 @@ bool Cube<T>::readCube (std::string fname, bool printInfo) {
         std::cout << "\nBBAROLO WARNING: Something seems wrong with the header. Fix it before going on. \n";
     }
     
+    // Some tasks need a beam information, so stop it if not found
+    bool beamNeeded = par.getflagSmooth() || par.getMakeMask() || par.getflagGalFit() || 
+                      par.getflagGalMod() || par.getflagSpace() ||
+                      (par.getflagSearch() && par.getParSE().minPix==-1);
+    if (beamNeeded) checkBeam();
     headDefined = true;
     
-    // The FREQ0 can be in the header. Override if given by the user.
+    // The RESTFRQ should be in the header. Override if given by the user.
     if (par.getRestfreq()!=-1) head.setFreq0(par.getRestfreq());
     axisDim = new int [numAxes];
     axisDimAllocated = true;
@@ -1057,7 +1074,7 @@ void Cube<T>::search() {
                   << stats.getMiddle() << ", spread = " << stats.getSpread() << ")\n" << std::fixed;
     }
     
-    checkBeam();
+    if (p.minPix==-1) checkBeam();
 
     float PixScale = head.PixScale();
     int thresS  = p.threshSpatial!=-1  ? p.threshSpatial     : ceil(h.Bmaj()/PixScale);

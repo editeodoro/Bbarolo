@@ -447,7 +447,6 @@ bool Header::header_read (std::string fname) {
         }
         else specsys = dummy;
         
-        
         status=0;
         if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
             status=0;
@@ -905,7 +904,7 @@ bool Header::checkHeader() {
     if (beamArea!=0) {
         if (fabs(bmaj/cdelt[0])<1  || fabs(bmin/cdelt[1])<1 ||
             fabs(bmaj/cdelt[0])>30 || fabs(bmin/cdelt[1])>30) {
-            Warning("HEADER CHECK: BMAN and/or BMIN values are suspiciously large or small. ");
+            Warning("HEADER CHECK: BMAJ and/or BMIN values are suspiciously large or small. ");
             allgood = false;
         }
     }
