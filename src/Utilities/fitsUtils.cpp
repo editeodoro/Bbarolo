@@ -225,7 +225,10 @@ int modhead(int argc, char *argv[]) {
                 // Construct template for new keyword */
                 std::string newcard = std::string(argv[3]) + " = ";
                 
-                newcard += std::string((argv[4]));
+                // Workaround to avoid interpreting / as a comment in key value
+                if (std::string(argv[4]).find('/')!=std::string::npos)
+                    newcard += "'" + std::string(argv[4]) + "'";
+                else newcard += std::string(argv[4]);
             
                 if (argc==6) newcard += "/ " + std::string(argv[5]);
                 else if (*comment) newcard += "/ " + std::string(comment);

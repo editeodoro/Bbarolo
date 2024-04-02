@@ -196,8 +196,8 @@ class SimulatedGalaxyCube(object):
             will be completely random. 
             
         Args:
-          radmin (float):      Minimum radius of the galaxy (arcsec)
-          radmax (float):      Maximum radius of the galaxy (arcsec)
+          radmin (float):      Minimum radius of the galaxy (arcsec).
+          radmax (float):      Maximum radius of the galaxy (arcsec).
           radii (list):        List of radii (arcsec). If None, assume cubesize/3.
           dens (float,list):   Surface density (1E20 cm-2). If None, assume a profile.
           ishole (bool):       Whether to have a central hole in dens. If None, randomly decide.
@@ -313,7 +313,7 @@ class SimulatedGalaxyCube(object):
             # Creating a warp in inclination if requested
             if warpinc is None: warpinc = np.random.choice([True, False])
             if warpinc:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.inc[0]
                 stop  = np.random.uniform(start-maxiwarp,start+maxiwarp)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -336,7 +336,7 @@ class SimulatedGalaxyCube(object):
             # Creating a warp in position angle if requested
             if warppa is None: warppa = np.random.choice([True, False])
             if warppa:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.pa[0]
                 stop  = np.random.uniform(start-maxpawarp,start+maxpawarp)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -359,7 +359,7 @@ class SimulatedGalaxyCube(object):
             # Creating a flare if requested
             if flare is None: flare = np.random.choice([True, False])
             if flare:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.z0[0]
                 stop  = np.random.uniform(start,start+start)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -412,7 +412,7 @@ class SimulatedGalaxyCube(object):
             
             if radmotion is None: radmotion = np.random.choice([True, False])
             if radmotion:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.vrad[0]
                 stop  = np.random.uniform(start-maxvrad,start+maxvrad)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -430,7 +430,7 @@ class SimulatedGalaxyCube(object):
             np.savetxt(fileout,np.transpose([self.radii,self.vrot,self.vrad,self.disp,self.inc,
             self.pa,self.z0,self.dens,self.xpos,self.ypos,self.vsys]),
             header="RADII         VROT    VRAD   VDISP      INC       PA      Z0    DENS    XPOS    YPOS    VSYS",
-            fmt='%-12.5f %7.1f %7.1f %7.1f %8.2f %8.2f %7.1f %7.2f %7.1f %7.1f %7.1f')
+            fmt='%-12.5f %7.1f %7.1f %7.1f %8.2f %8.2f %7.2f %7.2f %7.1f %7.1f %7.1f')
         
         
         
