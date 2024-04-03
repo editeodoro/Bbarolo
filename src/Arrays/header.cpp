@@ -194,7 +194,7 @@ bool Header::header_read (std::string fname) {
 
     fitsfile *fptr;
     int status=0, nfound;
-    char comment[72];
+    char comment[72] = {},dumstr[20] = {}, Keys[100] = {};
     
     fitsname = fname;
  
@@ -227,12 +227,6 @@ bool Header::header_read (std::string fname) {
     if(fits_get_img_size(fptr, numAxes, dimAxes, &status)){
       fits_report_error(stderr, status);
     }
-
-    char dummy[20], Bunit[20], Btype[20], name[20], Tel[20], Dunit3[20], Keys[100];
-    for (int i=0; i<20; i++) {
-            dummy[i]=Bunit[i]=Btype[i]=name[i]=Tel[i]=Dunit3[i]=Keys[i]=' ';
-    }
-    for (int i=20; i<100; i++) Keys[i]=' ';
 
     int nkeys;
     fits_get_hdrspace(fptr, &nkeys, NULL, &status);
@@ -279,8 +273,9 @@ bool Header::header_read (std::string fname) {
     char **Ctype = new char*[numAxes];
     char **Cunit = new char*[numAxes];
     for (int i=0; i<numAxes; i++) {
-        Ctype[i] = new char[25];
-        Cunit[i] = new char[25];
+        Ctype[i] = new char[20];
+        Cunit[i] = new char[20];
+        for (int j=0; j<20; j++) Ctype[i][j]=Cunit[i][j]='\0';
     }
 
     status=0;
@@ -304,16 +299,9 @@ bool Header::header_read (std::string fname) {
     if (nfound==0) {
         if (numAxes>0) cunit[0] = "deg";
         if (numAxes>1) cunit[1] = "deg";
-        if (numAxes>2) {
-            if (makelower(ctype[2]).find("freq")!=std::string::npos) {
-                cunit[2] = "hz";
-                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [deg,deg,hz]");
-            }
-            else {
-                cunit[2] = "m/s";
-                Warning("HEADER WARNING: CUNITs keywords not found. Assuming [deg,deg,m/s]");
-            }
-        }
+        if (numAxes>2)
+            cunit[2] = makelower(ctype[2]).find("freq")!=std::string::npos ? "hz" : "m/s";
+        Warning("HEADER WARNING: CUNITs keywords not found. Assuming [deg,deg,"+cunit[2]+"]");
     }
     else {
         for (int i=0; i<numAxes; i++) {
@@ -321,7 +309,7 @@ bool Header::header_read (std::string fname) {
             // Fixing "s-1" problem in CUNIT3
             if (cunit[i].find("km s-1")!=std::string::npos) cunit[i] = "km/s";
             if (cunit[i].find("m s-1")!=std::string::npos) cunit[i] = "m/s";
-            if (cunit[i]=="") {
+            if (cunit[i].empty()) {
                 cunit[i] = "deg";
                 if (i==2) cunit[i] = "km/s";
                 if (i==3) cunit[i] = "stokes";
@@ -329,7 +317,6 @@ bool Header::header_read (std::string fname) {
                 toprint << "HEADER WARNING: CUNIT" << i+1 << " keywords not found. Assuming " << cunit[i] << "."; 
                 Warning(toprint.str());
             }
-            
         }
     }
 
@@ -341,30 +328,30 @@ bool Header::header_read (std::string fname) {
     delete [] Ctype;
         
     status=0;
-    if (fits_read_key_str (fptr, "DUNIT3", Dunit3, comment, &status)) {
+    if (fits_read_key_str (fptr, "DUNIT3", dumstr, comment, &status)) {
         if (status!=202) fits_report_error(stderr, status);
         dunit3 = "NONE";
     }
-    else dunit3 = Dunit3;
+    else dunit3 = dumstr;
 
     status=0;
-    if (fits_read_key_str (fptr, "BUNIT", Bunit, comment, &status)) {
+    if (fits_read_key_str (fptr, "BUNIT", dumstr, comment, &status)) {
         if (status==202)
             Warning("HEADER WARNING: BUNIT keyword not found.");
         else fits_report_error(stderr, status);
         bunit = "NONE";
     }
-    else bunit = Bunit;
+    else bunit = dumstr;
 
     if (makelower(bunit).find("beam-1")!=std::string::npos &&
         makelower(bunit).find("jy")!=std::string::npos)
             bunit = "JY/BEAM";
     
     status=0;
-    if (fits_read_key_str (fptr, "BTYPE", Btype, comment, &status)) {
+    if (fits_read_key_str (fptr, "BTYPE", dumstr, comment, &status)) {
         btype = "NONE";
     }
-    else btype = Btype;
+    else btype = dumstr;
     
     status=0;
     if (fits_read_key_flt (fptr, "BZERO", &bzero, comment, &status)) {
@@ -389,16 +376,16 @@ bool Header::header_read (std::string fname) {
     }
     
     status=0;
-    if (fits_read_key_str (fptr, "RADECSYS", dummy, comment, &status)) {
+    if (fits_read_key_str (fptr, "RADECSYS", dumstr, comment, &status)) {
         status=0;
-        if (fits_read_key_str (fptr, "RADESYS", dummy, comment, &status)) {
+        if (fits_read_key_str (fptr, "RADESYS", dumstr, comment, &status)) {
             if (epoch>1984) radesys = "FK5";
             else if (epoch!=0) radesys = "FK4";
             else radesys = "ICRS";
         }
-        else radesys = dummy;
+        else radesys = dumstr;
     }
-    else radesys = dummy;
+    else radesys = dumstr;
     
     status=0;
     if (fits_read_key_dbl (fptr, "CROTA", &crota, comment, &status)) {
@@ -428,7 +415,7 @@ bool Header::header_read (std::string fname) {
         
         status=0;
         specsys = "";
-        if (fits_read_key_str (fptr, "SPECSYS", dummy, comment, &status)) {
+        if (fits_read_key_str (fptr, "SPECSYS", dumstr, comment, &status)) {
             // Looking for AIPS VELREF keyword
             status=0;
             float velref = 0;
@@ -445,7 +432,7 @@ bool Header::header_read (std::string fname) {
                 specsys = "";
             }
         }
-        else specsys = dummy;
+        else specsys = dumstr;
         
         status=0;
         if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
@@ -481,12 +468,12 @@ bool Header::header_read (std::string fname) {
     }
     
     status=0;
-    if (fits_read_key_str (fptr, "OBJECT", name, comment, &status)) {
+    if (fits_read_key_str (fptr, "OBJECT", dumstr, comment, &status)) {
         if (status==202) Warning("HEADER WARNING: OBJECT keyword not found.");
         else fits_report_error(stderr, status);
         object = "NONE";
     }
-    else object = name;
+    else object = dumstr;
 
     for (uint i=0; i<object.size();i++) {
         if (object[i]=='/' || object[i]=='\\') object.replace(i,1, "-");
@@ -495,16 +482,16 @@ bool Header::header_read (std::string fname) {
     }    
 
     status = 0;
-    if (fits_read_key_str (fptr, "TELESCOP", Tel, comment, &status)) {
+    if (fits_read_key_str (fptr, "TELESCOP", dumstr, comment, &status)) {
         status = 0;
-        if (fits_read_key_str (fptr, "INSTRUME", Tel, comment, &status)) {
+        if (fits_read_key_str (fptr, "INSTRUME", dumstr, comment, &status)) {
             if (status==202) Warning("HEADER WARNING: TELESCOP-INSTRUME keywords not found.");
             else fits_report_error(stderr, status);
             telescope = "NONE";
         }
-        else telescope = Tel;
+        else telescope = dumstr;
     }
-    else telescope = Tel;
+    else telescope = dumstr;
     
     double clbmaj=0, clbmin=0;
     status=0;
