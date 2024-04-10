@@ -129,6 +129,7 @@ Header& Header::operator=(const Header& h) {
     this->object    = h.object;
     this->telescope = h.telescope;
     this->veldef    = h.veldef;
+    this->sptype    = h.sptype;
     this->dunit3    = h.dunit3;
     this->drval3    = h.drval3;
     this->datamin   = h.datamin;
@@ -194,7 +195,7 @@ bool Header::header_read (std::string fname) {
 
     fitsfile *fptr;
     int status=0, nfound;
-    char comment[72] = {},dumstr[20] = {}, Keys[100] = {};
+    char comment[72] = {}, dumstr[20] = {}, Keys[100] = {};
     
     fitsname = fname;
  

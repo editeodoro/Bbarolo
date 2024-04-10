@@ -253,6 +253,8 @@ void Image2D<Type>::copyHeader (Header &c) {
         head.setName(c.Name());
         head.setTelesc(c.Telesc());
         head.setFreq0(c.Freq0());
+        head.setRaDeSys(c.RaDeSys());
+        head.setSpecSys(c.SpecSys());
     }
 }
 

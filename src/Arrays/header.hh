@@ -85,6 +85,8 @@ public:
     std::string Telesc () {return telescope;}
     std::string VelDef () {return veldef;}
     std::string SpectralType() {return sptype;}
+    std::string RaDeSys() {return radesys;}
+    std::string SpecSys() {return specsys;}
     
     void setBitpix (int i) {bitpix = i;}
     void setDimAx (int i, long val) {dimAxes[i] = val;}
@@ -117,7 +119,9 @@ public:
     void setWave0 (double w) {wave0=w;}
     void setRedshift (double r) {redshift=r;}
     void setVelDef(std::string s) {veldef=s;}
-        
+    void setRaDeSys(std::string s) {radesys=s;}
+    void setSpecSys(std::string s) {specsys=s;}
+
     void Warning(std::string s) {if (warning) std::cout << s << std::endl;}
     void addKey(std::string s) {keys.push_back(s);}
 
