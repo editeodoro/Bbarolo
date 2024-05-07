@@ -23,6 +23,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <filesystem>
 #include <Arrays/cube.hh>
 #include <Arrays/image.hh>
@@ -1432,8 +1434,13 @@ void Cube<T>::writeCubelets() {
 
     for (int i=0; i<getNumObj(); i++) {
         bar.update(i+1);
-        std::string srcname = object+"_"+to_string(i+1);
-        if (getNumObj()==1) srcname = object;
+        std::string srcname = object;
+        if (getNumObj()>1) {
+            short n = ceil(log10(getNumObj()));
+            std::stringstream ss;
+            ss << std::setw(n) << std::setfill('0') << i+1;
+            srcname += "_"+ss.str();
+        }
         mkdirp((outfold+srcname).c_str());
 
         Detection<T> *obj = sources->pObject(i);
