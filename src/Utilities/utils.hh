@@ -140,8 +140,8 @@ double DeltaVel (Header &h);
 bool isFluxUnitKnown (Header &h);
 template <class T> T FluxtoJyBeam (T in, Header &h);
 template <class T> T FluxtoJy (T in, Header &h);
-template <class T> T Pbcor (PixelInfo::Voxel<T> &v, Header &h);
-template <class T> void Pbcor(long x, long y, long z, T &flux, Header &h);
+template <class T> T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption=1);
+template <class T> void Pbcor(long x, long y, long z, T &flux, Header &h, short cutoffOption=1);
 
 std::string get_currentpath();
 // d is in Mpc and the returned value is in Kpc/arc. 

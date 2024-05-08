@@ -584,7 +584,7 @@ void Detection<T>::calcWCSparams(Header &head) {
   //--------------------------------------------------------------------
 
 template <class T>
-void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, Header &head) {
+void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, Header &head, int pbcorr) {
    
     ///  @details
     ///  Uses the input WCS to calculate the velocity-integrated flux, 
@@ -630,8 +630,7 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, He
             long y = vox->getY();
             long z = vox->getZ();
             long pos = (x-this->getXmin()+border)+(y-this->getYmin()+border)*xsize+(z-this->getZmin()+border)*xsize*ysize;
-            //localFlux[pos] = vox->getF();
-            localFlux[pos] = Pbcor(*vox,head);
+            localFlux[pos] = pbcorr ? Pbcor(*vox,head,pbcorr) : vox->getF();
             isObj[pos] = true;
         //}
      }
@@ -673,7 +672,7 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, He
   //--------------------------------------------------------------------
 
 template <class T>
-void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head) {
+void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head, int pbcorr) {
     
     ///  @details
     ///  Uses the input WCS to calculate the velocity-integrated flux, 
@@ -707,8 +706,7 @@ void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head) {
     for(typename std::vector<Voxel<T> >::iterator v=voxlist.begin();v<voxlist.end();v++){
         long pos=(v->getX()-this->xmin+1)+(v->getY()-this->ymin+1)*xsize+(v->getZ()-this->zmin+1)*xsize*ysize;
         Voxel<T> vox(v->getX(), v->getY(), v->getZ(), fluxArray[v->arrayIndex(dim)]);
-        localFlux[pos] = Pbcor(vox, head);
-        //localFlux[pos] = fluxArray[v->arrayIndex(dim)];
+        localFlux[pos] = pbcorr ? Pbcor(vox,head,pbcorr) : vox.getF();
         isObj[pos] = true;
     }
 
@@ -763,17 +761,10 @@ void Detection<T>::calcVelWidths(long zdim, std::vector<Voxel<T> > voxelList, He
 
     T *intSpec = new T[zdim];
     for(int i=0;i<zdim;i++) intSpec[i]=0;
-     
-    //Object2D spatMap = getSpatialMap();
-    //for(int s=0;s<spatMap.getNumScan();s++){
-        typename std::vector<Voxel<T> >::iterator vox;
-        for(vox=voxelList.begin();vox<voxelList.end();vox++){
-            //if(spatMap.isInObject(*vox)){
-                double flux = Pbcor(*vox,head);
-                intSpec[vox->getZ()] += flux;
-            //}
-        }
-    //}
+
+    typename std::vector<Voxel<T> >::iterator vox;
+    for(vox=voxelList.begin();vox<voxelList.end();vox++)
+            intSpec[vox->getZ()] += vox->getF();
     
     calcVelWidths(zdim, intSpec, head);
 
@@ -891,12 +882,12 @@ void Detection<T>::calcVelWidths(T *fluxArray, long *dim, Header &head) {
 
 
 template <class T>
-void Detection<T>::calcAllParams(T *fluxArray, int *dim, Header &head){
+void Detection<T>::calcAllParams(T *fluxArray, int *dim, Header &head, int pbcorr){
 
     std::vector<Voxel<T> > voxlist = this->getPixelSet(fluxArray,dim);
     calcFluxes(voxlist);
     calcWCSparams(head);
-    calcIntegFlux(dim[2],voxlist,head);
+    calcIntegFlux(dim[2],voxlist,head,pbcorr);
 }
 
 

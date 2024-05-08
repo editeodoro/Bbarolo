@@ -1109,7 +1109,7 @@ void Cube<T>::search() {
     // Calculating parameters for detections
     for (int i=0; i<getNumObj(); i++){
         Detection<T> *obj = sources->pObject(i);
-        obj->calcAllParams(array,axisDim,head);
+        obj->calcAllParams(array,axisDim,head,p.pbcorr);
     }
 
     // Sorting detections
@@ -1484,7 +1484,8 @@ void Cube<T>::writeCubelets() {
                 for (int x=0; x<c->DimX(); x++) {
                     if (obj->isInObject(x+starts[0],y+starts[1],z+starts[2])) {
                         double flux = FluxtoJy(c->Array(x,y,z),c->Head());
-                        Pbcor<double>(x+starts[0],y+starts[1],z+starts[2],flux,head);
+                        //if (par.getParSE().pbcorr)
+                        //    Pbcor<double>(x+starts[0],y+starts[1],z+starts[2],flux,head);
                         intSpec += flux;
                     }
                 }

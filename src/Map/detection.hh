@@ -102,9 +102,10 @@ public:
     void   calcWCSparams(Header &head);
 
     /// Calculate the integrated flux over the entire Detection. 
-    void   calcIntegFlux(T *fluxArray, long *dim, Header &head);
+    void   calcIntegFlux(T *fluxArray, long *dim, Header &head, int pbcorr=0);
     /// Calculate the integrated flux over the entire Detection. 
-    void   calcIntegFlux(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, Header &head);
+    void   calcIntegFlux(long zdim, std::vector<PixelInfo::Voxel<T> > voxelList, \
+                         Header &head, int pbcorr=0);
 
     /// Calculate the 20%-/50%-peak-flux widths in a general fashion
     void calcVelWidths(long zdim, T *intSpec, Header &head);
@@ -117,7 +118,7 @@ public:
     void calcVsys();
 
     /// Calculate all parameters at once
-    void calcAllParams(T *fluxArray, int *dim, Header &head);
+    void calcAllParams(T *fluxArray, int *dim, Header &head, int pbcorr=0);
 
     /// Get the location of the spatial borders. 
     std::vector<int> getVertexSet();

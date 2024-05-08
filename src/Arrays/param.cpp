@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.7.4dev"
+#define BBVERSION "1.7.5dev"
 
 struct Entry {string name; string descr;};
 
@@ -516,6 +516,7 @@ void Param::setParam(string &parstr) {
     if(arg=="cubelets")          parSE.cubelets = readFlag(ss);
     if(arg=="edges")             parSE.edges = readval<int>(ss);
     if(arg=="sortsources")       parSE.sortsrcs = makelower(readFilename(ss));
+    if(arg=="pbcorr")            parSE.pbcorr = readval<int>(ss);
 
     // MAP PARAMETERS
     if(arg=="globalprofile")    parMA.globprof = readFlag(ss);
@@ -1301,6 +1302,8 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[CUBELETS]", "   Writing sub-cubes of detections?", stringize(p.getParSE().cubelets));
         if(p.getParSE().cubelets || defaults)
             recordParam(Str, "[EDGES]", "     Number of pixels at the edges of cubelets?", p.getParSE().edges);
+        recordParam(Str, "[PBCORR]", "   Correct flux for primary beam attenuation?", p.getParSE().pbcorr);
+
         if (defaults) {
             recordParam(Str, "[threshold]", "   Detection Threshold", p.getParSE().threshold);
             recordParam(Str, "[snrCut]", "   SNR Threshold (in sigma)", p.getParSE().snrCut);

@@ -501,10 +501,22 @@ double degconv(std::string cunit) {
 
 
 template <class T>
-T Pbcor (PixelInfo::Voxel<T> &v, Header &h) {
+T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption) {
+    
+    // Correct input flux for primary beam attenuation.
+    // Available for WSRT, VLA, ATCA, FST and GMRT. Otherwise return input value.
+    // Pointing center is assumed to be at CRVAL1 and CRVAL2 keywords.
+    // 
+    // cutoffOption = 1 : Return 0 if beyond cutoff.
+    // cutoffOption = 2 : Return min. allowed value beyond cutoff. The function
+    //                    calculates this value for different telescopes.
+    // cutoffOption = 3 : Return blank if beyond cutoff
+    // cutoffOption = 4 : Disable cutoff, i.e. return values that correspond to
+    //                    coordinates outside the validity range of the correction function.
     
     bool haveCorr = h.Telesc()=="WSRT" || h.Telesc()=="VLA" || h.Telesc()=="ATCA"
                     || h.Telesc()=="FST" || h.Telesc()=="GMRT";
+        
     if (!haveCorr) return v.getF();
     
     const double degtorad = M_PI/180.;
@@ -513,10 +525,10 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h) {
     float pcRA = h.Crval(0);                /// Pointing center R.A. (in degrees).
     float pcDEC = h.Crval(1);               /// Pointing center DEC  (in degrees).
     
-    if (pcDEC>=0) pcDEC = 90 - pcDEC;           /// Conversion of DEC to polar angle.
+    if (pcDEC>=0) pcDEC = 90 - pcDEC;       /// Conversion of DEC to polar angle.
     else pcDEC = 90 + fabs(pcDEC);
     
-    pcRA  *= degtorad;                          /// Conversions to radians.
+    pcRA  *= degtorad;                      /// Conversions to radians.
     pcDEC *= degtorad;
     
     float posRA = ((v.getX()+1-h.Crpix(0))*h.Cdelt(0)+h.Crval(0));   
@@ -549,24 +561,24 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h) {
         freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
     }
     else if (makelower(h.Cunit(2))=="hz") {
-        freq=((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2))/(1.e09);
+        freq=((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2))/(1E09);
     }   
     else if (makelower(h.Cunit(2))=="mhz") {
         freq=((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2))/(1000);
     }
     else return -2;
     
+    float minval=0, pbc=1;
     if (h.Telesc()=="WSRT") {
         const float calib = 61.18;
-        float cutoff = 0.023;
-        float pbc = pow(cos(calib*freq*angdist*degtorad), 6);
-        
-        if (pbc<cutoff) return 0;
-        else fluxcorr = v.getF()/pbc;
+        minval = 0.023;               /// Cutoff at 2.3%
+        pbc = pow(cos(calib*freq*angdist*degtorad), 6);
+
+        fluxcorr = v.getF()/pbc;
     }
     else if (h.Telesc()=="VLA") {
-        float RF = angdist*60*freq;                 /// The distance is now in arcmin.
-        float cutoff = 0.023;
+        float RF = angdist*60*freq;         /// The distance is now in arcmin.
+        float minval = 0.023;               /// Cutoff at 2.3%
         float a0, a1, a2, a3, a4;
         
         if (freq<1.43) {
@@ -592,72 +604,78 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h) {
         }
         
         float polyn = a0 + a1*pow(RF,2) + a2*pow(RF,4) + a3*pow(RF,6) + a4*pow(RF,8);
-        float pbc = 1/polyn;
+        pbc = 1.0/polyn;
         pbc = 1.0/std::max<float>(1, pbc);
         
-        
-        if (pbc<cutoff) return 0;
-        else fluxcorr = v.getF()/pbc;   
+        fluxcorr = v.getF()/pbc;
     }
     else if (h.Telesc()=="ATCA") {
         float RF = angdist*60*freq;                 /// The distance is now in arcmin.
-        if (RF>50) return 0;                        /// Cut-off at 50 arcmin*GHz
+        float RFmax = 50;                           /// Cut-off at 50 arcmin*GHz
+        
         const float a0 = 1.;
         const float a1 = 8.99E-04;
         const float a2 = 2.15E-06; 
         const float a3 = -2.23E-09;
         const float a4 = 1.56E-12;
         float polyn = a0 + a1*pow(RF,2) + a2*pow(RF,4) + a3*pow(RF,6) +a4*pow(RF,8);
-        float pbc = 1/polyn;
+        float pbc = 1.0/polyn;
         pbc = 1.0/std::max<float>(1, pbc);
+        // Minimum allowed value when RF = RFMAX
+        minval = 1.0/(a0 + a1*pow(RFmax,2) + a2*pow(RFmax,4) + a3*pow(RFmax,6) +a4*pow(RFmax,8));
         
-        fluxcorr = v.getF()/pbc;    
+        fluxcorr = v.getF()/pbc;
     }
     else if (h.Telesc()=="GMRT") {
-        float RF = angdist*60*freq;                 /// The distance is now in arcmin.
+        float RF = angdist*60*freq;             /// The distance is now in arcmin.
         const float a0 = -2.27961E-03;  
         const float a1 = 21.4611E-07;
         const float a2 = -9.7929E-10; 
         const float a3 = 1.80153E-13;
         float polyn = 1 + a0*pow(RF,2) + a1*pow(RF,4) + a2*pow(RF,6) +a3*pow(RF,8);
-        float pbc = 1/polyn;
+        pbc = 1/polyn;
         pbc = 1.0/std::max<float>(1, pbc);
         
         fluxcorr = v.getF()/pbc;    
     }
     else if (h.Telesc()=="FST") {
         float RF = angdist*freq;
-        if (angdist>2.8) return 0;              /// Cut-off at 2.8 degrees.
+        float RFmax = 2.8;                      /// Cut-off at 2.8 degrees.
         const float a0 = 0.8031;
-        
-        float pbc = exp(-a0*RF*RF);
-        
+        pbc = exp(-a0*RF*RF);
+        minval = exp(-a0*RFmax*RFmax);
         fluxcorr = v.getF()/pbc;
     }
-    
-    
+
+    // If below cutoff point, do something based on cutoffOption
+    if (pbc<minval && cutoffOption!=0) {
+        if (cutoffOption==1) fluxcorr = 0;
+        if (cutoffOption==2) fluxcorr = minval;
+        if (cutoffOption==3) fluxcorr = log(-1);
+    }
+
     return fluxcorr;
 }
-template short Pbcor (PixelInfo::Voxel<short>&, Header&);
-template int Pbcor (PixelInfo::Voxel<int>&, Header&);
-template long Pbcor (PixelInfo::Voxel<long>&, Header&);
-template float Pbcor (PixelInfo::Voxel<float>&, Header&);
-template double Pbcor (PixelInfo::Voxel<double>&, Header&);
+template short Pbcor (PixelInfo::Voxel<short>&, Header&, short);
+template int Pbcor (PixelInfo::Voxel<int>&, Header&, short);
+template long Pbcor (PixelInfo::Voxel<long>&, Header&, short);
+template float Pbcor (PixelInfo::Voxel<float>&, Header&, short);
+template double Pbcor (PixelInfo::Voxel<double>&, Header&, short);
 
 
 
 template <class T> 
-void Pbcor (long x, long y, long z, T &flux, Header &h) {
+void Pbcor (long x, long y, long z, T &flux, Header &h, short cutoffOption) {
     
     PixelInfo::Voxel<T> vox (x, y, z, flux);
-    flux = Pbcor<T>(vox, h);
-    
+    flux = Pbcor<T>(vox, h, cutoffOption);
+
 } 
-template void Pbcor (long, long, long, short&, Header&);
-template void Pbcor (long, long, long, int&, Header&);
-template void Pbcor (long, long, long, long&, Header&);
-template void Pbcor (long, long, long, float&, Header&);
-template void Pbcor (long, long, long, double&, Header&);
+template void Pbcor (long, long, long, short&, Header&, short);
+template void Pbcor (long, long, long, int&, Header&, short);
+template void Pbcor (long, long, long, long&, Header&, short);
+template void Pbcor (long, long, long, float&, Header&, short);
+template void Pbcor (long, long, long, double&, Header&, short);
 
 
 template <class T>
