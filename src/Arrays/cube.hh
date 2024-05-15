@@ -128,8 +128,8 @@ public:
     void    BlankCube (T *Array, size_t size);            /// Blank a input array using Cube::mask.
     void    BlankMask(float *channel_noise=NULL,bool onlyLargest=true);       /// Define Cube::mask;
     
-    Cube<T>*    Reduce (int fac,std::string rtype="spatial");
-    void    CheckChannels ();
+    Cube<T>* Reduce (int fac,std::string rtype="spatial");
+    void    CheckCube (int type=1);
     void    continuumSubtract();
     void    checkBeam();
     

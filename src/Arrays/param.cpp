@@ -68,7 +68,6 @@ vector<Entry> fitsUtilsList = {
   {"fitsarith", "Arithmetic operations with FITS files."},
   {"jybeam2k",  "Convert flux units from Jy/beam to K."},
   {"k2jybeam",  "Convert flux units from K to Jy/beam."}
-  
 };
 
 
@@ -88,7 +87,7 @@ void Param::defaultValues() {
     showbar             = true;
     plots               = 1;
     beamFWHM            = -1;
-    checkChannels       = false;
+    checkCube           = 0;
     flagStats           = false;
     flagRobustStats     = true;
     
@@ -172,7 +171,7 @@ Param& Param::operator= (const Param& p) {
     this->outFolder         = p.outFolder;
     this->logFile           = p.logFile;
     this->beamFWHM          = p.beamFWHM;
-    this->checkChannels     = p.checkChannels;
+    this->checkCube         = p.checkCube;
     this->verbose           = p.verbose; 
     this->showbar           = p.showbar;
     this->plots             = p.plots;
@@ -473,7 +472,7 @@ void Param::setParam(string &parstr) {
     if(arg=="showbar")          showbar   = readFlag(ss);
     if(arg=="plots")            plots     = readFlagorInt(ss);
     if(arg=="beamfwhm")         beamFWHM  = readval<float>(ss);
-    if(arg=="checkchannels")    checkChannels = readFlag(ss);
+    if(arg=="checkcube")        checkCube = readval<int>(ss);
     if(arg=="auto")             AUTO = readFlag(ss);
 
     if(arg=="contsub")          contsub  = readFlag(ss);
@@ -718,6 +717,12 @@ bool Param::checkPars() {
             cont_order = 1;
         }
     }
+
+    // Checking cube check parameter
+    if (checkCube<0 || checkCube>5) {
+        cout << "CHECKCUBE must >=0 and <=5. Setting it to False (=0). \n";
+        checkCube = 0;
+    } 
 
     // Checking parameters for source finder
     if (parSE.flagSearch) {
@@ -1265,6 +1270,11 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
     recordParam(Str, "[LOGFILE]", "Redirect output messages to a file?", stringize(p.getLogFile()));
     recordParam(Str, "[flagRobustStats]", "Using robust statistics?", stringize(p.getFlagRobustStats()));    
+
+    // Print CHECKCUBE
+    if (p.getCheckCube() || (defaults && isAll))
+        recordParam(Str, "[checkCube]", "Check cube for bad channels/rows/columns?", p.getCheckCube());
+
     
     if (p.getFlagDebug()) recordParam(Str, "[DEBUG]", "Debugging mode?", stringize(p.getFlagDebug()));
 
@@ -1612,11 +1622,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[MASK]", "   Type of mask for intensity map", p.getMASK());
         recordParam(Str, "[SIDE]", "   Side of the galaxy to be used", p.getParGF().SIDE); 
     }
-    
-    // Print CHECKCHANNELS
-    if (p.getCheckCh() || (defaults && isAll))
-        recordParam(Str, "[checkChannels]", "Checking for bad channels in the cube", stringize(p.getCheckCh()));
-    
+        
     // PARAMETERS FOR MOMENT MAPS
     if (p.getParMA().globprof || (defaults && isAll))
         recordParam(Str, "[globalProfile]", "Saving the global profile?", stringize(p.getParMA().globprof));

@@ -198,8 +198,8 @@ public:
 
     float   getBeamFWHM() {return beamFWHM;}
     void    setBeamFWHM(float val) {beamFWHM=val;}
-    bool    getCheckCh () {return checkChannels;}
-    void    setCheckCh (bool flag) {checkChannels=flag;}
+    int     getCheckCube () {return checkCube;}
+    void    setCheckCube (bool a) {checkCube=a;}
     
     bool    getFlagRobustStats () {return flagRobustStats;}
     void    setFlagRobustStats (bool flag) {flagRobustStats=flag;}
@@ -295,7 +295,7 @@ private:
     bool            logFile;            ///< A log file to redirect std::cout and std::cerr.
     bool            verbose;            ///< Is verbosity activated?
     bool            showbar;            ///< Show progress bar?
-    bool            checkChannels;      ///< Checking for bad channels in the cube?
+    int             checkCube;          ///< Checking for bad channels/rows/cols in the cube?
     float           beamFWHM;           ///< Beam to adopt if any information in header.
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     int             plots;              ///< Whether producing output plots.

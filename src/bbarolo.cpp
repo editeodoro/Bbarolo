@@ -191,7 +191,7 @@ bool BBcore (Param *par) {
     }
 
 
-    if (par->getCheckCh()) c->CheckChannels();
+    if (par->getCheckCube()) c->CheckCube(par->getCheckCube());
 
 
     // Statistic utility ------------------------------------------

@@ -889,79 +889,229 @@ Cube<T>* Cube<T>::Reduce (int fac, std::string rtype) {
 
 
 template <class T>
-void Cube<T>::CheckChannels () {
+void Cube<T>::CheckCube (int type) {
+    
+    // This function clean a cube by channels and/or by columns and rows.
+    // A channel/column/row is considered bad if 
+    // 1) if is all blank/nan pixels 
+    // 2) if the pixel spread is 1.5x higher than the entire cube. 
+    //
+    // type parameter defines what to do: 
+    //      = 1 : both spectral and spatial axis
+    //      = 2 : only spectral axis (channels)
+    //      = 3 : only spatial axes (x and y)
+    //      = 4 : only columns (y)
+    //      = 5 : only rows (x)
+    
+    if (type<1 || type >5) 
+        throw std::invalid_argument("CheckCube() ERROR: acceptable \'type\' values are 1-5");
     
     int xySize = axisDim[0]*axisDim[1];
     int zdim = axisDim[2];
+    int count_x=0,count_y=0,count_z=0;
+    int count_x_end=0,count_y_end=0,count_z_end=0;
+    std::vector<int> bad_x, bad_y, bad_z;
     
     if (!statsDefined) setCubeStats();
     
     std::cout << "\n\n";
     
     ProgressBar bar(true,par.isVerbose(),par.getShowbar());
-    bar.init(" Checking for bad channels... ",zdim);
     
-    std::vector<int> bad;
-    
-    for (int z=0; z<axisDim[2]; z++) {
-        bar.update(z+1);
-        T median = findMedian<T>(&array[z*xySize], xySize, false);
-        T MADFM = findMADFM<T>(&array[z*xySize], xySize, median, false);
-        if (MADFM > 1.5*stats.getMadfm()) {
-            bad.push_back(z);
-            for (int pix=0; pix<xySize; pix++) array[z*xySize+pix] = 0.;
-        } 
-    }
-    
-    
-    if (bad.size()==0) {
-        bar.fillSpace(" All channels are good.\n\n");
-        return;
-    }
-    
-    int count=0;
-    if (par.isVerbose()) {
-        bar.fillSpace(" Following channels have been erased: ");
-        for (unsigned int i=0; i<bad.size(); i++) {
-            if (bad[i]==int(i)) count++;
-            std::cout << bad[i]+1 << " ";
+    //////////////////////////////////////////////////////////////////
+    // Cleaning bad channels first
+    //////////////////////////////////////////////////////////////////
+    if (type==1 || type==2) {
+        bar.init(" Checking for bad channels... ",zdim);
+
+        for (int z=0; z<axisDim[2]; z++) {
+            bar.update(z+1);
+        
+            // Only calculating statistics on valid pixels
+            std::vector<T> cleanArray;
+            for (int pix=0; pix<xySize; pix++) {
+                if (!isBlank(array[z*xySize+pix])) cleanArray.push_back(array[z*xySize+pix]);
+            }
+        
+            // If all pixels are blanks, this is a bad channel
+            if (cleanArray.size()==0) {
+                bad_z.push_back(z);
+                continue;
+            }
+        
+            // Else, identify bad channels based on statistics
+            T median = findMedian<T>(&cleanArray[0], cleanArray.size(), false);
+            T MADFM = findMADFM<T>(&cleanArray[0], cleanArray.size(), median, false);
+            if (MADFM > 1.5*stats.getMadfm()) {
+                bad_z.push_back(z);
+                for (int pix=0; pix<xySize; pix++) array[z*xySize+pix] = 0.;
+            }
         }
-        std::cout << "\n\n";
+        
+        if (bad_z.size()==0) {
+            bar.fillSpace(" All channels are good.\n\n");
+        }
+        else {
+            if (par.isVerbose()) {
+                bar.fillSpace(" Following channels have been erased: ");
+                for (int i=0; i<bad_z.size(); i++) {
+                    if (bad_z[i]==i) count_z++;
+                    std::cout << bad_z[i]+1 << " ";
+                }
+                for (int i=1; i<zdim; i++) 
+                    if (bad_z[bad_z.size()-i]==zdim-i) count_z_end++;
+                std::cout << "\n\n";
+            }
+        }
     }
     
+    //////////////////////////////////////////////////////////////////
+    // Cleaning bad pixel columns
+    //////////////////////////////////////////////////////////////////
+    if (type==1 || type==3 || type==4) {
+        bar.init(" Checking for bad pixel columns... ",axisDim[1]);
     
-    float med = stats.getMedian();
+        for (int y=0; y<axisDim[1]; y++) {
+            bar.update(y+1);
+        
+            // Only calculating statistics on valid pixels
+            std::vector<T> cleanArray;
+            for (int z=0; z<zdim; z++)
+                for (int x=0; x<axisDim[0]; x++)
+                    if (!isBlank(Array(x,y,z))) cleanArray.push_back(Array(x,y,z));
+        
+            // If all pixels are blanks, this is a bad column
+            if (cleanArray.size()==0) {
+                bad_y.push_back(y);
+                continue;
+            }
+        
+            // Else, identify bad columns based on statistics
+            T median = findMedian<T>(&cleanArray[0], cleanArray.size(), false);
+            T MADFM = findMADFM<T>(&cleanArray[0], cleanArray.size(), median, false);
+            if (MADFM > 1.5*stats.getMadfm() && cleanArray.size()/zdim>0.7*axisDim[1]) {
+                bad_y.push_back(y);
+                for (int z=0; z<zdim; z++)
+                    for (int x=0; x<axisDim[0]; x++)
+                        Array(x,y,z) = 0;
+            }
+
+        }
+     
+        if (bad_y.size()==0) {
+            bar.fillSpace(" All pixel columns are good.\n\n");
+        }
+        else {
+            if (par.isVerbose()) {
+                bar.fillSpace(" Following pixel columns have been erased: ");
+                for (int i=0; i<bad_y.size(); i++) {
+                    if (bad_y[i]==i) count_y++;
+                    std::cout << bad_y[i]+1 << " ";
+                }
+                for (int i=0; i<axisDim[1]; i++) 
+                    if (bad_y[bad_y.size()-i]==axisDim[1]-i) count_y_end++;
+                std::cout << "\n\n";
+            }
+        }
+    }
+    
+    //////////////////////////////////////////////////////////////////
+    // Cleaning bad pixel rows
+    //////////////////////////////////////////////////////////////////
+    if (type==1 || type==3 || type==5) {
+    
+        bar.init(" Checking for bad pixel rows... ",axisDim[0]);
+    
+        for (int x=0; x<axisDim[0]; x++) {
+            bar.update(x+1);
+        
+            // Only calculating statistics on valid pixels
+            std::vector<T> cleanArray;
+            for (int z=0; z<zdim; z++) 
+                for (int y=0; y<axisDim[1]; y++) 
+                    if (!isBlank(Array(x,y,z))) cleanArray.push_back(Array(x,y,z));
+        
+            // If all pixels are blanks, this is a bad column
+            if (cleanArray.size()==0) {
+                bad_x.push_back(x);
+                continue;
+            }
+        
+            // Else, identify bad columns based on statistics
+            T median = findMedian<T>(&cleanArray[0], cleanArray.size(), false);
+            T MADFM = findMADFM<T>(&cleanArray[0], cleanArray.size(), median, false);
+            if (MADFM > 1.5*stats.getMadfm() && cleanArray.size()/zdim>0.7*axisDim[0]) {
+                bad_x.push_back(x);
+                for (int z=0; z<zdim; z++) 
+                    for (int y=0; y<axisDim[1]; y++) 
+                        Array(x,y,z) = 0;
+            }
+        
+        }
+     
+        if (bad_x.size()==0) {
+            bar.fillSpace(" All pixel rows are good.\n\n");
+        }
+        else {
+    
+            if (par.isVerbose()) {
+                bar.fillSpace(" Following pixel rows have been erased: ");
+                for (int i=0; i<bad_x.size(); i++) {
+                    if (bad_x[i]==i) count_x++;
+                    std::cout << bad_x[i]+1 << " ";
+                }
+                for (int i=1; i<axisDim[0]; i++) 
+                    if (bad_x[bad_x.size()-i]==axisDim[0]-i) count_x_end++;
+                std::cout << "\n\n";
+            }
+        }
+    }
+
+    
+    //////////////////////////////////////////////////////////////////
+    // Recalculating statistics and writing cleaned cube
+    //////////////////////////////////////////////////////////////////
+
+    // If everything is good, we do not need to do anything else
+    if (bad_x.size()==0 && bad_y.size()==0 && bad_z.size()==0) return;
+    
     bool oldv = par.isVerbose();
-    if (par.isVerbose()) std::cout << " Re-calculating statistics for new cube ..." << std::flush;
+    if (par.isVerbose()) std::cout << " Re-calculating statistics for cleaned cube ..." << std::flush;
     par.setVerbosity(false);
     setCubeStats();
-    stats.setMedian(med);
     par.setVerbosity(oldv);
-    if (par.isVerbose()) {
-        std::cout << " Done. New threshold is " << setprecision(5) << stats.getThreshold()
-                  << " " << head.Bunit() << std::endl << std::endl;
-    }
+    if (par.isVerbose()) 
+        std::cout << std::endl << std::scientific << std::setprecision(5) 
+                  << stats << std::fixed << std::endl;
+    
     
     string name = par.getImageFile();
     int found = makelower(name).find(".fits");
     name.insert(found, "_clean");
     
-    int NdatZ = axisDim[2]-bad.size(); 
-    int ax[3] = {axisDim[0], axisDim[1], NdatZ};
+    int NdatX = axisDim[0]-(count_x+count_x_end);
+    int NdatY = axisDim[1]-(count_y+count_y_end);
+    int NdatZ = axisDim[2]-(count_z+count_z_end);
+    int ax[3] = {NdatX, NdatY, NdatZ};
     Cube<T> *out = new Cube<T>(ax);
-    for (size_t i=0; i<out->NumPix(); i++) 
-        out->Array()[i] = array[i+count*xySize];
+    for (size_t x=0; x<NdatX; x++) 
+        for (size_t y=0; y<NdatY; y++) 
+            for (size_t z=0; z<NdatZ; z++) {
+                out->Array(x,y,z) = this->Array(x+count_x,y+count_y,z+count_z);
+                if (isBlank(out->Array(x,y,z))) out->Array(x,y,z) = log(-1);
+    }
     out->saveHead(head);
     out->saveParam(par);
     out->Head().setMinMax(0,0);
-    out->Head().setDimAx(0, axisDim[0]);
-    out->Head().setDimAx(1, axisDim[1]);
+    out->Head().setDimAx(0, NdatX);
+    out->Head().setDimAx(1, NdatY);
     out->Head().setDimAx(2, NdatZ);
-    out->Head().setCrpix(0, head.Crpix(0));
-    out->Head().setCrpix(1, head.Crpix(1));
-    out->Head().setCrpix(2, head.Crpix(2)-count);
-    //out->fitswrite_3d(name.c_str(),true);
+    out->Head().setCrpix(0, head.Crpix(0)-count_x);
+    out->Head().setCrpix(1, head.Crpix(1)-count_y);
+    out->Head().setCrpix(2, head.Crpix(2)-count_z);
+    out->fitswrite_3d(name.c_str(),true);
     
+    /*
     /// MODO ALTERNATIVO - COPIA DELL'HEADER ORIGINALE
     fitsfile *infptr, *outfptr;
     int status=0;
@@ -971,16 +1121,20 @@ void Cube<T>::CheckChannels () {
     fits_create_file(&outfptr, name.c_str(), &status);  
     fits_copy_header(infptr, outfptr, &status);
     fits_update_key_lng(outfptr, "BITPIX", Head().Bitpix(), com, &status);
+    fits_update_key_lng(outfptr, "NAXIS1", NdatX, com, &status);
+    fits_update_key_lng(outfptr, "NAXIS2", NdatY, com, &status);
     fits_update_key_lng(outfptr, "NAXIS3", NdatZ, com, &status);
-    fits_update_key_dbl(outfptr, "CRPIX3", head.Crpix(2)-count, 12, com, &status);
-    if (head.Bmaj()!=0) fits_update_key_dbl(outfptr, "BMMAJ", head.Bmaj(), 12, com, &status);   
-    if (head.Bmin()!=0) fits_update_key_dbl(outfptr, "BMMIN", head.Bmin(), 12, com, &status);   
-    fits_write_img(outfptr, TFLOAT, 1, xySize*NdatZ, out->Array(), &status);
+    fits_update_key_dbl(outfptr, "CRPIX1", head.Crpix(0)-count_x, 12, com, &status);
+    fits_update_key_dbl(outfptr, "CRPIX2", head.Crpix(1)-count_y, 12, com, &status);
+    fits_update_key_dbl(outfptr, "CRPIX3", head.Crpix(2)-count_z, 12, com, &status);
+    if (head.Bmaj()!=0) fits_update_key_dbl(outfptr, "BMMAJ", head.Bmaj(), 12, com, &status);
+    if (head.Bmin()!=0) fits_update_key_dbl(outfptr, "BMMIN", head.Bmin(), 12, com, &status);
+    fits_write_img(outfptr, TFLOAT, 1, NdatX*NdatY*NdatZ, out->Array(), &status);
     fits_close_file(infptr, &status);
-    fits_close_file(outfptr,&status);    
+    fits_close_file(outfptr,&status);
     fits_report_error(stderr, status);
     ///  -------------------------------------------------------
-    
+    */
     
     delete out;
     

@@ -120,7 +120,7 @@ void findAllStats(T *array, size_t size, T &mean, T &stddev, T &median, T &madfm
 
     T *newarray = new T[size];
     T sumx=0,sumxx=0;
-    minn = maxx = array[0];    
+    minn = maxx = array[0];
     for(size_t i=0;i<size;i++) {
         newarray[i] = array[i];
         if(array[i]<minn) minn=array[i];
