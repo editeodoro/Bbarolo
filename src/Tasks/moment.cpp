@@ -263,8 +263,9 @@ void MomentMap<T>::SNMap(bool msk, std::string outfolder){
         else nchan = nsubs;
         // Noise in map units
         T noise = sqrt(nchan-b+a*nchan*nchan)*c*sigmaBC;
-        // Converting to  Jy/beam * km/s
-        noise = FluxtoJyBeam(noise,in->Head())*fabs(DeltaVel(in->Head()));
+        // Converting to  Jy/beam * km/s if requested
+        if (in->pars().getFluxConvert())
+            noise = FluxtoJyBeam(noise,in->Head())*fabs(DeltaVel(in->Head()));
         // Noise map
         nmap->Array()[i] = noise!=0 ? noise : log(-1);
         // S/N map
@@ -393,12 +394,10 @@ bool MomentMap<T>::setHead(int type) {
         this->head.setCrpix(1, in->Head().Crpix(1)-blo[1]);
         if (type==0) {
             this->head.setBtype("intensity");
-            std::string bunit;
+            std::string bunit = in->Head().Bunit() + " * KM/S";
             std::string b = deblankAll(makelower(in->Head().Bunit()));
-            if (FluxtoJyBeam(1,in->Head())==1 && b.find("jy/b")==std::string::npos) {
-                bunit = in->Head().Bunit() + " * KM/S";
-            }
-            else bunit = "JY/BEAM * KM/S";
+            if (in->pars().getFluxConvert() && FluxtoJyBeam(1,in->Head())!=1)
+                bunit = "JY/BEAM * KM/S";
             this->head.setBunit(bunit);
         }
         else if (type==1 || type==2) {
@@ -461,8 +460,8 @@ bool MomentMap<T>::calculateMoments (size_t x, size_t y, bool msk, double *momen
     }
     
     // Moment 0th
-    moments[0] = denom;
-    if (in->HeadDef()) 
+    moments[0] = denom * fabs(DeltaVel(in->Head()));
+    if (in->HeadDef() && in->pars().getFluxConvert()) 
         moments[0] = FluxtoJyBeam(denom, in->Head()) * fabs(DeltaVel(in->Head()));
     
     // Moment 1st
@@ -523,7 +522,10 @@ bool MomentMap<T>::fitSpectrum (size_t x, size_t y, bool msk, double *bestfitpar
     ret = lsq.fit();
     if(ret<0) return false;
     
-    double integint = sqrt(2)*sqrt(M_PI)*fabs(c[2])*FluxtoJyBeam(c[0], in->Head());
+    double integint = sqrt(2)*sqrt(M_PI)*fabs(c[2])*c[0];
+    if (in->pars().getFluxConvert())
+        integint = sqrt(2)*sqrt(M_PI)*fabs(c[2])*FluxtoJyBeam(c[0], in->Head());
+    
     bestfitpar[0] = integint;        // Integrated intensity
     bestfitpar[1] = c[1];            // Central velocity
     bestfitpar[2] = c[2];            // Velocity dispersion

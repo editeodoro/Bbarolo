@@ -514,8 +514,8 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption) {
     // cutoffOption = 4 : Disable cutoff, i.e. return values that correspond to
     //                    coordinates outside the validity range of the correction function.
     
-    bool haveCorr = h.Telesc()=="WSRT" || h.Telesc()=="VLA" || h.Telesc()=="ATCA"
-                    || h.Telesc()=="FST" || h.Telesc()=="GMRT";
+    bool haveCorr = h.Telesc()=="WSRT" || h.Telesc().find("VLA")!=std::string::npos || 
+                    h.Telesc()=="ATCA" || h.Telesc()=="FST" || h.Telesc()=="GMRT";
         
     if (!haveCorr) return v.getF();
     
@@ -576,7 +576,7 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption) {
 
         fluxcorr = v.getF()/pbc;
     }
-    else if (h.Telesc()=="VLA") {
+    else if (h.Telesc().find("VLA")!=std::string::npos) {
         float RF = angdist*60*freq;         /// The distance is now in arcmin.
         float minval = 0.023;               /// Cutoff at 2.3%
         float a0, a1, a2, a3, a4;

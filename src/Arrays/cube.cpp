@@ -839,6 +839,7 @@ Cube<T>* Cube<T>::Reduce (int fac, std::string rtype) {
                 for (int zz=fac*z; zz<fac*z+fac; zz++)
                     sum += array[i+zz*axisDim[0]*axisDim[1]];
                 reduced->Array(i+z*dim[0]*dim[1]) = sum/double(fac);
+                if (sum==0) reduced->Array(i+z*dim[0]*dim[1]) = log(-1);
             }
         }
         
@@ -861,6 +862,7 @@ Cube<T>* Cube<T>::Reduce (int fac, std::string rtype) {
                         for (int xx=fac*x; xx<fac*x+fac; xx++) 
                             sum += array[xx+yy*axisDim[0]+z*axisDim[0]*axisDim[1]];
                     reduced->Array(x,y,z) = sum/double(fac*fac);
+                    if (sum==0) reduced->Array(x,y,z) = log(-1);
                 }
             }
         }
@@ -995,7 +997,6 @@ void Cube<T>::CheckCube (int type) {
                     for (int x=0; x<axisDim[0]; x++)
                         Array(x,y,z) = 0;
             }
-
         }
      
         if (bad_y.size()==0) {
@@ -1263,7 +1264,7 @@ void Cube<T>::search() {
     // Calculating parameters for detections
     for (int i=0; i<getNumObj(); i++){
         Detection<T> *obj = sources->pObject(i);
-        obj->calcAllParams(array,axisDim,head,p.pbcorr);
+        obj->calcAllParams(array,axisDim,head,p.pbcorr,par.getFluxConvert());
     }
 
     // Sorting detections
@@ -1374,8 +1375,12 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             << setw(m) << right << "[pix] "
             << setw(m) << right << "[pix] "
             << setw(m) << right << "[km/s]"
-            << setw(m) << right << "[km/s]"
-            << setw(m+5) << right << "[JY*km/s]"
+            << setw(m) << right << "[km/s]";
+    
+    string bu = "["+head.Bunit()+"*km/s]";
+    if (par.getFluxConvert() && FluxtoJy(1,head)!=1) bu = "[Jy*km/s]";
+            
+    Stream  << setw(m+5) << right << bu
             << setw(m-2) << right << " "
             << setw(m) << right << "["+head.Bunit()+"]";
 
@@ -1686,6 +1691,9 @@ int Cube<T>::plotDetections(){
     float bmin = head.Bmin()/head.PixScale();
     float bpa  = head.Bpa();
 
+    std::string bu = "("+head.Bunit()+"*km/s)";
+    if (par.getFluxConvert() && FluxtoJyBeam(1,head)!=1) bu = "(Jy*km/s)";
+
     std::string outfolder = par.getOutfolder()+"sources/";
     std::ofstream pyf((outfolder+"plot_sources.py").c_str());
 
@@ -1745,7 +1753,7 @@ int Cube<T>::plotDetections(){
         << std::endl
         << std::endl
         << "def setaxislabels(ax): \n"
-        << "\tax[0].text(0.5,-0.2,'Int flux (jy*km/s)',ha='center',transform=ax[0].transAxes,fontsize=fsize+1) \n"
+        << "\tax[0].text(0.5,-0.2,'Int flux " << bu << "',ha='center',transform=ax[0].transAxes,fontsize=fsize+1) \n"
         << "\tax[1].text(0.5,-0.2,'Velocity (km/s)',ha='center',transform=ax[1].transAxes,fontsize=fsize+1) \n"
         << "\tax[2].text(0.5,-0.2,'Dispersion (km/s)',ha='center',transform=ax[2].transAxes,fontsize=fsize+1) \n"
         << "\tax[3].text(0.5,-0.2,'Velocity (km/s)',ha='center',transform=ax[3].transAxes,fontsize=fsize+1) \n"

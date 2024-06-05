@@ -184,6 +184,7 @@ public:
     int     getFlagPlots() {return plots;}
     bool    getFlagAuto() {return AUTO;}
     bool    getFlagStats() {return flagStats;}
+    bool    getFluxConvert() {return fluxConvert;}
 
     bool    getFlatContsub() {return contsub;}
     string  getExcludeWind() {return exclude_windows;}
@@ -300,6 +301,7 @@ private:
     bool            flagRobustStats;    ///< Whether to use robust statistics.
     int             plots;              ///< Whether producing output plots.
     bool            flagStats;          ///< Whether to calculate and return stats
+    bool            fluxConvert;        ///< Whether to convert fluxes to Jy, when possible
     
     bool            contsub;            ///< Whether to subtract continuum from a cube. 
     string          exclude_windows;    ///< Exclude channels for continuum subtraction.

@@ -90,6 +90,7 @@ void Param::defaultValues() {
     checkCube           = 0;
     flagStats           = false;
     flagRobustStats     = true;
+    fluxConvert         = true;
     
     contsub             = false;
     exclude_windows     = "NONE";
@@ -177,6 +178,7 @@ Param& Param::operator= (const Param& p) {
     this->plots             = p.plots;
     this->flagStats         = p.flagStats;
     this->flagRobustStats   = p.flagRobustStats;
+    this->fluxConvert       = p.fluxConvert;
     
     this->contsub           = p.contsub;
     this->exclude_windows   = p.exclude_windows;
@@ -473,7 +475,8 @@ void Param::setParam(string &parstr) {
     if(arg=="plots")            plots     = readFlagorInt(ss);
     if(arg=="beamfwhm")         beamFWHM  = readval<float>(ss);
     if(arg=="checkcube")        checkCube = readval<int>(ss);
-    if(arg=="auto")             AUTO = readFlag(ss);
+    if(arg=="auto")             AUTO      = readFlag(ss);
+    if(arg=="fluxconvert")      fluxConvert = readFlag(ss);
 
     if(arg=="contsub")          contsub  = readFlag(ss);
     if(arg=="exclwind")         exclude_windows  = readFilename(ss);
@@ -1270,6 +1273,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
     recordParam(Str, "[LOGFILE]", "Redirect output messages to a file?", stringize(p.getLogFile()));
     recordParam(Str, "[flagRobustStats]", "Using robust statistics?", stringize(p.getFlagRobustStats()));    
+    recordParam(Str, "[FLUXCONVERT]", "Whether to convert flux to Jy?", stringize(p.getFluxConvert()));    
 
     // Print CHECKCUBE
     if (p.getCheckCube() || (defaults && isAll))

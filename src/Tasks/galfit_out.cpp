@@ -1824,7 +1824,7 @@ void Galfit<T>::DensityProfile (T *surf_dens, int *count) {
     Detection<T> *obj = in->pObject(0);
     obj->calcFluxes(obj->getPixelSet(in->Array(), in->AxisDim()));
     obj->calcWCSparams(in->Head());
-    obj->calcIntegFlux(in->DimZ(), obj->getPixelSet(in->Array(), in->AxisDim()), in->Head(), false);
+    obj->calcIntegFlux(in->DimZ(), obj->getPixelSet(in->Array(), in->AxisDim()), in->Head(), false, in->pars().getFluxConvert());
     obj->setMass(2.365E5*obj->getIntegFlux()*distance*distance);
     T *surf_bright_faceon = new T[outr->nr];
     T *mass_surf_dens = new T[outr->nr];

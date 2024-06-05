@@ -584,7 +584,8 @@ void Detection<T>::calcWCSparams(Header &head) {
   //--------------------------------------------------------------------
 
 template <class T>
-void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, Header &head, int pbcorr) {
+void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, 
+                                 Header &head, int pbcorr, bool fluxconvert) {
    
     ///  @details
     ///  Uses the input WCS to calculate the velocity-integrated flux, 
@@ -665,14 +666,14 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList, He
     calcVelWidths(zdim,voxelList,head);
 
     // correct for the beam size and convert to Jy
-    intFlux = FluxtoJy(intFlux, head);
+    if (fluxconvert) intFlux = FluxtoJy(intFlux, head);
     
 
 }
   //--------------------------------------------------------------------
 
 template <class T>
-void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head, int pbcorr) {
+void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head, int pbcorr, bool fluxconvert) {
     
     ///  @details
     ///  Uses the input WCS to calculate the velocity-integrated flux, 
@@ -739,7 +740,7 @@ void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head, int pbco
     calcVelWidths(fluxArray, dim, head);
 
     // correct for the beam size and convert to Jy
-    intFlux = FluxtoJy(intFlux, head);
+    if (fluxconvert) intFlux = FluxtoJy(intFlux, head);
     
 }
   //--------------------------------------------------------------------
@@ -882,12 +883,12 @@ void Detection<T>::calcVelWidths(T *fluxArray, long *dim, Header &head) {
 
 
 template <class T>
-void Detection<T>::calcAllParams(T *fluxArray, int *dim, Header &head, int pbcorr){
+void Detection<T>::calcAllParams(T *fluxArray, int *dim, Header &head, int pbcorr, bool fluxconvert){
 
     std::vector<Voxel<T> > voxlist = this->getPixelSet(fluxArray,dim);
     calcFluxes(voxlist);
     calcWCSparams(head);
-    calcIntegFlux(dim[2],voxlist,head,pbcorr);
+    calcIntegFlux(dim[2],voxlist,head,pbcorr,fluxconvert);
 }
 
 

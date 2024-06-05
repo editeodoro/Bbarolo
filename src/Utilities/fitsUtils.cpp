@@ -589,7 +589,7 @@ int ConvertFluxUnits(int argc, char *argv[], std::string whichtype) {
     
     std::string bunit;
     
-    Cube<double> c;
+    Cube<float> c;
     Header &h = c.Head();
     h.setFitsName(argv[2]);
     //h.setWarning(false);
