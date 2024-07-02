@@ -64,10 +64,12 @@ public:
     T&      Array (size_t npix) {return this->operator()(npix);}
     T&      Array (size_t x,size_t y,size_t z) {return this->operator()(x,y,z);}
     void    setArray (T *ar) {array = ar;}
-    double  getZphys (double z) {return (z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);}
+    //double  getZphys (double z) {return (z+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);}
+    //double  getZgrid (double v) {return (v-head.Crval(2))/head.Cdelt(2)+head.Crpix(2)-1;}
+    double  getZphys (double z) {return head.getZphys(z);}
+    double  getZgrid (double v) {return head.getZgrid(v);}
     double  getXphys (double x) {return (x+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);}
     double  getYphys (double y) {return (y+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);}
-    double  getZgrid (double v) {return (v-head.Crval(2))/head.Cdelt(2)+head.Crpix(2)-1;}
     double* getXYZphys (double x, double y, double z) {double p[3] = {x,y,z}; double *w = new double[3]; head.pixToWCS(p,w); return w;}
     double* getXYphys (double x, double y) {return getXYZphys(x,y,0);}
 

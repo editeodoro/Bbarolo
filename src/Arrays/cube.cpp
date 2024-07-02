@@ -423,7 +423,6 @@ bool Cube<T>::fitswrite_3d(const char *outfile, bool fullHead) {
     return true;
 }
 
-
 /**=====================================================================================*/ 
 /** STATISTICAL FUNCTIONS */
 
@@ -1411,7 +1410,6 @@ void Cube<T>::printDetections (std::ostream& Stream) {
             pixToWCSSingle(head.WCS(), pix, world);
             RA  = world[0];
             DEC = world[1];
-            //VEL = AlltoVel (world[2],head);
             VEL = AlltoVel(getZphys(Zcenter), head);
             if (RA<0) RA += 360;
             else if (RA>360) RA -= 360;

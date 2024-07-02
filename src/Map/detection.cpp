@@ -73,6 +73,7 @@ void Detection<T>::defaultDetection() {
     minorAxis = 0.;
     posang = 0.;
     specUnits = "";
+    specOK    = false;
     fluxUnits = "";
     intFluxUnits = "";
     lngtype = "RA";
@@ -147,10 +148,12 @@ Detection<T>& Detection<T>::operator= (const Detection<T>& d) {
     this->minorAxis    = d.minorAxis;
     this->posang       = d.posang;
     this->specUnits    = d.specUnits;
+    this->specOK       = d.specOK;
     this->fluxUnits    = d.fluxUnits;
     this->intFluxUnits = d.intFluxUnits;
     this->lngtype      = d.lngtype;
     this->lattype      = d.lattype;
+    
     this->vel          = d.vel;
     this->velWidth     = d.velWidth;
     this->velMin       = d.velMin;
@@ -526,59 +529,71 @@ void Detection<T>::calcWCSparams(Header &head) {
     ///      <li> Dec: dec [deg], dec (string), dec width.
     ///      <li> Vel: vel [km/s], min & max vel, vel width.
     ///      <li> coord type for all three axes, nuRest, 
-    ///      <li> name (IAU-style, in equatorial or Galactic) 
     ///  </ul>
     /// 
     ///  Note that the regular parameters are NOT recalculated!
     /// 
     ///  \param head FitsHeader object that contains the WCS information.
-
- 
-    haveParams = true;
-
-    std::string cunit = head.Cunit(1);
-    double arcconv = arcsconv(cunit);
-    double degconv = arcconv/3600.;
     
-    lngtype = head.Ctype(0);
-    lattype = head.Ctype(1);
-    specUnits = head.Ctype(2);
-    fluxUnits = head.Bunit();
-    intFluxUnits = "JY KM/S";
-    ra   = (getXcentre()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
-    ra  *= degconv;
-    dec  = (getYcentre()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
-    dec *= degconv;
-    raS  = decToDMS(ra, lngtype);
-    decS = decToDMS(dec,lattype);
-    float raMin = (this->getXmin()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
-    float raMax = (this->getXmax()+1-head.Crpix(0))*head.Cdelt(0)+head.Crval(0);
-    float deMin = (this->getYmin()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
-    float deMax = (this->getYmax()+1-head.Crpix(1))*head.Cdelt(1)+head.Crval(1);
-    raMin *= degconv;
-    raMax *= degconv;
-    deMin *= degconv;
-    deMax *= degconv;
-    raWidth   = angularSeparation(raMin,dec,raMax,dec)*arcconv;
-    decWidth  = angularSeparation(ra,deMin,ra,deMax)*arcconv;
+    if (head.isWCS()) {
+        // WCS is well defined from the header. 
+        
+        double *pixcrd = new double[15];
+        double *world  = new double[15];
+        // Define a five-point array in 3D: (x,y,z), (x,y,z1), (x,y,z2), (x1,y1,z), (x2,y2,z)
+        // [note: x = central point, x1 = minimum x, x2 = maximum x etc.] and convert to wCS.
+        
+        pixcrd[0]  = pixcrd[3] = pixcrd[6] = getXcentre();
+        pixcrd[9]  = getXmin()-0.5;
+        pixcrd[12] = getXmax()+0.5;
+        pixcrd[1]  = pixcrd[4] = pixcrd[7] = getYcentre();
+        pixcrd[10] = getYmin()-0.5;
+        pixcrd[13] = getYmax()+0.5;
+        pixcrd[2]  = pixcrd[11] = pixcrd[14] = getZcentre();
+        pixcrd[5]  = getZmin();
+        pixcrd[8]  = getZmax();
+        int flag   = head.pixToWCS(pixcrd, world, 5);
+        delete [] pixcrd;
+        
+        if(flag!=0) {
+              std::cerr << "BB calcWCSparams: Error in calculating the WCS for this object.";
+              return;
+        }
+        
+        // World now has the WCS coords for the five points 
 
-    Object2D spatMap = this->getSpatialMap();
-    double *axes = spatMap.getPrincipalAxes();
-    float PixScale = ((fabs(head.Cdelt(0))+fabs(head.Cdelt(1)))/2.)*arcconv;
-    majorAxis = std::max(axes[0],axes[1])*PixScale;
-    minorAxis = std::min(axes[0],axes[1])*PixScale;
-    posang = spatMap.getPositionAngle()*180./M_PI;
-    delete [] axes;
+        haveParams = true;
 
-    vel    = (this->getZcentre()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-    vel    = AlltoVel(vel, head);
-    velMin = (this->getZmin()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-    velMin = AlltoVel(velMin, head);
-    velMax = (this->getZmax()+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-    velMax = AlltoVel(velMax, head);
-    velWidth = fabs(velMax-velMin);
+        specOK       = head.canUseThirdAxis();
+        lngtype      = head.lngtype();
+        lattype      = head.lattype();
+        specUnits    = head.SpectralUnits();
+        fluxUnits    = head.Bunit();
+        intFluxUnits = "JY KM/S";
+        ra           = world[0];
+        dec          = world[1];
+        raS          = decToDMS(ra, lngtype);
+        decS         = decToDMS(dec,lattype);
+        raWidth      = angularSeparation(world[9],world[1],world[12],world[1]) * 3600.;
+        decWidth     = angularSeparation(world[0],world[10],world[0],world[13]) * 3600.;
 
-    flagWCS = true;
+        Object2D spatMap = this->getSpatialMap();
+        double *axes = spatMap.getPrincipalAxes();
+        float PixScale = head.PixScale()*arcsconv(head.Cunit(1));;
+        majorAxis = std::max(axes[0],axes[1])*PixScale;
+        minorAxis = std::min(axes[0],axes[1])*PixScale;
+        posang = spatMap.getPositionAngle()*180./M_PI;
+        delete [] axes;
+        
+        flagWCS = true;
+        delete [] world;
+    
+    }
+    
+    vel          = AlltoVel(head.getZphys(getZcentre()),head);
+    velMin       = AlltoVel(head.getZphys(getZmin()),head);
+    velMax       = AlltoVel(head.getZphys(getZmax()),head);
+    velWidth     = fabs(velMax - velMin);
 
 }
   //--------------------------------------------------------------------
@@ -640,15 +655,14 @@ void Detection<T>::calcIntegFlux(long zdim, std::vector<Voxel<T> > voxelList,
     double *world  = new double[zsize];
     for(int i=0;i<zsize;i++){
         int zpt = lround(this->getZmin()-border+i);
-        world[i] = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-        world[i] = AlltoVel(world[i], head);
+        world[i] = AlltoVel(head.getZphys(zpt), head);
     }
 
     double integrated = 0.;
     for(int pix=0; pix<xsize*ysize; pix++){ 
         for(int z=0; z<zsize; z++){
             int pos = z*xsize*ysize+pix;
-            if(isObj[pos]){                 
+            if(isObj[pos]){
                 double deltaVel;
                 if(z==0) deltaVel = (world[z+1]-world[z]);
                 else if(z==(zsize-1)) deltaVel = (world[z]-world[z-1]);
@@ -715,8 +729,7 @@ void Detection<T>::calcIntegFlux(T *fluxArray, long *dim, Header &head, int pbco
     double *world  = new double[zsize];
     for(int z=0;z<zsize;z++){
         int zpt = lround(this->zmin-1+z);
-        world[z] = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-        world[z] = AlltoVel(world[z], head);
+        world[z] = AlltoVel(head.getZphys(zpt), head);
     }
     
     double integrated = 0.;
@@ -805,8 +818,8 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else {
         if (goLeft) zpt = z+(peak*0.5-intSpec[z])/(intSpec[z+1]-intSpec[z]);
         else        zpt = z-(peak*0.5-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-        v50min = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-        v50min = AlltoVel(v50min, head);
+        v50min = AlltoVel(head.getZphys(zpt), head);
+        
     }
 
     z=this->getZmax();
@@ -817,8 +830,7 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else{
         if(goLeft) zpt = z+(peak*0.5-intSpec[z])/(intSpec[z+1]-intSpec[z]);
         else       zpt = z-(peak*0.5-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-        v50max = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-        v50max = AlltoVel(v50max, head);
+        v50max = AlltoVel(head.getZphys(zpt), head);
     }
 
     z=this->getZmin();
@@ -829,8 +841,7 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else{
         if(goLeft) zpt = z+(peak*0.2-intSpec[z])/(intSpec[z+1]-intSpec[z]);
         else       zpt = z-(peak*0.2-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-        v20min = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-        v20min = AlltoVel(v20min, head);
+        v20min = AlltoVel(head.getZphys(zpt), head);
     }
 
     z=this->getZmax();
@@ -841,8 +852,7 @@ void Detection<T>::calcVelWidths(long zdim, T *intSpec, Header &head) {
     else{
         if(goLeft) zpt = z+(peak*0.2-intSpec[z])/(intSpec[z+1]-intSpec[z]);
         else       zpt = z-(peak*0.2-intSpec[z])/(intSpec[z-1]-intSpec[z]);
-        v20max = (zpt+1-head.Crpix(2))*head.Cdelt(2)+head.Crval(2);
-        v20max = AlltoVel(v20max, head);
+        v20max = AlltoVel(head.getZphys(zpt), head);
     }
 
     w20 = fabs(v20min-v20max);

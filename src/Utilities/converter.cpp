@@ -127,7 +127,7 @@ double UNITS::LinearFactor () {
             break;
         case MPC:
             factor = 3.08567758E22;
-            break;              
+            break;
         default:
             ErrorMessage();
             return factor;

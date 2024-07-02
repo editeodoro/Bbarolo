@@ -853,7 +853,7 @@ void Galmod<T>::galmod() {
                     //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                     for (int nl=0; nl<nlines; nl++) {
                         double v     = vsys+vdev+relvel[nl];
-                        int isubs = lround(velgrid(v)+crpix3-1);
+                        int isubs = lround(velgrid(v));
                         if (isubs<0 || isubs>=nsubs) continue;
                         int idat  = iprof+isubs*nprof;
                         datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
@@ -1008,7 +1008,7 @@ void Galmod<T>::galmod() {
 //                double v     = vsys+gasdev(isd)*vdisptmp;
 //              Get grid of velocity along FREQ-OHEL or VELO axis.
 //              If a grid is not in the range, jump to next velocity profile.
-//                int isubs = lround(velgrid(v)+crpix3-1);
+//                int isubs = lround(velgrid(v));
 //                if (isubs<0 || isubs>=nsubs) continue;
 //               int idat  = iprof+isubs*nprof;
 //              Convert HI atom flux per pixel to flux per pixel of 21cm
@@ -1023,7 +1023,7 @@ void Galmod<T>::galmod() {
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                 for (int nl=0; nl<nlines; nl++) {
                     double v     = vsys+vdev+relvel[nl];
-                    int isubs = lround(velgrid(v)+crpix3-1);
+                    int isubs = lround(velgrid(v));
                     if (isubs<0 || isubs>=nsubs) continue;
                     size_t idat  = iprof+isubs*nprof;
                     array[idat] += relint[nl]*fluxsc*cd2i[isubs];
@@ -1230,7 +1230,7 @@ void Galmod<T>::galmod() {
                 //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
                 for (int nl=0; nl<nlines; nl++) {
                     double v     = vlos+vdev+relvel[nl];
-                    int isubs = lround(velgrid(v)+crpix3-1);
+                    int isubs = lround(velgrid(v));
                     if (isubs<0 || isubs>=nsubs) continue;
                     int idat  = iprof+isubs*nprof;
                     datbuf[idat] = datbuf[idat]+relint[nl]*fluxsc*cd2i[isubs];
@@ -1332,7 +1332,7 @@ template <class T>
 double Galmod<T>::velgrid(double v) {
     
     /// Function to transform a velocity to a grid.
-        
+    
     double w = 0;
     if (axtyp==4) w = v;                                 //< Velocity axis.
     else {
@@ -1345,7 +1345,8 @@ double Galmod<T>::velgrid(double v) {
         //else if (axtyp==3) w = w;                       //< Frequency axis.
     }
     
-    return (w-crval3)/cdelt3;
+    return (w-crval3)/cdelt3+crpix3-1;
+    //return in->Head().getZgrid(w,false);
 
 }
 
@@ -1641,7 +1642,7 @@ void Galmod_wind<T>::galmod_wind() {
                 double vdev = this->gaussia(this->generator)*vdisptmp;
                 for (int nl=0; nl<this->nlines; nl++) {
                     double v  = vsys+vdev+this->relvel[nl];
-                    int isubs = lround(this->velgrid(v)+this->crpix3-1);
+                    int isubs = lround(this->velgrid(v));
                     if (isubs<0 || isubs>=this->nsubs) continue;
                     int idat  = iprof+isubs*nprof;
                     datbuf[idat] = datbuf[idat]+this->relint[nl]*fluxsc*this->cd2i[isubs];

@@ -69,9 +69,15 @@ public:
     double Crpix   (int i) {return crpix[i];}
     double Drval3  () {return drval3;}
     double PixScale () {return (fabs(cdelt[0])+fabs(cdelt[1]))/2.;}
-    struct wcsprm *WCS () {return wcs;}
     double Wave0 () {return wave0;}
     double Redshift () {return redshift;}
+    
+    struct wcsprm *WCS () {return wcs;}
+    bool   isWCS () {return wcsIsGood;}
+    bool   isSpecOK(){return (wcs->spec >= 0);}
+    bool   canUseThirdAxis(){return ((wcs->spec >= 0)||(wcs->naxis>2));}
+    std::string SpectralUnits(){return specUnits;}
+    double SpectralConversion(){return specConv;}
 
     std::vector<std::string>& Keys () {std::vector<std::string> &k=keys; return k;}
     std::string Name () {return object;}
@@ -87,6 +93,7 @@ public:
     std::string SpectralType() {return sptype;}
     std::string RaDeSys() {return radesys;}
     std::string SpecSys() {return specsys;}
+    
     
     void setBitpix (int i) {bitpix = i;}
     void setDimAx (int i, long val) {dimAxes[i] = val;}
@@ -136,6 +143,10 @@ public:
     bool    checkHeader();                                      /// Check header is ok for BBarolo
     int     wcsToPix(const double *world, double *pix, size_t npts=1);
     int     pixToWCS(const double *pix, double *world, size_t npts=1);
+    std::string lngtype();
+    std::string lattype();
+    double  getZphys(double z, bool convert=true);
+    double  getZgrid(double specvalue, bool convert=true);
 
     template <class T>                                          /// Read the request keyword and write on "key".
     bool read_keyword(std::string keyword, T &key, bool err=false); 
@@ -175,14 +186,15 @@ private:
     std::string sptype;             ///< Spectral type (frequency, wavelength, velocity radio or optical)
     std::string radesys;            ///< System for spatial axes.
     std::string specsys;            ///< System for spectral axes.
+    std::string specUnits;          ///< The units of the spectral dimension
+    double  specConv;               ///< Conversion factor betweeb spectralUnits and pixtoWCS output. 
     std::vector<std::string> keys;  ///< Whole header as strings.
 
     struct wcsprm *wcs;             ///< The WCS parameters in a struct from the wcslib library.
     int    nwcs;                    ///< The number of WCS parameters
     bool   wcsIsGood;               ///< A flag indicating whether there is a valid WCS
-
-
-    bool    warning;               ///< Write warning on std::cout.
+    
+    bool    warning;                ///< Write warning on std::cout.
 };
 
 #endif

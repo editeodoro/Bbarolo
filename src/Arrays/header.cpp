@@ -52,6 +52,7 @@ Header::Header () {
     wcs->flag=-1;
     wcsIsGood=false;
     nwcs=0;
+    specConv=1;
 }
 
 
@@ -135,6 +136,9 @@ Header& Header::operator=(const Header& h) {
     this->datamin   = h.datamin;
     this->datamax   = h.datamax;
     this->warning   = h.warning;
+    this->specUnits = h.specUnits;
+    this->specConv  = h.specConv;
+    
     
 //    this->wcs = h.wcs;
 #pragma omp critical (wcs_header)
@@ -403,69 +407,68 @@ bool Header::header_read (std::string fname) {
         datamax = 0;
     }
     
+    
     // Special keywords for spectral axis
-    if (numAxes>=3) {
-        // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis if numAxes>3
-        std::string cu2 = makelower(cunit[numAxes-1]);
-        std::string ct2 = makelower(ctype[numAxes-1]);
-        size_t f = std::string::npos;
-        if (numAxes>3) {
-            cu2 = makelower(cunit[2]);
-            ct2 = makelower(ctype[2]);
-        }
+    // Spectral axis is assumed to be last axis if numAxes<=3 or 3rd axis if numAxes>3
+    std::string cu2 = makelower(cunit[numAxes-1]);
+    std::string ct2 = makelower(ctype[numAxes-1]);
+    size_t f = std::string::npos;
+    if (numAxes>3) {
+        cu2 = makelower(cunit[2]);
+        ct2 = makelower(ctype[2]);
+    }
         
+    status=0;
+    specsys = "";
+    if (fits_read_key_str (fptr, "SPECSYS", dumstr, comment, &status)) {
+        // Looking for AIPS VELREF keyword
         status=0;
-        specsys = "";
-        if (fits_read_key_str (fptr, "SPECSYS", dumstr, comment, &status)) {
-            // Looking for AIPS VELREF keyword
-            status=0;
-            float velref = 0;
-            if (fits_read_key_flt (fptr, "VELREF", &velref, comment, &status)) {
-                // Check if CTYPE3 has some information
-                if      (ct2.find("lsr")!=f) specsys = "LSRK";
-                else if (ct2.find("hel")!=f) specsys = "BARYCENT";
-                else if (ct2.find("top")!=f) specsys = "TOPOCENT";
-            }
-            else {
-                if      (velref==1 || velref==257) specsys = "LSRK";
-                else if (velref==2 || velref==258) specsys = "BARYCENT";
-                else if (velref==3 || velref==259) specsys = "TOPOCENT";
-                specsys = "";
-            }
+        float velref = 0;
+        if (fits_read_key_flt (fptr, "VELREF", &velref, comment, &status)) {
+            // Check if CTYPE3 has some information
+            if      (ct2.find("lsr")!=f) specsys = "LSRK";
+            else if (ct2.find("hel")!=f) specsys = "BARYCENT";
+            else if (ct2.find("top")!=f) specsys = "TOPOCENT";
         }
-        else specsys = dumstr;
+        else {
+            if      (velref==1 || velref==257) specsys = "LSRK";
+            else if (velref==2 || velref==258) specsys = "BARYCENT";
+            else if (velref==3 || velref==259) specsys = "TOPOCENT";
+            specsys = "";
+        }
+    }
+    else specsys = dumstr;
+    
+    // Setting spectral type axis
+    if (ct2.find("wav")!=f  || cu2.find("um")!=f || cu2.find("nm")!=f ||
+        cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
+    else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
+    else if (ct2.find("vopt")!=f || ct2.find("felo")!=f) sptype="velo-opt";
+    else if (ct2.find("vel")!=f  || ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo-radio";
+    else sptype="unknown";
         
+    status=0;
+    if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
         status=0;
-        if (fits_read_key_dbl (fptr, "FREQ0", &freq0, comment, &status)) {
+        if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
             status=0;
-            if (fits_read_key_dbl (fptr, "RESTFREQ", &freq0, comment, &status)) {
-                status=0;
-                if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
-                    if (dunit3=="NONE" || drval3==0 || (cu2.find("hz")!=f && cu2.find("m/s")!=f)) {
-                            Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
-                            freq0 = 0.1420405751786E10;
-                    }
-                    else {
-                        double drval3ms=0., crval3hz=0.;
-                        if (makelower(dunit3)=="km/s") drval3ms=drval3*1000;
-                        else if (makelower(dunit3)=="m/s") drval3ms=drval3;
-                        if (cu2=="hz") crval3hz = crval[2];
-                        else if (cu2=="mhz") crval3hz=crval[2]*1.E06;
-                        else if (cu2=="ghz") crval3hz=crval[2]*1.E09;
-                        freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
-                    }
+            if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
+                
+                if (dunit3=="NONE" || drval3==0 || (cu2.find("hz")!=f && cu2.find("m/s")!=f)) {
+                        Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
+                        freq0 = 0.1420405751786E10;
+                }
+                else {
+                    double drval3ms=0., crval3hz=0.;
+                    if (makelower(dunit3)=="km/s") drval3ms=drval3*1000;
+                    else if (makelower(dunit3)=="m/s") drval3ms=drval3;
+                    if (cu2=="hz") crval3hz = crval[2];
+                    else if (cu2=="mhz") crval3hz=crval[2]*1.E06;
+                    else if (cu2=="ghz") crval3hz=crval[2]*1.E09;
+                    freq0 = crval3hz*sqrt((299792458.+drval3ms)/(299792458.-drval3ms));
                 }
             }
         }
-        
-        // Setting spectral type axis
-        if (ct2.find("wav")!=f  || cu2.find("um")!=f || cu2.find("nm")!=f ||
-            cu2.find("ang")!=f  || cu2.find("micr")!=f) sptype="wave";
-        else if (ct2.find("freq")!=f || cu2.find("hz")!=f) sptype="freq";
-        else if (ct2.find("vopt")!=f || ct2.find("felo")!=f) sptype="velo-opt";
-        else if (ct2.find("vel")!=f  || ct2.find("vrad")!=f || cu2.find("m/s")!=f) sptype="velo-radio";
-        else sptype="unknown";
-        
     }
     
     status=0;
@@ -614,7 +617,17 @@ bool Header::header_read (std::string fname) {
     int restreq;
     status = spctyp(wcs->ctype[wcs->spec],stype,scode,sname,units,&ptype,&xtype,&restreq);
     
+    specUnits = makelower(wcs->cunit[wcs->spec]);
+    
     if((wcs->lng!=-1) && (wcs->lat!=-1)) wcsIsGood = true;
+
+    // Setting up conversion factor between header units and the spectral units that wcsp2s outputs:
+    // -> Hz for freq axis, -> m for wavelenght axis and m/s for velocity axis. 
+    if (cu2=="km/s") specConv = 1/1000.;
+    if (cu2=="mhz")  specConv = 1/1E06;
+    if (cu2=="ghz")  specConv = 1/1E09;
+    if (cu2=="micron" || cu2=="mum" || cu2=="um")  specConv = 1E06;
+    if (cu2=="a" || cu2=="ang" || cu2=="angstrom") specConv = 1E10;
 
     // Close the FITS File
     status=0;
@@ -731,6 +744,26 @@ void Header::updateWCS() {
 }
 
 
+std::string Header::lngtype() {
+    std::string lngtyp(wcs->lngtyp);
+    if(removeLeadingBlanks(lngtyp)==""){
+        lngtyp = wcs->ctype[wcs->lng];
+        return lngtyp.substr(0,4);
+  }
+  else return lngtyp;
+}
+
+
+std::string Header::lattype() {
+    std::string lattyp(wcs->lattyp);
+    if(removeLeadingBlanks(lattyp)==""){
+        lattyp = wcs->ctype[wcs->lat];
+        return lattyp.substr(0,4);
+    }
+    else return lattyp;
+}
+
+
 int Header::wcsToPix(const double *world, double *pix, size_t npts) {
 
     ///  @details
@@ -760,8 +793,8 @@ int Header::wcsToPix(const double *world, double *pix, size_t npts) {
     for(size_t pt=0;pt<npts;pt++){
         for(int axis=0;axis<naxis;axis++)
             tempworld[pt*naxis+axis] = wcs->crval[axis];
-        tempworld[pt*naxis + wcs->lng]  = world[pt*3+0];
-        tempworld[pt*naxis + wcs->lat]  = world[pt*3+1];
+        tempworld[pt*naxis + wcs->lng] = world[pt*3+0];
+        tempworld[pt*naxis + wcs->lat] = world[pt*3+1];
         tempworld[pt*naxis + specAxis] = world[pt*3+2];
     }
 
@@ -770,8 +803,10 @@ int Header::wcsToPix(const double *world, double *pix, size_t npts) {
     double *imgcrd = new double[naxis*npts];
     double *phi    = new double[npts];
     double *theta  = new double[npts];
-    status=wcss2p(wcs,npts,naxis,tempworld,phi,theta,
-                  imgcrd,temppix,stat);
+    status=wcss2p(wcs,npts,naxis,tempworld,phi,theta,imgcrd,temppix,stat);
+    
+    // I often get an error but it seems that the conversion is doing fine. Workaround here. 
+    if (status==9 && stat[0]==3) status=0;
     if(status>0){
         std::cerr << "\nCannot convert to wcs. WCS error code = " << status
                   << ": stat="<<stat[0] << " : " << wcs_errmsg[status] << std::endl;
@@ -809,7 +844,7 @@ int Header::pixToWCS(const double *pix, double *world, size_t npts) {
     ///   \param world The returned array of world coordinates.
     ///   \param npts The number of distinct pixels in the arrays.
 
-    int naxis=wcs->naxis,status;
+    int naxis=wcs->naxis,status=0;
     int specAxis = wcs->spec;
     if(specAxis<0) specAxis=2;
     if(specAxis>=naxis) specAxis = naxis-1;
@@ -821,8 +856,8 @@ int Header::pixToWCS(const double *pix, double *world, size_t npts) {
     double *newpix = new double[naxis*npts];
     for(size_t pt=0;pt<npts;pt++){
       for(int i=0;i<naxis;i++) newpix[pt*naxis+i] = 1.;
-      newpix[pt*naxis+wcs->lng]  += pix[pt*3+0];
-      newpix[pt*naxis+wcs->lat]  += pix[pt*3+1];
+      newpix[pt*naxis+wcs->lng] += pix[pt*3+0];
+      newpix[pt*naxis+wcs->lat] += pix[pt*3+1];
       newpix[pt*naxis+specAxis] += pix[pt*3+2];
     }
 
@@ -858,6 +893,44 @@ int Header::pixToWCS(const double *pix, double *world, size_t npts) {
 }
 
 
+double Header::getZphys(double z, bool convert) {
+    
+    // This function converts from a channel value (0-indexed) to a spectral value
+    // in physical units (same units as the spectral axis). If convert=false, return the units of WCSLIB.
+    // If bad WCS or if errors in WCS retrieving, no error is thrown, just return input value
+    
+    double pix[numAxes] , world[numAxes];
+    for (int i=0; i<numAxes; i++) pix[i]=world[i]=0;
+    pix[wcs->spec] = z;
+    
+    double retvalue;
+    if (!pixToWCS(pix,world,1)) {
+        retvalue = world[wcs->spec];
+        if (convert) retvalue*=specConv;
+    }
+    else retvalue = (z+1-crpix[wcs->spec])*cdelt[wcs->spec]+crval[wcs->spec];
+
+    return retvalue;
+}
+
+
+double Header::getZgrid(double specvalue, bool convert) {
+    
+    // This function converts from a spectral value in physical units (same units as the spectral axis). 
+    // to channel value (0-indexed). If convert=false, return the units of WCSLIB.
+    // If bad WCS or if errors in WCS retrieving, no error is thrown, just return input value
+    
+    double pix[numAxes] , world[numAxes];
+    for (int i=0; i<numAxes; i++) pix[i]=world[i]=0;
+    
+    world[wcs->spec] = specvalue;
+    if (convert) world[wcs->spec]/=specConv;
+    if (!wcsToPix(world,pix,1)) return pix[wcs->spec];
+    else return (specvalue-crval[wcs->spec])/cdelt[wcs->spec]+crpix[wcs->spec]-1;
+}
+
+
+
 bool Header::checkHeader() {
     
     // Performs a few checks to verify that the header is compatible with BBarolo's needs
@@ -886,6 +959,22 @@ bool Header::checkHeader() {
         || fabs(cdelt[1])<fac*lowval || fabs(cdelt[1])>fac*highval) ) {
         Warning("HEADER CHECK: CDELT1 and/or CDELT2 values are suspiciously large or small. ");
         allgood = false;
+    }
+    
+    // Checking that the values of CRPIX3 is not far off for spectral axis with varying v_delta
+    if (sptype=="velo-opt" & numAxes>2) {
+        if (crpix[2]<-50 || crpix[2]>dimAxes[2]+50) {
+            Warning("HEADER CHECK: CRPIX3 is very outside the channel range and CDELT3 is not constant.");
+            Warning("              This may create issues when building up a kinematical model.");
+            Warning("              Please update the data with a spectral reference channel inside cube.");
+            double v1 = getZphys(0);
+            double v2 = getZphys(1);
+            double dv = v2 - v1;
+            Warning("              For example, change to : CRPIX3 = 1");
+            Warning("                                       CRVAL3 = " + to_string(v1));
+            Warning("                                       CDELT3 = " + to_string(dv));
+            allgood = false;
+        }
     }
     
     // Checking that BMAJ and BMIN make sense

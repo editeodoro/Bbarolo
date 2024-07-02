@@ -121,7 +121,7 @@ double Vel2Wave(double v, double wave0, std::string veldef) {
     
     // Convert a velocity in km/s into wavelength in the same units as freq0.
     const double c = 299792.458;
-    return c/Vel2Freq(v,c/wave0,veldef); 
+    return c/Vel2Freq(v,c/wave0,veldef);
 }
 
 
@@ -159,6 +159,7 @@ double AlltoVel (double in, Header &h) {
     return vel_km_s;
     
 }
+
 
 double Vel2Spec (double in, Header &h) {
     
@@ -551,20 +552,20 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption) {
     if (makelower(h.Cunit(2))=="km/s") {
         const float HIrest = 1.420405751;
         const float c = 299792.458;
-        float vel = ((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2));
+        float vel = h.getZphys(v.getZ());
         freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
     }
     else if (makelower(h.Cunit(2))=="m/s") {
         const float HIrest = 1.420405751;
         const float c = 299792458.;
-        float vel = ((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2));
+        float vel = h.getZphys(v.getZ());
         freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
     }
     else if (makelower(h.Cunit(2))=="hz") {
-        freq=((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2))/(1E09);
+        freq=(h.getZphys(v.getZ()))/(1E09);
     }   
     else if (makelower(h.Cunit(2))=="mhz") {
-        freq=((v.getZ()+1-h.Crpix(2))*h.Cdelt(2)+h.Crval(2))/(1000);
+        freq=(h.getZphys(v.getZ()))/(1000);
     }
     else return -2;
     

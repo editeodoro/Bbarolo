@@ -704,7 +704,7 @@ int ParamGuess<T>::plotGuess(std::string outfile) {
 
     pyf.close();
 
-    std::string cmd = "python "+outfolder+"pyscript_ig.py > /dev/null 2>&1";
+    std::string cmd = "python \'"+outfolder+"pyscript_ig.py\'";// > /dev/null 2>&1";
     ret = system(cmd.c_str());
     remove((outfolder+"pyscript_ig.py").c_str());
 #else

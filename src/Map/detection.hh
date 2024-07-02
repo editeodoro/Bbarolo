@@ -255,6 +255,7 @@ public:
     std::string    intFluxUnits;   ///< Units of integrated flux
     std::string    lngtype;        ///< Type of longitude axis (RA/GLON)
     std::string    lattype;        ///< Type of latitude axis (DEC/GLAT)
+    bool           specOK;         ///< Is the spectral dimension valid?    
     float          vel;            ///< Central velocity (from zCentre)
     float          velWidth;       ///< Full velocity width
     float          velMin;         ///< Minimum velocity
