@@ -967,6 +967,7 @@ bool Header::checkHeader() {
             Warning("HEADER CHECK: CRPIX3 is very outside the channel range and CDELT3 is not constant.");
             Warning("              This may create issues when building up a kinematical model.");
             Warning("              Please update the data with a spectral reference channel inside cube.");
+            Warning("              I will fix it for this run, but you should change it in your data. ");
             double v1 = getZphys(0);
             double v2 = getZphys(1);
             double dv = v2 - v1;
@@ -974,6 +975,12 @@ bool Header::checkHeader() {
             Warning("                                       CRVAL3 = " + to_string(v1));
             Warning("                                       CDELT3 = " + to_string(dv));
             allgood = false;
+        
+            crpix[2] = 1;
+            crval[2] = v1;
+            cdelt[2] = dv;
+            cunit[2] = "m/s";
+            updateWCS();
         }
     }
     
