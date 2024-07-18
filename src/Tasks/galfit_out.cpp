@@ -932,7 +932,7 @@ int Galfit<T>::plotAll_Python() {
     float bmaj = in->Head().Bmaj()/in->Head().PixScale();
     float bmin = in->Head().Bmin()/in->Head().PixScale();
     float bpa  = in->Head().Bpa();
-    std::string bunit = "JY * KM/S";
+    std::string bunit = "JY/BEAM * KM/S";
     if (FluxtoJy(1,in->Head())==1) bunit = in->Head().Bunit() + " * KM/S";
 
     float cont = 0;
@@ -1133,7 +1133,7 @@ int Galfit<T>::plotAll_Python() {
         << "ax[5].set_xlim(0,max_rad) \n"
         << "ax[5].set_ylabel('V$_\\mathrm{rad}$ (km/s)', fontsize=lsize) \n"
         << "ax[5].errorbar(rad,vrad, yerr=[-err1_l[9],err1_h[9]],fmt='o', color=color) \n"
-        << "if twostage==True: ax[5].errorbar(rad2,vrad2,yerr=[-err2_l[9],err2_h[9]],fmt='o', color=color2) \n"
+        << "if twostage: ax[5].errorbar(rad2,vrad2,yerr=[-err2_l[9],err2_h[9]],fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting position angle \n"
         << "ax[6].set_ylabel('$\\phi$ (deg)', fontsize=lsize) \n"
@@ -1151,7 +1151,7 @@ int Galfit<T>::plotAll_Python() {
         << "ax[8].set_ylabel('v$_\\mathrm{sys}$ (km/s)', fontsize=lsize) \n"
         << "ax[8].set_xlabel('Radius (arcsec)', fontsize=lsize, labelpad=10) \n"
         << "ax[8].errorbar(rad,vsys, yerr=[-err1_l[8],err1_h[8]],fmt='o', color=color) \n"
-        << "if twostage==True: ax[8].errorbar(rad2,vsys2,yerr=[-err2_l[8],err2_h[8]],fmt='o', color=color2) \n"
+        << "if twostage: ax[8].errorbar(rad2,vsys2,yerr=[-err2_l[8],err2_h[8]],fmt='o', color=color2) \n"
         << std::endl
         << "fig.savefig(outfolder+'%s_parameters.pdf'%gname,bbox_inches='tight') \n";
 
