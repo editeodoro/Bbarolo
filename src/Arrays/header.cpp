@@ -962,7 +962,7 @@ bool Header::checkHeader() {
     }
     
     // Checking that the values of CRPIX3 is not far off for spectral axis with varying v_delta
-    if (sptype=="velo-opt" & numAxes>2) {
+    if (sptype=="velo-opt" and numAxes>2) {
         if (crpix[2]<-50 || crpix[2]>dimAxes[2]+50) {
             Warning("HEADER CHECK: CRPIX3 is very outside the channel range and CDELT3 is not constant.");
             Warning("              This may create issues when building up a kinematical model.");

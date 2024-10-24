@@ -376,7 +376,7 @@ bool Param::getopts(int argc, char **argv) {
             
             case 'U':                    // Upgrade BBarolo to latest version
                 cout << "BBarolo automated upgrade is not implemented yet! Try again in next versions...\n";
-                system("ls");
+                //system("ls");
                 break;
 
             case '?':                    // Unrecognized option

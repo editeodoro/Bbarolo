@@ -556,8 +556,8 @@ void Detection<T>::calcWCSparams(Header &head) {
         delete [] pixcrd;
         
         if(flag!=0) {
-              std::cerr << "BB calcWCSparams: Error in calculating the WCS for this object.";
-              return;
+            std::cerr << "BB calcWCSparams: Error in calculating the WCS for this object.";
+            return;
         }
         
         // World now has the WCS coords for the five points 

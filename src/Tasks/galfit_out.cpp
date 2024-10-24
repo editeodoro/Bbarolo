@@ -929,6 +929,7 @@ int Galfit<T>::plotAll_Python() {
     float crpix3_kms = in->Head().Crpix(2);
     float cdelt3_kms = DeltaVel(in->Head());
     float crval3_kms = AlltoVel(in->Head().Crval(2),in->Head());
+    float crval3_kms_pix1 = AlltoVel(in->Head().getZphys(0),in->Head());
     float bmaj = in->Head().Bmaj()/in->Head().PixScale();
     float bmin = in->Head().Bmin()/in->Head().PixScale();
     float bpa  = in->Head().Bpa();
@@ -1104,19 +1105,19 @@ int Galfit<T>::plotAll_Python() {
         << std::endl
         << "# Plotting rotation velocity \n"
         << "ax[0].set_ylim(0,1.2*max_vrot) \n"
-        << "ax[0].set_ylabel('V$_\\mathrm{rot}$ (km/s)', fontsize=lsize) \n"
+        << "ax[0].set_ylabel(r'V$_\\mathrm{rot}$ (km/s)', fontsize=lsize) \n"
         << "ax[0].errorbar(rad,vrot, yerr=[-err1_l[0],err1_h[0]],fmt='o', color=color) \n"
         << "if twostage: ax[0].errorbar(rad2,vrot2, yerr=[-err2_l[0],err2_h[0]],fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting velocity dispersion \n"
         << "ax[1].set_ylim(0,1.2*max_vdisp) \n"
-        << "ax[1].set_ylabel('$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=lsize) \n"
+        << "ax[1].set_ylabel(r'$\\sigma_\\mathrm{gas}$  (km/s)', fontsize=lsize) \n"
         << "ax[1].errorbar(rad,disp, yerr=[-err1_l[1],err1_h[1]],fmt='o', color=color) \n"
         << "if twostage: ax[1].errorbar(rad2,disp2, yerr=[-err2_l[1],err2_h[1]],fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting surface density \n"
         << "ax[2].set_xlim(0,max_rad) \n"
-        << "ax[2].set_ylabel('$\\Sigma$ ("<< bunit << ")', fontsize=lsize) \n"
+        << "ax[2].set_ylabel(r'$\\Sigma$ ("<< bunit << ")', fontsize=lsize) \n"
         << "ax[2].errorbar(rad_sd,surfdens, yerr=sd_err,fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting inclination angle \n"
@@ -1125,30 +1126,30 @@ int Galfit<T>::plotAll_Python() {
         << "if twostage: ax[3].errorbar(rad2,inc2,yerr=[-err2_l[4],err2_h[4]], fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting x-center \n"
-        << "ax[4].set_ylabel('x$_0$ (pix)', fontsize=lsize) \n"
+        << "ax[4].set_ylabel(r'x$_0$ (pix)', fontsize=lsize) \n"
         << "ax[4].errorbar(rad,xpos, yerr=[-err1_l[6],err1_h[6]],fmt='o', color=color) \n"
         << "if twostage: ax[4].errorbar(rad2,xpos2,yerr=[-err2_l[6],err2_h[6]],fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting radial velocity \n"
         << "ax[5].set_xlim(0,max_rad) \n"
-        << "ax[5].set_ylabel('V$_\\mathrm{rad}$ (km/s)', fontsize=lsize) \n"
+        << "ax[5].set_ylabel(r'V$_\\mathrm{rad}$ (km/s)', fontsize=lsize) \n"
         << "ax[5].errorbar(rad,vrad, yerr=[-err1_l[9],err1_h[9]],fmt='o', color=color) \n"
         << "if twostage: ax[5].errorbar(rad2,vrad2,yerr=[-err2_l[9],err2_h[9]],fmt='o', color=color2) \n"
         << std::endl
         << "# Plotting position angle \n"
-        << "ax[6].set_ylabel('$\\phi$ (deg)', fontsize=lsize) \n"
+        << "ax[6].set_ylabel(r'$\\phi$ (deg)', fontsize=lsize) \n"
         << "ax[6].set_xlabel('Radius (arcsec)', fontsize=lsize, labelpad=10) \n"
         << "ax[6].errorbar(rad,pa, yerr=[-err1_l[5],err1_h[5]],fmt='o', color=color) \n"
         << "if twostage: ax[6].errorbar(rad2,pa2,yerr=[-err2_l[5],err2_h[5]], fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting y-center \n"
-        << "ax[7].set_ylabel('y$_0$ (pix)', fontsize=lsize) \n"
+        << "ax[7].set_ylabel(r'y$_0$ (pix)', fontsize=lsize) \n"
         << "ax[7].set_xlabel('Radius (arcsec)', fontsize=lsize, labelpad=10) \n"
         << "ax[7].errorbar(rad,ypos, yerr=[-err1_l[7],err1_h[7]],fmt='o', color=color) \n"
         << "if twostage: ax[7].errorbar(rad2,ypos2, yerr=[-err2_l[7],err2_h[7]],fmt='o-', color=color2) \n"
         << std::endl
         << "# Plotting systemic velocity \n"
-        << "ax[8].set_ylabel('v$_\\mathrm{sys}$ (km/s)', fontsize=lsize) \n"
+        << "ax[8].set_ylabel(r'v$_\\mathrm{sys}$ (km/s)', fontsize=lsize) \n"
         << "ax[8].set_xlabel('Radius (arcsec)', fontsize=lsize, labelpad=10) \n"
         << "ax[8].errorbar(rad,vsys, yerr=[-err1_l[8],err1_h[8]],fmt='o', color=color) \n"
         << "if twostage: ax[8].errorbar(rad2,vsys2,yerr=[-err2_l[8],err2_h[8]],fmt='o', color=color2) \n"
@@ -1174,7 +1175,7 @@ int Galfit<T>::plotAll_Python() {
             << "ax1.legend()\n"
             << "ax2.set_xlim(0,max_rad)\n"
             << "ax2.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
-            << "ax2.set_ylabel('$\\sigma$ (km/s)', fontsize=11)\n"
+            << "ax2.set_ylabel(r'$\\sigma$ (km/s)', fontsize=11)\n"
             << "ax2.errorbar(rad,disp, yerr=[-err1_l[1],err1_h[1]],fmt='o', color=color2,label=r'$\\sigma_\\mathrm{gas}$',zorder=0)\n"
             << "ax2.plot(rad_a,dispr,'-', color='#0FA45A',label=r'$\\sigma_\\mathrm{reg}$',zorder=1)\n"
             << "ax2.legend()\n"
@@ -1272,7 +1273,7 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\tz_mod = data_mod[chan,:,:] \n"
         << "\t\t\t#New matplotlib draws wrong contours when no contours are found. This is a workaround.\n"
         << "\t\t\tif np.all(z_mod<v[0]): z_mod[:,:] =0\n"
-        << "\t\t\tvelo_kms = (chan+1-" << crpix3_kms-zmin << ")*" << cdelt3_kms << "+" << crval3_kms << std::endl
+        << "\t\t\tvelo_kms = (chan+1-" << 1-zmin << ")*" << cdelt3_kms << "+" << crval3_kms_pix1 << std::endl
         << "\t\t\tvelo = ' v = ' + str(int(velo_kms-vsys_m)) + ' km/s' \n"
         << "\t\t\tax = plt.subplot(grid[j][0,i]) \n"
         << "\t\t\tax.set_title(velo, fontsize=10,loc='left') \n"
@@ -1300,7 +1301,7 @@ int Galfit<T>::plotAll_Python() {
         << "\t\t\tax.contour(z_mod,v,origin='lower',linewidths=0.7,colors='#B22222') \n"
         << "\t\t\tax.plot(xcen,ycen,'x',color='#0FB05A',markersize=7,mew=2) \n"
         << "\t\t\tif (i==0 and j==2): \n"
-        << "\t\t\t\tclab = 'Contour levels at 2$^n \\, c_{min}$, where $c_{min}$ = %s " << in->Head().Bunit() << " and n = 0,1,..,8 '%cont \n"
+        << "\t\t\t\tclab = r'Contour levels at 2$^n \\, c_{min}$, where $c_{min}$ = %s " << in->Head().Bunit() << " and n = 0,1,..,8 '%cont \n"
         << "\t\t\t\tax.text(0.01,-0.16,clab,transform=ax.transAxes,fontsize=11, ha='left',va='center') \n"
         << "\t\t\tnum = num+1 \n"
         << std::endl
@@ -1402,7 +1403,7 @@ int Galfit<T>::plotAll_Python() {
         << "ext = [[xmin_wcs[0],xmax_wcs[0],zmin_wcs-vsys_m,zmax_wcs-vsys_m],\\" << std::endl
         << "       [xmin_wcs[1],xmax_wcs[1],zmin_wcs-vsys_m,zmax_wcs-vsys_m]] \n"
         << "labsize = 14 \n"
-        << "palab = ['$\\phi = $%i$^\\circ$'%np.round(pamaj_av), '$\\phi = $%i$^\\circ$'%np.round(pamin_av)] \n\n";
+        << "palab = [r'$\\phi = $%i$^\\circ$'%np.round(pamaj_av), r'$\\phi = $%i$^\\circ$'%np.round(pamin_av)] \n\n";
 
     pyf << "# Beginning PV plot \n"
         << "for k in range (len(files_pva_mod)): \n"
@@ -1424,13 +1425,13 @@ int Galfit<T>::plotAll_Python() {
         << "\t\taxis = ax[i] \n"
         << "\t\taxis.tick_params(which='major',length=8, labelsize=labsize) \n"
         << "\t\taxis.set_xlabel('Offset (arcsec)',fontsize=labsize+2) \n"
-        << "\t\taxis.set_ylabel('$\\mathrm{\\Delta V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
+        << "\t\taxis.set_ylabel(r'$\\mathrm{\\Delta V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
         << "\t\taxis.text(1, 1.02,palab[i],ha='right',transform=axis.transAxes,fontsize=labsize+4) \n"
         << "\t\taxis2 = axis.twinx() \n"
         << "\t\taxis2.set_xlim([ext[i][0],ext[i][1]]) \n"
         << "\t\taxis2.set_ylim([ext[i][2]+vsys_m,ext[i][3]+vsys_m]) \n"
         << "\t\taxis2.tick_params(which='major',length=8, labelsize=labsize) \n"
-        << "\t\taxis2.set_ylabel('$\\mathrm{V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
+        << "\t\taxis2.set_ylabel(r'$\\mathrm{V_{LOS}}$ (km/s)',fontsize=labsize+2) \n"
         << "\t\taxis.imshow(toplot[0][i],origin='lower',cmap = mpl.cm.Greys,norm=norm,extent=ext[i],aspect='auto') \n"
         << "\t\taxis.contour(toplot[0][i],v,origin='lower',linewidths=0.7,colors='#00008B',extent=ext[i]) \n"
         << "\t\taxis.contour(toplot[0][i],v_neg,origin='lower',linewidths=0.1,colors='gray',extent=ext[i]) \n"
@@ -1514,8 +1515,8 @@ int Galfit<T>::plotAll_Python() {
         << "\tif 'local_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
         << std::endl
         << "cmaps = [plt.get_cmap('Spectral_r'),plt.get_cmap('RdBu_r',25),plt.get_cmap('PuOr_r')] \n"
-        << "barlab = ['Intensity ('+bunit+')', 'V$_\\mathrm{LOS}$ (km/s)', '$\\sigma$ (km/s)'] \n"
-        << "barlab2 = ['I$_\\mathrm{res}$ ('+bunit+')', 'V$_\\mathrm{res}$ (km/s)', '$\\sigma_\\mathrm{res}$ (km/s)'] \n"
+        << "barlab = ['Intensity ('+bunit+')', r'V$_\\mathrm{LOS}$ (km/s)', r'$\\sigma$ (km/s)'] \n"
+        << "barlab2 = [r'I$_\\mathrm{res}$ ('+bunit+')', r'V$_\\mathrm{res}$ (km/s)', r'$\\sigma_\\mathrm{res}$ (km/s)'] \n"
         << "titles = ['DATA', 'MODEL','RESIDUAL'] \n"
         << "mapname = ['INTENSITY', 'VELOCITY', 'DISPERSION'] \n"
         << "x = np.arange(0,xmax-xmin,0.1) \n"
