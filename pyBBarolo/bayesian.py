@@ -133,7 +133,8 @@ class BayesianBBarolo(FitMod3D):
         return p
     
     
-    def _compute(self,threads=1,freepar=['vrot'],method='dynesty',**dynesty_kwargs):
+    def _compute(self,threads=1,freepar=['vrot'],method='dynesty',\
+                 sampler_kwargs : dict = {}, run_kwargs : dict = {}):
         
         """ Front-end function to fit a model.
 
@@ -194,8 +195,8 @@ class BayesianBBarolo(FitMod3D):
             #results = sampler.results
             
             self.sampler = DynamicNestedSampler(self.log_likelihood, self.prior_tranform, \
-                                                ndim=self.ndim, bound='multi',**dynesty_kwargs)
-            self.sampler.run_nested()
+                                                ndim=self.ndim, bound='multi',**sampler_kwargs)
+            self.sampler.run_nested(**run_kwargs)
             self.results = self.sampler.results
         
             # Extract the best-fit parameters
