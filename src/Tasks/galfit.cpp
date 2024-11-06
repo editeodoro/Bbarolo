@@ -290,6 +290,23 @@ template Galfit<double>::Galfit(Cube<double>*);
 
 
 template <class T>
+Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, Param *p) {
+    // This constructor is used mostly by pyBBarolo and it allows to set
+    // separately the Cube, the Rings and all parameters used by the task (including masking etc...)
+    c->pars() = *p;
+    c->pars().getParGF() = p->getParGF();
+    c->pars().checkPars();
+    
+    // Create directory tree if it does not exist
+    mkdirp(c->pars().getOutfolder().c_str());
+
+    setup(c,inrings,&c->pars().getParGF());
+}
+template Galfit<float>::Galfit (Cube<float> *c, Rings<float> *inrings, Param *p);
+template Galfit<double>::Galfit (Cube<double> *c, Rings<double> *inrings, Param *p);
+
+
+template <class T>
 Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI, int LTYPE, int FTYPE, 
                    int WFUNC, int BWEIGHT, int NV, double TOL, int CDENS, int STARTRAD, string MASK, 
                    string NORM, string FREE, string SIDE, bool TWOSTAGE, string REGTYPE, bool ERRORS,
@@ -320,7 +337,7 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI
     c->pars().getParGF() = par;
     
     // Create directory tree if it does not exist
-    checkHome(OUTFOLD);    
+    checkHome(OUTFOLD);
     c->pars().setOutfolder(OUTFOLD);
     c->pars().setThreads(NTHREADS);
     c->pars().setMASK(MASK);
@@ -1100,7 +1117,7 @@ template bool Galfit<double>::setCfield();
 
 
 template <class T>
-Model::Galmod<T>* Galfit<T>::getModel() {
+Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr) {
 
     Model::Galmod<T> *mod = new Model::Galmod<T>;
     int bhi[2] = {in->DimX(), in->DimY()};
@@ -1109,8 +1126,10 @@ Model::Galmod<T>* Galfit<T>::getModel() {
     if (nv==-1) nv=in->DimZ();
     
     // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.
-    Rings<T> *dr = new Rings<T>;
-    *dr = *outr;
+    if (dr==nullptr) {
+        dr = new Rings<T>;
+        *dr = *outr;
+    }
     if (dr->nr==1) 
         dr->addRing(dr->radii[0]+dr->radsep/2., dr->xpos[0], dr->ypos[0], dr->vsys[0], dr->vrot[0], dr->vdisp[0], 
                     dr->vrad[0], dr->vvert[0], dr->dvdz[0], dr->zcyl[0], dr->dens[0], dr->z0[0], dr->inc[0], dr->phi[0]);
@@ -1122,8 +1141,8 @@ Model::Galmod<T>* Galfit<T>::getModel() {
     delete dr;
     return mod;
 }
-template Model::Galmod<float>* Galfit<float>::getModel();
-template Model::Galmod<double>* Galfit<double>::getModel();
+template Model::Galmod<float>* Galfit<float>::getModel(Rings<float> *);
+template Model::Galmod<double>* Galfit<double>::getModel(Rings<double> *);
 
 
 template <class T>

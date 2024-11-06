@@ -537,7 +537,7 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
     double minfunc = (this->*func_norm)(dring,modp,bhi,blo);
     
     delete mod;
-	return minfunc; 
+    return minfunc; 
 }
 template float Galfit<float>::getFuncValue(Rings<float>*,Galmod<float> *);
 template double Galfit<double>::getFuncValue(Rings<double>*, Galmod<double> *);

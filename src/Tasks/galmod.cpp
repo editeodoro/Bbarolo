@@ -568,7 +568,6 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     if (nch==-1) nch=2./(2*sqrt(2*log(2)));
     chwidth = fabs(DeltaVel(in->Head()))*1000;
     sig_instr = nch*chwidth;
-    
 }
 
 

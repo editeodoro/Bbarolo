@@ -86,53 +86,112 @@ class FitsCube(object):
 
 
 
+class Param(object):
+    """Wrapper class for C++ Param class (param.hh)"""
+    
+    def __init__(self,**kwargs):
+        # A dictionary with parameter names and values
+        self.opts = {}
+        # Pointer to the C++ Param object
+        self._params = libBB.Param_new();
+        self.paramDefined = False
+        if kwargs:
+            self.add_params(**kwargs)
+        
+    def add_params(self,**kwargs):
+        """ Add new parameter to the parameter list """
+        if kwargs: self.opts.update(kwargs)
+
+    def remove_param(self,toremove):
+        """ Remove an option from the parameter list """
+        self.opts.pop(toremove, None)
+        
+    def write_parameterfile(self,fileout='param.par'):
+        """ Write a BBarolo's parameter file in fileout """
+        with open(fileout,'w') as f:
+            f.write(self.__str__())
+
+    def make_object(self):
+        s = 'param_pyBB.par'
+        self.write_parameterfile(s)
+        if self.paramDefined: libBB.Param_delete(self._params)
+        libBB.Param_setfromfile(self._params,s.encode('utf-8'))
+        self.paramDefined = True
+        os.remove(s)
+
+    def __str__(self):
+        s = "##### Input parameters for BBarolo #####\n"
+        for k in self.opts:
+            s += f'{k.upper():18s} {self.opts[k]} \n' 
+        return s
+    
+    def __del__(self):
+        if self.paramDefined: libBB.Param_delete(self._params)
+
+
+
 class Rings(object):
     """Wrapper class for C++ Rings structure (rings.hh)"""
     
     def __init__(self,nrings):
         # Number of rings
+        if not isNumber(nrings): raise ValueError("nrings must be a number!")
         self.nr     = nrings
+        # A dictionary that stores the rings values
+        self.r = dict(radii=None,xpos=None,ypos=None,vsys=None,vrot=None,vdisp=None,vrad=None,\
+                      vvert=None,dvdz=None,zcyl=None,dens=None,z0=None,inc=None,phi=None)
         # Pointer to the C++ Rings object
-        self._rings = libBB.Rings_new();
-        self.rinDef = False
-    
+        self._rings = None
+
     def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
         """ Define rings given the input parameters 
             
-           \param radii: List or array
-           \param other: float or array
+           radii: List or array
+           other: float or array
         """
         
-        fl = np.float32
-        
-        if not isNumber(self.nr): raise ValueError("nrings must be a number")
-            
-        if isIterable(radii): radii = np.array(radii,dtype=fl)
+        if isIterable(radii): self.modify_parameter('radii',radii)
         else: raise ValueError("radii must be an array")
         
-        xpos  = np.array(xpos,dtype=fl)  if isIterable(xpos)  else np.full(self.nr,xpos,dtype=fl)
-        ypos  = np.array(ypos,dtype=fl)  if isIterable(ypos)  else np.full(self.nr,ypos,dtype=fl)
-        vsys  = np.array(vsys,dtype=fl)  if isIterable(vsys)  else np.full(self.nr,vsys,dtype=fl)
-        vrot  = np.array(vrot,dtype=fl)  if isIterable(vrot)  else np.full(self.nr,vrot,dtype=fl)
-        vdisp = np.array(vdisp,dtype=fl) if isIterable(vdisp) else np.full(self.nr,vdisp,dtype=fl)
-        vrad  = np.array(vrad,dtype=fl)  if isIterable(vrad)  else np.full(self.nr,vrad,dtype=fl)
-        vvert = np.array(vvert,dtype=fl) if isIterable(vvert) else np.full(self.nr,vvert,dtype=fl)
-        dvdz  = np.array(dvdz,dtype=fl)  if isIterable(dvdz)  else np.full(self.nr,dvdz,dtype=fl)
-        zcyl  = np.array(zcyl,dtype=fl)  if isIterable(zcyl)  else np.full(self.nr,zcyl,dtype=fl)
-        dens  = np.array(dens,dtype=fl)  if isIterable(dens)  else np.full(self.nr,dens,dtype=fl)
-        z0    = np.array(z0,dtype=fl)    if isIterable(z0)    else np.full(self.nr,z0,dtype=fl)
-        inc   = np.array(inc,dtype=fl)   if isIterable(inc)   else np.full(self.nr,inc,dtype=fl)
-        phi   = np.array(phi,dtype=fl)   if isIterable(phi)   else np.full(self.nr,phi,dtype=fl)
-        
-        allr = (radii,xpos,ypos,vsys,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
-        
-        for i in allr:
-            if len(i)!=self.nr: raise ValueError("All quantities must have size = %i"%self.nr)
+        self.modify_parameter('xpos',xpos)
+        self.modify_parameter('ypos',ypos)
+        self.modify_parameter('vsys',vsys)
+        self.modify_parameter('vrot',vrot)
+        self.modify_parameter('vdisp',vdisp)
+        self.modify_parameter('vrad',vrad)
+        self.modify_parameter('vvert',vvert)
+        self.modify_parameter('dvdz',dvdz)
+        self.modify_parameter('zcyl',zcyl)
+        self.modify_parameter('dens',dens)
+        self.modify_parameter('z0',z0)
+        self.modify_parameter('inc',inc)
+        self.modify_parameter('phi',phi)
 
-        libBB.Rings_set(self._rings,self.nr,radii,xpos,ypos,vsys,vrot,\
-                        vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
-        
-        self.rinDef = True
+        self.make_object()
+
+    def modify_parameter(self,pname,pvalue,makeobj=False):
+        """ Modifies one of the ring parameters (e.g., vrot, vdisp, etc.)
+            
+           pname (str): Name of the parameter
+           other: float or array
+        """
+        if pname not in self.r:
+            raise ValueError("ERROR: Unknown ring parameter %s"%pname)
+        self.r[pname] = np.array(pvalue,dtype=np.float32) if isIterable(pvalue) \
+                                                          else np.full(self.nr,pvalue,dtype=np.float32)
+        if len(self.r[pname])!=self.nr: raise ValueError("All parameters must have size = %i"%self.nr)
+        if makeobj: self.make_object()
+
+    def make_object(self):
+        """ Creates and stores the C++ Rings object """
+        self.__del__()
+        self._rings = libBB.Rings_new();
+        libBB.Rings_set(self._rings,self.nr,self.r['radii'],self.r['xpos'],self.r['ypos'],self.r['vsys'],\
+                        self.r['vrot'],self.r['vdisp'],self.r['vrad'],self.r['vvert'],self.r['dvdz'],\
+                        self.r['zcyl'],self.r['dens'],self.r['z0'],self.r['inc'],self.r['phi'])
+    
+    def __del__(self):
+        if self._rings is not None: libBB.Rings_delete(self._rings)
 
 
 
@@ -191,7 +250,6 @@ class Task(object):
                 raise ValueError('Argument %s unknown. Try show_arguments() for a list of keywords'%key)
         
     
-    
     def show_arguments(self):
         """ Show needed arguments for the task """
         print ("\nArguments for %s task: %s "%(self.taskname,"-"*(49-len(self.taskname))))
@@ -203,14 +261,14 @@ class Task(object):
         print ("%s\n"%("-"*70))
 
 
-    def compute(self,threads=1):
+    def compute(self,threads=1,**kwargs):
         """ Compute the model 
         
         This function needs to be called after :func:`init`.
         """
         if not isinstance(threads,int):
             raise ValueError("%s ERROR: threads must and integer."%self.taskname)
-        return self._compute(threads)
+        return self._compute(threads,**kwargs)
 
 
 
@@ -554,7 +612,7 @@ class FitMod3D(Model3D):
         """
         # Check if any parameter needs to be estimated
         allpars = [radii,xpos,ypos,vsys,vrot,inc,phi]
-        toEstimate = [True if (not isIterable(a) and not a) else False for a in allpars]
+        toEstimate = [True if (not isIterable(a) and a is None) else False for a in allpars]
                 
         if True in toEstimate:
             print ("\n%s: estimating initial parameters for fit %s\n"%(self.taskname,"-"*25))
@@ -578,13 +636,13 @@ class FitMod3D(Model3D):
                     
             radii,xpos,ypos,vsys,vrot,inc,phi = allpars
             print ("%s\n"%("-"*70))
-        
-        
+
+
         # Now we can initialize rings
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi)
-                  
+
 
     def _compute(self,threads=1):
         """ Fit the model.

@@ -32,7 +32,7 @@
 #include <Arrays/param.hh>
 #include <Utilities/utils.hh>
 
-#define BBVERSION "1.7.6dev"
+#define BBVERSION "1.7.7dev"
 
 struct Entry {string name; string descr;};
 
@@ -1430,6 +1430,7 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         }
 
         recordParam(Str, "[RINGFILE]", "   A BB output file with rings", p.getParGF().ringfile);
+        recordParam(Str, "[LINEAR]", "   Spectral resolution in sigma (channels)", p.getLinear());
 
         if (defaults) {
             recordParam(Str, "[RADII]", "   Radii for rings", p.getParGF().RADII);

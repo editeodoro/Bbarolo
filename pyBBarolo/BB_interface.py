@@ -39,6 +39,16 @@ array_1d_float  = ndpointer(dtype=np.float32, ndim=1,flags="CONTIGUOUS")
 array_1d_double = ndpointer(dtype=np.double, ndim=1,flags="CONTIGUOUS")
 
 
+# Class Param interface ###############################################################
+libBB.Param_new.restype = c_void_p
+libBB.Param_new.argtypes = [ ]
+libBB.Param_setfromfile.restype = None
+libBB.Param_setfromfile.argtypes = [c_void_p,c_char_p]
+libBB.Param_delete.restype = None
+libBB.Param_delete.argtypes = [c_void_p]
+########################################################################################
+
+
 # Class Cube interface #################################################################
 libBB.Cube_new.restype = c_void_p
 libBB.Cube_new.argtypes = [c_char_p]
@@ -58,6 +68,8 @@ libBB.Cube_getBeam.argtypes = [c_void_p]
 # Struct Rings interface ###############################################################
 libBB.Rings_new.restype = c_void_p
 libBB.Rings_new.argtypes = [ ]
+libBB.Rings_delete.restype = None
+libBB.Rings_delete.argtypes = [c_void_p]
 libBB.Rings_set.restype = None
 libBB.Rings_set.argtypes = [c_void_p,c_int,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\
@@ -83,6 +95,8 @@ libBB.Galmod_smooth.argtypes = [c_void_p]
 # Class Galfit interface ##############################################################
 libBB.Galfit_new.restype = c_void_p
 libBB.Galfit_new.argtypes = [c_void_p]
+libBB.Galfit_new_par.restype = c_void_p
+libBB.Galfit_new_par.argtypes = [c_void_p,c_void_p,c_void_p]
 libBB.Galfit_new_all.restype = c_void_p
 libBB.Galfit_new_all.argtypes = [c_void_p,c_void_p,c_float,c_float,c_int,c_int,c_int,c_int,c_int,\
                                  c_double,c_int,c_int,c_char_p,c_char_p,c_char_p,c_char_p,c_bool,\
@@ -99,6 +113,8 @@ libBB.Galfit_writeModel.restype = None
 libBB.Galfit_writeModel.argtypes = [c_void_p,c_char_p,c_bool]
 libBB.Galfit_plotModel.restype = c_int
 libBB.Galfit_plotModel.argtypes = [c_void_p]
+libBB.Galfit_calcresiduals.restype = c_float
+libBB.Galfit_calcresiduals.argtypes = [c_void_p,c_void_p]
 ########################################################################################
 
 

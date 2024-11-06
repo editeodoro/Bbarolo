@@ -24,6 +24,13 @@ void signalHandler(int signum) {std::cerr << "Killed by the user.\n"; exit(signu
  
 extern "C" {
 
+// Interface for the Param class //////////////////////////////////////////////////////
+Param* Param_new() {return new Param;}
+void Param_setfromfile(Param *p, const char* pfile) {p->readParamFile(string(pfile));}
+void Param_delete (Param *p) {delete p;}
+////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Interface for the Cube class ///////////////////////////////////////////////////////
 Cube<float>* Cube_new(const char* fname) {return new Cube<float>(string(fname));}
 void Cube_delete (Cube<float> *c) {delete c;}
@@ -31,7 +38,6 @@ int* Cube_axisdim(Cube<float> *c) {return c->AxisDim();}
 float* Cube_array(Cube<float> *c) {return c->Array();}
 void Cube_setBeam(Cube<float> *c, float bmaj, float bmin, float bpa) {c->setBeam(bmaj,bmin,bpa);}
 float* Cube_getBeam(Cube<float> *c) {return c->getBeam();}
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -40,6 +46,7 @@ Rings<float>* Rings_new() {return new Rings<float>;}
 void Rings_set(Rings<float>* r, int size, float* radii, float* xpos, float* ypos, float* vsys, float* vrot, float* vdisp, 
                float* vrad, float* vvert, float* dvdz, float* zcyl, float* dens, float* z0, float* inc, float* phi)
                    {r->setRings(size,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi);}
+void Rings_delete(Rings<float>* r) {delete r;}
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -50,12 +57,13 @@ void Galmod_delete(Galmod<float> *g) {delete g;}
 float* Galmod_array(Galmod<float> *g) {return g->getArray();}
 bool Galmod_compute(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->calculate();}
 bool Galmod_smooth(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->smooth();}
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
 // Interface for Galfit class //////////////////////////////////////////////////////////
 Galfit<float>* Galfit_new(Cube<float>* c) {return new Galfit<float>(c);}
+Galfit<float>* Galfit_new_par(Cube<float> *c, Rings<float> *inrings, Param *p) {
+                              return new Galfit<float>(c,inrings,p);}
 Galfit<float>* Galfit_new_all(Cube<float> *c, Rings<float> *inrings, float DELTAINC, float DELTAPHI, int LTYPE, 
                               int FTYPE, int WFUNC, int BWEIGHT, int NV, double TOL, int CDENS, int STARTRAD, 
                               const char* MASK, const char* NORM, const char* FREE, const char* SIDE, bool TWOSTAGE, 
@@ -74,6 +82,7 @@ bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit()
 bool Galfit_secondStage(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->SecondStage();}
 void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(SIGINT, signalHandler); g->writeModel(string(norm),plots);}
 int Galfit_plotModel(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->plotAll_Python();}
+float Galfit_calcresiduals(Galfit<float> *g, Rings<float> *r) {return g->calculateResiduals(r);}
 ////////////////////////////////////////////////////////////////////////////////////////
  
 
