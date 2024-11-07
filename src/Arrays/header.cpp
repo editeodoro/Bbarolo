@@ -199,7 +199,7 @@ bool Header::header_read (std::string fname) {
 
     fitsfile *fptr;
     int status=0, nfound;
-    char comment[72] = {}, dumstr[20] = {}, Keys[100] = {};
+    char comment[100] = {}, dumstr[20] = {}, Keys[100] = {};
     
     fitsname = fname;
  

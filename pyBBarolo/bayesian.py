@@ -21,12 +21,12 @@ It uses either dynesty or emcee libraries for this.
 
 import os,sys
 import numpy as np
+import multiprocessing
 from .BB_interface import libBB
 from .pyBBarolo import Param, Rings, FitMod3D
 from dynesty import DynamicNestedSampler
 
 #import matplotlib.pyplot as plt
-#import multiprocessing
 #import emcee
 #from scipy.optimize import minimize
 
@@ -188,14 +188,13 @@ class BayesianBBarolo(FitMod3D):
         
         if method=='dynesty':
             
-            # TO BE FIXED: multi-core 
-            # Run the dynamic nested sampler with multiprocessing.Pool() as pool:
-            #sampler = DynamicNestedSampler(log_likelihood, prior_transform, ndim=2, bound='multi', pool=pool)
-            #sampler.run_nested()
-            #results = sampler.results
+            pool = None
+            if threads>1:
+                # TO BE FIXED: multi-core at the moment does not work!
+                pool = multiprocessing.Pool()
             
-            self.sampler = DynamicNestedSampler(self.log_likelihood, self.prior_tranform, \
-                                                ndim=self.ndim, bound='multi',**sampler_kwargs)
+            self.sampler = DynamicNestedSampler(self.log_likelihood, self.prior_tranform, ndim=self.ndim, \
+                                                bound='multi',pool=pool,queue_size=threads,**sampler_kwargs)
             self.sampler.run_nested(**run_kwargs)
             self.results = self.sampler.results
         
