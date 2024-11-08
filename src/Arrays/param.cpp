@@ -445,6 +445,22 @@ bool Param::readParamFile(std::string paramfile) {
     return true;
 }
 
+bool Param::readParamString(std::string paramstring) {
+    
+  /// Similar to readParamFile, but it reads from a string containing the 
+  /// parameters.
+  /// 
+  /// \param paramstring  A std::string containing all the parameters.
+  ///
+
+    std::istringstream fin(paramstring);
+    std::string line;
+    while(std::getline(fin,line)){
+        if(line[0]!='#' && line[0]!='/') setParam(line);
+    }
+    return true;
+}
+
 
 bool Param::readParamCL(std::string parstr){
     // Read a parameter from the commandline:

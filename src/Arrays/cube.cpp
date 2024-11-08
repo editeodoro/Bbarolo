@@ -65,11 +65,11 @@ Cube<T>::~Cube () {
 
 
 template <class T>
-Cube<T>::Cube(std::string fname) {
+Cube<T>::Cube(std::string fname, bool printInfo) {
     
     defaults();
     par.setImageFile(fname);
-    this->readCube(fname);
+    this->readCube(fname,printInfo);
 }
 
 

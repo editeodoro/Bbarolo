@@ -39,7 +39,7 @@ class Cube
 public:
     
     Cube() {defaults();}                                /// Default constructor.
-    Cube(std::string fname);                            /// Basic constructor.
+    Cube(std::string fname, bool printInfo=false);      /// Basic constructor.
     Cube(int *dimensions);                              /// Alternative constructor.
     virtual ~Cube();                                    /// Destructor. 
     Cube(const Cube &c);                                /// Copy constructor.

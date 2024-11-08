@@ -44,6 +44,8 @@ libBB.Param_new.restype = c_void_p
 libBB.Param_new.argtypes = [ ]
 libBB.Param_setfromfile.restype = None
 libBB.Param_setfromfile.argtypes = [c_void_p,c_char_p]
+libBB.Param_setfromstr.restype = None
+libBB.Param_setfromstr.argtypes = [c_void_p,c_char_p]
 libBB.Param_delete.restype = None
 libBB.Param_delete.argtypes = [c_void_p]
 ########################################################################################

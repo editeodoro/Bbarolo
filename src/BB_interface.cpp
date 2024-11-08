@@ -27,12 +27,13 @@ extern "C" {
 // Interface for the Param class //////////////////////////////////////////////////////
 Param* Param_new() {return new Param;}
 void Param_setfromfile(Param *p, const char* pfile) {p->readParamFile(string(pfile));}
+void Param_setfromstr(Param *p, const char* pstr) {p->readParamString(string(pstr));}
 void Param_delete (Param *p) {delete p;}
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
 // Interface for the Cube class ///////////////////////////////////////////////////////
-Cube<float>* Cube_new(const char* fname) {return new Cube<float>(string(fname));}
+Cube<float>* Cube_new(const char* fname) {return new Cube<float>(string(fname),false);}
 void Cube_delete (Cube<float> *c) {delete c;}
 int* Cube_axisdim(Cube<float> *c) {return c->AxisDim();}
 float* Cube_array(Cube<float> *c) {return c->Array();}

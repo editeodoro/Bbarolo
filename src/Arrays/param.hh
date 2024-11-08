@@ -279,6 +279,7 @@ public:
     
     bool    getopts(int argc, char **argv);          /// Parse the command line parameters correctly. 
     bool    readParamFile(string paramfile);         /// Read in parameters from a disk file.
+    bool    readParamString(string paramstring);     /// Read in parameters from a string.
     bool    readParamCL(std::string parstr);         /// Read a parameter from the command line.
     void    setParam(string &parstr);                /// Set a parameter value.
     bool    checkPars();                             /// Check the parameter list for inconsistencies. 

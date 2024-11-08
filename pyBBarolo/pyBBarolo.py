@@ -112,12 +112,10 @@ class Param(object):
             f.write(self.__str__())
 
     def make_object(self):
-        s = 'param_pyBB.par'
-        self.write_parameterfile(s)
+        s = self.__str__()
         if self.paramDefined: libBB.Param_delete(self._params)
-        libBB.Param_setfromfile(self._params,s.encode('utf-8'))
+        libBB.Param_setfromstr(self._params,s.encode('utf-8'))
         self.paramDefined = True
-        os.remove(s)
 
     def __str__(self):
         s = "##### Input parameters for BBarolo #####\n"
