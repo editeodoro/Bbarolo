@@ -21,14 +21,15 @@ It uses either dynesty or emcee libraries for this.
 
 import os,sys
 import numpy as np
-import multiprocessing
 from .BB_interface import libBB
 from .pyBBarolo import Param, Rings, FitMod3D
 from dynesty import DynamicNestedSampler
 
-#import matplotlib.pyplot as plt
 #import emcee
 #from scipy.optimize import minimize
+
+from schwimmbad import MultiPool, MPIPool
+from mpi4py import MPI
 
 class BayesianBBarolo(FitMod3D):
     
@@ -90,7 +91,7 @@ class BayesianBBarolo(FitMod3D):
                            dens=[0.01,200],z0=[0,10])
 
     
-    def log_likelihood(self,theta):
+    def _log_likelihood(self,theta):
         """ Likelihood function for the fit """
         
         # Interpreting theta based on free parameters fitted and update rings.
@@ -120,7 +121,7 @@ class BayesianBBarolo(FitMod3D):
         # We need to understand why...
         
     
-    def prior_tranform(self,u):
+    def _prior_transform(self,u):
         """ Prior default transform function for dynesty.
             It defines flat priors for all parameters with min/max values 
             given by self.bounds
@@ -168,7 +169,7 @@ class BayesianBBarolo(FitMod3D):
         self.ndim = 0
         self.freepar_names = []
 
-        def set_freepar(pname):
+        for pname in freepar:
             s = pname.split('_')
             if s[0] not in self._inri.r:
                 raise ValueError(f"ERROR! The requested free parameter is unknown: {s[0]}")
@@ -181,23 +182,32 @@ class BayesianBBarolo(FitMod3D):
                 self.ndim += self._inri.nr
                 for i in range(self._inri.nr):
                     self.freepar_names.append(f'{s[0]}{i+1}')
-                    
-                
-        for p in freepar: set_freepar(p)
 
+        # These are needed for the parallelization
+        global prior_transform
+        global log_likelihood
+
+        def prior_transform(u):
+            return self._prior_transform(u)
+
+        def log_likelihood(theta):
+            return self._log_likelihood(theta)
+
+
+        mpisize = MPI.COMM_WORLD.Get_size()
+        threads = 1 if mpisize>1 else threads
+
+        if   mpisize>1: pool = MPIPool()
+        elif threads>1: pool = MultiPool()
+        else: pool = None
         
+        # Now fitting
         if method=='dynesty':
-            
-            pool = None
-            if threads>1:
-                # TO BE FIXED: multi-core at the moment does not work!
-                pool = multiprocessing.Pool()
-            
-            self.sampler = DynamicNestedSampler(self.log_likelihood, self.prior_tranform, ndim=self.ndim, \
-                                                bound='multi',pool=pool,queue_size=threads,**sampler_kwargs)
+            self.sampler = DynamicNestedSampler(log_likelihood, prior_transform, ndim=self.ndim, \
+                                                bound='multi',pool=pool,**sampler_kwargs)
             self.sampler.run_nested(**run_kwargs)
             self.results = self.sampler.results
-        
+
             # Extract the best-fit parameters
             samples = self.results.samples  # Posterior samples
             weights = np.exp(self.results.logwt - self.results.logz[-1])
@@ -239,11 +249,6 @@ class BayesianBBarolo(FitMod3D):
             print(f"Best-fit slope (m): {m_median}")
             print(f"Best-fit intercept (b): {b_median}")
             
-            # Create a corner plot of the posterior distributions
-            fig = corner.corner(samples, labels=["Vrot (km/s)", "Vdisp (km/s)"], 
-                          show_titles=True, title_fmt=".2f", title_kwargs={"fontsize": 12})
-            fig.savefig(f"corner_emcee.pdf",bbox_inches='tight')
-            
         
         elif method=='simplex':
             
@@ -261,12 +266,12 @@ class BayesianBBarolo(FitMod3D):
             bf = result.x  # Extract best-fit parameters
 
             print (bf)
-        
-        else: 
-            raise ValueError(f"ERROR! Unknown method {method}.)
-        
         '''
-        print (self.bestfit,self.bestres)
+        else: 
+            raise ValueError(f"ERROR! Unknown method {method}.")
+
         
-        
-        
+        if pool is not None:
+            pool.close()
+            pool.join()
+            
