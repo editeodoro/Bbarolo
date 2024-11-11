@@ -585,7 +585,10 @@ class FitMod3D(Model3D):
                       'z0'   : [None, 'Disk scaleheight in arcsec'],
                       'inc'  : [None, 'Inclination angle in degrees'],
                       'phi'  : [None, 'Position angle of the receding part of the major axis (N->W)']}
-    
+        
+        self._par = Param(fitsfile=fitsname)
+
+
     def __del__(self):
         if self._mod: libBB.Galfit_delete(self._mod)
         
@@ -660,30 +663,26 @@ class FitMod3D(Model3D):
             self._mod = libBB.Galfit_new(self.inp._cube)
         else:
             self._check_options()
-            op = self._opts
-            self._mod = libBB.Galfit_new_all(self.inp._cube,self._inri._rings,op['deltainc'][0],op['deltaphi'][0],\
-                                             op['ltype'][0],op['ftype'][0],op['wfunc'][0],op['bweight'][0],op['nv'][0],\
-                                             op['tol'][0],op['cdens'][0],op['startrad'][0],op['mask'][0].encode('utf-8'),\
-                                             op['norm'][0].encode('utf-8'),op['free'][0].encode('utf-8'),\
-                                             op['side'][0].encode('utf-8'),op['twostage'][0],op['polyn'][0].encode('utf-8'),\
-                                             op['errors'][0],op['smooth'][0],op['distance'][0],op['redshift'][0],\
-                                             op['restwave'][0],op['outfolder'][0].encode('utf-8'),int(threads))
+            self._par.add_params(threads=threads,kwargs=self._opts)
+            self._par.make_object()
+            self._mod = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._par._params)
+            
         
-        # Calculating the model                         
-        self.modCalculated = libBB.Galfit_galfit(self._mod)        
-        if (op['twostage'][0]): libBB.Galfit_secondStage(self._mod);
+        # Calculating the model
+        self.modCalculated = libBB.Galfit_galfit(self._mod)
+        if (self._opts['twostage'][0]): libBB.Galfit_secondStage(self._mod);
         
         # Write models
         libBB.Galfit_writeModel(self._mod,self._opts['norm'][0].encode('utf-8'),False)
         
         # Loading final rings
-        try: self.bfit = np.genfromtxt(op['outfolder'][0]+"/rings_final2.txt")
-        except: self.bfit = np.genfromtxt(op['outfolder'][0]+"/rings_final1.txt")
+        try: self.bfit = np.genfromtxt(self._opts['outfolder'][0]+"/rings_final2.txt")
+        except: self.bfit = np.genfromtxt(self._opts['outfolder'][0]+"/rings_final1.txt")
         
         # Loading final model
-        for fname in os.listdir(op['outfolder'][0]):
-            if "mod_%s.fits"%(op['norm'][0].lower()) in fname:
-                filefits = op['outfolder'][0]+"/"+fname
+        for fname in os.listdir(self._opts['outfolder'][0]):
+            if "mod_%s.fits"%(self._opts['norm'][0].lower()) in fname:
+                filefits = self._opts['outfolder'][0]+"/"+fname
         self.outmodel = fits.open(filefits)[0]
         
         return (self.bfit, self.outmodel)

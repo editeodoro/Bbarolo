@@ -634,7 +634,6 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    int bweight = par.BWEIGHT;
     
     // Weighting function can be either a cos(theta)^n or a sin(theta)^n
     double (*wfunc)(double) = cos;
@@ -681,8 +680,8 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
         }
     }
     //numPix_ring=1;
-    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
-    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+    //return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/((numPix_tot-numBlanks));
 
 }
 template double Galfit<float>::norm_local(Rings<float>*,float*,int*,int*);
@@ -701,7 +700,6 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    int bweight = par.BWEIGHT;
 
     typename std::vector<Pixel<T> >::iterator pix;
     for(pix=anulus->begin();pix<anulus->end();pix++) {
@@ -746,8 +744,8 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
     }
 
     //numPix_ring=1;
-    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
-    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+    //return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/((numPix_tot-numBlanks));
 
 }
 template double Galfit<float>::norm_local(Rings<float>*,float*,int*,int*);
@@ -763,7 +761,6 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    int bweight = par.BWEIGHT;
     
     // Weighting function can be either a cos(theta)^n or a sin(theta)^n
     double (*wfunc)(double) = cos;
@@ -819,8 +816,8 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
     }
     
     //numPix_ring=1;
-    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
-    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+    //return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/((numPix_tot-numBlanks));
 
 }
 template double Galfit<float>::norm_azim(Rings<float>*,float*,int*,int*);
@@ -843,7 +840,6 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    int bweight = par.BWEIGHT;
 
     //< Factor for normalization.
     T modSum=0, obsSum = 0, factor=1;
@@ -896,8 +892,8 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
     }
 
     //numPix_ring=1;
-    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
-    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+    //return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/((numPix_tot-numBlanks));
 
 }
 template double Galfit<float>::norm_azim(Rings<float>*,float*,int*,int*);
@@ -912,7 +908,6 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     int numPix_ring=0, numBlanks=0, numPix_tot=0;
     double minfunc = 0;
-    int bweight = par.BWEIGHT;
 
     // Weighting function can be either a cos(theta)^n or a sin(theta)^n
     double (*wfunc)(double) = cos;
@@ -948,8 +943,8 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
         }
     }
     //numPix_ring=1;
-    //return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/numPix_ring;
-    return std::pow((1+numBlanks/T(numPix_tot)),bweight)*minfunc/((numPix_tot-numBlanks));
+    //return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/numPix_ring;
+    return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/((numPix_tot-numBlanks));
 
 }
 template double Galfit<float>::norm_none(Rings<float>*,float*,int*,int*);

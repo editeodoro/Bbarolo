@@ -307,53 +307,6 @@ template Galfit<double>::Galfit (Cube<double> *c, Rings<double> *inrings, Param 
 
 
 template <class T>
-Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, float DELTAINC, float DELTAPHI, int LTYPE, int FTYPE, 
-                   int WFUNC, int BWEIGHT, int NV, double TOL, int CDENS, int STARTRAD, string MASK, 
-                   string NORM, string FREE, string SIDE, bool TWOSTAGE, string REGTYPE, bool ERRORS,
-                   bool SMOOTH, float DISTANCE, double REDSHIFT, double RESTWAVE, string OUTFOLD, int NTHREADS) {
-                       
-    // Setting all parameters in the GALFIT_PAR container
-    par.DELTAINC = DELTAINC;
-    par.DELTAPHI = DELTAPHI;
-    par.LTYPE    = LTYPE;
-    par.FTYPE    = FTYPE;
-    par.WFUNC    = WFUNC;
-    par.BWEIGHT  = BWEIGHT;
-    par.NV       = NV;
-    par.TOL      = TOL;
-    par.CDENS    = CDENS;
-    par.STARTRAD = STARTRAD;
-    par.NORM     = NORM;
-    par.FREE     = FREE;
-    par.SIDE     = SIDE;
-    par.TWOSTAGE = TWOSTAGE;
-    par.REGTYPE  = REGTYPE;
-    par.SM       = SMOOTH;
-    par.DISTANCE = DISTANCE;
-    par.REDSHIFT = REDSHIFT;
-    par.RESTWAVE[0] = RESTWAVE;   //@TODO Update for doublets from pyBBarolo
-    par.flagERRORS = ERRORS;
-        
-    c->pars().getParGF() = par;
-    
-    // Create directory tree if it does not exist
-    checkHome(OUTFOLD);
-    c->pars().setOutfolder(OUTFOLD);
-    c->pars().setThreads(NTHREADS);
-    c->pars().setMASK(MASK);
-    
-    mkdirp(OUTFOLD.c_str());
-
-    setup(c,inrings,&par);
-
-}
-template Galfit<float>::Galfit(Cube<float>*,Rings<float> *,float,float,int,int,int,int,int,double,int,int,
-                               string,string,string,string,bool,string,bool,bool,float,double,double,string,int);
-template Galfit<double>::Galfit(Cube<double>*,Rings<double> *,float,float,int,int,int,int,int,double,int,int,
-                                string,string,string,string,bool,string,bool,bool,float,double,double,string,int);
-
-
-template <class T>
 void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     
     in = c;

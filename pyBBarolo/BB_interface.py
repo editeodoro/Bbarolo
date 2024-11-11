@@ -99,10 +99,6 @@ libBB.Galfit_new.restype = c_void_p
 libBB.Galfit_new.argtypes = [c_void_p]
 libBB.Galfit_new_par.restype = c_void_p
 libBB.Galfit_new_par.argtypes = [c_void_p,c_void_p,c_void_p]
-libBB.Galfit_new_all.restype = c_void_p
-libBB.Galfit_new_all.argtypes = [c_void_p,c_void_p,c_float,c_float,c_int,c_int,c_int,c_int,c_int,\
-                                 c_double,c_int,c_int,c_char_p,c_char_p,c_char_p,c_char_p,c_bool,\
-                                 c_char_p,c_bool,c_bool,c_float,c_double,c_double,c_char_p,c_int]
 libBB.Galfit_delete.restype = None
 libBB.Galfit_delete.argtypes = [c_void_p]
 libBB.Galfit_initialGuesses.restype = POINTER(c_float)

@@ -65,14 +65,6 @@ bool Galmod_smooth(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->s
 Galfit<float>* Galfit_new(Cube<float>* c) {return new Galfit<float>(c);}
 Galfit<float>* Galfit_new_par(Cube<float> *c, Rings<float> *inrings, Param *p) {
                               return new Galfit<float>(c,inrings,p);}
-Galfit<float>* Galfit_new_all(Cube<float> *c, Rings<float> *inrings, float DELTAINC, float DELTAPHI, int LTYPE, 
-                              int FTYPE, int WFUNC, int BWEIGHT, int NV, double TOL, int CDENS, int STARTRAD, 
-                              const char* MASK, const char* NORM, const char* FREE, const char* SIDE, bool TWOSTAGE, 
-                              const char* POLYN, bool ERRORS, bool SMOOTH, float DISTANCE, double REDSHIFT, 
-                              double RESTWAVE, const char* OUTFOLD, int NTHREADS) {
-                              return new Galfit<float>(c,inrings,DELTAINC,DELTAPHI,LTYPE,FTYPE,WFUNC,BWEIGHT,NV,TOL,
-                              CDENS,STARTRAD,string(MASK),string(NORM),string(FREE),string(SIDE),TWOSTAGE,string(POLYN),
-                              ERRORS,SMOOTH,DISTANCE,REDSHIFT,RESTWAVE,string(OUTFOLD),NTHREADS);}
 void Galfit_delete(Galfit<float> *g) {delete g;}
 float* Galfit_initialGuesses(Cube<float> *c, const char* xpos, const char* ypos, const char* inc, const char* pa) {
                              GALFIT_PAR p; p.XPOS=string(xpos); p.YPOS=string(ypos); p.INC=string(inc); p.PHI=string(pa);

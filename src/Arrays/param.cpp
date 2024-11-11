@@ -599,7 +599,7 @@ void Param::setParam(string &parstr) {
     if(arg=="tol")       parGF.TOL        = readval<double>(ss);
     if(arg=="free")      parGF.FREE       = readFilename(ss);
     if(arg=="side")      parGF.SIDE       = makeupper(readFilename(ss));
-    if(arg=="bweight")   parGF.BWEIGHT    = readval<int>(ss);
+    if(arg=="bweight")   parGF.BWEIGHT    = readval<float>(ss);
     if(arg=="twostage")  parGF.TWOSTAGE   = readFlag(ss);
     if(arg=="flagerrors")parGF.flagERRORS = readFlag(ss);
     if(arg=="norm")      parGF.NORM       = makeupper(readFilename(ss));
