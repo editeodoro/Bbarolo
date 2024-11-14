@@ -50,6 +50,8 @@ struct GALMOD_PAR {
     string DVDZ       = "-1";   ///< Vertical rotational gradient (km/s/arcsec).
     string ZCYL       = "-1";   ///< Height where the rotational gradient starts.
     int    CDENS      = 10;     ///< Surface density of clouds in the plane of ring (1e20).
+    int    CMODE      = 1;      ///< Mode for column density distribution.
+    int    ISEED      = -1;     ///< Seed for random number generator
     int    LTYPE      = 1;      ///< Layer type along z.
     int    NV         = -1;     ///< Number of subclouds per profile.
     double REDSHIFT   = 0;      ///< Redshift of the galaxy.

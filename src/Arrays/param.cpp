@@ -578,6 +578,8 @@ void Param::setParam(string &parstr) {
     if(arg=="pa")        parGM.PHI    = parGF.PHI    = parGW.PHI   = readFilename(ss);
     if(arg=="dens")      parGM.DENS   = parGF.DENS   = parGW.DENS  = readFilename(ss);
     if(arg=="cdens")     parGM.CDENS  = parGF.CDENS  = parGW.CDENS = readval<float>(ss);
+    if(arg=="cmode")     parGM.CMODE  = parGF.CMODE  = parGW.CMODE = readval<int>(ss);
+    if(arg=="iseed")     parGM.ISEED  = parGF.ISEED  = parGW.ISEED = readval<int>(ss);
     if(arg=="nv")        parGM.NV     = parGF.NV     = parGW.NV    = readval<int>(ss);
     if(arg=="sm")        parGM.SM     = parGF.SM     = parGW.SM    = readFlag(ss);
     if(arg=="ltype")     parGM.LTYPE  = parGF.LTYPE                = readval<int>(ss);

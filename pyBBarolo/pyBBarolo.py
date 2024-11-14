@@ -102,6 +102,11 @@ class Param(object):
         """ Add new parameter to the parameter list """
         if kwargs: self.opts.update(kwargs)
 
+    def add_params_opts(self,**kwargs):
+        """ Add new parameter to the parameter list from _opts variable"""
+        for key, value in kwargs.items():
+            self.opts.update({key : value[0]})
+    
     def remove_param(self,toremove):
         """ Remove an option from the parameter list """
         self.opts.pop(toremove, None)
@@ -209,6 +214,8 @@ class Task(object):
         self._args = {}
         # Options for the task
         self._opts = {}
+        # A Param object 
+        self._par = Param(fitsfile=fitsname)
         
     
     
@@ -390,7 +397,7 @@ class GalMod(Model3D):
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
     
         
-    def _compute(self,threads=1):
+    def _compute(self,threads=1,**kwargs):
         """ Compute the model 
         
         This function needs to be called after :func:`input`.
@@ -400,10 +407,12 @@ class GalMod(Model3D):
         """
         if self._inri is None: 
             raise ValueError("GALMOD ERROR: you need to set the model with init(...) before calling compute().")
+        
         self._check_options()
-        op = self._opts
-        self._mod = libBB.Galmod_new(self.inp._cube,self._inri._rings,op['nv'][0],op['ltype'][0],\
-                                     op['cmode'][0], op['cdens'][0], op['iseed'][0],int(threads))
+        self._par.add_params_opts(**self._opts)
+        self._par.add_params(threads=threads,**kwargs)
+        self._par.make_object()
+        self._mod = libBB.Galmod_new_par(self.inp._cube,self._inri._rings,self._par._params)
         self._modCalculated = libBB.Galmod_compute(self._mod)
         data_mod  = reshapePointer(libBB.Galmod_array(self._mod),self.inp.dim[::-1])
         
@@ -546,7 +555,6 @@ class FitMod3D(Model3D):
       fitsname (str): FITS file of the galaxy to fit
     
     """
-    #@TODO: Wrap MASK as class containing all the additional parameters to control the mask (3DFIT, 2DFIT, ELLPROF, GALMOD)
     
     def __init__(self,fitsname):
         super(FitMod3D,self).__init__(fitsname=fitsname)
@@ -585,9 +593,6 @@ class FitMod3D(Model3D):
                       'z0'   : [None, 'Disk scaleheight in arcsec'],
                       'inc'  : [None, 'Inclination angle in degrees'],
                       'phi'  : [None, 'Position angle of the receding part of the major axis (N->W)']}
-        
-        self._par = Param(fitsfile=fitsname)
-
 
     def __del__(self):
         if self._mod: libBB.Galfit_delete(self._mod)

@@ -125,7 +125,7 @@ protected:
     std::vector<float> relint;              //< Relative velocities of lines.
     
     Rings<Type> *r;                         //< Set of rings.       
-    bool    ringDefined;            
+    bool    ringDefined;
     
     std::vector<int> nv;                    //< Number of subclouds
     int     ltype;                          //< Layer type.

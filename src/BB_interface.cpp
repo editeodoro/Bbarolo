@@ -54,6 +54,9 @@ void Rings_delete(Rings<float>* r) {delete r;}
 // Interface for Galmod class //////////////////////////////////////////////////////////
 Galmod<float>* Galmod_new(Cube<float> *c, Rings<float> *r, int NV, int LTYPE, int CMODE, float CDENS, int ISEED) 
                           {Galmod<float> *g = new Galmod<float>; g->input(c,r,NV,LTYPE,CMODE,CDENS,ISEED); return g;}
+Galmod<float>* Galmod_new_par(Cube<float> *c, Rings<float> *r, Param *p) {Galmod<float> *g = new Galmod<float>;
+                              c->pars() = *p; g->input(c,r,p->getParGM().NV,p->getParGM().LTYPE,p->getParGM().CMODE,
+                              p->getParGM().CDENS,p->getParGM().ISEED); return g;}
 void Galmod_delete(Galmod<float> *g) {delete g;}
 float* Galmod_array(Galmod<float> *g) {return g->getArray();}
 bool Galmod_compute(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->calculate();}
