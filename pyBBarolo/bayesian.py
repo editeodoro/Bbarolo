@@ -22,9 +22,9 @@ It uses either dynesty or emcee libraries for this.
 import os,sys
 import numpy as np
 from .BB_interface import libBB
-from .pyBBarolo import Param, Rings, FitMod3D
+from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer
 from dynesty import DynamicNestedSampler
-
+from astropy.io import fits
 #import emcee
 #from scipy.optimize import minimize
 
@@ -91,7 +91,7 @@ class BayesianBBarolo(FitMod3D):
                            dens=[0.01,200],z0=[0,10])
 
     
-    def _log_likelihood(self,theta):
+    def _log_likelihood(self,theta,useBBres=True):
         """ Likelihood function for the fit """
         
         # Interpreting theta based on free parameters fitted and update rings.
@@ -102,11 +102,22 @@ class BayesianBBarolo(FitMod3D):
             rings.modify_parameter(key,pvalue)
         rings.make_object()
         
-        # Calculating residuals through BBarolo directly
-        # @TODO: This could be easily modified to just let BB making a model
-        #        and then computing the residuals directly in python
-        res = libBB.Galfit_calcresiduals(self._mod,rings._rings)
-        
+        if useBBres:
+            # Calculating residuals through BBarolo directly
+            res = libBB.Galfit_calcresiduals(self._mod,rings._rings)
+        else: 
+            # Calculating residuals manually
+            self._mod = libBB.Galmod_new_par(self.inp._cube,rings._rings,self._opts._params)
+            libBB.Galmod_compute(self._mod)
+            libBB.Galmod_smooth(self._mod)
+
+            mod = reshapePointer(libBB.Galmod_array(self._mod),self.inp.dim[::-1])
+            nrm = 1.00
+
+            # @TODO: This is just a temporary solution for checking whether _log_likelihood is working.
+            #        It should be integrated with a normalization step.
+            res = np.sum(np.abs(self.inp._cube-nrm*mod))
+
         ###### STUFF TO BE REMOVED #################
         self.count += 1
         if res<self.bestres:
@@ -135,7 +146,7 @@ class BayesianBBarolo(FitMod3D):
     
     
     def _compute(self,threads=1,freepar=['vrot'],method='dynesty',\
-                 sampler_kwargs : dict = {}, run_kwargs : dict = {}):
+                 sampler_kwargs : dict = {}, run_kwargs : dict = {}, **kwargs):
         
         """ Front-end function to fit a model.
 
@@ -147,16 +158,18 @@ class BayesianBBarolo(FitMod3D):
         Returns: TBD
           
         """
-        
+
         if self._inri is None: 
             print ("Error: you need to initialize rings first by calling the function init()")
             return
         
-        # Making a Param C++ object and a Galfit object
+        # Making a Param C++ object and a Galfit/Galmod object
         self._opts.add_params(verbose=False)
         self._opts.make_object()
-        self._mod = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._opts._params)
         
+        useBBres = kwargs.get('useBBres',True)
+        libBBres = libBB.Galfit_new_par if useBBres else libBB.Galmod_new_par
+        self._mod = libBBres(self.inp._cube,self._inri._rings,self._opts._params)
         
         ######### ALL STUFF THAT CAN BE REMOVED ############
         self.count = 0
@@ -191,7 +204,7 @@ class BayesianBBarolo(FitMod3D):
             return self._prior_transform(u)
 
         def log_likelihood(theta):
-            return self._log_likelihood(theta)
+            return self._log_likelihood(theta,useBBres)
 
 
         mpisize = MPI.COMM_WORLD.Get_size()
@@ -214,59 +227,6 @@ class BayesianBBarolo(FitMod3D):
             params = np.average(samples, axis=0, weights=weights)
             
             print (params)
-
-        ''' We could support emcee as well...
-        elif method=='emcee':
-        
-            # Log-prior function
-            def log_prior(theta):
-                m, b = theta
-                if 0 < m < 200 and 0 < b < 15:
-                    return 0.0
-                return -np.inf
-
-            # Log-probability function
-            def log_probability(theta):
-                lp = log_prior(theta)
-                if not np.isfinite(lp):
-                    return -np.inf
-                return lp + self.log_likelihood(theta)
-            
-            n_walkers=50 
-            n_steps=3000
-            burn_in=1000
-            # Initial guess and setting up the sampler
-            initial = np.array([120, 10])  # Initial guess for slope and intercept
-            pos = initial + 10 * np.random.randn(n_walkers, 2)
-            sampler = emcee.EnsembleSampler(n_walkers, 2, log_probability)
-
-            # Run the MCMC chain
-            sampler.run_mcmc(pos, n_steps, progress=True)
-            samples = sampler.get_chain(discard=burn_in, flat=True)  # Discard burn-in samples
-
-            # Extract best-fit values
-            m_median, b_median = np.median(samples, axis=0)
-            print(f"Best-fit slope (m): {m_median}")
-            print(f"Best-fit intercept (b): {b_median}")
-            
-        
-        elif method=='simplex':
-            
-            def funcmin(theta):
-                if np.any(theta<0):
-                    return 1E10
-                else:
-                    return -self.log_likelihood(theta)
-            
-            # Initial guess for the parameters
-            initial_guess = [100, 100, 100, 100, 10,10,10,10]
-
-            # Minimize the chi-squared function using the Nelder-Mead (downhill simplex) method
-            result = minimize(funcmin, initial_guess, method='Nelder-Mead',tol=1E-10)
-            bf = result.x  # Extract best-fit parameters
-
-            print (bf)
-        '''
         else: 
             raise ValueError(f"ERROR! Unknown method {method}.")
 
