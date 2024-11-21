@@ -993,6 +993,13 @@ bool Header::checkHeader() {
         }
     }
     
+    // Checking that CTYPE3 is not WAVELENGTH (e.g. CALIFA)
+    string ctype3 = makelower(ctype[2]);
+    if (ctype3.find("wavelength")!=std::string::npos) {
+        Warning("HEADER CHECK: CYTPE3=WAVELENGTH is not FITS standard. Change it to WAVE!");
+        allgood = false;
+    }
+    
     return allgood;
 
 }
