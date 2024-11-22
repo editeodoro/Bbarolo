@@ -24,6 +24,7 @@ import numpy as np
 import scipy.stats
 from .BB_interface import libBB
 from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer
+
 from dynesty import DynamicNestedSampler
 
 #import emcee
@@ -213,12 +214,11 @@ class BayesianBBarolo(FitMod3D):
         def log_likelihood(theta):
             return self._log_likelihood(theta,useBBres)
 
-
         mpisize = MPI.COMM_WORLD.Get_size()
         threads = 1 if mpisize>1 else threads
 
         if   mpisize>1: pool = MPIPool()
-        elif threads>1: pool = MultiPool()
+        elif threads>1: pool = MultiPool(processes=threads)
         else: pool = None
         
         # Now fitting
