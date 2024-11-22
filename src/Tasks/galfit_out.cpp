@@ -1325,6 +1325,7 @@ int Galfit<T>::plotAll_Python() {
     bool reverse = (pa_av>=45 && pa_av<225);
     //if (cdelt3_kms<0) reverse = !reverse;
 
+
     scriptnames.push_back("plot_pvs.py");
     pyf.open((in->pars().getOutfolder()+"plotscripts/"+scriptnames[2]).c_str());
 
