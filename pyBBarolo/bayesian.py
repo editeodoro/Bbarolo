@@ -26,12 +26,14 @@ from .BB_interface import libBB
 from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer
 
 from dynesty import DynamicNestedSampler
+from dynesty.utils import resample_equal
 
-#import emcee
-#from scipy.optimize import minimize
+import nautilus
+import time
 
 from schwimmbad import MultiPool, MPIPool
 from mpi4py import MPI
+
 
 class BayesianBBarolo(FitMod3D):
     
@@ -203,7 +205,9 @@ class BayesianBBarolo(FitMod3D):
         for key in self.freepar_idx:
             if self.priors[key] is None:
                 self.priors[key] = scipy.stats.uniform(loc=self.bounds[key][0],scale=self.bounds[key][1]-self.bounds[key][0])
-
+            elif not isinstance(self.priors[key],scipy.stats._distn_infrastructure.rv_continuous_frozen):
+                raise ValueError(f"ERROR! Prior for {key} should be None or a scipy.stats distribution.")
+            
         # These are needed for the parallelization
         global prior_transform
         global log_likelihood
@@ -220,12 +224,17 @@ class BayesianBBarolo(FitMod3D):
         if   mpisize>1: pool = MPIPool()
         elif threads>1: pool = MultiPool(processes=threads)
         else: pool = None
-        
+    
+        verbose = kwargs.pop('verbose',True)
+
         # Now fitting
         if method=='dynesty':
             self.sampler = DynamicNestedSampler(log_likelihood, prior_transform, ndim=self.ndim, \
                                                 bound='multi',pool=pool,**sampler_kwargs)
-            self.sampler.run_nested(**run_kwargs)
+            toc = time.time()
+            self.sampler.run_nested(print_progress=verbose,**run_kwargs)
+            tic = time.time(); dt = tic-toc
+
             self.results = self.sampler.results
 
             # Extract the best-fit parameters
@@ -233,10 +242,30 @@ class BayesianBBarolo(FitMod3D):
             weights = np.exp(self.results.logwt - self.results.logz[-1])
             params = np.average(samples, axis=0, weights=weights)
             
+            self.samples = resample_equal(samples,weights)
+            
             print (params)
+        
+        elif method=='nautilus':
+            if 'dlogz' in run_kwargs and 'f_live' not in run_kwargs:
+                run_kwargs['f_live'] = run_kwargs.pop('dlogz')
+    
+            self.sampler = nautilus.Sampler(prior_transform,log_likelihood,n_dim=self.ndim, \
+                                            pool=pool,pass_dict=False,**sampler_kwargs)
+            toc = time.time()
+            self.sampler.run(verbose=verbose,**run_kwargs)
+            tic = time.time(); dt = tic-toc
+
+            # @TODO: we should probably make the output uniform with
+            #        all the other methods.
+            self.samples, log_w, _ = self.sampler.posterior()
+            self.samples = resample_equal(self.samples,np.exp(log_w))
+        
         else: 
             raise ValueError(f"ERROR! Unknown method {method}.")
 
+        dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
+        print(f'Sampling with {method} took {dt} to run.')
         
         if pool is not None:
             pool.close()
