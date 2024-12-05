@@ -25,7 +25,7 @@ import scipy.stats
 from .BB_interface import libBB
 from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer
 
-from dynesty import DynamicNestedSampler
+from dynesty import DynamicNestedSampler, NestedSampler
 from dynesty.utils import resample_equal
 
 import nautilus
@@ -229,11 +229,10 @@ class BayesianBBarolo(FitMod3D):
 
         # Now fitting
         if method=='dynesty':
-            self.sampler = DynamicNestedSampler(log_likelihood, prior_transform, ndim=self.ndim, \
-                                                bound='multi',pool=pool,**sampler_kwargs)
-            toc = time.time()
+            DynestySampler = DynamicNestedSampler if kwargs.get('dynamic',True) else NestedSampler
+            self.sampler = DynestySampler(log_likelihood, prior_transform, ndim=self.ndim, \
+                                                    bound='multi',pool=pool,**sampler_kwargs)
             self.sampler.run_nested(print_progress=verbose,**run_kwargs)
-            tic = time.time(); dt = tic-toc
 
             self.results = self.sampler.results
 
