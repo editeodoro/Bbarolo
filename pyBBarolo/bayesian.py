@@ -243,7 +243,7 @@ class BayesianBBarolo(FitMod3D):
             
             self.samples = resample_equal(samples,weights)
             
-            print (params)
+            self.params = params
         
         elif method=='nautilus':
             if 'dlogz' in run_kwargs and 'f_live' not in run_kwargs:
@@ -259,7 +259,8 @@ class BayesianBBarolo(FitMod3D):
             #        all the other methods.
             self.samples, log_w, _ = self.sampler.posterior()
             self.samples = resample_equal(self.samples,np.exp(log_w))
-        
+
+            self.params = np.average(self.samples,axis=0)
         else: 
             raise ValueError(f"ERROR! Unknown method {method}.")
 
