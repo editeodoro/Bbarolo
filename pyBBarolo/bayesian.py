@@ -258,7 +258,7 @@ class BayesianBBarolo(FitMod3D):
             raise ValueError(f"ERROR! Unknown method {method}.")
 
         self.samples = resample_equal(self.samples,weights)
-        self.params = np.average(self.samples,axis=0)
+        self.params = np.median(self.samples,axis=0)
 
         dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
         print(f'Sampling with {method} took {dt} to run.')
