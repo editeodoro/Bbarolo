@@ -25,6 +25,10 @@ import numpy as np
 from .BB_interface import libBB
 from astropy.io import fits
 
+import ctypes
+import ctypes.util
+libc_ = ctypes.util.find_library('c')
+libc  = ctypes.CDLL(libc_)
 
 def reshapePointer (p, shape):
     """Take a POINTER to c_float and reshape it.
@@ -37,9 +41,13 @@ def reshapePointer (p, shape):
       ndarray: The reshaped array
     
     """
-    return np.ctypeslib.as_array(p, shape=tuple(shape))
-
-
+   #return np.ctypeslib.as_array(p, shape=tuple(shape))
+    parray = np.ctypeslib.as_array(p,shape=tuple(shape))
+    carray = np.copy(parray)
+    
+    libc.free(p)
+    return carray
+    
 def isIterable (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
     return isinstance(p,(list,tuple,np.ndarray))
