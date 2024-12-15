@@ -232,19 +232,16 @@ class BayesianBBarolo(FitMod3D):
             DynestySampler = DynamicNestedSampler if kwargs.get('dynamic',True) else NestedSampler
             self.sampler = DynestySampler(log_likelihood, prior_transform, ndim=self.ndim, \
                                                     bound='multi',pool=pool,**sampler_kwargs)
+            tic = time.time()
             self.sampler.run_nested(print_progress=verbose,**run_kwargs)
+            tic = time.time(); dt = tic-toc
 
             self.results = self.sampler.results
 
             # Extract the best-fit parameters
-            samples = self.results.samples  # Posterior samples
+            self.samples = self.results.samples  # Posterior samples
             weights = np.exp(self.results.logwt - self.results.logz[-1])
-            params = np.average(samples, axis=0, weights=weights)
-            
-            self.samples = resample_equal(samples,weights)
-            
-            print (params)
-        
+                                
         elif method=='nautilus':
             if 'dlogz' in run_kwargs and 'f_live' not in run_kwargs:
                 run_kwargs['f_live'] = run_kwargs.pop('dlogz')
@@ -255,13 +252,13 @@ class BayesianBBarolo(FitMod3D):
             self.sampler.run(verbose=verbose,**run_kwargs)
             tic = time.time(); dt = tic-toc
 
-            # @TODO: we should probably make the output uniform with
-            #        all the other methods.
-            self.samples, log_w, _ = self.sampler.posterior()
-            self.samples = resample_equal(self.samples,np.exp(log_w))
-        
+            self.samples, weights, _ = self.sampler.posterior()
+            weights = np.exp(weights-weights.max())
         else: 
             raise ValueError(f"ERROR! Unknown method {method}.")
+
+        self.samples = resample_equal(self.samples,weights)
+        self.params = np.median(self.samples,axis=0)
 
         dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
         print(f'Sampling with {method} took {dt} to run.')
