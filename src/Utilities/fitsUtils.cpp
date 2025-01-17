@@ -616,7 +616,7 @@ int ConvertFluxUnits(int argc, char *argv[], std::string whichtype) {
         std::cout << " " << taskname << ": flux units are already in KELVIN. Doing nothing!!\n";
         return 0;
     }
-    
+
     // Now reading the FITS file and updating the data 
     if (!c.readCube(argv[2],false)) {
         std::cerr << argv[2] << " is not a readable FITS file!\n";

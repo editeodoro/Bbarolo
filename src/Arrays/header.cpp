@@ -455,8 +455,8 @@ bool Header::header_read (std::string fname) {
             if (fits_read_key_dbl (fptr, "RESTFRQ", &freq0, comment, &status)) {
                 
                 if (dunit3=="NONE" || drval3==0 || (cu2.find("hz")!=f && cu2.find("m/s")!=f)) {
-                        Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
-                        freq0 = 0.1420405751786E10;
+                    Warning("HEADER WARNING: FREQ0-RESTFREQ keyword not found. Assuming 1.4204057 GHz.");
+                    freq0 = 0.1420405751786E10;
                 }
                 else {
                     double drval3ms=0., crval3hz=0.;
@@ -993,13 +993,14 @@ bool Header::checkHeader() {
         }
     }
     
-    // Checking that CTYPE3 is not WAVELENGTH (e.g. CALIFA)
-    string ctype3 = makelower(ctype[2]);
-    if (ctype3.find("wavelength")!=std::string::npos) {
-        Warning("HEADER CHECK: CYTPE3=WAVELENGTH is not FITS standard. Change it to WAVE!");
-        allgood = false;
+    if (numAxes>2) {
+        // Checking that CTYPE3 is not WAVELENGTH (e.g. CALIFA)
+        string ctype3 = makelower(ctype[2]);
+        if (ctype3.find("wavelength")!=std::string::npos) {
+            Warning("HEADER CHECK: CYTPE3=WAVELENGTH is not FITS standard. Change it to WAVE!");
+            allgood = false;
+        }
     }
-    
     return allgood;
 
 }
