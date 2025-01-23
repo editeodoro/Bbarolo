@@ -53,7 +53,7 @@ class BayesianBBarolo(FitMod3D):
         # Resetting FitMod3d._args. Not used here.
         self._args = {}
         # self._opts contains any other parameter given to the code
-        self._opts = Param(fitsfile=fitsname,outfolder='./output/')
+        self._opts = Param(fitsfile=fitsname,outfolder='./output/',twostage=False)
         if kwargs:
             self._opts.add_params(kwargs)
         
@@ -180,7 +180,7 @@ class BayesianBBarolo(FitMod3D):
             return
         
         # Making a Param C++ object and a Galfit/Galmod object
-        self._opts.add_params(verbose=False,twostage=False)
+        self._opts.add_params(verbose=False)
         self._opts.make_object()
         
         useBBres = kwargs.get('useBBres',True)
@@ -232,11 +232,7 @@ class BayesianBBarolo(FitMod3D):
         else: pool = None
     
         verbose = kwargs.get('verbose',True)
-        
-        ##############
-        return 
-        ##############
-        
+                
         # Now running the sampling 
         toc = time.time()
         if method=='dynesty': 
@@ -289,17 +285,13 @@ class BayesianBBarolo(FitMod3D):
     
     def write_bestmodel(self,**kwargs):
         
-        #if not self.modCalculated:
-        #    print ("Best model not calculated yet. Please run compute() before running this function.")
-        #    return
+        if not self.modCalculated:
+            print ("Best model not calculated yet. Please run compute() before running this function.")
+            return
         
         verbose = kwargs.get('verbose',True)
 
-
-        self.params = np.array([ 55.67056348, 108.24562833,  84.81053554,  95.2849607,    7.51556276,
-                       10.1689289 ,  14.79084093, 12.08063944 , 65.48071344,  30.08482877])
-
-        #self.outri = copy.deepcopy(self._inri)
+        # Creating a new Rings object for the output
         self.outri = Rings(self._inri.nr)
         self.outri.set_rings_from_dict(self._inri.r)
         
@@ -313,11 +305,12 @@ class BayesianBBarolo(FitMod3D):
         
         vprint(verbose,"Writing the best model to output directory ...",end=' ',flush=True)
         # Setting up the output rings in the Galfit object.
-        #@TODO: Add support for errors in the rings (already in the C++ code)
+        # @TODO: Add support for errors in the rings (already in the C++ code)
         libBB.Galfit_setOutRings(self._mod,self.outri._rings)
         # Writing the model and plots to the output directory
         libBB.Galfit_writeModel(self._mod,"AZIM".encode('utf-8'),True)
         vprint(verbose,"Done!")
+
 
 
 
