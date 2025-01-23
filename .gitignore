@@ -24,3 +24,4 @@ BBarolo_MPI-*
 *.so.*
 *.egg-info
 *.app
+*.code-workspace

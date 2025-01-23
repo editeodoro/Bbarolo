@@ -57,6 +57,7 @@ public:
     Cube<T>  *In () {return in;}
     Rings<T> *Inrings  () {return inr;}
     Rings<T> *Outrings () {return outr;}
+    void setOutRings (Rings<T>* r) {*outr = *r;}
 
     /// Functions defined in galfit.cpp
     void setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p);
@@ -64,11 +65,12 @@ public:
     Galmod<T>* getModel(Rings<T> *dr=nullptr);
     bool SecondStage();
     T calculateResiduals(Rings<T> *r) {return getFuncValue(r);}
-    
+    void writeRingFile(std::string filename, Rings<T> *r, T ***errors=NULL);
 
     /// Functions defined in galfit_out.cpp
     void writeModel(std::string normtype, bool makeplots=true);
     void writePVs(Cube<T> *mod, std::string suffix="");
+    std::vector<std::string> writeScripts_Python();
     int  plotAll_Python ();
     bool AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn);
 
@@ -144,7 +146,7 @@ protected:
     void printInitial (Rings<T> *inr, std::string outfile);
     void DensityProfile (T *surf_dens, int *count);
     int* getErrorColumns();
-    int  plotParam() {plotPar_Gnuplot();return plotAll_Python();}
+    int  plotParam() {plotPar_Gnuplot(); return plotAll_Python();}
     void plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T> *pva_m, Image2D<T> *pvb_m);
     void plotPar_Gnuplot();
 

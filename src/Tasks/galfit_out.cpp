@@ -913,15 +913,43 @@ template void Galfit<double>::plotPar_Gnuplot();
 
 template <class T>
 int Galfit<T>::plotAll_Python() {
+    
+    /// This function creates python script for plotting all quantities
+    /// (see writeScripts_Python()):
+    ///
+    /// It needs all output fitsfiles to be in the output directory!
+    
+    
+    std::vector<std::string> scriptnames = writeScripts_Python();
+    
+    int returnValue = 0;
 
-    /// This function creates and runs a python script for plotting:
+#ifdef HAVE_PYTHON
+    // This will execute the four scripts concurrently
+    std::string cmd;
+    for (int i=0; i<scriptnames.size(); i++)
+        cmd += "python \""+in->pars().getOutfolder()+"plotscripts/"+scriptnames[i]+"\" > /dev/null 2>&1 & ";
+    cmd.erase (cmd.end()-2);
+    returnValue = system(cmd.c_str());
+    //cmd = "python "+in->pars().getOutfolder()+"plotscripts/plot_all.py > /dev/null 2>&1";
+    //returnValue = system(cmd.c_str());
+#endif
+
+    return returnValue;
+    
+}
+
+
+template <class T>
+std::vector<std::string> Galfit<T>::writeScripts_Python() {
+    
+    /// This function creates a python script for plotting:
     ///  1) Channel maps
     ///  2) Position-Velocity diagrams along major/minor axis
     ///  3) Output paramenters
     ///  4) Moment maps
     ///  5) Asymmetric drift correction
-    ///
-    /// It needs all output fitsfiles to be in the output directory!
+
 
     std::vector<std::string> scriptnames;
     std::ofstream pyf;
@@ -1626,25 +1654,12 @@ int Galfit<T>::plotAll_Python() {
         << "os.system(cmd[:-2]) \n";
 
     pyf.close();
+    
+    return scriptnames;
 
-
-    int returnValue = 0;
-
-#ifdef HAVE_PYTHON
-    // This will execute the four scripts concurrently
-    std::string cmd;
-    for (int i=0; i<scriptnames.size(); i++)
-        cmd += "python \""+in->pars().getOutfolder()+"plotscripts/"+scriptnames[i]+"\" > /dev/null 2>&1 & ";
-    cmd.erase (cmd.end()-2);
-    returnValue = system(cmd.c_str());
-    //cmd = "python "+in->pars().getOutfolder()+"plotscripts/plot_all.py > /dev/null 2>&1";
-    //returnValue = system(cmd.c_str());
-#endif
-
-    return returnValue;
 }
-template int Galfit<float>::plotAll_Python();
-template int Galfit<double>::plotAll_Python();
+template std::vector<std::string> Galfit<float>::writeScripts_Python();
+template std::vector<std::string> Galfit<double>::writeScripts_Python();
 //*/
 
 template <class T>

@@ -25,10 +25,14 @@ import numpy as np
 from .BB_interface import libBB
 from astropy.io import fits
 
-import ctypes
-import ctypes.util
-libc_ = ctypes.util.find_library('c')
-libc  = ctypes.CDLL(libc_)
+#import ctypes
+#import ctypes.util
+#libc_ = ctypes.util.find_library('c')
+#libc  = ctypes.CDLL(libc_)
+
+# A function to print only if verbose is True
+vprint = lambda verbose, *args, **kwargs: print(*args,**kwargs) if verbose else None
+
 
 def reshapePointer (p, shape):
     """Take a POINTER to c_float and reshape it.
@@ -41,12 +45,12 @@ def reshapePointer (p, shape):
       ndarray: The reshaped array
     
     """
-   #return np.ctypeslib.as_array(p, shape=tuple(shape))
-    parray = np.ctypeslib.as_array(p,shape=tuple(shape))
-    carray = np.copy(parray)
+    return np.ctypeslib.as_array(p, shape=tuple(shape))
+    #parray = np.ctypeslib.as_array(p,shape=tuple(shape))
+    #carray = np.copy(parray)
     
-    libc.free(p)
-    return carray
+    #libc.free(p)
+    #return carray
     
 def isIterable (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
@@ -154,11 +158,25 @@ class Rings(object):
         # Pointer to the C++ Rings object
         self._rings = None
 
+
+    def set_rings_from_dict(self,Rings):
+        """ Define rings given an input Ring dictionary (same as self.r) 
+            
+            Rings: dict
+        """
+        if not isinstance(Rings,dict):
+            raise ValueError("Rings must be a dictionary")
+        
+        self.set_rings(Rings['radii'],Rings['xpos'],Rings['ypos'],Rings['vsys'],Rings['vrot'],\
+                       Rings['vdisp'],Rings['vrad'],Rings['vvert'],Rings['dvdz'],Rings['zcyl'],\
+                       Rings['dens'],Rings['z0'],Rings['inc'],Rings['phi'])
+        
+
     def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
         """ Define rings given the input parameters 
             
-           radii: List or array
-           other: float or array
+            radii: List or array
+            other: float or array
         """
         
         if isIterable(radii): self.modify_parameter('radii',radii)
@@ -202,7 +220,9 @@ class Rings(object):
                         self.r['zcyl'],self.r['dens'],self.r['z0'],self.r['inc'],self.r['phi'])
     
     def __del__(self):
-        if self._rings is not None: libBB.Rings_delete(self._rings)
+        if self._rings is not None: 
+            libBB.Rings_delete(self._rings)
+            self._rings = None
 
 
 

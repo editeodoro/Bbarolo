@@ -1212,6 +1212,26 @@ template bool Galfit<float>::AsymmetricDrift(float*,float*,float*,float*,float*,
 template bool Galfit<double>::AsymmetricDrift(double*,double*,double*,double*,double*,int);
 
 
+template <class T>
+void Galfit<T>::writeRingFile(std::string filename, Rings<T> *r, T ***errors) {
+
+    std::string fileo = in->pars().getOutfolder()+filename;
+    remove(fileo.c_str());
+    std::ofstream fout(fileo.c_str());
+    double toKpc = KpcPerArc(distance);
+
+    writeHeader(fout,mpar,par.flagERRORS,par.flagBADOUT);
+    
+    for (int i=0; i<r->nr; i++) {
+        writeRing(fout,r,i,toKpc,nfree,par.flagERRORS,errors,false,NULL);
+    }
+    
+    fout.close();
+
+}
+template void Galfit<float>::writeRingFile(std::string, Rings<float>*, float***);
+template void Galfit<double>::writeRingFile(std::string, Rings<double>*, double***);
+
 
 /////////////////////////////////////////////////////////////////////
 /// Functions to write GALFIT rings

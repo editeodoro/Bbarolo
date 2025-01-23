@@ -77,6 +77,7 @@ float* Galfit_initialGuesses(Cube<float> *c, const char* xpos, const char* ypos,
 bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit(); return true;}
 bool Galfit_secondStage(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->SecondStage();}
 void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(SIGINT, signalHandler); g->writeModel(string(norm),plots);}
+void Galfit_setOutRings(Galfit<float> *g, Rings<float> *r) {g->setOutRings(r); g->writeRingFile("rings_final1.txt",r);}
 int Galfit_plotModel(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->plotAll_Python();}
 float Galfit_calcresiduals(Galfit<float> *g, Rings<float> *r) {return g->calculateResiduals(r);}
 ////////////////////////////////////////////////////////////////////////////////////////
