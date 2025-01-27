@@ -112,6 +112,7 @@ public:
     virtual ~Ellprof() {deallocateArrays();}
     
     void   setFromCube(Cube<T> *c, Rings<T> *inR);
+    void   update_rings(Rings<T> *rings, size_t nseg=1, float* segments=nullptr);
     void   setOptions (bool overlap, float *range, float *subp);
     void   RadialProfile ();
     void   printProfile (ostream& theStream=std::cout, int seg=0);
@@ -148,6 +149,7 @@ private:
     MomentMap<T> *im;
     size_t  Nrad;
     size_t  Nseg;
+    bool    arrayAllocated;
     T       *Radius;        /* Radii */
     T       *Width;         /* Ring widths */
     T       *Phi;           /* Pos. angle of major axis */

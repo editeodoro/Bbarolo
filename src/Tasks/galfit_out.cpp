@@ -129,7 +129,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     //    if (outr->dens[i]==0) outr->deleteRing(i);
 
     if (verb) std::cout << "    Calculating the very last model..." << std::flush;
-    Model::Galmod<T> *mod = getModel();
+    int bhi[2] = {in->DimX(), in->DimY()};
+    int blo[2] = {0,0};
+    Model::Galmod<T> *mod = getModel(outr,bhi,blo,nullptr,true);
     mod->Out()->Head().setMinMax(0.,0.);
     mod->Out()->Head().setName(object+"mod");
     

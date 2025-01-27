@@ -39,6 +39,7 @@ int* Cube_axisdim(Cube<float> *c) {return c->AxisDim();}
 float* Cube_array(Cube<float> *c) {return c->Array();}
 void Cube_setBeam(Cube<float> *c, float bmaj, float bmin, float bpa) {c->setBeam(bmaj,bmin,bpa);}
 float* Cube_getBeam(Cube<float> *c) {return c->getBeam();}
+bool* Cube_getMask(Cube<float> *c) {return c->Mask();}
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -80,6 +81,8 @@ void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(S
 void Galfit_setOutRings(Galfit<float> *g, Rings<float> *r) {g->setOutRings(r); g->writeRingFile("rings_final1.txt",r);}
 int Galfit_plotModel(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->plotAll_Python();}
 float Galfit_calcresiduals(Galfit<float> *g, Rings<float> *r) {return g->calculateResiduals(r);}
+Galmod<float>* Galfit_getModel(Galfit<float> *g, Rings<float> *r) {signal(SIGINT, signalHandler); int bhi[2] = {g->In()->DimX(), g->In()->DimX()}; 
+                                                                   int blo[2] = {0,0}; return g->getModel(r,bhi,blo,nullptr,false);}
 ////////////////////////////////////////////////////////////////////////////////////////
  
 
@@ -123,9 +126,13 @@ void Fit2D_write(Ringmodel<float> *rm, Cube<float> *c, const char *fout) {std::o
 Ellprof<float>* Ellprof_new(Cube<float> *c, Rings<float> *r, const char* mask, const char* side, int NTHREADS) {
                             c->pars().setMASK(string(mask)); c->pars().getParGF().SIDE = string(side);
                             c->pars().setThreads(NTHREADS); return new Ellprof<float>(c,r);}
+Ellprof<float>* Ellprof_new_alt(Cube<float> *c, Rings<float> *r) {return new Ellprof<float>(c,r);} 
 void Ellprof_delete(Ellprof<float> *e) {delete e;}
 void Ellprof_compute(Ellprof<float> *e) {signal(SIGINT, signalHandler); e->RadialProfile();}
 void Ellprof_write(Ellprof<float> *e, const char *fout) {std::ofstream fileo(fout); e->printProfile(fileo);}
+double* Ellprof_dens_array(Ellprof<float> *e) { double *d = new double[e->getNrad()]; 
+                                                for (int i=e->getNrad(); i--;) d[i] = e->getMedian(i); return d;}
+void Ellprof_update_rings(Ellprof<float> *e, Rings<float> *r) {e->update_rings(r);}
 //////////////////////////////////////////////////////////////////////////////////////////                  
 
 

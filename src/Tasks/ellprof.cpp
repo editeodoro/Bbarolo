@@ -39,6 +39,7 @@ namespace Tasks {
 
 template <class T>
 void Ellprof<T>::defaults() {
+    arrayAllocated = false;
     Overlap = true;
     Nseg = 1;
     maprotation = 0;
@@ -52,6 +53,8 @@ void Ellprof<T>::defaults() {
 template <class T>
 void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
 
+    deallocateArrays();
+    
     Radius = new T [nrad];
     Width = new T [nrad];
     Phi = new T [nrad];
@@ -116,56 +119,57 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
 template <class T>
 void Ellprof<T>::deallocateArrays () {
 
-    for (size_t i=0; i<Nrad; i++) {
-        delete [] Annuli[i];
-        delete [] Sum[i];
-        delete [] Sumsqr[i];
-        delete [] Num[i];
-        delete [] Numblanks[i];
-        delete [] Datamin[i];
-        delete [] Datamax[i];
-        delete [] Var[i];
-        delete [] MAD[i];
-        delete [] Contrib[i];
-        delete [] Mean[i];
-        delete [] Median[i];
-        delete [] Area[i];
-        delete [] Blankarea[i];
-        delete [] Surfdens[i];
-        delete [] Surfdens_Bl[i];
-        delete [] medianArray[i];
+    if (arrayAllocated) {
+        for (size_t i=0; i<Nrad; i++) {
+            delete [] Annuli[i];
+            delete [] Sum[i];
+            delete [] Sumsqr[i];
+            delete [] Num[i];
+            delete [] Numblanks[i];
+            delete [] Datamin[i];
+            delete [] Datamax[i];
+            delete [] Var[i];
+            delete [] MAD[i];
+            delete [] Contrib[i];
+            delete [] Mean[i];
+            delete [] Median[i];
+            delete [] Area[i];
+            delete [] Blankarea[i];
+            delete [] Surfdens[i];
+            delete [] Surfdens_Bl[i];
+            delete [] medianArray[i];
+        }
+
+        delete [] Radius;
+        delete [] Width;
+        delete [] Phi;
+        delete [] Inc;
+        delete [] Cosphi;
+        delete [] Sinphi;
+        delete [] Cosinc;
+        delete [] Annuli;
+        delete [] Segments;
+
+        delete [] Sum;
+        delete [] Sumsqr;
+        delete [] Num;
+        delete [] Numblanks;
+
+        delete [] Datamin;
+        delete [] Datamax;
+        delete [] Var;
+        delete [] MAD;
+        delete [] Contrib;
+
+        delete [] Mean;
+        delete [] Median;
+        delete [] Area;
+        delete [] Blankarea;
+        delete [] Surfdens;
+        delete [] Surfdens_Bl;
+
+        delete [] medianArray;
     }
-
-    delete [] Radius;
-    delete [] Width;
-    delete [] Phi;
-    delete [] Inc;
-    delete [] Cosphi;
-    delete [] Sinphi;
-    delete [] Cosinc;
-    delete [] Annuli;
-    delete [] Segments;
-
-    delete [] Sum;
-    delete [] Sumsqr;
-    delete [] Num;
-    delete [] Numblanks;
-
-    delete [] Datamin;
-    delete [] Datamax;
-    delete [] Var;
-    delete [] MAD;
-    delete [] Contrib;
-
-    delete [] Mean;
-    delete [] Median;
-    delete [] Area;
-    delete [] Blankarea;
-    delete [] Surfdens;
-    delete [] Surfdens_Bl;
-
-    delete [] medianArray;
-
 }
 
 
@@ -253,10 +257,23 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
 
     defaults();
     im = image;
+    
+    update_rings(rings, nseg, segments);
+
+}
+
+
+template <class T>
+void Ellprof<T>::update_rings(Rings<T> *rings, size_t nseg, float* segments) {
+
     Nseg = nseg;
     Nrad = rings->nr;
 
     allocateArrays(Nrad, Nseg);
+
+    if (Nseg == 1 && segments==nullptr) 
+        float segments[4] = {0., 360., 0., 0.};
+    
 
     // Initialize the rings
     for (size_t r=0; r<Nrad; r++) {
@@ -335,7 +352,6 @@ void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* 
 
     stepxy[0] = fabs(Dx) / (float) subpix[0];
     stepxy[1] = fabs(Dy) / (float) subpix[1];
-
 }
 
 

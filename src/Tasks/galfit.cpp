@@ -582,8 +582,8 @@ void Galfit<T>::fit_straight(T ***errors, bool *fitok, std::ostream &fout) {
                         inr->vvert[ir],inr->dvdz[ir],inr->zcyl[ir],inr->dens[ir],inr->z0[ir],inr->inc[ir],inr->phi[ir]);
 
         // Checking that we have enough good pixels to proceed.
-        int blo[2], bhi[2], bsize[2];
-        getModelSize(dring,blo,bhi,bsize);
+        int blo[2], bhi[2];
+        getModelSize(dring,blo,bhi);
         double theta=0;
         int nTot=0, nIn=0;
         for (int y=blo[1]; y<=bhi[1]; y++) {
@@ -709,7 +709,7 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
 
             // Calculating the model so far
             int blo[2], bhi[2], bsize[2];
-            getModelSize(outr,blo,bhi,bsize);
+            getModelSize(outr,blo,bhi);
             int nv = par.NV<0 ? in->DimZ() : par.NV;
             Model::Galmod<T> *modsoFar = new Model::Galmod<T>;
             modsoFar->input(in,bhi,blo,dring2,nv,par.LTYPE,1,par.CDENS);
@@ -1068,34 +1068,72 @@ bool Galfit<T>::setCfield() {
 template bool Galfit<float>::setCfield();
 template bool Galfit<double>::setCfield();
 
-
+/*
 template <class T>
 Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr) {
 
-    Model::Galmod<T> *mod = new Model::Galmod<T>;
+    // If no rings are provided, we will use the output rings and built the final model
+    if (dr==nullptr) {
+        dr = outr;
+        // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.    
+        if (dr->nr==1) 
+            dr->addRing(dr->radii[0]+dr->radsep/2., dr->xpos[0], dr->ypos[0], dr->vsys[0], dr->vrot[0], dr->vdisp[0], 
+                        dr->vrad[0], dr->vvert[0], dr->dvdz[0], dr->zcyl[0], dr->dens[0], dr->z0[0], dr->inc[0], dr->phi[0]);
+        else dr->radii[dr->nr-1] += dr->radsep/2.;
+        dr->radii[0] = max(double(dr->radii[0]-dr->radsep/2.),0.);
+    }
+
     int bhi[2] = {in->DimX(), in->DimY()};
     int blo[2] = {0,0};
-    int nv = par.NV;
-    if (nv==-1) nv=in->DimZ();
+    int nv = par.NV==-1 ? in->DimZ() : par.NV;
     
-    // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.
-    if (dr==nullptr) {
-        dr = new Rings<T>;
-        *dr = *outr;
-    }
-    if (dr->nr==1) 
-        dr->addRing(dr->radii[0]+dr->radsep/2., dr->xpos[0], dr->ypos[0], dr->vsys[0], dr->vrot[0], dr->vdisp[0], 
-                    dr->vrad[0], dr->vvert[0], dr->dvdz[0], dr->zcyl[0], dr->dens[0], dr->z0[0], dr->inc[0], dr->phi[0]);
-    else dr->radii[dr->nr-1] += dr->radsep/2.;
-    dr->radii[0] = max(double(dr->radii[0]-dr->radsep/2.),0.);
+    Model::Galmod<T> *mod = new Model::Galmod<T>;
     mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();
     if (par.SM) mod->smooth();
-    delete dr;
     return mod;
 }
 template Model::Galmod<float>* Galfit<float>::getModel(Rings<float> *);
 template Model::Galmod<double>* Galfit<double>::getModel(Rings<double> *);
+*/
+
+
+template <class T>
+Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::Galmod<T> *modsoFar, bool finalModel) {
+
+    if (finalModel) {
+        // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.    
+        if (dr->nr==1) 
+            dr->addRing(dr->radii[0]+dr->radsep/2., dr->xpos[0], dr->ypos[0], dr->vsys[0], dr->vrot[0], dr->vdisp[0], 
+                        dr->vrad[0], dr->vvert[0], dr->dvdz[0], dr->zcyl[0], dr->dens[0], dr->z0[0], dr->inc[0], dr->phi[0]);
+        else dr->radii[dr->nr-1] += dr->radsep/2.;
+        dr->radii[0] = max(double(dr->radii[0]-dr->radsep/2.),0.);
+    }
+    
+    int nv = par.NV==-1 ? in->DimZ() : par.NV;
+    int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
+
+    Model::Galmod<T> *mod = new Model::Galmod<T>;
+    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
+    mod->calculate();
+    
+    // Adding up the "sofar" model, if requested
+    T *modp = mod->Out()->Array();
+    if (modsoFar!=nullptr && !finalModel) {
+        for (auto i=mod->Out()->NumPix(); i--;) modp[i] += modsoFar->Out()->Array()[i];
+    }
+
+    //<<<<< Convolution....
+    if (par.SM) {
+        if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
+        else Convolve(modp, bsize);
+    }
+
+    return mod;
+
+}
+template Model::Galmod<float>* Galfit<float>::getModel(Rings<float>*, int*, int*, Model::Galmod<float>*, bool);
+template Model::Galmod<double>* Galfit<double>::getModel(Rings<double>*, int*, int*, Model::Galmod<double>*, bool);
 
 
 template <class T>

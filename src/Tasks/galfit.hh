@@ -62,10 +62,10 @@ public:
     /// Functions defined in galfit.cpp
     void setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p);
     void galfit();
-    Galmod<T>* getModel(Rings<T> *dr=nullptr);
     bool SecondStage();
     T calculateResiduals(Rings<T> *r) {return getFuncValue(r);}
     void writeRingFile(std::string filename, Rings<T> *r, T ***errors=NULL);
+    Galmod<T>* getModel(Rings<T> *dr, int *bhi, int* blo, Model::Galmod<T> *modsoFar=nullptr, bool finalModel=false);
 
     /// Functions defined in galfit_out.cpp
     void writeModel(std::string normtype, bool makeplots=true);
@@ -132,7 +132,7 @@ protected:
     double norm_local(Rings<T> *dring, T *array, int *bhi, int *blo);
     double norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo);
     double norm_none (Rings<T> *dring, T *array, int *bhi, int *blo);
-    void   getModelSize(Rings<T> *dring, int *blo, int *bhi, int *bsize);
+    void   getModelSize(Rings<T> *dring, int *blo, int *bhi);
 
     double slitfunc (Rings<T> *dring, T *array, int *bhi, int *blo);
     bool IsIn (int x, int y, int *blo, Rings<T> *dr, double &th);

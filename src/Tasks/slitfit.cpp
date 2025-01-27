@@ -482,7 +482,9 @@ void Galfit<T>::writeModel_slit() {
     std::string object = in->Head().Name();
     double pixScale = in->Head().PixScale()*arcconv;
 
-    Model::Galmod<T> *mod = getModel();
+    int bhi[2] = {in->DimX(), in->DimY()};
+    int blo[2] = {0,0};
+    Model::Galmod<T> *mod = getModel(outr,bhi,blo,nullptr,true);
 
     Cube<T> *modc = mod->Out();
     modc->fitswrite_3d((outfold+object+"_3dmod.fits").c_str());

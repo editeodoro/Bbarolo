@@ -509,6 +509,7 @@ template double Galfit<double>::func3D(Rings<double>*,double*,Galmod<double> *);
 template <class T>
 T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
 
+    /*
     // Getting the sizes of model cube based on last ring
     int blo[2], bhi[2], bsize[2];
     if (reverse) getModelSize(outr,blo,bhi,bsize);
@@ -532,9 +533,18 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
         if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
         else Convolve(modp, bsize);
     }
+    */
+
+    // Getting the sizes of model cube based on last ring
+    int blo[2], bhi[2];
+    if (reverse) getModelSize(outr,blo,bhi);
+    else getModelSize(dring,blo,bhi);
     
+    // Calculating the model
+    Model::Galmod<T> *mod = getModel(dring,bhi,blo,modsoFar,false);
+
     //<<<<< Normalizing & calculating the residuals....
-    double minfunc = (this->*func_norm)(dring,modp,bhi,blo);
+    double minfunc = (this->*func_norm)(dring,mod->Out()->Array(),bhi,blo);
     
     delete mod;
     return minfunc; 
@@ -814,7 +824,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
             }
         }
     }
-    
+
     //numPix_ring=1;
     //return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/numPix_ring;
     return std::pow((1+numBlanks/T(numPix_tot)),par.BWEIGHT)*minfunc/((numPix_tot-numBlanks));
@@ -952,7 +962,7 @@ template double Galfit<double>::norm_none(Rings<double>*,double*,int*,int*);
 
 
 template <class T>
-void Galfit<T>::getModelSize(Rings<T> *dring, int *blo, int *bhi,int* bsize) {
+void Galfit<T>::getModelSize(Rings<T> *dring, int *blo, int *bhi) {
     
     // Calculating sizes of model cube (only extends to the last ring)
     int xdis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(0))*arcconv));
@@ -967,12 +977,9 @@ void Galfit<T>::getModelSize(Rings<T> *dring, int *blo, int *bhi,int* bsize) {
     if (blo[1]<0) blo[1] = 0;
     if (bhi[0]>in->DimX()) bhi[0] = in->DimX();	
     if (bhi[1]>in->DimY()) bhi[1] = in->DimY();
-    bsize[0] = bhi[0]-blo[0];
-    bsize[1] = bhi[1]-blo[1];	
-
 }
-template void Galfit<float>::getModelSize(Rings<float>*,int*,int*,int*);
-template void Galfit<double>::getModelSize(Rings<double>*,int*,int*,int*);
+template void Galfit<float>::getModelSize(Rings<float>*,int*,int*);
+template void Galfit<double>::getModelSize(Rings<double>*,int*,int*);
 
 
 template <class T> 

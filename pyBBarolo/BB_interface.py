@@ -64,6 +64,8 @@ libBB.Cube_setBeam.restype = None
 libBB.Cube_setBeam.argtypes = [c_void_p, c_float, c_float, c_float]
 libBB.Cube_getBeam.restype = POINTER(c_float)
 libBB.Cube_getBeam.argtypes = [c_void_p]
+libBB.Cube_getMask.restype = POINTER(c_bool)
+libBB.Cube_getMask.argtypes = [c_void_p]
 ########################################################################################
 
 
@@ -117,6 +119,8 @@ libBB.Galfit_plotModel.restype = c_int
 libBB.Galfit_plotModel.argtypes = [c_void_p]
 libBB.Galfit_calcresiduals.restype = c_float
 libBB.Galfit_calcresiduals.argtypes = [c_void_p,c_void_p]
+libBB.Galfit_getModel.restype = c_void_p
+libBB.Galfit_getModel.argtypes = [c_void_p,c_void_p]
 ########################################################################################
 
 
@@ -162,12 +166,18 @@ libBB.Fit2D_write.argtypes = [c_void_p,c_void_p,c_char_p]
 # Class Ellprof interface ############################################################
 libBB.Ellprof_new.restype = c_void_p
 libBB.Ellprof_new.argtypes = [c_void_p,c_void_p,c_char_p,c_char_p,c_int]
+libBB.Ellprof_new_alt.restype = c_void_p
+libBB.Ellprof_new_alt.argtypes = [c_void_p,c_void_p]
 libBB.Ellprof_delete.restype = None
 libBB.Ellprof_delete.argtypes = [c_void_p]
 libBB.Ellprof_compute.restype = None
 libBB.Ellprof_compute.argtypes = [c_void_p]
 libBB.Ellprof_write.restype = None
 libBB.Ellprof_write.argtypes = [c_void_p,c_char_p]
+libBB.Ellprof_dens_array.restype = POINTER(c_double)
+libBB.Ellprof_dens_array.argtypes = [c_void_p]
+libBB.Ellprof_update_rings.restype = None
+libBB.Ellprof_update_rings.argtypes = [c_void_p,c_void_p]
 ########################################################################################
 
 
