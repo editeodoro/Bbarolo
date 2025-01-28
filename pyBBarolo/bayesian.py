@@ -22,9 +22,9 @@ It uses either dynesty or nautilus libraries for this.
 import numpy as np
 import scipy.stats
 from .BB_interface import libBB
-from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer, vprint
+from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer, vprint, isIterable
 
-import time
+import time, copy
 
 from schwimmbad import MultiPool, MPIPool
 from mpi4py import MPI
@@ -53,7 +53,8 @@ class BayesianBBarolo(FitMod3D):
         # Resetting FitMod3d._args. Not used here.
         self._args = {}
         # self._opts contains any other parameter given to the code
-        self._opts = Param(fitsfile=fitsname,outfolder='./output/',twostage=False)
+        defaults = dict(threads=1,outfolder='./output/',twostage=False)
+        self._opts = Param(fitsfile=fitsname,**defaults)
         if kwargs:
             self._opts.add_params(kwargs)
         
@@ -101,92 +102,44 @@ class BayesianBBarolo(FitMod3D):
                            dens=[0.01,200],z0=[0,10])
         self.priors = {key: None for key in self.bounds.keys()}
     
-    
-    def _log_likelihood(self,theta,useBBres=True):
-        """ Likelihood function for the fit """
-        
-        # Interpreting theta based on free parameters fitted and update rings.
-        rings = self._inri
+
+    def _update_rings(self,rings,theta):
+        """ Update rings with the parameters theta """
         for key in self.freepar_idx:
             pvalue = theta[self.freepar_idx[key]]
             if len(pvalue)==1: pvalue = pvalue[0]
             rings.modify_parameter(key,pvalue)
         rings.make_object()
-        
-        if useBBres:
-            # Calculating residuals through BBarolo directly
-            res = libBB.Galfit_calcresiduals(self._mod,rings._rings)
-        else: 
-            # Calculating residuals manually
-            # @TODO for having a residual calculation outside BB.
-            # There are two possibilities:
-            # 1) Fit the density profile (dens) as any other parameter. 
-            #    - It could be functional density -> just build model with profile
-            #    - Normalize to maximum or top 10% before residual calculation.
-            # 2) Use azimuthal normalization. In this case:
-            #   - Need to get a mask (BB or external function?)
-            #   - Need a density profile given the ring geometry (BB or external function?) 
-            #   - Build a model with derived density profile 
-            #   - Normalize to maximum or top 10% before residual calculation.
-            #
-            #   In both cases, residual could use a WFUNC and BWEIGHT
-            
-            
-            self._mod = libBB.Galmod_new_par(self.inp._cube,rings._rings,self._opts._params)
-            libBB.Galmod_compute(self._mod)
-            libBB.Galmod_smooth(self._mod)
+        return rings
 
-            mod = reshapePointer(libBB.Galmod_array(self._mod),self.inp.dim[::-1])
-            nrm = 1.00
 
-            # @TODO: This is just a temporary solution for checking whether _log_likelihood is working.
-            #        It should be integrated with a normalization step.
-            res = np.sum(np.abs(self.inp._cube-nrm*mod))
+    def _update_profile(self,rings):
+        """ Get the density profile from the rings using Ellprof"""
         
-        return -1000*res
-        # This 1000 factor arbitrary, but with small residual there is no convergence. 
-        # We need to understand why...
-        
+        libBB.Ellprof_update_rings(self._ellprof,rings._rings)
+        libBB.Ellprof_compute(self._ellprof)
+        dens = reshapePointer(libBB.Ellprof_dens_array(self._ellprof),(1,self._inri.nr))[0]
+        # To avoid problems with Galmod, we normalize the profile such that the minimum value is 0.1
+        dens = dens*0.1/np.nanmin(dens[dens>0])
+        rings.modify_parameter("dens",np.abs(dens)*1E20,makeobj=True)
+
+
     
-    def _prior_transform(self,u):
-        """ Prior default transform function for dynesty.
-            It defines flat priors for all parameters with min/max values 
-            given by self.bounds
+    def _setup(self,freepar,useBBres=True,**kwargs):
+        """ Setup function for the fit 
+            It sets the following class attributes:
+            - self.ndim: number of parameters to fit
+            - self.freepar_idx: indexes of the parameters to fit
+            - self.freepar_names: names of the parameters to fit
+            - self.priors: dictionary with prior probabilities
+            - self._mod: pointer to the C++ Galfit object
+            - self.mask: mask from the input cube (3D array)
+            - self._ellprof: a pointer to a C++ Ellprof object   
         """
-        p = np.zeros_like(u)
-        for key in self.freepar_idx:
-           #p_min,p_max = self.bounds[key]
-           #p[self.freepar_idx[key]] = p_min + u[self.freepar_idx[key]]*(p_max-p_min)
-           p[self.freepar_idx[key]] = self.priors[key].ppf(u[self.freepar_idx[key]])
-        return p
-    
-    
-    def _compute(self,threads=1,freepar=['vrot'],method='dynesty',\
-                 sampler_kwargs : dict = {}, run_kwargs : dict = {}, **kwargs):
-        
-        """ Front-end function to fit a model.
-
-        Run this function after having set initial parameters with :func:`init` and options with
-        :func:`set_options`.
-
-        Args: TBD
-        
-        Returns: TBD
-          
-        """
-
         if self._inri is None: 
             print ("Error: you need to initialize rings first by calling the function init()")
             return
         
-        # Making a Param C++ object and a Galfit/Galmod object
-        self._opts.add_params(verbose=False)
-        self._opts.make_object()
-        
-        useBBres = kwargs.get('useBBres',True)
-        libBBres = libBB.Galfit_new_par if useBBres else libBB.Galmod_new_par
-        self._mod = libBBres(self.inp._cube,self._inri._rings,self._opts._params)
-
         # Determining the number of parameters to fit and indexes for theta
         self.freepar_idx = {}
         self.ndim = 0
@@ -213,7 +166,138 @@ class BayesianBBarolo(FitMod3D):
                                                        scale=self.bounds[key][1]-self.bounds[key][0])
             elif not isinstance(self.priors[key],scipy.stats._distn_infrastructure.rv_continuous_frozen):
                 raise ValueError(f"ERROR! Prior for {key} should be None or a scipy.stats distribution.")
+
+
+        # Making a Param C++ object and a Galfit/Galmod object
+        self._opts.add_params(verbose=False)
+        self._opts.make_object()
+        
+        libBBres = libBB.Galfit_new_par #if useBBres else libBB.Galmod_new_par
+
+        self._mod = libBBres(self.inp._cube,self._inri._rings,self._opts._params)
+
+        # Getting the mask from the input cube
+        self.mask  = reshapePointer(libBB.Cube_getMask(self.inp._cube),self.inp.dim[::-1])
+        self.data  = reshapePointer(libBB.Cube_array(self.inp._cube),self.inp.dim[::-1])
+
+
+        # Setting up the Ellprof object if azimuthal normalization and not using BB residuals 
+        norm = 'azim'
+        if norm == 'azim' and not useBBres:
+            self._ellprof = libBB.Ellprof_new_alt(self.inp._cube,self._inri._rings)
+            self._update_profile(self._inri)
+            # Check if we need to update the profile in each fit iteration (= only if geometry is fitted)
+            self.update_prof = any(sub in string for string in self.freepar_names for sub in ['inc','phi','xpos','ypos'])
+
+
             
+    def _log_likelihood(self,theta,useBBres=True):
+        """ Likelihood function for the fit """
+        
+        rings = self._update_rings(self._inri,theta)
+        
+        if useBBres:
+            # Calculating residuals through BBarolo directly
+            res = libBB.Galfit_calcresiduals(self._mod,rings._rings)
+        else: 
+            # Calculating residuals manually
+            # @TODO for having a residual calculation outside BB.
+            # There are two possibilities:
+            # 1) Fit the density profile (dens) as any other parameter. 
+            #    - It could be functional density -> just build model with profile
+            #    - Normalize to maximum or top 10% before residual calculation.
+            # 2) Use azimuthal normalization. In this case:
+            #   - Need to get a mask (BB or external function?)
+            #   - Need a density profile given the ring geometry (BB or external function?) 
+            #   - Build a model with derived density profile 
+            #   - Normalize to maximum or top 10% before residual calculation.
+            #
+            #   In both cases, residual could use a WFUNC and BWEIGHT
+            
+
+            # Recompute the density profile along the current rings and update the rings
+            if self.update_prof:
+                self._update_profile(rings)
+  
+            #@TODO: Build up the model with a cube size just big enough to contain the rings
+            #       -> speed up the calculation
+            galmod = libBB.Galfit_getModel(self._mod,rings._rings)
+            mod = reshapePointer(libBB.Galmod_array(galmod),self.inp.dim[::-1])
+            
+            # Normalizing the model to the maximum value of the data
+            okpix = (self.mask==1) & (mod!=0)
+            
+            nrm = np.nanmax(self.data*self.mask)/np.nanmax(mod)
+
+            # Weighting the residual by the azimuthal angle
+            #x0  = np.mean(rings.r['xpos'])
+            #y0  = np.mean(rings.r['ypos'])
+            #inc = np.radians(np.mean(rings.r['inc']))
+            #phi = np.radians(np.mean(rings.r['phi']))
+
+            #x, y = np.arange(self.mask.shape[2]), np.arange(self.mask.shape[1])
+            #xr =  -(x[None,:]-x0)*np.sin(phi)+(y[:,None]-y0)*np.cos(phi);
+            #yr = (-(x[None,:]-x0)*np.cos(phi)-(y[:,None]-y0)*np.sin(phi))/np.cos(inc);
+
+            #wpow = 2.0
+            #th = np.arctan2(yr, xr)
+            #wi = np.abs(np.cos(th))**wpow[None,:,:]
+
+            # Calculating the residual
+            wi = 1.0
+            res = np.nansum(wi*np.abs(self.data*self.mask-nrm*mod))
+
+            # Calculating number of blanks (= model present, but data not in the mask)
+            #nblanks = np.sum((self.mask==0) & (mod!=0))
+            #ntot    = np.sum(self.mask)
+            #if nblanks>ntot: nblanks = ntot-1
+            #print (ntot,nblanks)
+            #bweight = 1.0
+            #res *= (1+nblanks/ntot)**bweight/(ntot-nblanks)
+
+            libBB.Galmod_delete(galmod)
+            
+        return -1000*res
+        # This 1000 factor arbitrary, but with small residual there is no convergence. 
+        # We need to understand why...
+        
+    
+    def _prior_transform(self,u):
+        """ Prior default transform function for dynesty.
+            It defines flat priors for all parameters with min/max values 
+            given by self.bounds
+        """
+        p = np.zeros_like(u)
+        for key in self.freepar_idx:
+           #p_min,p_max = self.bounds[key]
+           #p[self.freepar_idx[key]] = p_min + u[self.freepar_idx[key]]*(p_max-p_min)
+           p[self.freepar_idx[key]] = self.priors[key].ppf(u[self.freepar_idx[key]])
+        return p
+    
+    
+
+
+    def _compute(self,threads=1,freepar=['vrot'],method='dynesty', useBBres = True, \
+                 sampler_kwargs : dict = {}, run_kwargs : dict = {}, **kwargs):
+        
+        """ Front-end function to fit a model.
+
+        Run this function after having set initial parameters with :func:`init` and options with
+        :func:`set_options`.
+
+        Args: TBD
+        
+        Returns: TBD
+
+        Kwargs: verbose (bool), useBBres (bool), dynamic (bool), other BB options
+          
+        """
+
+        verbose  = kwargs.get('verbose',True)
+
+        # Setting up all the needed class attributes
+        self._setup(freepar,useBBres,**kwargs)
+
         # These are needed for the parallelization
         global prior_transform
         global log_likelihood
@@ -231,8 +315,20 @@ class BayesianBBarolo(FitMod3D):
         elif threads>1: pool = MultiPool(processes=threads)
         else: pool = None
     
-        verbose = kwargs.get('verbose',True)
-                
+        
+
+###########################################################################
+ #       self.count = 0
+ #       for i in range(10):
+ #           ppp = np.random.uniform(0,100,10)
+ #           print (ppp)
+ #           a=log_likelihood(ppp)
+ #           print (a)
+ #           self.count += 1
+ #       return
+#######################################################
+
+#####################################################################################
         # Now running the sampling 
         toc = time.time()
         if method=='dynesty': 
@@ -247,7 +343,9 @@ class BayesianBBarolo(FitMod3D):
 
             # Extract the best-fit parameters
             self.samples = self.results.samples  # Posterior samples
-            weights = np.exp(self.results.logwt - self.results.logz[-1])
+            self.weights = np.exp(self.results.logwt - self.results.logz[-1])
+
+
                                 
         elif method=='nautilus':
             
@@ -264,12 +362,15 @@ class BayesianBBarolo(FitMod3D):
             self.sampler.run(verbose=verbose,**run_kwargs)
 
             self.samples, weights, _ = self.sampler.posterior()
-            weights = np.exp(weights-weights.max())
+            self.weights = np.exp(weights-weights.max())
+
+
+
         else: 
             raise ValueError(f"ERROR! Unknown method {method}.")
         
         
-        self.samples = resample_equal(self.samples,weights)
+        self.samples = resample_equal(self.samples,self.weights)
         self.params = np.median(self.samples,axis=0)
 
         dt = time.time()-toc
@@ -283,10 +384,11 @@ class BayesianBBarolo(FitMod3D):
         self.modCalculated = True
     
     
+
     def write_bestmodel(self,**kwargs):
         
         if not self.modCalculated:
-            print ("Best model not calculated yet. Please run compute() before running this function.")
+            print ("Sampler has not been run yet. Please run compute() before running this function.")
             return
         
         verbose = kwargs.get('verbose',True)
@@ -296,13 +398,8 @@ class BayesianBBarolo(FitMod3D):
         self.outri.set_rings_from_dict(self._inri.r)
         
         # Updating output rings with best parameters from the sampling
-        for key in self.freepar_idx:
-            pvalue = self.params[self.freepar_idx[key]]
-            if len(pvalue)==1: pvalue = pvalue[0]
-            self.outri.modify_parameter(key,pvalue)
-        self.outri.make_object()
-
-        
+        self.outri = self._update_rings(self.outri,self.params)
+              
         vprint(verbose,"Writing the best model to output directory ...",end=' ',flush=True)
         # Setting up the output rings in the Galfit object.
         # @TODO: Add support for errors in the rings (already in the C++ code)
@@ -310,6 +407,44 @@ class BayesianBBarolo(FitMod3D):
         # Writing the model and plots to the output directory
         libBB.Galfit_writeModel(self._mod,"AZIM".encode('utf-8'),True)
         vprint(verbose,"Done!")
+
+
+
+    def print_stats(self,burnin=None,percentiles=[15.865,50,84.135]):
+
+        if not self.modCalculated:
+            print ("Sampler has not been run yet. Please run compute() before running this function.")
+            return
+        
+        if not isIterable(percentiles) and len(percentiles)!=3:
+            raise ValueError("ERROR! Percentiles must be a list of three values.")
+
+        results = copy.copy(self.sampler.results)
+        if burnin is not None:
+            results = results[burnin:]
+        weights = np.exp(results.logwt - results.logz[-1])
+        samples = resample_equal(results.samples,weights)
+
+        # Printing central values and error of posterior distributions
+        print("\nBest-fit parameters:")
+        for i in range(len(self.freepar_names)):
+            values = np.percentile(samples[:, i], percentiles)
+            q = np.diff(values)
+            txt = "  %10s = %10.3f %+10.3f %+10.3f"%(self.freepar_names[i], values[1], -q[0], q[1])
+            print (txt)
+
+        # Printing the maximum likelihood
+        max_logl   = results.logl.max()
+        max_index  = results.logl.argmax()
+        max_params = samples[max_index]
+        print(f"\nMaximum logl: {max_logl} at:")
+        for i in range(len(self.freepar_names)):
+            txt = "  %10s = %10.3f "%(self.freepar_names[i], max_params[i])
+            print(txt)
+
+        return results, samples
+
+
 
 
 

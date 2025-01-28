@@ -1117,6 +1117,7 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
     mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();
     
+ 
     // Adding up the "sofar" model, if requested
     T *modp = mod->Out()->Array();
     if (modsoFar!=nullptr && !finalModel) {

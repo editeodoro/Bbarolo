@@ -25,11 +25,6 @@ import numpy as np
 from .BB_interface import libBB
 from astropy.io import fits
 
-#import ctypes
-#import ctypes.util
-#libc_ = ctypes.util.find_library('c')
-#libc  = ctypes.CDLL(libc_)
-
 # A function to print only if verbose is True
 vprint = lambda verbose, *args, **kwargs: print(*args,**kwargs) if verbose else None
 
@@ -46,11 +41,7 @@ def reshapePointer (p, shape):
     
     """
     return np.ctypeslib.as_array(p, shape=tuple(shape))
-    #parray = np.ctypeslib.as_array(p,shape=tuple(shape))
-    #carray = np.copy(parray)
-    
-    #libc.free(p)
-    #return carray
+
     
 def isIterable (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
@@ -348,7 +339,7 @@ class Model3D(Task):
                                     Please pass beam=(bmaj,bmin,bpa) paramater to smooth()")
         else:
             if isIterable(beam) and len(beam)==3:
-                set_beam(bmaj=beam[0],bmin=beam[1],bpa=beam[2])
+                self.set_beam(bmaj=beam[0],bmin=beam[1],bpa=beam[2])
             else: 
                 raise ValueError("%s ERROR: beam is a list of [bmaj,bmin,bpa]."%self.taskname)            
         return self._smooth()

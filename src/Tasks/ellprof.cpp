@@ -111,8 +111,9 @@ void Ellprof<T>::allocateArrays (size_t nrad, size_t nseg) {
             Datamin[i][j]=Datamax[i][j]=Var[i][j]=MAD[i][j]=Contrib[i][j]=Mean[i][j]=0;
             Median[i][j]=Area[i][j]=Blankarea[i][j]=Surfdens[i][j]=Surfdens_Bl[i][j]=0;
         }
-    } 
+    }
 
+    arrayAllocated = true;
 }
 
 

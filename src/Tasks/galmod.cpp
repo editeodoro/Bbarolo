@@ -246,7 +246,7 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
     /// of input is given in the Galmod class definition file (galmod.hh). 
 
     initialize(c, Boxup, Boxlow);
-
+    
     ringIO(rings);
 
     setOptions(LTYPE, CMODE, CDENS, ISEED);
@@ -440,13 +440,14 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     crota2=crota2*M_PI/180.;
     
     int ax[3]={bsize[0],bsize[1],nsubs};
+    if (outDefined) delete out;
     out = new Cube<T>(ax);
     out->saveHead(c->Head());
     out->saveParam(c->pars());
     out->Head().setCrpix(0, c->Head().Crpix(0)-blo[0]);
     out->Head().setCrpix(1, c->Head().Crpix(1)-blo[1]);
     outDefined = true;
-    
+
     double reds = in->pars().getRedshift();
     ctype3 = makelower(c->Head().Ctype(2));
     cunit3 = makelower(c->Head().Cunit(2));
@@ -568,6 +569,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     if (nch==-1) nch=2./(2*sqrt(2*log(2)));
     chwidth = fabs(DeltaVel(in->Head()))*1000;
     sig_instr = nch*chwidth;
+    
 }
 
 
@@ -581,6 +583,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
     ///   in units of 1E20 atoms/cm^2.
     /// - Angles are given in grades and then converted in radians.
     
+    if (ringDefined) delete r;
     r = new Rings<T>;
 
     int nur = rings->nr;

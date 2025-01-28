@@ -81,6 +81,7 @@ Header::Header(const Header& h) {
 Header& Header::operator=(const Header& h) {
     
     if(this == &h) return *this;
+    
     this->numAxes = h.numAxes;
     this->bitpix  = h.bitpix;
 
@@ -143,6 +144,7 @@ Header& Header::operator=(const Header& h) {
 //    this->wcs = h.wcs;
 #pragma omp critical (wcs_header)
 {
+    wcsvfree(&nwcs,&wcs);
     this->wcs = new struct wcsprm;
     this->wcs->flag = -1;
     wcsini(true, h.wcs->naxis, this->wcs);
@@ -158,7 +160,6 @@ Header& Header::operator=(const Header& h) {
     calcArea();
     
     return *this;
-
 }
 
 

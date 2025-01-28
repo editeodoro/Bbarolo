@@ -509,32 +509,6 @@ template double Galfit<double>::func3D(Rings<double>*,double*,Galmod<double> *);
 template <class T>
 T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
 
-    /*
-    // Getting the sizes of model cube based on last ring
-    int blo[2], bhi[2], bsize[2];
-    if (reverse) getModelSize(outr,blo,bhi,bsize);
-    else getModelSize(dring,blo,bhi,bsize);
-
-    int nv = par.NV<0 ? in->DimZ() : par.NV;
-
-    // Calculating the model
-    Model::Galmod<T> *mod = new Model::Galmod<T>;
-    mod->input(in,bhi,blo,dring,nv,par.LTYPE,1,par.CDENS);
-    mod->calculate();
-
-    // Adding up the "sofar" model, if requested
-    T *modp = mod->Out()->Array();
-    if (modsoFar!=nullptr) {
-        for (auto i=mod->Out()->NumPix(); i--;) modp[i] += modsoFar->Out()->Array()[i];
-    }
-    
-    //<<<<< Convolution....
-    if (par.SM) {
-        if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
-        else Convolve(modp, bsize);
-    }
-    */
-
     // Getting the sizes of model cube based on last ring
     int blo[2], bhi[2];
     if (reverse) getModelSize(outr,blo,bhi);
