@@ -91,6 +91,8 @@ libBB.Galmod_delete.restype = None
 libBB.Galmod_delete.argtypes = [c_void_p]
 libBB.Galmod_array.restype = POINTER(c_float)
 libBB.Galmod_array.argtypes = [c_void_p]
+libBB.Galmod_set_array.restype = None
+libBB.Galmod_set_array.argtypes = [c_void_p,array_1d_float]
 libBB.Galmod_compute.restype = c_bool
 libBB.Galmod_compute.argtypes = [c_void_p]
 libBB.Galmod_smooth.restype = c_bool
@@ -111,16 +113,20 @@ libBB.Galfit_galfit.restype = c_bool
 libBB.Galfit_galfit.argtypes = [c_void_p]
 libBB.Galfit_secondStage.restype = c_bool
 libBB.Galfit_secondStage.argtypes = [c_void_p]
+libBB.Galfit_calcresiduals.restype = c_float
+libBB.Galfit_calcresiduals.argtypes = [c_void_p,c_void_p]
+libBB.Galfit_getModel.restype = c_void_p
+libBB.Galfit_getModel.argtypes = [c_void_p,c_void_p,POINTER(c_int),POINTER(c_int)]
+libBB.Galfit_getModelSize.restype = None
+libBB.Galfit_getModelSize.argtypes = [c_void_p,c_void_p,POINTER(c_int),POINTER(c_int)]
 libBB.Galfit_setOutRings.restype = None
 libBB.Galfit_setOutRings.argtypes = [c_void_p,c_void_p]
 libBB.Galfit_writeModel.restype = None
 libBB.Galfit_writeModel.argtypes = [c_void_p,c_char_p,c_bool]
+libBB.Galfit_writeOutputs.restype = None
+libBB.Galfit_writeOutputs.argtypes = [c_void_p,c_void_p,c_void_p,c_bool]
 libBB.Galfit_plotModel.restype = c_int
 libBB.Galfit_plotModel.argtypes = [c_void_p]
-libBB.Galfit_calcresiduals.restype = c_float
-libBB.Galfit_calcresiduals.argtypes = [c_void_p,c_void_p]
-libBB.Galfit_getModel.restype = c_void_p
-libBB.Galfit_getModel.argtypes = [c_void_p,c_void_p]
 ########################################################################################
 
 

@@ -30,6 +30,7 @@
 #include <Arrays/image.hh>
 #include <Arrays/rings.hh>
 #include <Tasks/galmod.hh>
+#include <Tasks/ellprof.hh>
 #include <Utilities/paramguess.hh>
 
 namespace Model {
@@ -63,16 +64,21 @@ public:
     void setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p);
     void galfit();
     bool SecondStage();
-    T calculateResiduals(Rings<T> *r) {return getFuncValue(r);}
-    void writeRingFile(std::string filename, Rings<T> *r, T ***errors=NULL);
+    double calculateResiduals(Rings<T> *r) {return getFuncValue(r);}
+    void writeRingFile(std::string filename, Rings<T> *r, T ***errors=nullptr);
     Galmod<T>* getModel(Rings<T> *dr, int *bhi, int* blo, Model::Galmod<T> *modsoFar=nullptr, bool finalModel=false);
+    bool AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn);
+
+    // Functions defined in galfit_min.cpp
+    void   getModelSize(Rings<T> *dring, int *blo, int *bhi);
 
     /// Functions defined in galfit_out.cpp
     void writeModel(std::string normtype, bool makeplots=true);
+    void writeOutputs (Cube<T> *mod, Tasks::Ellprof<T> *e, bool makeplots=true);
     void writePVs(Cube<T> *mod, std::string suffix="");
+    void writeKinematicMaps(Cube<T> *mod, std::string suffix="");
     std::vector<std::string> writeScripts_Python();
     int  plotAll_Python ();
-    bool AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn);
 
     /// Functions defined in slitfit.cpp
     void slit_init(Cube<T> *c);
@@ -124,15 +130,14 @@ protected:
 
     /// Functions defined in galfit_min.cpp
     bool   minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoFar=nullptr);
-    T      mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar=nullptr);
-    T      func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar=nullptr);
-    T      getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar=nullptr);
+    double mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar=nullptr);
+    double func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar=nullptr);
+    double getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar=nullptr);
     void   Convolve(T *array, int *bsize);
     void   Convolve_fft(T *array, int *bsize);
     double norm_local(Rings<T> *dring, T *array, int *bhi, int *blo);
     double norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo);
     double norm_none (Rings<T> *dring, T *array, int *bhi, int *blo);
-    void   getModelSize(Rings<T> *dring, int *blo, int *bhi);
 
     double slitfunc (Rings<T> *dring, T *array, int *bhi, int *blo);
     bool IsIn (int x, int y, int *blo, Rings<T> *dr, double &th);

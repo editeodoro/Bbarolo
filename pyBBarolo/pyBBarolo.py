@@ -163,7 +163,7 @@ class Rings(object):
                        Rings['dens'],Rings['z0'],Rings['inc'],Rings['phi'])
         
 
-    def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
+    def set_rings(self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
         """ Define rings given the input parameters 
             
             radii: List or array

@@ -54,48 +54,14 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     std::string outfold = in->pars().getOutfolder();
     std::string object = in->Head().Name();
-
-    // Get the total intensity, velocity and dispersion maps of data
-    mkdirp((outfold+"maps/").c_str());
-    if (verb) std::cout << "    Extracting "<< randomAdjective(2) << " 2D maps..." << std::flush;
-    std::vector< MomentMap<T> > allmaps = getAllMoments<T>(in,true,nullptr,"MOMENT");
-    allmaps[0].fitswrite_2d((outfold+"maps/"+object+"_0mom.fits").c_str());
-    allmaps[1].fitswrite_2d((outfold+"maps/"+object+"_1mom.fits").c_str());
-    allmaps[2].fitswrite_2d((outfold+"maps/"+object+"_2mom.fits").c_str());
-    if (verb) std::cout << " Done." << std::endl;
-
-    // Calculate the total flux inside last ring in data
-    T *ringreg = RingRegion(outr,in->Head());
-    float totflux_data=0, totflux_model=0;
-    for (auto i=0; i<in->DimX()*in->DimY(); i++) {
-        if (!isNaN(ringreg[i])) {
-            for (auto z=0; z<in->DimZ(); z++) {
-                size_t npix = i+z*in->DimY()*in->DimX();
-                totflux_data += in->Array(npix)*in->Mask()[npix];
-            }
-        }
-    }
-
+    
     // Calculate radial profile along the output rings
     if (verb) std::cout << "    Deriving " << randomAdjective(1) << " radial profile..." << std::flush;
-    T meanPA = findMean(&outr->phi[0], outr->nr);
-    int nseg = 1;
-    float segments[4] = {0, 360., 0., 0};
-    if (par.SIDE=="A") {
-        nseg = 2;
-        segments[2]=-90;
-        segments[3]=90;
-    }
-    else if(par.SIDE=="R") {
-        nseg = 2;
-        segments[2]=90;
-        segments[3]=-90;
-    }
-    if (meanPA>180) std::swap(segments[2], segments[3]);
 
-    Tasks::Ellprof<T> ell(&allmaps[0],outr,nseg,segments);
+    Tasks::Ellprof<T> ell(in,outr,true);
     ell.RadialProfile();
     
+
     if (normtype=="AZIM" || normtype=="BOTH") {
         double profmin=FLT_MAX;
         for (auto i=0; i<outr->nr; i++) {
@@ -119,7 +85,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     
     std::string dens_out = outfold+"densprof.txt";
     std::ofstream fileo(dens_out.c_str());
-    ell.printProfile(fileo,nseg-1);
+    ell.printProfile(fileo,ell.getNseg()-1);
     fileo.close();
     //ell.printProfile(std::cout);
     if (verb) std::cout << " Done." << std::endl;
@@ -127,6 +93,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     // Deleting bad rings, for which I set dens=0 in galfit()
     //for (auto i=0; i<outr->nr; i++) 
     //    if (outr->dens[i]==0) outr->deleteRing(i);
+
+    // Calculate the region within the last ring
+    T *ringreg = RingRegion(outr,in->Head());
 
     if (verb) std::cout << "    Calculating the very last model..." << std::flush;
     int bhi[2] = {in->DimX(), in->DimY()};
@@ -143,23 +112,22 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         // thus just need to rescale the model to the total flux of data inside last ring.
 
         // Calculate total flux of model within last ring
-        totflux_data = totflux_model = 0;
+        float totflux_data=0, totflux_model=0;
+
+        //for (auto i=0; i<in->DimX()*in->DimY(); i++) {
+        //    if (!isNaN(ringreg[i])) {
+        //        for (auto z=0; z<in->DimZ(); z++) {
+        //            long npix = i+z*in->DimY()*in->DimX();
+        //            totflux_model += outarray[npix]*in->Mask(npix);
+        //            totflux_data  += in->Array(npix)*in->Mask(npix);
+        //        }
+        //    }
+        //    //else {
+        //    //      for (size_t z=0; z<in->DimZ(); z++)
+        //    //             outarray[i+z*in->DimY()*in->DimX()]=0;
+        //    //}
+        //}
         
-        /*
-        for (auto i=0; i<in->DimX()*in->DimY(); i++) {
-            if (!isNaN(ringreg[i])) {
-                for (auto z=0; z<in->DimZ(); z++) {
-                    long npix = i+z*in->DimY()*in->DimX();
-                    totflux_model += outarray[npix]*in->Mask(npix);
-                    totflux_data  += in->Array(npix)*in->Mask(npix);
-                }
-            }
-            //else {
-            //      for (size_t z=0; z<in->DimZ(); z++)
-            //             outarray[i+z*in->DimY()*in->DimX()]=0;
-            //}
-        }
-        */
         
         //////////////////////////////////////////////////////////////////
         // New normalization method, taking only pixels in a given range 
@@ -186,10 +154,9 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             totflux_data  += d[i];
             totflux_model += m[i];
         }
-        //*/
+        
         ////////////////////////////////////////////////////////////////////////
         
-
         double factor = totflux_data/totflux_model;
         for (auto i=in->NumPix(); i--;) outarray[i] *= factor;
         if (verb) std::cout << " Done." << std::endl;
@@ -197,15 +164,12 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         if (verb) std::cout << "    Writing " << randomAdjective(1) << " azimuthally-normalized model..." << std::flush;
         std::string mfile = outfold+object+"mod_azim.fits";
         mod->Out()->fitswrite_3d(mfile.c_str());
+
         writePVs(mod->Out(),"_azim");
         if (verb) std::cout << " Done." << std::endl;
 
         if (verb) std::cout << "    Writing " << randomAdjective(2) << " kinematic maps..." << std::flush;
-        std::vector< MomentMap<T> > modmaps = getAllMoments<T>(mod->Out(),false,nullptr,"MOMENT");
-        modmaps[0].fitswrite_2d((outfold+"maps/"+object+"_azim_0mom.fits").c_str());
-        modmaps[1].fitswrite_2d((outfold+"maps/"+object+"_azim_1mom.fits").c_str());
-        modmaps[2].fitswrite_2d((outfold+"maps/"+object+"_azim_2mom.fits").c_str());
-
+        writeKinematicMaps(mod->Out(),"_azim");
         if (verb) std::cout << " Done." << std::endl;
     }
 
@@ -246,11 +210,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
             if (normtype=="BOTH") std::cout << "even more " << std::flush;
             std::cout << randomAdjective(2) << " kinematic maps..." << std::flush;
         }
-        std::vector< MomentMap<T> > modmaps = getAllMoments<T>(mod->Out(),false,nullptr,"MOMENT");
-        modmaps[0].fitswrite_2d((outfold+"maps/"+object+"_local_0mom.fits").c_str());
-        modmaps[1].fitswrite_2d((outfold+"maps/"+object+"_local_1mom.fits").c_str());
-        modmaps[2].fitswrite_2d((outfold+"maps/"+object+"_local_2mom.fits").c_str());
-
+        writeKinematicMaps(mod->Out(),"_local");
         if (verb) std::cout << " Done." << std::endl;
     }
 
@@ -263,18 +223,14 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         // Current flux model is assumed to be in JY/beam
         mod->Out()->Head().setBunit("JY/BEAM");
         // Getting current profile
-        MomentMap<T> *dmap = new MomentMap<T>;
-        dmap->input(mod->Out());
-        dmap->ZeroMoment(false);
-        Tasks::Ellprof<T> ell(dmap,outr,nseg,segments);
-        ell.RadialProfile();
-        delete dmap;
+        Tasks::Ellprof<T> ell2(mod->Out(),outr,false);
+        ell2.RadialProfile();
         
         // Calculating integral of input density profile and current
         double totmass_req=0, totmass_curr=0;
         for (int i=0; i<outr->nr; i++) {
             totmass_req  += outr->dens[i];                                  // In cm^-2
-            totmass_curr += ell.getSurfDensFaceOn(i)/in->Head().BeamArea(); // In JY*KM/S/pc2
+            totmass_curr += ell2.getSurfDensFaceOn(i)/in->Head().BeamArea(); // In JY*KM/S/pc2
         }
         
         // Converting everything to Msun/pc2
@@ -293,12 +249,8 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         if (verb) std::cout << " Done." << std::endl;
 
         if (verb) std::cout << "    Writing " << randomAdjective(1) << " kinematic maps..." << std::flush;
-        std::vector< MomentMap<T> > modmaps = getAllMoments<T>(mod->Out(),false,nullptr,"MOMENT");
-        modmaps[0].fitswrite_2d((outfold+"maps/"+object+"_nonorm_0mom.fits").c_str());
-        modmaps[1].fitswrite_2d((outfold+"maps/"+object+"_nonorm_1mom.fits").c_str());
-        modmaps[2].fitswrite_2d((outfold+"maps/"+object+"_nonorm_2mom.fits").c_str());
+        writeKinematicMaps(mod->Out(),"_nonorm");
         if (verb) std::cout << " Done." << std::endl;
-        
     }
     
     // Adding noise to a model
@@ -328,14 +280,13 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         delete [] noise;
         if (verb) std::cout << " Done." << std::endl;
     }
-
-    
+ 
     // Computing asymmetric drift correction
     if (par.flagADRIFT) {
         if (verb) std::cout << "    Computing asymmetric drift correction..." << std::flush;
         T *dens_m = new T[outr->nr];
         int strad = par.STARTRAD<inr->nr ? par.STARTRAD : 0;
-        for (int i=0; i<outr->nr; i++) dens_m[i] = ell.getMedian(i);
+        for (auto i=outr->nr; i--;) dens_m[i] = ell.getMedian(i);
         bool ok = AsymmetricDrift(&outr->radii[strad],&dens_m[strad],&outr->vdisp[strad],
                                   &outr->vrot[strad],&outr->inc[strad],outr->nr-strad);
         if (verb) {
@@ -358,10 +309,65 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     if (verb) std::cout << " All done!" << std::endl;
 
     delete mod;
-
+    
 }
 template void Galfit<float>::writeModel(std::string, bool);
 template void Galfit<double>::writeModel(std::string, bool);
+
+
+template <class T>
+void Galfit<T>::writeOutputs (Cube<T> *mod, Tasks::Ellprof<T> *e, bool makeplots) {
+    // Write all the output files and plots
+    // Mostly used by BayesianBBarolo.
+
+    std::string suffix = "_none";
+    std::string outfold = in->pars().getOutfolder();
+    std::string object = in->Head().Name();
+
+    // Write the density profile
+    std::ofstream fileo((outfold+"densprof.txt").c_str());
+    e->printProfile(fileo,e->getNseg()-1);
+    fileo.close();
+
+    // Write the model cube
+    mod->Head().setMinMax(0.,0.);
+    mod->Head().setName(object+"mod");
+    std::string mfile = outfold+object+"mod"+suffix+".fits";
+    mod->fitswrite_3d(mfile.c_str());
+
+    // Write P-V and kinematic maps
+    writePVs(mod,suffix);
+    writeKinematicMaps(mod,suffix);
+
+    if (makeplots) plotParam();
+}
+template void Galfit<float>::writeOutputs(Cube<float>*, Tasks::Ellprof<float>*, bool);
+template void Galfit<double>::writeOutputs(Cube<double>*, Tasks::Ellprof<double>*, bool);
+
+
+template <class T>
+void Galfit<T>::writeKinematicMaps(Cube<T> *mod, std::string suffix) {
+
+    std::string outfold = in->pars().getOutfolder();
+    std::string object = in->Head().Name();
+
+    // Write the total intensity, velocity and dispersion maps of data
+    mkdirp((outfold+"maps/").c_str());
+
+    std::vector< MomentMap<T> > allmaps = getAllMoments<T>(in,true,nullptr,"MOMENT");
+    allmaps[0].fitswrite_2d((outfold+"maps/"+object+"_0mom.fits").c_str());
+    allmaps[1].fitswrite_2d((outfold+"maps/"+object+"_1mom.fits").c_str());
+    allmaps[2].fitswrite_2d((outfold+"maps/"+object+"_2mom.fits").c_str());
+    
+    // Write the total intensity, velocity and dispersion maps of model
+    std::vector< MomentMap<T> > modmaps = getAllMoments<T>(mod,false,nullptr,"MOMENT");
+    modmaps[0].fitswrite_2d((outfold+"maps/"+object+suffix+"_0mom.fits").c_str());
+    modmaps[1].fitswrite_2d((outfold+"maps/"+object+suffix+"_1mom.fits").c_str());
+    modmaps[2].fitswrite_2d((outfold+"maps/"+object+suffix+"_2mom.fits").c_str());
+
+}
+template void Galfit<float>::writeKinematicMaps(Cube<float>*, std::string);
+template void Galfit<double>::writeKinematicMaps(Cube<double>*, std::string);
 
 
 template <class T>
@@ -378,7 +384,6 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     float meanYpos = findMedian(&outr->ypos[0], outr->nr);
     float meanPAp90= meanPA+90<360 ? meanPA+90 : meanPA-90;
     
-    
     // Extract pvs of data
     PvSlice<T> *pv_max = PositionVelocity(in,meanXpos,meanYpos,meanPA);
     std::string mfile = outfold+object+"_pv_a.fits";
@@ -387,15 +392,13 @@ void Galfit<T>::writePVs(Cube<T> *mod, std::string suffix) {
     mfile = outfold+object+"_pv_b.fits";
     pv_min->fitswrite_2d(mfile.c_str());
 
-
-    // Extract pvs of data
+    // Extract pvs of model
     PvSlice<T> *pv_max_m = PositionVelocity(mod,meanXpos,meanYpos,meanPA);
     mfile = outfold+object+"mod_pv_a"+suffix+".fits";
     pv_max_m->fitswrite_2d(mfile.c_str());
     PvSlice<T> *pv_min_m = PositionVelocity(mod,meanXpos,meanYpos,meanPAp90);
     mfile = outfold+object+"mod_pv_b"+suffix+".fits";
     pv_min_m->fitswrite_2d(mfile.c_str());
-
 
     // Extract pvs of mask
     Cube<short> *m = new Cube<short>(in->AxisDim());
@@ -921,7 +924,6 @@ int Galfit<T>::plotAll_Python() {
     ///
     /// It needs all output fitsfiles to be in the output directory!
     
-    
     std::vector<std::string> scriptnames = writeScripts_Python();
     
     int returnValue = 0;
@@ -937,9 +939,10 @@ int Galfit<T>::plotAll_Python() {
     //returnValue = system(cmd.c_str());
 #endif
 
-    return returnValue;
-    
+    return returnValue;    
 }
+template int Galfit<float>::plotAll_Python();
+template int Galfit<double>::plotAll_Python();
 
 
 template <class T>
@@ -1283,6 +1286,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "for thisFile in sorted(os.listdir(outfolder)): \n"
         << "\tif 'mod_azim.fits'  in thisFile: files_mod.append(thisFile) \n"
         << "\tif 'mod_local.fits' in thisFile: files_mod.append(thisFile) \n"
+        << "\tif 'mod_none.fits' in thisFile: files_mod.append(thisFile) \n"
         << "if len(files_mod)==0: exit('ERROR: no model in output directory') \n\n";
 
     pyf << "# Beginning channel map plot \n"
@@ -1338,6 +1342,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "\toutfile = '%s_chanmaps'%gname \n"
         << "\tif ('azim' in files_mod[k]): outfile += '_azim' \n"
         << "\telif ('local' in files_mod[k]): outfile += '_local' \n"
+        << "\telif ('none' in files_mod[k]): outfile += '_none' \n"
         << "\tfig.savefig(outfolder+outfile+'.pdf', orientation = 'portrait', format = 'pdf') \n"
         << "\timage_mod.close() \n\n"
         << "image.close() \n";
@@ -1392,6 +1397,8 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "\tif 'pv_b_azim.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
         << "\tif 'pv_a_local.fits' in thisFile: files_pva_mod.append(thisFile) \n"
         << "\tif 'pv_b_local.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
+        << "\tif 'pv_a_none.fits' in thisFile: files_pva_mod.append(thisFile) \n"
+        << "\tif 'pv_b_none.fits' in thisFile: files_pvb_mod.append(thisFile) \n"
         << std::endl
         << "image_maj     = fits.open(outfolder+'pvs/'+gname+'_pv_a.fits') \n"
         << "image_min     = fits.open(outfolder+'pvs/'+gname+'_pv_b.fits') \n"
@@ -1479,6 +1486,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "\toutfile = '%s_pv'%gname \n"
         << "\tif ('azim' in files_pva_mod[k]): outfile += '_azim' \n"
         << "\telif ('local' in files_pva_mod[k]): outfile += '_local' \n"
+        << "\telif ('none' in files_pva_mod[k]): outfile += '_none' \n"
         << "\tfig.savefig(outfolder+outfile+'.pdf', bbox_inches='tight') \n"
         << "\timage_mod_maj.close() \n"
         << "\timage_mod_min.close() \n"
@@ -1544,6 +1552,9 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "\tif 'local_0mom.fits' in thisFile: files_mod0.append(thisFile) \n"
         << "\tif 'local_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
         << "\tif 'local_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
+        << "\tif 'none_0mom.fits' in thisFile: files_mod0.append(thisFile) \n"
+        << "\tif 'none_1mom.fits' in thisFile: files_mod1.append(thisFile) \n"
+        << "\tif 'none_2mom.fits' in thisFile: files_mod2.append(thisFile) \n"
         << std::endl
         << "cmaps = [plt.get_cmap('Spectral_r'),plt.get_cmap('RdBu_r',25),plt.get_cmap('PuOr_r')] \n"
         << "barlab = ['Intensity ('+bunit+')', r'V$_\\mathrm{LOS}$ (km/s)', r'$\\sigma$ (km/s)'] \n"
@@ -1633,6 +1644,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "\toutfile = '%s_maps'%gname \n"
         << "\tif ('azim' in files_mod0[k]): outfile += '_azim' \n"
         << "\telif ('local' in files_mod0[k]): outfile += '_local' \n"
+        << "\telif ('none' in files_mod0[k]): outfile += '_none' \n"
         << "\tfig.savefig(outfolder+outfile+'.pdf', bbox_inches = 'tight') \n\n";
 
     pyf.close();

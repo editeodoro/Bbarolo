@@ -103,15 +103,14 @@ template <class T>
 class Ellprof
 {
 public:
-    Ellprof(Cube<T> *c);
-    Ellprof(Cube<T> *c, Rings<T> *inR) {setFromCube(c,inR);}
+    Ellprof(Cube<T> *c, Rings<T> *inR=nullptr, bool mask=true);
     Ellprof(MomentMap<T> *image, size_t nrad, float width, float phi, float inc, float *pos, size_t nseg=1, float* segments=NULL);
-    Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg=1, float* segments=NULL);
+    Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg=1, float* segments=nullptr);
     Ellprof(const Ellprof& p);
     Ellprof& operator= (const Ellprof& p);
-    virtual ~Ellprof() {deallocateArrays();}
+    virtual ~Ellprof() {deallocateArrays(); if (imAllocated) delete im;}
     
-    void   setFromCube(Cube<T> *c, Rings<T> *inR);
+    void   setFromCube(Cube<T> *c, Rings<T> *inR, bool mask=true);
     void   update_rings(Rings<T> *rings, size_t nseg=1, float* segments=nullptr);
     void   setOptions (bool overlap, float *range, float *subp);
     void   RadialProfile ();
@@ -146,17 +145,18 @@ public:
 private:
 
     // Input parameters
-    MomentMap<T> *im;
+    MomentMap<T> *im       = nullptr;
+    bool    imAllocated    = false;
+    bool    arrayAllocated = false;
     size_t  Nrad;
     size_t  Nseg;
-    bool    arrayAllocated;
-    T       *Radius;        /* Radii */
-    T       *Width;         /* Ring widths */
-    T       *Phi;           /* Pos. angle of major axis */
-    T       *Inc;           /* Inclination of object */
-    T       **Annuli;       /* Inner and outer radius of ring */
-    T       Position[2];    /* Central position of all ellipses */
-    float   Range[2];       /* Min/max value for a pixel to be accepted */
+    T       *Radius;              /* Radii */
+    T       *Width;               /* Ring widths */
+    T       *Phi;                 /* Pos. angle of major axis */
+    T       *Inc;                 /* Inclination of object */
+    T       **Annuli;             /* Inner and outer radius of ring */
+    T       Position[2];          /* Central position of all ellipses */
+    float   Range[2];             /* Min/max value for a pixel to be accepted */
     float   *Segments;            /* An array of size 2*Nseg with angle intervals */
 
     // Output parameters
@@ -180,14 +180,14 @@ private:
     double *Cosphi;
     double *Sinphi;
     double *Cosinc;
-    float   Dx;             /* Spacings in arcsec*/
+    float   Dx;                   /* Spacings in arcsec*/
     float   Dy;
     T       Rmax;
-    bool    Overlap;        /* Weight data in overlapping regions? */
+    bool    Overlap;              /* Weight data in overlapping regions? */
     int     subpix[2];
     float   stepxy[2];
     float   maprotation;
-    long    **Contrib;      /* Number of different pixels in a ring/segment */
+    long    **Contrib;            /* Number of different pixels in a ring/segment */
     std::vector<double> **medianArray;
 
 

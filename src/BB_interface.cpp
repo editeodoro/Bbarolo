@@ -24,6 +24,8 @@ void signalHandler(int signum) {std::cerr << "Killed by the user.\n"; exit(signu
  
 extern "C" {
 
+void delete_array(int *a) {delete [] a;}
+
 // Interface for the Param class //////////////////////////////////////////////////////
 Param* Param_new() {return new Param;}
 void Param_setfromfile(Param *p, const char* pfile) {p->readParamFile(string(pfile));}
@@ -60,6 +62,7 @@ Galmod<float>* Galmod_new_par(Cube<float> *c, Rings<float> *r, Param *p) {Galmod
                               p->getParGM().CDENS,p->getParGM().ISEED); return g;}
 void Galmod_delete(Galmod<float> *g) {delete g;}
 float* Galmod_array(Galmod<float> *g) {return g->getArray();}
+void Galmod_set_array(Galmod<float> *g, float *a) {return g->setArray(a);}
 bool Galmod_compute(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->calculate();}
 bool Galmod_smooth(Galmod<float> *g) {signal(SIGINT, signalHandler); return g->smooth();}
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -77,12 +80,14 @@ float* Galfit_initialGuesses(Cube<float> *c, const char* xpos, const char* ypos,
                              r[6]=ip->inclin; r[7]=ip->posang; delete ip; return r;}
 bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit(); return true;}
 bool Galfit_secondStage(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->SecondStage();}
+float Galfit_calcresiduals(Galfit<float> *g, Rings<float> *r) {return g->calculateResiduals(r);}
+void Galfit_getModelSize(Galfit<float> *g, Rings<float> *r, int *bhi, int *blo) {g->getModelSize(r,blo,bhi);}
+Galmod<float>* Galfit_getModel(Galfit<float> *g, Rings<float> *r, int *bhi, int *blo) {signal(SIGINT, signalHandler); 
+                                                                        return g->getModel(r,bhi,blo,nullptr,false);}
 void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(SIGINT, signalHandler); g->writeModel(string(norm),plots);}
+void Galfit_writeOutputs(Galfit<float> *g, Galmod<float> *m, Ellprof<float> *e, bool plots) {signal(SIGINT, signalHandler); g->writeOutputs(m->Out(),e,plots);}
 void Galfit_setOutRings(Galfit<float> *g, Rings<float> *r) {g->setOutRings(r); g->writeRingFile("rings_final1.txt",r);}
 int Galfit_plotModel(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->plotAll_Python();}
-float Galfit_calcresiduals(Galfit<float> *g, Rings<float> *r) {return g->calculateResiduals(r);}
-Galmod<float>* Galfit_getModel(Galfit<float> *g, Rings<float> *r) {signal(SIGINT, signalHandler); int bhi[2] = {g->In()->DimX(), g->In()->DimX()}; 
-                                                                   int blo[2] = {0,0}; return g->getModel(r,bhi,blo,nullptr,false);}
 ////////////////////////////////////////////////////////////////////////////////////////
  
 

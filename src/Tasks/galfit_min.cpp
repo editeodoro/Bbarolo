@@ -243,7 +243,7 @@ template bool Galfit<double>::minimize(Rings<double>*,double&,double*,Galmod<dou
 	
 	
 template <class T>
-T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar) {
+double Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const double fac, Galmod<T> *modsoFar) {
 
     // Extrapolates by a factor fac through the face of the simplex across from
     // the high point, tries it, and replaces the high point if the new point is better.
@@ -257,7 +257,7 @@ T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const do
         ptry[j]=psum[j]*fac1-p[ihi][j]*fac2;
 
     // Evaluate the function at the trial point.
-    T ytry=func3D(dring, ptry, modsoFar);
+    double ytry=func3D(dring, ptry, modsoFar);
     if (ytry<y[ihi]) {
         // If it is better than the highest, then replace the highest.
         y[ihi]=ytry;
@@ -268,12 +268,12 @@ T Galfit<T>::mtry(Rings<T> *dring, T **p, T *y, T *psum, const int ihi, const do
     }
     return ytry;
 }
-template float Galfit<float>::mtry(Rings<float>*,float**,float*,float*,const int,const double,Galmod<float> *);
+template double Galfit<float>::mtry(Rings<float>*,float**,float*,float*,const int,const double,Galmod<float> *);
 template double Galfit<double>::mtry(Rings<double>*,double**,double*,double*,const int,const double,Galmod<double> *);
 
 
 template <class T>
-T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
+double Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
 
     static std::uniform_real_distribution<float> uniform = std::uniform_real_distribution<float>(0.,1.);
     static std::mt19937 generator(-1);
@@ -502,12 +502,12 @@ T Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
     return getFuncValue(dring,modsoFar);
 
 }
-template float Galfit<float>::func3D(Rings<float>*,float*,Galmod<float> *);
+template double Galfit<float>::func3D(Rings<float>*,float*,Galmod<float> *);
 template double Galfit<double>::func3D(Rings<double>*,double*,Galmod<double> *);
 
 
 template <class T>
-T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
+double Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
 
     // Getting the sizes of model cube based on last ring
     int blo[2], bhi[2];
@@ -523,7 +523,7 @@ T Galfit<T>::getFuncValue(Rings<T> *dring, Galmod<T> *modsoFar) {
     delete mod;
     return minfunc; 
 }
-template float Galfit<float>::getFuncValue(Rings<float>*,Galmod<float> *);
+template double Galfit<float>::getFuncValue(Rings<float>*,Galmod<float> *);
 template double Galfit<double>::getFuncValue(Rings<double>*, Galmod<double> *);
 
 

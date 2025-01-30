@@ -39,7 +39,6 @@ namespace Tasks {
 
 template <class T>
 void Ellprof<T>::defaults() {
-    arrayAllocated = false;
     Overlap = true;
     Nseg = 1;
     maprotation = 0;
@@ -175,13 +174,17 @@ void Ellprof<T>::deallocateArrays () {
 
 
 template <class T>
-Ellprof<T>::Ellprof(Cube<T> *c) {
+Ellprof<T>::Ellprof(Cube<T> *c, Rings<T> *inR, bool mask) {
 
     // Reading input rings from parameter file
-    Rings<T> *inR = readRings<T>(c->pars().getParGF(), c->Head());
-    setFromCube(c,inR);
-    delete inR;
+    bool deallocate = false;
 
+    if (inR==nullptr) {
+        Rings<T> *inR = readRings<T>(c->pars().getParGF(), c->Head());
+        deallocate = true;
+    }
+    setFromCube(c,inR,mask);
+    if (deallocate) delete inR;
 }
 
 
@@ -213,7 +216,7 @@ Ellprof<T>::Ellprof(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* se
 
 
 template <class T>
-void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
+void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR, bool mask) {
     
     // Setting other options
     T meanPA = findMean(&inR->phi[0], inR->nr);
@@ -232,17 +235,20 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
     if (meanPA>180) std::swap(segments[2], segments[3]);
     
     // Extracting moment map
+    if (imAllocated) delete im;
     im = new MomentMap<T>;
     im->input(c);
-
-    if (c->Head().NumAx()>2 && c->DimZ()>1) im->ZeroMoment(true);
+    
+    if (c->Head().NumAx()>2 && c->DimZ()>1) im->ZeroMoment(mask);
     else {
         bool v = c->pars().isVerbose();
         c->pars().setVerbosity(false);
-        im->SumMap(true);
+        im->SumMap(mask);
         c->pars().setVerbosity(v);
     }
     
+    imAllocated = true;
+
     init(im, inR, nseg, segments);
 
 }
@@ -251,12 +257,13 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR) {
 template <class T>
 void Ellprof<T>::init(MomentMap<T> *image, Rings<T> *rings, size_t nseg, float* segments) {
 
+    defaults();
+
     if (!image->HeadDef()) {
         std::cerr << "\n ELLPROF ERROR: Moment map has no proper header. Exiting ...\n";
         std::terminate();
     }
 
-    defaults();
     im = image;
     
     update_rings(rings, nseg, segments);

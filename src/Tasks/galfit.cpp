@@ -1116,8 +1116,7 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
     Model::Galmod<T> *mod = new Model::Galmod<T>;
     mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();
-    
- 
+
     // Adding up the "sofar" model, if requested
     T *modp = mod->Out()->Array();
     if (modsoFar!=nullptr && !finalModel) {
@@ -1178,7 +1177,10 @@ template <class T>
 bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn) {
     
     // Compute an asymmetric drift correction, following procedure in Iorio+17, sec 4.3
-        
+//    in->pars().setVerbosity(true);
+//    for (auto i=0; i<nn; i++) {
+ //       std::cout << rad[i] << " " << densprof[i] << " " << dispprof[i] << " " << rotcur[i] << " " << inc[i] << std::endl;
+  //  }
     // Fitting dispersion with a polynomial function
     int npar1 = in->pars().getParGF().ADRIFTPOL1 + 1;
     T cdisp[npar1], cdisperr[npar1], ww[nn];
@@ -1262,7 +1264,7 @@ void Galfit<T>::writeRingFile(std::string filename, Rings<T> *r, T ***errors) {
     writeHeader(fout,mpar,par.flagERRORS,par.flagBADOUT);
     
     for (int i=0; i<r->nr; i++) {
-        writeRing(fout,r,i,toKpc,nfree,par.flagERRORS,errors,false,NULL);
+        writeRing(fout,r,i,toKpc,nfree,par.flagERRORS,errors,false,false);
     }
     
     fout.close();

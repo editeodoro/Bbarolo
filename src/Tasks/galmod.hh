@@ -89,6 +89,8 @@ public:
     Cube<Type>  *Out() {return out;}
     Rings<Type> *Ring() {return r;}
     Type *getArray() {return out->Array();}
+    void setArray(Type *a) {out->setArray(a);}
+
     
     void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings, 
                int NV=-1, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);
