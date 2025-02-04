@@ -149,8 +149,10 @@ void MomentMap<T>::storeMap(bool msk, int whichmap, std::string map_type) {
     
     // Creating mask if it does not exist
     if(msk && mask==nullptr) {
-        if (in->pars().getMASK().find("LARGEST")!=std::string::npos) in->BlankMask(NULL,true);
-        else in->BlankMask(NULL,false);
+        if (!in->MaskAll()) {
+            if (in->pars().getMASK().find("LARGEST")!=std::string::npos) in->BlankMask(NULL,true);
+            else in->BlankMask(NULL,false);
+        }
         mask = in->Mask();
     }
 
