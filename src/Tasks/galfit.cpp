@@ -348,11 +348,6 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     // Read par.FREE and set free parameters
     setFree();
     
-    // Choose right function for normalization 
-    if (par.NORM=="NONE") func_norm = &Model::Galfit<T>::norm_none;
-    else if (par.NORM=="AZIM") func_norm = &Model::Galfit<T>::norm_azim;
-    else func_norm = &Model::Galfit<T>::norm_local;
-
     // Creating mask if does not exist and write it in a fitsfile.
     if (!in->MaskAll() || in->pars().getMASK()=="NEGATIVE") in->BlankMask(chan_noise);
     mask = in->Mask();
@@ -362,6 +357,19 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
         for (int z=0; z<in->DimZ(); z++)
             mask2D[xy] += mask[xy+z*in->DimX()*in->DimY()];
     }
+
+    // Choosing the normalization functions 
+    stringstream ss(par.NORM);
+    norms = readVec<string>(ss);
+    // Normalizatios for second step + outputs
+    if (norms.size()==1) norms.push_back(norms[0]);
+    for (auto i=0; i<2; i++) {
+        if (norms[i]!="NONE" && norms[i]!="AZIM" && norms[i]!="LOCAL") {
+            std::cerr << "3DFIT WARNING: Normalization function not recognized for step " << i+1 << ". Using LOCAL.\n";
+            norms[i] = "LOCAL";
+        }
+    }
+    if (norms.size()==2) norms.push_back(norms[1]);
 
     // Setting limits for fitting parameters
     maxs[VROT]  = *max_element(inr->vrot.begin(),inr->vrot.end())+par.DELTAVROT;
@@ -446,6 +454,11 @@ void Galfit<T>::galfit() {
     T ***errors = allocate_3D<T>(inr->nr,2,nfree);
     bool fitok[inr->nr];
     for (int i=0; i<inr->nr; i++) fitok[i]=false;
+
+    // Selecting the normalization function for current step
+    if (norms[n-1]=="NONE") func_norm = &Model::Galfit<T>::norm_none;
+    else if (norms[n-1]=="AZIM") func_norm = &Model::Galfit<T>::norm_azim;
+    else func_norm = &Model::Galfit<T>::norm_local;
 
 //    global=false;
 //    if (global) {

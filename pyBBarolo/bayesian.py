@@ -262,14 +262,14 @@ class BayesianBBarolo(FitMod3D):
         bhi, blo = np.array(bhi), np.array(blo)
 
         # Reshaping the model to the correct 3D shape
-        mod_shape = (self.inp.dim[-1], bhi[1]-blo[1],bhi[0]-blo[0])
+        mod_shape = (self.inp.dim[2], bhi[1]-blo[1],bhi[0]-blo[0])
         mod = reshapePointer(libBB.Galmod_array(galmod),mod_shape)
 
         return mod, bhi, blo, galmod
 
 
 
-    def _normalize_model(self,model,data):
+    def _normalize_model(self,model,data,**kwargs):
         """ This is the default normalization function for the model. 
             It can be overwritten by the user if needed.
         """
@@ -279,7 +279,7 @@ class BayesianBBarolo(FitMod3D):
 
 
 
-    def _calculate_residuals(self,model,data,mask=None):
+    def _calculate_residuals(self,model,data,mask=None,**kwargs):
         """ This is the default residual calculation function. 
              It can be overwritten by the user if needed.
 
@@ -288,7 +288,7 @@ class BayesianBBarolo(FitMod3D):
         """
         # Applying the mask to the data if requested
         data_4res  = data*mask if mask is not None else data
-        model_4res = self._normalize_model(model,data_4res) if self.useNorm else model
+        model_4res = self._normalize_model(model,data_4res,**kwargs) if self.useNorm else model
 
         # Some weighting steps can be added here (see below for example)
         wi = 1.0
@@ -322,7 +322,7 @@ class BayesianBBarolo(FitMod3D):
         return res
 
 
-    def _log_likelihood(self,theta):
+    def _log_likelihood(self,theta,**kwargs):
         """ Likelihood function for the fit """
         
         rings = self._update_rings(self._inri,theta)
@@ -338,12 +338,13 @@ class BayesianBBarolo(FitMod3D):
                 self._update_profile(rings)
 
             # Calculate the model and the boundaries
-            mod, bhi, blo, galmod = self._calculate_model(rings)
+            model, bhi, blo, galmod = self._calculate_model(rings)
             
             # Calculate the residuals
             mask = self.mask[:,blo[1]:bhi[1],blo[0]:bhi[0]]
             data = self.data[:,blo[1]:bhi[1],blo[0]:bhi[0]]
-            res  = self._calculate_residuals(mod,data,mask)
+
+            res  = self._calculate_residuals(model,data,mask,**kwargs)
 
             libBB.Galmod_delete(galmod)
             
@@ -368,7 +369,7 @@ class BayesianBBarolo(FitMod3D):
 
 
     def _compute(self,threads=1,freepar=['vrot'],method='dynesty', useBBres = True, \
-                 sampler_kwargs : dict = {}, run_kwargs : dict = {}, **kwargs):
+                 sampler_kwargs : dict = {}, run_kwargs : dict = {}, like_kwargs : dict = {}, **kwargs):
         
         """ Front-end function to fit a model.
 
@@ -396,7 +397,7 @@ class BayesianBBarolo(FitMod3D):
             return self._prior_transform(u)
 
         def log_likelihood(theta):
-            return self._log_likelihood(theta)
+            return self._log_likelihood(theta,**like_kwargs)
 
         mpisize = MPI.COMM_WORLD.Get_size()
         threads = 1 if mpisize>1 else threads
@@ -406,7 +407,7 @@ class BayesianBBarolo(FitMod3D):
             if   mpisize>1: pool = MPIPool()
             elif threads>1: pool = MultiPool(processes=threads)
         else:
-            print ("WARNING! Parallelization is disabled.")
+            print ("WARNING: Parallelization is disabled!")
 
         # Now running the sampling 
         toc = time.time()
@@ -450,14 +451,15 @@ class BayesianBBarolo(FitMod3D):
 
         dt = time.time()-toc
         dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
-        print(f'Sampling with {method} took {dt} to run.')
+
+        vprint(verbose,f'\nSampling with {method} took {dt} to run.')
         
         if pool is not None:
             pool.close()
             pool.join()
         
         self.modCalculated = True
-    
+ 
     
     def _update_rings(self,rings,theta):
         """ Update rings with the parameters theta """
@@ -519,10 +521,10 @@ class BayesianBBarolo(FitMod3D):
 
             if self.useNorm:
                 # Reshaping the model to the correct 3D shape
-                mod = reshapePointer(libBB.Galmod_array(galmod),self.data.shape)
+                model = reshapePointer(libBB.Galmod_array(galmod),self.data.shape)
                 # Normalizing and copying it back to the C++ Galmod object
-                mod = self._normalize_model(mod,self.data)
-                libBB.Galmod_set_array(galmod,np.ravel(mod).astype('float32'))
+                model = self._normalize_model(model,self.data)
+                libBB.Galmod_set_array(galmod,np.ravel(model).astype('float32'))
             
             # Writing all the outputs
             libBB.Galfit_writeOutputs(self._galfit,galmod,self._ellprof,plots)
@@ -546,7 +548,8 @@ class BayesianBBarolo(FitMod3D):
         samples = resample_equal(results.samples,weights)
 
         # Printing central values and error of posterior distributions
-        print("\nBest-fit parameters:")
+        logl = self._log_likelihood(self.params)
+        print(f"\nBest-fit parameters (log_likelihood = {logl:.2f}):") 
         for i in range(len(self.freepar_names)):
             values = np.percentile(samples[:, i], percentiles)
             q = np.diff(values)

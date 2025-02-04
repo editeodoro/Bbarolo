@@ -250,7 +250,7 @@ bool BBcore (Param *par) {
         fit->galfit();
         if (par->getParGF().TWOSTAGE) fit->SecondStage();
         if (par->getFlagDebug()) fit->writeModel("BOTH",par->getFlagPlots());
-        else fit->writeModel(par->getParGF().NORM,par->getFlagPlots());
+        else fit->writeModel(fit->Norms(2),par->getFlagPlots());
         delete fit;
     }
     // --------------------------------------------------------------

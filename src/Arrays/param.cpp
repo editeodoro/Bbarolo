@@ -827,15 +827,14 @@ bool Param::checkPars() {
             }
         }
 
-        if (parGF.NORM!="NONE" && parGF.NORM!="LOCAL" &&
-            parGF.NORM!="AZIM" && parGF.NORM!="AZIMUTHAL") {
-            if (!(parGM.flagGALMOD && parGF.NORM=="BOTH")) {
-                cout << " ERROR: Unknown type of normalization: " << parGF.NORM << std::endl;
-                cout << "Setting to LOCAL" << std::endl;
-                parGF.NORM="LOCAL";
+        stringstream sss(parGF.NORM);
+        vector<string> norms = readVec<string>(sss);
+        for (auto n : norms) {
+            if (n!="NONE" && n!="LOCAL" && n!="AZIM" && n!="AZIMUTHAL" && n!="BOTH") {
+                cout << "3DFIT error: Unknown type of normalization: " << n << std::endl;
+                good = false;
             }
         }
-        else if (parGF.NORM=="AZIMUTHAL") parGF.NORM="AZIM";
 
         if (parGF.flagGALFIT) {
             if (parGF.FREE=="") {

@@ -58,6 +58,7 @@ public:
     Cube<T>  *In () {return in;}
     Rings<T> *Inrings  () {return inr;}
     Rings<T> *Outrings () {return outr;}
+    string Norms(int i=2) {return norms[i];}
     void setOutRings (Rings<T>* r) {*outr = *r;}
 
     /// Functions defined in galfit.cpp
@@ -115,8 +116,8 @@ protected:
     bool     global = false;                //< Whether to fit all parameters at once.
     bool     reverse = false;               //< Using reverse cumulative fitting
     bool     verb = true;
+    vector<string> norms;                   //< Density normalization functions.
     
-
     /// Pointer to the function to be minimized (3d or 2d slit)
     typedef double (Galfit<T>::*funcPtr) (Rings<T> *, T *, int*, int*);
     funcPtr func_norm = &Model::Galfit<T>::norm_local;
