@@ -25,3 +25,4 @@ BBarolo_MPI-*
 *.egg-info
 *.app
 *.code-workspace
+src/.vscode/

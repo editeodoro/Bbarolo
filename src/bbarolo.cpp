@@ -249,8 +249,10 @@ bool BBcore (Param *par) {
         Model::Galfit<BBreal> *fit = new Model::Galfit<BBreal>(c);
         fit->galfit();
         if (par->getParGF().TWOSTAGE) fit->SecondStage();
-        if (par->getFlagDebug()) fit->writeModel("BOTH",par->getFlagPlots());
-        else fit->writeModel(fit->Norms(2),par->getFlagPlots());
+        if (par->getFlagPlots()>=0) { 
+            if (par->getFlagDebug()) fit->writeModel("BOTH",par->getFlagPlots());
+            else fit->writeModel(fit->Norms(2),par->getFlagPlots());
+        }
         delete fit;
     }
     // --------------------------------------------------------------

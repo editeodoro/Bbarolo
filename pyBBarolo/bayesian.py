@@ -19,25 +19,43 @@ It uses either dynesty or nautilus libraries for this.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ########################################################################
 
-import ctypes, time, copy
+import ctypes, time, copy, os
 import numpy as np
-import scipy.stats
 from .BB_interface import libBB
 from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer, vprint, isIterable
-
-parallel = True
-try: 
-    from schwimmbad import MultiPool, MPIPool
-    from mpi4py import MPI
-except ImportError:
-    print ("WARNING! Parallelization is disabled. Please install schwimmbad and mpi4py to enable it.")
-    parallel = False
 
 try: 
     import dynesty as dyn
     from dynesty.utils import resample_equal
+    from scipy import stats
 except ImportError:
-    raise ImportError("BayesianBB requires the package 'dynesty'. Please install it.")
+    raise ImportError("BayesianBB requires the packages 'scipy' and 'dynesty'. Please install them.")
+
+parallel = True
+try: 
+    from schwimmbad import MultiPool, MPIPool
+except ImportError:
+    print ("WARNING! Parallelization is disabled. Please install schwimmbad and mpi4py to enable it.")
+    parallel = False
+
+# If we are running in parallel with MPI, we need to import mpi4py
+isMPI = "OMPI_COMM_WORLD_SIZE" in os.environ or "PMI_RANK" in os.environ
+if isMPI:
+    try:
+        from mpi4py import MPI
+    except ImportError:
+        raise ValueError ("ERROR! To run in parallel with MPI, you need to install mpi4py.")
+
+
+def get_distribution(distr_name, *params, **kwargs):
+    """Create a frozen scipy.stats distribution given its name and parameters."""
+    try:
+        # Get the distribution class from scipy.stats
+        distr = getattr(stats, distr_name)
+        # Return the frozen distribution with given parameters
+        return distr(*params, **kwargs)
+    except AttributeError:
+        raise ValueError(f"ERROR: Distribution '{distr_name}' not found in scipy.stats.")
 
 
 class BayesianBBarolo(FitMod3D):
@@ -86,10 +104,10 @@ class BayesianBBarolo(FitMod3D):
         self.ndim = 0
         # A list with the "names" of fitted parameters
         self.freepar_names = None
-        # A dictionary with the boundaries for the priors of parameters
-        self.bounds = None
-        # A dictionary for prior probabilities
-        self.priors = None
+        # A dictionary with the priors of parameters
+        self.priors = {}
+        # A dictionary for prior probability distributions
+        self.prior_distr = None
         # A pointer to the C++ Galfit object
         self._galfit = None
         self.modCalculated = False
@@ -148,32 +166,37 @@ class BayesianBBarolo(FitMod3D):
         self._inri = Rings(len(radii))
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
 
-        # Defining default boundaries
+        # Defining default uniform priors 
         rr = self._inri.r
-        self.bounds = dict(xpos=[rr['xpos'][0]-5,rr['xpos'][0]+5],     #+- 5 pixels
-                           ypos=[rr['ypos'][0]-5,rr['ypos'][0]+5],     #+- 5 pixels
-                           vsys=[rr['vsys'][0]-50,rr['vsys'][0]+50],   #+- 50 km/s
-                           vrot=[0,350],vdisp=[0,50],vrad=[0,50],
-                           inc=[0,90],phi=[0,360],
-                           vvert=[0,30],dvdz=[0,2],zcyl=[0,5],
-                           dens=[0.1,200],z0=[0,10])
-        self.priors = {key: None for key in self.bounds.keys()}
-    
+        self.priors['xpos']  = dict(name='uniform',loc=rr['xpos'][0]-5,scale=10)    # +- 5 pixels
+        self.priors['ypos']  = dict(name='uniform',loc=rr['ypos'][0]-5,scale=10)    # +- 5 pixels
+        self.priors['vsys']  = dict(name='uniform',loc=rr['vsys'][0]-50,scale=100)  # +- 50 km/s
+        self.priors['vrot']  = dict(name='uniform',loc=0,scale=350)                 # 0-350 km/s
+        self.priors['vdisp'] = dict(name='uniform',loc=0,scale=50)                  # 0-50 km/s    
+        self.priors['vrad']  = dict(name='uniform',loc=0,scale=50)                  # 0-50 km/s
+        self.priors['inc']   = dict(name='uniform',loc=0,scale=90)                  # 0-90 degrees
+        self.priors['phi']   = dict(name='uniform',loc=0,scale=360)                 # 0-360 degrees
+        self.priors['vvert'] = dict(name='uniform',loc=0,scale=30)                  # 0-30 km/s
+        self.priors['dvdz']  = dict(name='uniform',loc=0,scale=2)                   # 0-2 km/s/pc
+        self.priors['zcyl']  = dict(name='uniform',loc=0,scale=5)                   # 0-5 arcsec
+        self.priors['dens']  = dict(name='uniform',loc=0.1,scale=200)               # 0.1-200 1E20 cm^-2
+        self.priors['z0']    = dict(name='uniform',loc=0,scale=10)                  # 0-10 arcsec
+        self.priors['sigma'] = dict(name='halfcauchy',scale=0.5) 
 
+        self.prior_distr = {key: None for key in self.priors.keys()}
     
-    def _setup(self,freepar,useBBres=True,**kwargs):
+    
+    def _setup(self,freepar,useBBres=False,**kwargs):
         """ Setup function for the fit 
             It sets the following class attributes:
             - self.ndim: number of parameters to fit
             - self.freepar_idx: indexes of the parameters to fit
             - self.freepar_names: names of the parameters to fit
-            - self.priors: dictionary with prior probabilities
+            - self.prior_distr: dictionary with prior probabilities
             - self._galfit: pointer to the C++ Galfit object
             - self.mask: mask from the input cube (3D array)
             - self._ellprof: a pointer to a C++ Ellprof object   
         """
-
-
         if self._inri is None: 
             print ("Error: you need to initialize rings first by calling the function init()")
             return
@@ -187,7 +210,7 @@ class BayesianBBarolo(FitMod3D):
 
         for pname in freepar:
             s = pname.split('_')
-            if s[0] not in self._inri.r:
+            if s[0] not in self._inri.r and 'sigma' not in s[0]:
                 raise ValueError(f"ERROR! The requested free parameter is unknown: {s[0]}")
             if len(s)==2 and 'single' in pname:
                 self.freepar_idx[s[0]] = np.array([self.ndim])
@@ -197,19 +220,50 @@ class BayesianBBarolo(FitMod3D):
                 # @TODO: add possibility to use functional forms, e.g. freepar=['dens_func']
                 ...
             elif len(s)==1:
-                self.freepar_idx[s[0]] = np.arange(self.ndim,self.ndim+self._inri.nr,dtype='int')
-                self.ndim += self._inri.nr
-                for i in range(self._inri.nr):
-                    self.freepar_names.append(f'{s[0]}{i+1}')
+                if 'sigma' in s[0]:
+                    self.freepar_idx[s[0]] = np.array([self.ndim])
+                    self.ndim += 1
+                    self.freepar_names.append(s[0])
+                else:
+                    self.freepar_idx[s[0]] = np.arange(self.ndim,self.ndim+self._inri.nr,dtype='int')
+                    self.ndim += self._inri.nr
+                    for i in range(self._inri.nr):
+                        self.freepar_names.append(f'{s[0]}{i+1}')
 
         # Setting the priors
         for key in self.freepar_idx:
-            if self.priors[key] is None:
-                self.priors[key] = scipy.stats.uniform(loc=self.bounds[key][0],\
-                                                       scale=self.bounds[key][1]-self.bounds[key][0])
-            elif not isinstance(self.priors[key],scipy.stats._distn_infrastructure.rv_continuous_frozen):
-                raise ValueError(f"ERROR! Prior for {key} should be None or a scipy.stats distribution.")
+            if self.prior_distr[key] is None:
 
+                # Prior distribution is not set externally, so we use the defined self.priors
+                try:
+                    distr_kw = {key: value for key, value in self.priors[key].items() if key != "name"}
+                    self.prior_distr[key] = get_distribution(self.priors[key]['name'],**distr_kw)
+                except:
+                    raise ValueError(f"Something is wrong in the prior for parameter '{key}'. Please double check!")
+                
+                '''
+                # Priors are not set externally, so we use the defined bounds
+                if len(self.priors[key])<2 or len(self.priors[key])>3: 
+                    raise ValueError(f'ERROR! priors for {key} should have at least 2 values (min, max).')
+                elif len(self.priors[key])==2: 
+                    # Assuming a uniform distribution if only two values are given
+                    self.priors[key].append("uniform")
+                
+                if self.priors[key][2]=="uniform":
+                    self.prior_distr[key] = scipy.stats.uniform(loc = self.priors[key][0],\
+                                                           scale = self.priors[key][1]-self.priors[key][0])
+                elif self.priors[key][2]=="norm" or self.priors[key][2]=="gauss":
+                    self.prior_distr[key] = scipy.stats.norm(loc = self.priors[key][0],\
+                                                        scale = self.priors[key][1])
+                elif self.priors[key][2]=="lognorm":
+                    self.prior_distr[key] = scipy.stats.lognorm(s = self.priors[key][1], \
+                                                           scale = np.exp(self.priors[key][0]))
+                else:
+                    raise ValueError(f"ERROR! Unknown prior distribution '{self.priors[key][2]}' for '{key}'.")
+                '''
+                    
+            elif not isinstance(self.prior_distr[key],scipy.stats._distn_infrastructure.rv_continuous_frozen):
+                raise ValueError(f"ERROR! Prior for {key} should be None or a scipy.stats distribution.")
 
         # Making a Param C++ object and a Galfit object
         self._opts.add_params(verbose=False)
@@ -268,7 +322,6 @@ class BayesianBBarolo(FitMod3D):
         return mod, bhi, blo, galmod
 
 
-
     def _normalize_model(self,model,data,**kwargs):
         """ This is the default normalization function for the model. 
             It can be overwritten by the user if needed.
@@ -276,7 +329,6 @@ class BayesianBBarolo(FitMod3D):
         # Normalizing the model to the maximum value of the data
         nrm = np.nanmax(data)/np.nanmax(model)
         return nrm*model
-
 
 
     def _calculate_residuals(self,model,data,mask=None,**kwargs):
@@ -344,6 +396,8 @@ class BayesianBBarolo(FitMod3D):
             mask = self.mask[:,blo[1]:bhi[1],blo[0]:bhi[0]]
             data = self.data[:,blo[1]:bhi[1],blo[0]:bhi[0]]
 
+            kwargs['sigma'] = theta[self.freepar_idx['sigma']][0] if 'sigma' in self.freepar_names else 1
+
             res  = self._calculate_residuals(model,data,mask,**kwargs)
 
             libBB.Galmod_delete(galmod)
@@ -354,21 +408,16 @@ class BayesianBBarolo(FitMod3D):
         
     
     def _prior_transform(self,u):
-        """ Prior default transform function for dynesty.
-            It defines flat priors for all parameters with min/max values 
-            given by self.bounds
+        """ Prior default transform function for sampler.
+            It defines priors based on the user-defined distributions.
         """
         p = np.zeros_like(u)
         for key in self.freepar_idx:
-           #p_min,p_max = self.bounds[key]
-           #p[self.freepar_idx[key]] = p_min + u[self.freepar_idx[key]]*(p_max-p_min)
-           p[self.freepar_idx[key]] = self.priors[key].ppf(u[self.freepar_idx[key]])
+           p[self.freepar_idx[key]] = self.prior_distr[key].ppf(u[self.freepar_idx[key]])
         return p
     
     
-
-
-    def _compute(self,threads=1,freepar=['vrot'],method='dynesty', useBBres = True, \
+    def _compute(self,threads=1,freepar=['vrot'],method='dynesty', useBBres = False, \
                  sampler_kwargs : dict = {}, run_kwargs : dict = {}, like_kwargs : dict = {}, **kwargs):
         
         """ Front-end function to fit a model.
@@ -389,6 +438,11 @@ class BayesianBBarolo(FitMod3D):
         # Setting up all the needed class attributes
         self._setup(freepar,useBBres,**kwargs)
 
+        if verbose:
+            print (f"\nFitting {self.ndim} parameters: {self.freepar_names}")
+            self.print_priors()
+
+
         # These are needed for the parallelization
         global prior_transform
         global log_likelihood
@@ -399,15 +453,18 @@ class BayesianBBarolo(FitMod3D):
         def log_likelihood(theta):
             return self._log_likelihood(theta,**like_kwargs)
 
-        mpisize = MPI.COMM_WORLD.Get_size()
-        threads = 1 if mpisize>1 else threads
 
+        # Setting up the parallelization
         pool = None
-        if parallel:
-            if   mpisize>1: pool = MPIPool()
-            elif threads>1: pool = MultiPool(processes=threads)
-        else:
-            print ("WARNING: Parallelization is disabled!")
+        if isMPI:
+            mpisize = MPI.COMM_WORLD.Get_size()
+            pool = MPIPool() if mpisize else None
+        elif threads>1:
+            if parallel:
+                pool = MultiPool(processes=threads)
+            else:
+                print ("WARNING: Parallelization is disabled!")
+
 
         # Now running the sampling 
         toc = time.time()
@@ -418,7 +475,6 @@ class BayesianBBarolo(FitMod3D):
                                                     bound='multi',pool=pool,**sampler_kwargs)
             
             self.sampler.run_nested(print_progress=verbose,**run_kwargs)
-
 
             # Saving the results into class attributes
             self.results = self.sampler.results
@@ -456,7 +512,8 @@ class BayesianBBarolo(FitMod3D):
         
         if pool is not None:
             pool.close()
-            pool.join()
+            if not isMPI:
+                pool.join()
         
         self.modCalculated = True
  
@@ -465,6 +522,7 @@ class BayesianBBarolo(FitMod3D):
         """ Update rings with the parameters theta """
         for key in self.freepar_idx:
             pvalue = theta[self.freepar_idx[key]]
+            if key=='sigma': continue
             if key=='dens': pvalue *= 1E20
             if len(pvalue)==1: pvalue = pvalue[0]
             rings.modify_parameter(key,pvalue)
@@ -532,7 +590,7 @@ class BayesianBBarolo(FitMod3D):
         vprint(verbose,"Done!")
 
 
-    def print_stats(self,burnin=None,percentiles=[15.865,50,84.135]):
+    def print_stats(self,burnin=0,percentiles=[15.865,50,84.135]):
 
         if not self.modCalculated:
             print ("Sampler has not been run yet. Please run compute() before running this function.")
@@ -542,8 +600,7 @@ class BayesianBBarolo(FitMod3D):
             raise ValueError("ERROR! Percentiles must be a list of three values.")
 
         results = copy.copy(self.sampler.results)
-        if burnin is not None:
-            results = results[burnin:]
+        #results = results[burnin:]
         weights = np.exp(results.logwt - results.logz[-1])
         samples = resample_equal(results.samples,weights)
 
@@ -567,6 +624,13 @@ class BayesianBBarolo(FitMod3D):
 
         return results, samples
 
+
+    def print_priors(self):
+        """ Print the priors for each parameter """
+        print ("\nPrior distributions for free parameters:")
+        for key in self.freepar_idx:
+            print(f"{key:6s} = {self.prior_distr[key].dist.name:15s}", self.prior_distr[key].kwds)
+        print ("\n")
 
 
 
