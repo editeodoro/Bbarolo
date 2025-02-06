@@ -784,7 +784,8 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
      if (par.getMASK()=="THRESHOLD") s.push_back(sh+"THRESHOLD="+to_string(par.getParSE().threshold));
     
     for (size_t i=numPix; i--;) m->Array(i) = short(mask[i]);
-    m->fitswrite_3d((par.getOutfolder()+"mask.fits").c_str(),true);
+    if (par.getFlagPlots()>=0)
+        m->fitswrite_3d((par.getOutfolder()+"mask.fits").c_str(),true);
     delete m;
 
     if (verb) {
