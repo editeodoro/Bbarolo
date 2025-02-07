@@ -108,6 +108,8 @@ class BayesianBBarolo(FitMod3D):
         self.priors = {}
         # A dictionary for prior probability distributions
         self.prior_distr = None
+        # A dictionary with functions for parametric fits
+        self.funcs = {}
         # A pointer to the C++ Galfit object
         self._galfit = None
         self.modCalculated = False
@@ -183,6 +185,20 @@ class BayesianBBarolo(FitMod3D):
         self.priors['z0']    = dict(name='uniform',loc=0,scale=10)                  # 0-10 arcsec
         self.priors['sigma'] = dict(name='halfcauchy',scale=0.5) 
 
+        # Defining the parametric functions. Default only for dens, vrot and vdisp
+        self.funcs['vrot']   = lambda R,p1,p2: 2./np.pi*p1*np.arctan(radii/p2)      # Arctan function for vrot
+        self.funcs['vdisp']  = lambda R,p1,p2: p1 + p2*R                            # Line for vdisp
+        self.funcs['dens']   = lambda R,p1,p2: p1*np.exp(-R/p2)                     # Exponential for dens
+
+        # Defining default priors for the functional forms
+        self.priors['vrot_p1']  = dict(name='uniform',loc=1,scale=350)  
+        self.priors['vrot_p2']  = dict(name='uniform',loc=1,scale=1000) 
+        self.priors['vdisp_p1'] = dict(name='uniform',loc=0,scale=10)  
+        self.priors['vdisp_p2'] = dict(name='uniform',loc=-10,scale=20) 
+        self.priors['dens_p1']  = dict(name='uniform',loc=1,scale=20)  
+        self.priors['dens_p2']  = dict(name='uniform',loc=1,scale=200) 
+
+        # Initializing the prior distributions to None
         self.prior_distr = {key: None for key in self.priors.keys()}
     
     
@@ -208,17 +224,28 @@ class BayesianBBarolo(FitMod3D):
         self.ndim = 0
         self.freepar_names = []
 
+        dup = {key : False for key in self.priors.keys()}
+
         for pname in freepar:
             s = pname.split('_')
             if s[0] not in self._inri.r and 'sigma' not in s[0]:
                 raise ValueError(f"ERROR! The requested free parameter is unknown: {s[0]}")
+            if dup[s[0]]:
+                raise ValueError(f"ERROR! Multiple entries for {s[0]} parameter. Please choose one!")
+            dup[s[0]] = True
+
             if len(s)==2 and 'single' in pname:
                 self.freepar_idx[s[0]] = np.array([self.ndim])
                 self.ndim += 1
                 self.freepar_names.append(s[0])
             elif len(s)==2 and 'func' in pname:
-                # @TODO: add possibility to use functional forms, e.g. freepar=['dens_func']
-                ...
+                if s[0] not in self.funcs:
+                    raise ValueError(f"ERROR! The functional form for {s[0]} is unknown. Please define it first.")
+                nparams = self.funcs[s[0]].__code__.co_argcount-1
+                for i in range(nparams):
+                    self.freepar_names.append(f'{s[0]}_p{i+1}')
+                    self.freepar_idx[f'{s[0]}_p{i+1}'] = np.arange(self.ndim,self.ndim+1,dtype='int')
+                    self.ndim += 1
             elif len(s)==1:
                 if 'sigma' in s[0]:
                     self.freepar_idx[s[0]] = np.array([self.ndim])
@@ -233,42 +260,20 @@ class BayesianBBarolo(FitMod3D):
         # Setting the priors
         for key in self.freepar_idx:
             if self.prior_distr[key] is None:
-
                 # Prior distribution is not set externally, so we use the defined self.priors
                 try:
                     distr_kw = {key: value for key, value in self.priors[key].items() if key != "name"}
                     self.prior_distr[key] = get_distribution(self.priors[key]['name'],**distr_kw)
                 except:
                     raise ValueError(f"Something is wrong in the prior for parameter '{key}'. Please double check!")
-                
-                '''
-                # Priors are not set externally, so we use the defined bounds
-                if len(self.priors[key])<2 or len(self.priors[key])>3: 
-                    raise ValueError(f'ERROR! priors for {key} should have at least 2 values (min, max).')
-                elif len(self.priors[key])==2: 
-                    # Assuming a uniform distribution if only two values are given
-                    self.priors[key].append("uniform")
-                
-                if self.priors[key][2]=="uniform":
-                    self.prior_distr[key] = scipy.stats.uniform(loc = self.priors[key][0],\
-                                                           scale = self.priors[key][1]-self.priors[key][0])
-                elif self.priors[key][2]=="norm" or self.priors[key][2]=="gauss":
-                    self.prior_distr[key] = scipy.stats.norm(loc = self.priors[key][0],\
-                                                        scale = self.priors[key][1])
-                elif self.priors[key][2]=="lognorm":
-                    self.prior_distr[key] = scipy.stats.lognorm(s = self.priors[key][1], \
-                                                           scale = np.exp(self.priors[key][0]))
-                else:
-                    raise ValueError(f"ERROR! Unknown prior distribution '{self.priors[key][2]}' for '{key}'.")
-                '''
                     
-            elif not isinstance(self.prior_distr[key],scipy.stats._distn_infrastructure.rv_continuous_frozen):
+            elif not isinstance(self.prior_distr[key], stats._distn_infrastructure.rv_continuous_frozen):
                 raise ValueError(f"ERROR! Prior for {key} should be None or a scipy.stats distribution.")
 
         # Making a Param C++ object and a Galfit object
         self._opts.add_params(verbose=False)
         self._opts.make_object()
-        
+
         self._galfit = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._opts._params)
 
         # Getting the mask from the input cube
@@ -520,12 +525,28 @@ class BayesianBBarolo(FitMod3D):
     
     def _update_rings(self,rings,theta):
         """ Update rings with the parameters theta """
-        for key in self.freepar_idx:
-            pvalue = theta[self.freepar_idx[key]]
+
+        freepar_idx = copy.copy(self.freepar_idx)
+
+        # Treating cases with function forms
+        whatFunctional = np.unique([key.split('_')[0] for key in freepar_idx if '_p' in key])
+        if len(whatFunctional)>0:
+            for p in whatFunctional:
+                keys = [key for key in freepar_idx if p in key]
+                fvalue = [theta[freepar_idx[key]] for key in keys]
+                pvalue = self.funcs[p](rings.r['radii'],*fvalue)
+                rings.modify_parameter(p,pvalue)
+
+                for key in keys: freepar_idx.pop(key)
+
+        # Now treating the rest of the parameters with regular rings
+        for key in freepar_idx:
+            pvalue = theta[freepar_idx[key]]
             if key=='sigma': continue
             if key=='dens': pvalue *= 1E20
             if len(pvalue)==1: pvalue = pvalue[0]
             rings.modify_parameter(key,pvalue)
+        
         rings.make_object()
         return rings
 
