@@ -232,29 +232,29 @@ bool Image2D<Type>::fitswrite_2d (const char *outname, bool fullHead) {
 
 
 template <class Type>
-void Image2D<Type>::copyHeader (Header &c) {
+void Image2D<Type>::copyHeader (Header &h) {
 
     headDefined = true;
     if (headDefined) {
         head.setNumAx(2);
         for (int i=0; i<numAxes; i++) {
-            head.setDimAx(i, c.DimAx(i));
-            head.setCdelt(i, c.Cdelt(i));
-            head.setCrpix(i, c.Crpix(i));
-            head.setCrval(i, c.Crval(i));
-            head.setCunit(i, c.Cunit(i));
-            head.setCtype(i, c.Ctype(i));
+            head.setDimAx(i, h.DimAx(i));
+            head.setCdelt(i, h.Cdelt(i));
+            head.setCrpix(i, h.Crpix(i));
+            head.setCrval(i, h.Crval(i));
+            head.setCunit(i, h.Cunit(i));
+            head.setCtype(i, h.Ctype(i));
         }
-        head.setBunit(c.Bunit());
-        head.setBmaj(c.Bmaj());
-        head.setBmin(c.Bmin());
-        head.setBpa(c.Bpa());
-        head.setEpoch(c.Epoch());
-        head.setName(c.Name());
-        head.setTelesc(c.Telesc());
-        head.setFreq0(c.Freq0());
-        head.setRaDeSys(c.RaDeSys());
-        head.setSpecSys(c.SpecSys());
+        head.setBunit(h.Bunit());
+        head.setBmaj(h.Bmaj());
+        head.setBmin(h.Bmin());
+        head.setBpa(h.Bpa());
+        head.setEpoch(h.Epoch());
+        head.setName(h.Name());
+        head.setTelesc(h.Telesc());
+        head.setFreq0(h.Freq0());
+        head.setRaDeSys(h.RaDeSys());
+        head.setSpecSys(h.SpecSys());
     }
 }
 

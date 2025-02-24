@@ -913,7 +913,7 @@ void Smooth3D<T>::fitswrite() {
 
     std::string name = in->pars().getSmoothOut();
     if (name=="NONE") {
-        name = in->pars().getOutfolder()+in->Head().Name();
+        name = in->pars().getOutfolder()+in->pars().getOutPrefix();
         name += "_s"+to_string<int>(lround(newbeam.bmaj));
         if (in->pars().getflagReduce()) name+="red";
         name+=".fits";
@@ -992,7 +992,7 @@ void SpectralSmooth3D<T>::fitswrite(Cube<T> *templ, std::string outname) {
     out->Head().Keys().push_back("HISTORY BBAROLO SPECTRAL SMOOTHING: "+windowtype+" window of size "+to_string(windowsize)+" channels");
     for (size_t i=0; i<out->NumPix(); i++) out->Array()[i] = array[i];
     if (outname=="") {
-        outname = templ->pars().getOutfolder()+templ->Head().Name()+"_h"+to_string(windowsize);
+        outname = templ->pars().getOutfolder()+templ->pars().getOutPrefix()+"_h"+to_string(windowsize);
         if (templ->pars().getflagReduce()) outname += "_red";
         outname += ".fits";
     }

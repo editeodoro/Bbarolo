@@ -87,7 +87,6 @@ public:
     std::string* Ctype () {return ctype;}
     std::string Cunit (int i) {return cunit[i];}
     std::string Dunit3 () {return dunit3;}
-    std::string Obname () {return object;}
     std::string Telesc () {return telescope;}
     std::string VelDef () {return veldef;}
     std::string SpectralType() {return sptype;}

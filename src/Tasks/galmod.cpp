@@ -514,7 +514,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         cdelt3=cdelt3*hzconv;
         
         /// Information about frequency/velocity axis and conversions.
-        freq0 = c->Head().Freq0()/(1+c->Head().Redshift());
+        freq0 = c->Head().Freq0()/(1+reds);
         if (freq0==0) {
             freq0 = 0.1420405751786E10;
             std::cerr << "Header item FREQ0 not found. Assuming " << freq0;
@@ -547,7 +547,7 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         }
         
         /// Information about frequency/velocity axis and conversions.
-        freq0 = c->Head().Freq0()/(1+c->Head().Redshift());
+        freq0 = c->Head().Freq0()/(1+reds);
         if (freq0==0) {
             freq0 = 0.1420405751786E10;
             std::cerr << "Header item FREQ0 not found. Assuming " << freq0;
@@ -1334,7 +1334,6 @@ template <class T>
 double Galmod<T>::velgrid(double v) {
     
     /// Function to transform a velocity to a grid.
-    
     double w = 0;
     if (axtyp==4) w = v;                                 //< Velocity axis.
     else {

@@ -175,6 +175,8 @@ public:
     void    setImage (std::string fname) {images.push_back(fname);}
     string  getOutfolder () {return outFolder;}
     void    setOutfolder (std::string s) {if (s!="" && s[s.size()-1]!='/') s.append("/"); outFolder=s;}
+    string  getOutPrefix () {return outPrefix;}
+    void    setOutPrefix (std::string s) {outPrefix=s;}
     bool    getLogFile () {return logFile;}
     bool    isVerbose () {return verbose;}
     void    setVerbosity (bool f) {verbose=f;}
@@ -296,6 +298,7 @@ private:
     string          imageList;          ///< A file with list of images to be analized.
     vector<string>  images;             ///< A vector with single images in the list.
     string          outFolder;          ///< Folder where saving output files.
+    string          outPrefix;          ///< Prefix for output files in the outFolder
     bool            logFile;            ///< A log file to redirect std::cout and std::cerr.
     bool            verbose;            ///< Is verbosity activated?
     bool            showbar;            ///< Show progress bar?

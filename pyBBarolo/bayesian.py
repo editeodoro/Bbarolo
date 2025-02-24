@@ -87,8 +87,8 @@ class BayesianBBarolo(FitMod3D):
         **kwargs : dict
             Any other parameter to be passed to the BBarolo's library.
         """
-
-        super(BayesianBBarolo,self).__init__(fitsname=fitsname)
+        # Calling the parent class to initialize the input cube
+        super(BayesianBBarolo,self).__init__(fitsname=fitsname, astropy_pointer=False)
         # Task name
         self.taskname = "BAYESIAN3DFIT"
         # Resetting FitMod3d._args. Not used here.
@@ -97,7 +97,7 @@ class BayesianBBarolo(FitMod3D):
         defaults = dict(threads=1,outfolder='./output/',twostage=False)
         self._opts = Param(fitsfile=fitsname,**defaults)
         if kwargs:
-            self._opts.add_params(kwargs)
+            self._opts.add_params(**kwargs)
         
         # A dictionary with the names of parameters to be fitted and their indexes
         self.freepar_idx = None
@@ -286,7 +286,7 @@ class BayesianBBarolo(FitMod3D):
         # Setting up the Ellprof object if a normalization and not using BB residuals 
         self._ellprof = libBB.Ellprof_new_alt(self.inp._cube,self._inri._rings)
         if self.useNorm and not self.useBBres:
-            #self._update_profile(self._inri)
+            self._update_profile(self._inri)
             # Check if we need to update the profile in each fit iteration (= only if geometry is fitted)
             self.update_prof = any(sub in string for string in self.freepar_names for sub in ['inc','phi','xpos','ypos'])
 
@@ -327,13 +327,24 @@ class BayesianBBarolo(FitMod3D):
         return mod, bhi, blo, galmod
 
 
-    def _normalize_model(self,model,data,**kwargs):
-        """ This is the default normalization function for the model. 
-            It can be overwritten by the user if needed.
+    def _normalize_model(self, model, data, mask=None):
+        """Normalize the model to the maximum value of the data.
+        
+        Parameters
+        ----------
+        model : numpy.ndarray
+            The model data to be normalized.
+        data : numpy.ndarray
+            The reference data for normalization.
+        
+        Returns
+        -------
+        numpy.ndarray
+            The normalized model.
         """
         # Normalizing the model to the maximum value of the data
-        nrm = np.nanmax(data)/np.nanmax(model)
-        return nrm*model
+        nrm = np.nanmax(data) / np.nanmax(model)
+        return nrm * model
 
 
     def _calculate_residuals(self,model,data,mask=None,**kwargs):
@@ -536,7 +547,6 @@ class BayesianBBarolo(FitMod3D):
                 fvalue = [theta[freepar_idx[key]] for key in keys]
                 pvalue = self.funcs[p](rings.r['radii'],*fvalue)
                 rings.modify_parameter(p,pvalue)
-
                 for key in keys: freepar_idx.pop(key)
 
         # Now treating the rest of the parameters with regular rings
@@ -602,7 +612,7 @@ class BayesianBBarolo(FitMod3D):
                 # Reshaping the model to the correct 3D shape
                 model = reshapePointer(libBB.Galmod_array(galmod),self.data.shape)
                 # Normalizing and copying it back to the C++ Galmod object
-                model = self._normalize_model(model,self.data)
+                model = self._normalize_model(model,self.data,self.mask)
                 libBB.Galmod_set_array(galmod,np.ravel(model).astype('float32'))
             
             # Writing all the outputs
@@ -650,7 +660,7 @@ class BayesianBBarolo(FitMod3D):
         """ Print the priors for each parameter """
         print ("\nPrior distributions for free parameters:")
         for key in self.freepar_idx:
-            print(f"{key:6s} = {self.prior_distr[key].dist.name:15s}", self.prior_distr[key].kwds)
+            print(f"{key:>10s} = {self.prior_distr[key].dist.name:10s}", self.prior_distr[key].kwds)
         print ("\n")
 
 

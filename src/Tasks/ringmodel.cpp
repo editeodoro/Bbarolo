@@ -219,7 +219,7 @@ void Ringmodel<T>::setfromCube (Cube<T> *c, Rings<T> *r)  {
         for (int i=0; i<c->NumPix(); i++) map.Array(i) = c->Array(i);
         map.setHead(1);
     }
-    map.fitswrite_2d((c->pars().getOutfolder()+c->Head().Name()+"map_1st.fits").c_str());
+    map.fitswrite_2d((c->pars().getOutfolder()+c->pars().getOutPrefix()+"map_1st.fits").c_str());
 
     setfield(map.Array(),map.DimX(),map.DimY());
 }

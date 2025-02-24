@@ -54,7 +54,7 @@ def isNumber (p):
 
 
 class FitsCube(object):
-    def __init__(self,fitsname):
+    def __init__(self,fitsname,astropy_pointer=True):
         # File name of the FITS file to read
         self.fname = fitsname
         # Pointer to the C++ Cube object
@@ -69,7 +69,8 @@ class FitsCube(object):
         # Beam information
         self.beam  = libBB.Cube_getBeam(self._cube)
         # Also having a pointer to an Astropy object
-        self.fapy  = fits.open(fitsname)[0]
+        if astropy_pointer:
+            self.fapy  = fits.open(fitsname)[0]
         
         
     def __del__(self):
@@ -214,6 +215,15 @@ class Rings(object):
         if self._rings is not None: 
             libBB.Rings_delete(self._rings)
             self._rings = None
+    
+    def __str__(self):
+        s = "##### Rings parameters for BBarolo #####\n"
+        for k in self.r:
+            if np.all(self.r[k] == self.r[k][0]):
+                s += f'{k.upper():6s} = {self.r[k][0]:.3f} \n' 
+            else:
+                s += f'{k.upper():6s} = {self.r[k]} \n' 
+        return s
 
 
 
@@ -224,11 +234,11 @@ class Task(object):
       fitsname (str): Input FITS file
     
     """
-    def __init__(self,fitsname):
+    def __init__(self,fitsname,**kwargs):
         # Task name
         self.taskname = None
         # Input datacube 
-        self.inp = FitsCube(fitsname)
+        self.inp = FitsCube(fitsname,**kwargs)
         # Mandatory arguments of the task
         self._args = {}
         # Options for the task
@@ -303,7 +313,7 @@ class Model3D(Task):
       fitsname (str): FITS file of the galaxy to model
     
     """
-    def __init__(self,fitsname):
+    def __init__(self,fitsname,**kwargs):
         # A pointer to the C++ model
         self._mod = None
         self._modCalculated = False
@@ -311,7 +321,7 @@ class Model3D(Task):
         self._inri = None
         # The output model cube (astropy PrimaryHDU)
         self.outmodel = None
-        super(Model3D,self).__init__(fitsname=fitsname)
+        super(Model3D,self).__init__(fitsname=fitsname,**kwargs)
         self._opts.update ({'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
                             'nv'    : [-1, np.int32, "Number of subclouds per profile"]})
         
@@ -575,8 +585,8 @@ class FitMod3D(Model3D):
     
     """
     
-    def __init__(self,fitsname):
-        super(FitMod3D,self).__init__(fitsname=fitsname)
+    def __init__(self,fitsname,**kwargs):
+        super(FitMod3D,self).__init__(fitsname=fitsname,**kwargs)
         # Task name
         self.taskname = "3DFIT"
         # The output final rings

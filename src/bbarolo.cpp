@@ -149,7 +149,7 @@ bool BBcore (Param *par) {
            delete c;
            return false;
        }
-       outfolder = path+"/output/"+h.Obname()+"/";
+       outfolder = path+"/output/"+h.Name()+"/";
        c->pars().setOutfolder(outfolder);
     }
     mkdirp(outfolder.c_str());
@@ -187,7 +187,7 @@ bool BBcore (Param *par) {
     // Continuum subtraction
     if (par->getFlatContsub()) {
         c->continuumSubtract();
-        c->fitswrite_3d((outfolder+c->Head().Name()+"_contsub.fits").c_str(),true);
+        c->fitswrite_3d((c->pars().getOutfolder()+c->pars().getOutPrefix()+"_contsub.fits").c_str(),true);
     }
 
 
@@ -197,7 +197,7 @@ bool BBcore (Param *par) {
     // Statistic utility ------------------------------------------
     if (par->getFlagStats()) {
         c->setCubeStats();
-        c->stat().tofile(c->pars().getOutfolder()+c->Head().Name()+"_stats.txt");
+        c->stat().tofile(c->pars().getOutfolder()+c->pars().getOutPrefix()+"_stats.txt");
     }
     // --------------------------------------------------------------
     
@@ -296,12 +296,12 @@ bool BBcore (Param *par) {
     if (par->getFlagRing()) {
         Ringmodel<BBreal> *trmod = new Ringmodel<BBreal>(c);
         trmod->ringfit(c->pars().getThreads(),c->pars().isVerbose(),c->pars().getShowbar());
-        std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_2dtrm.txt";
+        std::string fout = c->pars().getOutfolder()+c->pars().getOutPrefix()+"_2dtrm.txt";
         std::ofstream fileo(fout.c_str());
         trmod->printfinal(fileo,c->Head());
         fileo.close();
         trmod->printfinal(std::cout,c->Head());
-        trmod->writeModel(c->pars().getOutfolder()+c->Head().Name()+"_2d_mod.fits",c->Head());
+        trmod->writeModel(c->pars().getOutfolder()+c->pars().getOutPrefix()+"_2d_mod.fits",c->Head());
         delete trmod;
     }
     //-----------------------------------------------------------------
@@ -309,7 +309,7 @@ bool BBcore (Param *par) {
 
     // Moment maps task -----------------------------------------------
     if (par->getMaps()) {
-        std::string s = outfolder+c->Head().Name();
+        std::string s = c->pars().getOutfolder()+c->pars().getOutPrefix();
         bool masking = par->getMASK()=="NONE" ? false : true;
         MomentMap<BBreal> map;
         map.input(c);
@@ -348,7 +348,7 @@ bool BBcore (Param *par) {
 
     // PVs extraction task --------------------------------------------
     if (par->getFlagPV()) {
-        std::string s = outfolder+c->Head().Name();
+        std::string s = c->pars().getOutfolder()+c->pars().getOutPrefix();
         PvSlice<BBreal> *pv = new PvSlice<BBreal>(c);
         pv->slice();
         //pv->slice_old();
@@ -361,7 +361,7 @@ bool BBcore (Param *par) {
 
     // Repixeling task ------------------------------------------------
     if (par->getflagReduce() && !(par->getflagSmooth() || par->getflagSmoothSpectral())) {
-        std::string name = c->pars().getOutfolder()+c->Head().Name()+"_red.fits";
+        std::string name = c->pars().getOutfolder()+c->pars().getOutPrefix()+"_red.fits";
         std::string redtype = par->getReduce()=="spectral" ? "spectral" : "spatial";
         Cube<BBreal> *red = c->Reduce(floor(c->pars().getFactor()),redtype);
         red->fitswrite_3d(name.c_str(),true);
@@ -385,11 +385,11 @@ bool BBcore (Param *par) {
     if (par->getFlagEllProf()) {
         Tasks::Ellprof<BBreal> *ell = new Tasks::Ellprof<BBreal>(c);
         ell->RadialProfile();
-        std::string fout = c->pars().getOutfolder()+c->Head().Name()+"_densprof.txt";
+        std::string fout = c->pars().getOutfolder()+c->pars().getOutPrefix()+"_densprof.txt";
         std::ofstream fileo(fout.c_str());
         ell->printProfile(fileo,ell->getNseg()-1);
         ell->printProfile(std::cout,ell->getNseg()-1);
-        ell->writeMap(c->pars().getOutfolder()+c->Head().Name()+"_densmap.fits");
+        ell->writeMap(c->pars().getOutfolder()+c->pars().getOutPrefix()+"_densmap.fits");
         fileo.close();
         delete ell;
     }

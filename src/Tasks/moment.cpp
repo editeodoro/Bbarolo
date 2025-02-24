@@ -286,7 +286,7 @@ void MomentMap<T>::SNMap(bool msk, std::string outfolder){
     snmap->Head().setBtype("S/N");
     snmap->Head().setBunit("NONE");
     
-    if (outfolder=="") outfolder = in->pars().getOutfolder()+in->Head().Name();
+    if (outfolder=="") outfolder = in->pars().getOutfolder()+in->pars().getOutPrefix();
     nmap->fitswrite_2d((outfolder+"map_0th_RMS.fits").c_str());
     snmap->fitswrite_2d((outfolder+"map_0th_SN.fits").c_str());
     

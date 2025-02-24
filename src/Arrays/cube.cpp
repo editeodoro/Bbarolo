@@ -282,7 +282,12 @@ bool Cube<T>::readCube (std::string fname, bool printInfo) {
     // Reading in fits array
     numPix = size_t(axisDim[0])*size_t(axisDim[1])*size_t(axisDim[2]);
     if (!fitsread_3d()) return false;
-    
+
+    // Setting up prefix for output files if not set by the user
+    if (par.getOutPrefix()=="")
+        par.setOutPrefix(head.Name());
+
+        
     if (printInfo) {
         // Giving some information on conversion factors that will be used
         std::cout << fixed << setprecision(6);
@@ -1512,9 +1517,9 @@ void Cube<T>::writeDetections() {
 
     // Writing kinematic maps
     std::vector< MomentMap<T> > allmaps = getAllMoments<T>(this,true,isObj,"MOMENT");
-    allmaps[0].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom0th.fits").c_str());
-    allmaps[1].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom1st.fits").c_str());
-    allmaps[2].fitswrite_2d((par.getOutfolder()+head.Obname()+"_mom2nd.fits").c_str());
+    allmaps[0].fitswrite_2d((par.getOutfolder()+par.getOutPrefix()+"_mom0th.fits").c_str());
+    allmaps[1].fitswrite_2d((par.getOutfolder()+par.getOutPrefix()+"_mom1st.fits").c_str());
+    allmaps[2].fitswrite_2d((par.getOutfolder()+par.getOutPrefix()+"_mom2nd.fits").c_str());
 
     if (par.getParMA().SNmap) allmaps[0].SNMap(true);
 
@@ -1583,7 +1588,8 @@ void Cube<T>::writeCubelets() {
     if (getNumObj()==0) return;
 
     std::string outfold = par.getOutfolder()+"sources/";
-    std::string object  = head.Name();
+    std::string object  = par.getOutPrefix();
+    if (object=="") object = "source";
     std::filesystem::remove_all(outfold);
     mkdirp(outfold.c_str());
 
@@ -1708,7 +1714,7 @@ int Cube<T>::plotDetections(){
         << "plt.rc('font',family='sans-serif',serif='Helvetica',size=fsize) \n"
         << std::endl
         << "outdir = '" << outfolder << "' \n"
-        << "gname  = '" << head.Name() << "' \n"
+        << "gname  = '" << par.getOutPrefix() << "' \n"
         << "single = True \n"
         << std::endl
         << std::endl

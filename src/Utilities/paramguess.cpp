@@ -526,7 +526,7 @@ void ParamGuess<T>::tuneWithTiltedRing() {
     // Fitting a tilted-ring model
     tr.ringfit(in->pars().getThreads(),false,false);
     //tr.printfinal(std::cout,in->Head());
-    std::ofstream fileo(in->pars().getOutfolder()+in->Head().Name()+"_2drings.txt");
+    std::ofstream fileo(in->pars().getOutfolder()+in->pars().getOutPrefix()+"_2drings.txt");
     tr.printfinal(fileo,in->Head());
 
     //tr.set(nr,radii,rwidth,tr.getVsysf(0),tr.getVrotf(0),0,tr.getPosaf(0),tr.getInclf(0),tr.getXposf(0),tr.getYposf(0));
@@ -928,9 +928,9 @@ ParamGuess<T>* EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     else ip->findRotationVelocity();
 
     // This performs an additional step with a 2D tilted ring model
-    if (c->pars().getFlagPlots()>=3) ip->plotGuess("initialguesses_"+c->Head().Name()+"_0.pdf");
+    if (c->pars().getFlagPlots()>=3) ip->plotGuess("initialguesses_"+c->pars().getOutPrefix()+"_0.pdf");
     if (ip->nrings>3) ip->tuneWithTiltedRing();
-    if (c->pars().getFlagPlots()>=2) ip->plotGuess("initialguesses_"+c->Head().Name()+".pdf");
+    if (c->pars().getFlagPlots()>=2) ip->plotGuess("initialguesses_"+c->pars().getOutPrefix()+".pdf");
 
     if (verb) std::cout << "Done." << std::endl;
     c->pars().setVerbosity(verb);

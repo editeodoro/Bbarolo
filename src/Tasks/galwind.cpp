@@ -327,7 +327,7 @@ bool GalWind<T>::writeFITS(std::string fname, bool fullHead) {
     
     if (outDefined) {
         std::string fn = fname;
-        if (fn=="") fn = in->pars().getOutfolder()+in->Head().Name()+"_wind.fits";
+        if (fn=="") fn = in->pars().getOutfolder()+in->pars().getOutPrefix()+"_wind.fits";
     
         return out->fitswrite_3d(fn.c_str(),fullHead);
     }
@@ -340,7 +340,7 @@ template <class T>
 bool GalWind<T>::writeMomentMaps() {
     
     if (outDefined) {
-        std::string fn = in->pars().getOutfolder()+in->Head().Name()+"_wind";
+        std::string fn = in->pars().getOutfolder()+in->pars().getOutPrefix()+"_wind";
         MomentMap<T> *map = new MomentMap<T>;
         map->input(out);
         map->ZeroMoment(false);
@@ -361,7 +361,7 @@ bool GalWind<T>::writePV(std::string fname){
     
     if (outDefined) {
         std::string fn = fname;
-        if (fn=="") fn = in->pars().getOutfolder()+in->Head().Name()+"_wind_pv.fits";
+        if (fn=="") fn = in->pars().getOutfolder()+in->pars().getOutPrefix()+"_wind_pv.fits";
         float ang = atof(par.PHI.c_str())-90;
         string pos[2] = {par.XPOS, par.YPOS};
         double *pixs = getCenterCoordinates(pos, in->Head());
@@ -405,7 +405,7 @@ bool GalWind<T>::makePlots(){
         << "plt.rcParams.update(params)\n\n";
     
     pyf << "# PARAMETERS: plotting the fit parameters \n"
-        << "gname = '" << in->Head().Name() <<"' \n"
+        << "gname = '" << in->pars().getOutPrefix() <<"' \n"
         << "outfolder = '" << in->pars().getOutfolder() <<"' \n\n";
             
     pyf << "nc = 7 \n"

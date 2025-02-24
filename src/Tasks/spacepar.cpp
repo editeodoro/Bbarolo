@@ -328,7 +328,7 @@ void Spacepar<T>::plotAll_Python() {
     
     // Writing fitsfile with parameter space
     std::string outfold = this->in->pars().getOutfolder();
-    std::string object  = this->in->Head().Name();
+    std::string object  = this->in->pars().getOutPrefix();
     std::string fname   = outfold+"spacepar_"+object+".fits";
     
     // Writing parameter space as variation from minimum

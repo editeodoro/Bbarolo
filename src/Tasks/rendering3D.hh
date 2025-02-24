@@ -120,7 +120,7 @@ void Rendering3D<T>::compute(float azangle) {
 template <class T>
 void Rendering3D<T>::writefits(std::string fname, float smoothfactor) {
 
-    if (fname=="") fname = in->pars().getOutfolder()+in->Head().Obname()+"_3D.fits";
+    if (fname=="") fname = in->pars().getOutfolder()+in->pars().getOutPrefix()+"_3D.fits";
 
     if (smoothfactor>1) {
         Smooth3D<T> *smoothed = new Smooth3D<T>;

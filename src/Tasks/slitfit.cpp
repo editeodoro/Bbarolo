@@ -133,7 +133,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
 
     for (int i=0; i<line_im->NumPix(); i++) line_im->Array(i)*=isObj[i];
 */
-    line_im->fitswrite_3d((p.getOutfolder()+in->Head().Name()+".fits").c_str());
+    line_im->fitswrite_3d((p.getOutfolder()+in->pars().getOutPrefix()+".fits").c_str());
 
 
 
@@ -479,7 +479,7 @@ void Galfit<T>::writeModel_slit() {
 
 
     std::string outfold = in->pars().getOutfolder();
-    std::string object = in->Head().Name();
+    std::string object = in->pars().getOutPrefix();
     double pixScale = in->Head().PixScale()*arcconv;
 
     int bhi[2] = {in->DimX(), in->DimY()};

@@ -263,7 +263,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
         // Fitting a tilted-ring model
         tr.ringfit(c->pars().getThreads(),false,false);
         // Writing this model to a file
-        std::ofstream fileo(c->pars().getOutfolder()+c->Head().Name()+"_2drings.txt");
+        std::ofstream fileo(c->pars().getOutfolder()+c->pars().getOutPrefix()+"_2drings.txt");
         tr.printfinal(fileo,c->Head());
         //tr.printfinal(std::cout,c->Head());
 
@@ -296,7 +296,9 @@ Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, Param *p) {
     c->pars() = *p;
     c->pars().getParGF() = p->getParGF();
     c->pars().checkPars();
-    
+    c->Head().setRedshift(p->getRedshift()); 
+    c->Head().setWave0(p->getRestwave());
+
     // Create directory tree if it does not exist
     mkdirp(c->pars().getOutfolder().c_str());
 

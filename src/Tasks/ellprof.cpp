@@ -180,7 +180,7 @@ Ellprof<T>::Ellprof(Cube<T> *c, Rings<T> *inR, bool mask) {
     bool deallocate = false;
 
     if (inR==nullptr) {
-        Rings<T> *inR = readRings<T>(c->pars().getParGF(), c->Head());
+        inR = readRings<T>(c->pars().getParGF(), c->Head());
         deallocate = true;
     }
     setFromCube(c,inR,mask);
@@ -221,6 +221,7 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR, bool mask) {
     // Setting other options
     T meanPA = findMean(&inR->phi[0], inR->nr);
     int nseg = 1;
+    
     float segments[4] = {0, 360., 0., 0};
     if (c->pars().getParGF().SIDE=="A") {
         nseg = 2;
@@ -250,7 +251,7 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR, bool mask) {
     imAllocated = true;
 
     init(im, inR, nseg, segments);
-
+    
 }
 
 
@@ -375,10 +376,10 @@ void Ellprof<T>::setOptions (bool overlap, float *range, float *subp) {
 
 template <class T>
 void Ellprof<T>::RadialProfile () {
-
+   
     for (size_t i=0; i<Nrad; i++) {
         for (size_t s=0; s< Nseg; s++) {
-             /* Reset the statistics variables */
+            // Reset the statistics variables 
             Sum[i][s]=Mean[i][s]=Median[i][s]=0.0;
             Var[i][s]=MAD[i][s]=Area[i][s]= 0.0;
             Num[i][s]=Numblanks[i][s]=Contrib[i][s]= 0;
@@ -388,14 +389,13 @@ void Ellprof<T>::RadialProfile () {
         }
     }
 
-
     float Bgridlo[2], Bgridhi[2];
     Bgridlo[0] = std::max(0, int(Position[0]-Rmax/fabs(Dx) - 1));
     Bgridhi[0] = std::min(im->DimX()-1, int(Position[0]+Rmax/fabs(Dx)+1));
     Bgridlo[1] = std::max(0, int(Position[1]-Rmax/fabs(Dy)-1));
     Bgridhi[1] = std::min(im->DimY()-1, int(Position[1]+Rmax/fabs(Dy)+1));
 
-    /* Start looping over all pixels */
+    // Start looping over all pixels 
     
     ProgressBar bar(true,im->pars().isVerbose(),im->pars().getShowbar());
     bar.init(" Computing radial profile... ",Bgridhi[0]-Bgridlo[0]);
@@ -409,12 +409,11 @@ void Ellprof<T>::RadialProfile () {
     
     bar.fillSpace("Done.\n");
 
-
-    float Sumtotgeo    = 0.0;        /* Sum of all complete rings */
+    float Sumtotgeo    = 0.0;        // Sum of all complete rings 
     float Sumtotgeo_bl = 0.0;
     for (size_t n=0; n<Nrad; n++) {
-        /* We need the sum of of the contributions for each ring. Each contribution is */
-        /* multiplied by the area between two radii. The contributions are the corrected means.      */
+        // We need the sum of of the contributions for each ring. Each contribution is 
+        // multiplied by the area between two radii. The contributions are the corrected means.      
         if (Num[n][0]>0) { 
             float mean   = Sum[n][0] / Num[n][0];
             float meanbl = Sum[n][0] / (Num[n][0]+Numblanks[n][0]);
@@ -425,10 +424,11 @@ void Ellprof<T>::RadialProfile () {
             Sumtotgeo_bl += face_on_av_surfdens_bl * geometricalarea;
         }
     }
+    std::cout << "CHECK 2" << std::endl;
 
 
-    /* For all rings and segments the sum is calculated. Do some simple statistics */
-    /* using this sum and the number of pixels involved. */
+    // For all rings and segments the sum is calculated. Do some simple statistics 
+    // using this sum and the number of pixels involved. 
 
     float subpixtot = subpix[0]*subpix[1];
     for (size_t i=0; i<Nrad; i++) {
@@ -452,9 +452,9 @@ void Ellprof<T>::RadialProfile () {
                 Area[i][m] = 0;
             }
             else {
-                /* The 'processpixel' function calculated too much FLUX. Each intensity has to    */
-                /* be divided by the number of 'subpixels' in a pixel. In order to get the AREA   */
-                /* expressed in pixels, it will be divided by the same number.                    */
+                // The 'processpixel' function calculated too much FLUX. Each intensity has to    
+                // be divided by the number of 'subpixels' in a pixel. In order to get the AREA   
+                // expressed in pixels, it will be divided by the same number.                    
                 Area[i][m] = Num[i][m] / subpixtot;
                 Mean[i][m] = Sum[i][m] / Area[i][m];
                 if (Num[i][m]>1) Var[i][m] = (Sumsqr[i][m] - Num[i][m]*Mean[i][m]*Mean[i][m])/float(Num[i][m]-1);
@@ -483,6 +483,7 @@ void Ellprof<T>::RadialProfile () {
         }
 
     }
+    
     
 }
 

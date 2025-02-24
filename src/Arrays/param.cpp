@@ -82,6 +82,7 @@ void Param::defaultValues() {
     imageFile           = "";
     imageList           = "NONE";
     outFolder           = "";
+    outPrefix           = "";
     logFile             = false;
     verbose             = true;
     showbar             = true;
@@ -170,6 +171,7 @@ Param& Param::operator= (const Param& p) {
     for (unsigned int i=0; i<images.size(); i++) 
         this->images[i]     = p.images[i];
     this->outFolder         = p.outFolder;
+    this->outPrefix         = p.outPrefix;
     this->logFile           = p.logFile;
     this->beamFWHM          = p.beamFWHM;
     this->checkCube         = p.checkCube;
@@ -484,6 +486,7 @@ void Param::setParam(string &parstr) {
     if(arg=="fitslist")         imageList = readFilename(ss);
     if(arg=="verbose")          verbose   = readFlag(ss);
     if(arg=="outfolder")        outFolder = readFilename(ss);
+    if(arg=="outprefix")        outPrefix = readFilename(ss);
     if(arg=="logfile")          logFile   = readFlag(ss);
     if(arg=="threads")          threads   = readval<int>(ss);
     if(arg=="debug")            debug     = readFlag(ss);
@@ -1288,6 +1291,8 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
     recordParam(Str, "[VERBOSE]", "Printing output messages?", stringize(p.isVerbose()));
     if (p.getOutfolder()!="" || defaults)
         recordParam(Str, "[OUTFOLDER]", "Directory where outputs are written", p.getOutfolder());
+    if (p.getOutPrefix()!="" || defaults)
+        recordParam(Str, "[OUTPREFIX]", "Prefix for output files", p.getOutPrefix());
     recordParam(Str, "[LOGFILE]", "Redirect output messages to a file?", stringize(p.getLogFile()));
     recordParam(Str, "[flagRobustStats]", "Using robust statistics?", stringize(p.getFlagRobustStats()));    
     recordParam(Str, "[FLUXCONVERT]", "Whether to convert flux to Jy?", stringize(p.getFluxConvert()));    
