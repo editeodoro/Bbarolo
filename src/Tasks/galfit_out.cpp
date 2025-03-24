@@ -100,7 +100,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     if (verb) std::cout << "    Calculating the very last model..." << std::flush;
     int bhi[2] = {in->DimX(), in->DimY()};
     int blo[2] = {0,0};
-    Model::Galmod<T> *mod = getModel(outr,bhi,blo,nullptr,true);
+    Rings<T> *last = new Rings<T>;
+    *last = *outr;
+    Model::Galmod<T> *mod = getModel(last,bhi,blo,nullptr,true);
+    delete last;
     mod->Out()->Head().setMinMax(0.,0.);
     mod->Out()->Head().setName(in->Head().Name()+"mod");
     
@@ -1221,7 +1224,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
 
     if (par.flagADRIFT) {
         pyf << "\n#Asymmetric drift correction\n"
-            << "rad_a, vcirc, va2, dispr, fun, funr = np.genfromtxt(outfolder+'asymdrift.txt',usecols=(0,1,2,3,4,5),unpack=True)\n"
+            << "rad_a, vcirc, va2, disp2_a, disp2r, fun, funr = np.genfromtxt(outfolder+'asymdrift.txt',usecols=(0,1,2,3,4,5,6),unpack=True)\n"
             << "if twostage: \n"
             << "\trad, vrot, disp = rad2, vrot2, disp2 \n"
             << "\terr1_l, err1_h = err2_l, err2_h\n"
@@ -1240,11 +1243,11 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
             << "ax2.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
             << "ax2.set_ylabel(r'$\\sigma$ (km/s)', fontsize=11)\n"
             << "ax2.errorbar(rad,disp, yerr=[-err1_l[1],err1_h[1]],fmt='o', color=color2,label=r'$\\sigma_\\mathrm{gas}$',zorder=0)\n"
-            << "ax2.plot(rad_a,dispr,'-', color='#0FA45A',label=r'$\\sigma_\\mathrm{reg}$',zorder=1)\n"
+            << "ax2.plot(rad_a,np.sqrt(disp2r),'-', color='#0FA45A',label=r'$\\sigma_\\mathrm{reg}$',zorder=1)\n"
             << "ax2.legend()\n"
             << "ax3.set_xlim(0,max_rad)\n"
             << "ax3.set_xlabel('Radius (arcsec)', fontsize=11, labelpad=5)\n"
-            << "ax3.set_ylabel(r'$f = \\log(\\sigma_\\mathrm{gas}^2\\Sigma_\\mathrm{gas}\\cos(i)$)', fontsize=11)\n"
+            << "ax3.set_ylabel(r'$\\Sigma_\\mathrm{gas}\\cos(i)$', fontsize=11)\n"
             << "ax3.plot(rad_a,fun,'o', color=color2,label=r'$f_\\mathrm{obs}$',zorder=0)\n"
             << "ax3.plot(rad_a,funr,'-', color='#0FA45A',label=r'$f_\\mathrm{reg}$',zorder=1)\n"
             << "ax3.legend()\n"

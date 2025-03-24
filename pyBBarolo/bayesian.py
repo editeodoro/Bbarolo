@@ -286,7 +286,7 @@ class BayesianBBarolo(FitMod3D):
         # Setting up the Ellprof object if a normalization and not using BB residuals 
         self._ellprof = libBB.Ellprof_new_alt(self.inp._cube,self._inri._rings)
         if self.useNorm and not self.useBBres:
-            self._update_profile(self._inri)
+            #self._update_profile(self._inri)
             # Check if we need to update the profile in each fit iteration (= only if geometry is fitted)
             self.update_prof = any(sub in string for string in self.freepar_names for sub in ['inc','phi','xpos','ypos'])
 

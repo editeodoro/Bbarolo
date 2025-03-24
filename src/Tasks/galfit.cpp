@@ -1192,19 +1192,27 @@ template <class T>
 bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn) {
     
     // Compute an asymmetric drift correction, following procedure in Iorio+17, sec 4.3
-//    in->pars().setVerbosity(true);
-//    for (auto i=0; i<nn; i++) {
- //       std::cout << rad[i] << " " << densprof[i] << " " << dispprof[i] << " " << rotcur[i] << " " << inc[i] << std::endl;
-  //  }
-    // Fitting dispersion with a polynomial function
+    // The asymmetric drift correction is given by:
+    //
+    //  ADC^2 = -R*sigma^2 * ( 1 / sigma^2 * d sigma^2 / dR + 1 / Sigma * d Sigma / dR )
+    //
+    // where sigma is the dispersion profile, and Sigma is the inclination correct density profile.
+    // To calculate the derivatives, the dispersion and density profiles are fitted with polynomials
+
+
+    // Fitting dispersion squared with a polynomial function
     int npar1 = in->pars().getParGF().ADRIFTPOL1 + 1;
     T cdisp[npar1], cdisperr[npar1], ww[nn];
-    bool mp[npar1]; 
-    if (npar1>0) { // If ADRIFTPOL1<0, just use the density profile
+    bool mp[npar1];
+    T *disp2 = new T[nn];
+    if (npar1>0) { // If ADRIFTPOL1<0, just use the dispersion profile
         if (npar1>=nn) npar1 = nn-1;
         for (int i=0; i<npar1; i++) mp[i] = true;
-        for (int i=0; i<nn; i++) ww[i] = 1;
-        Lsqfit<T> lsq1(rad,1,dispprof,ww,nn,cdisp,cdisperr,mp,npar1,&polyn,&polynd);
+        for (int i=0; i<nn; i++) {
+            disp2[i] = dispprof[i]*dispprof[i];
+            ww[i] = 1;
+        }
+        Lsqfit<T> lsq1(rad,1,disp2,ww,nn,cdisp,cdisperr,mp,npar1,&polyn,&polynd);
         if (lsq1.fit()<0) {
             if (in->pars().isVerbose()) std::cerr << "3DFIT ERROR: cannot least-square fit the dispersion for asymmetric drift.\n";
             par.flagADRIFT = false;
@@ -1212,21 +1220,21 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *
         }
     }
     
-    // Now fitting log(density*disp2) with a polynomial function 
-    T *fun = new T[nn];
+    // Now fitting Sigma_FO = Sigma*cos(i) with a polynomial function 
+    T *SigmaFO = new T[nn];
     int npar2 = in->pars().getParGF().ADRIFTPOL2 + 1;
     if (npar2>=nn) npar2 = nn-1;
     T cfun[npar2], cfunerr[npar2];
     bool mpp[npar2];
     for (int i=0; i<npar2; i++) mpp[i] = true;
     for (int i=0; i<nn; i++) {
-        fun[i] = log(dispprof[i]*dispprof[i]*densprof[i]*cos(inc[i]*M_PI/180.));
+        SigmaFO[i] = densprof[i]*cos(inc[i]*M_PI/180.);
         ww[i] = 1;
     }
     //Lsqfit<T> lsq2(rad,1,fun,ww,nn,cfun,cfunerr,mpp,npar2,&coreExp,&coreExpd);
-    Lsqfit<T> lsq2(rad,1,fun,ww,nn,cfun,cfunerr,mpp,npar2,&polyn,&polynd);
+    Lsqfit<T> lsq2(rad,1,SigmaFO,ww,nn,cfun,cfunerr,mpp,npar2,&polyn,&polynd);
     if (lsq2.fit()<0) {
-        if (in->pars().isVerbose()) std::cerr << "3DFIT ERROR: cannot least-square fit the fun for asymmetric drift.\n";
+        if (in->pars().isVerbose()) std::cerr << "3DFIT ERROR: cannot least-square fit the Sigma for asymmetric drift.\n";
         par.flagADRIFT = false;
         return false;
     }
@@ -1239,28 +1247,32 @@ bool Galfit<T>::AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *
     fout << "#" << setw(m-1) << "RAD(arcs)"
          << setw(m) << "VCIRC(km/s)"
          << setw(m) << "ASYMDRIFT_SQ(km/s)2"
-         << setw(m) << "DISP_REG(km/s)"
-         << setw(m) << "FUN" 
-         << setw(m) << "FUN_REG" << std::endl;
+         << setw(m) << "DISP2(km/s)2"
+         << setw(m) << "DISP2_REG(km/s)2"
+         << setw(m) << "DENSPROF" 
+         << setw(m) << "DENSPROF_REG" << std::endl;
         
     for (int i=0; i<nn; i++) {
         // Getting regularized functions
-        T disp_reg = npar1>0 ? polyn(&rad[i],cdisp,npar1) : dispprof[i];
-        T fun_reg = polyn(&rad[i],cfun,npar2);
-        // Derivative of regularized fun
-        T fun_der = dpolyn_dx(&rad[i],cfun,npar2);
+        T disp2_reg = npar1>0 ? polyn(&rad[i],cdisp,npar1) : disp2[i];
+        T Sigma_reg = polyn(&rad[i],cfun,npar2);
+        // Derivatives of sigma2 and Sigma_FO
+        T disp2_der = dpolyn_dx(&rad[i],cdisp,npar1);
+        T Sigma_der = dpolyn_dx(&rad[i],cfun,npar2);
         // Asymmetric drift correction
-        T asdrift_squared = -rad[i]*disp_reg*disp_reg*fun_der;
+        T asdrift_squared = -rad[i]*disp2_reg*(disp2_der/disp2_reg + Sigma_der/Sigma_reg);
         T vcirc = sqrt(rotcur[i]*rotcur[i]+asdrift_squared);
         
         fout << setw(m) << rad[i] << setw(m) << vcirc << setw(m) << asdrift_squared 
-             << setw(m) << disp_reg << setw(m) << fun[i] << setw(m) << fun_reg << std::endl;
+             << setw(m) << disp2[i] << setw(m) << disp2_reg 
+             << setw(m) << SigmaFO[i] << setw(m) << Sigma_reg << std::endl;
     }
     
     fout.close();
     
-    delete [] fun;
-    
+    delete [] SigmaFO;
+    delete [] disp2;
+
     return true;
     
 }

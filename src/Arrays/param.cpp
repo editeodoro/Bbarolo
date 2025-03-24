@@ -1534,8 +1534,8 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         
             recordParam(Str, "[ADRIFT]", "   Computing asymmetric drift correction?", stringize(p.getParGF().flagADRIFT));
             if (p.getParGF().flagADRIFT || defaults) {
-                recordParam(Str, "[ADRIFTPOL1]", "     Polynomial for VDISP regularisation?", p.getParGF().ADRIFTPOL1);
-                recordParam(Str, "[ADRIFTPOL2]", "     Polynomial for log(VDISP^2*SIGMA) reg.?", p.getParGF().ADRIFTPOL2);
+                recordParam(Str, "[ADRIFTPOL1]", "     Polynomial for VDISP2 regularisation?", p.getParGF().ADRIFTPOL1);
+                recordParam(Str, "[ADRIFTPOL2]", "     Polynomial for SIGMA regularisation?", p.getParGF().ADRIFTPOL2);
                 
             }
             recordParam(Str, "[REVERSE]", "   Using reverse-cumulative fitting?", p.getParGF().REVERSE);

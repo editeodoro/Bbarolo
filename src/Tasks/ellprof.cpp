@@ -424,8 +424,6 @@ void Ellprof<T>::RadialProfile () {
             Sumtotgeo_bl += face_on_av_surfdens_bl * geometricalarea;
         }
     }
-    std::cout << "CHECK 2" << std::endl;
-
 
     // For all rings and segments the sum is calculated. Do some simple statistics 
     // using this sum and the number of pixels involved. 

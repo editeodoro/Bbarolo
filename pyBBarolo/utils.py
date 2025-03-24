@@ -383,6 +383,8 @@ class SimulatedGalaxyCube(object):
                 vflat = np.random.uniform(100,350)
                 rs = np.random.uniform(pixsize,radmax/10)
             self.vrot  = 2./np.pi*vflat*np.arctan(radii/rs)
+            self.rs = rs
+            self.vflat = vflat 
             
             
         # Defining velocity dispersion 
