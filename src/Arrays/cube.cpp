@@ -736,7 +736,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
 
     delete st;
     
-    
+
     // Writing mask to FITS file
     Cube<short> *m = new Cube<short>(axisDim);
     m->saveHead(head);
@@ -1575,7 +1575,7 @@ Cube<T>* Cube<T>::extractCubelet(Detection<T> *obj, int edges, int *starts) {
     clet->Head().setMinMax(0,0);
     clet->Head().Keys().clear();
     clet->Head().Keys().push_back("HISTORY BBAROLO SOURCE FINDER DATA PRODUCT");
-
+    
     return clet;
 }
 
@@ -1624,6 +1624,14 @@ void Cube<T>::writeCubelets() {
             long pos = c->nPix(v.getX()-starts[0],v.getY()-starts[1],v.getZ()-starts[2]);
             isObj[pos] = true;
         }
+        
+        // Writing the mask as well
+        Cube<short> *m = new Cube<short>(c->AxisDim());
+        m->saveHead(c->Head());
+        m->Head().setMinMax(0,0);
+        for (size_t i=c->NumPix(); i--;) m->Array(i) = short(isObj[i]);
+        m->fitswrite_3d((outfold+srcname+"/"+srcname+"_mask.fits").c_str(),true);
+        delete m;
 
         // Writing sub-kinematic maps
         c->pars().setVerbosity(false);
@@ -1633,7 +1641,7 @@ void Cube<T>::writeCubelets() {
         allmaps[1].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom1.fits").c_str());
         allmaps[2].fitswrite_2d((outfold+srcname+"/"+srcname+"_mom2.fits").c_str());
 
-        if (par.getParMA().SNmap) allmaps[0].SNMap(true,outfold+srcname+"/"+srcname);
+        if (par.getParMA().SNmap) allmaps[0].SNMap(true,outfold+srcname+"/"+srcname);                
 
         delete [] isObj;
 
