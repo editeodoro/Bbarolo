@@ -621,7 +621,7 @@ bool Header::header_read (std::string fname) {
     specUnits = makelower(wcs->cunit[wcs->spec]);
     
     if((wcs->lng!=-1) && (wcs->lat!=-1)) wcsIsGood = true;
-
+    
     // Setting up conversion factor between header units and the spectral units that wcsp2s outputs:
     // -> Hz for freq axis, -> m for wavelenght axis and m/s for velocity axis. 
     if (cu2=="km/s") specConv = 1/1000.;

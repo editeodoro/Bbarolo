@@ -293,6 +293,8 @@ template <class T>
 Galfit<T>::Galfit (Cube<T> *c, Rings<T> *inrings, Param *p) {
     // This constructor is used mostly by pyBBarolo and it allows to set
     // separately the Cube, the Rings and all parameters used by the task (including masking etc...)
+    
+    if (p->getOutPrefix()=="") p->setOutPrefix(c->Head().Name());
     c->pars() = *p;
     c->pars().getParGF() = p->getParGF();
     c->pars().checkPars();
@@ -1131,7 +1133,7 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
     Model::Galmod<T> *mod = new Model::Galmod<T>;
     mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
     mod->calculate();
-
+    
     // Adding up the "sofar" model, if requested
     T *modp = mod->Out()->Array();
     if (modsoFar!=nullptr && !finalModel) {

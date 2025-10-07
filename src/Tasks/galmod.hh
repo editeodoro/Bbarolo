@@ -101,6 +101,8 @@ public:
     bool calculate();
     bool smooth(bool usescalefac=true);
     void normalize();
+    bool addnoise(double noiseRMS);
+    
 
 protected:
 

@@ -497,5 +497,5 @@ class SimulatedGalaxyCube(object):
         bb.run(exe=exe,stdout=stdout)
         
         # Copy galaxy parameter file to outfolder
-        #bb.write_parameterfile(f'{outfolder}/BBparams.par')
+        bb.write_parameterfile(f'{outfolder}/BBparams.par')
         os.system(f'cp {p} {outfolder}/{obj}_params.txt')

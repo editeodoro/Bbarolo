@@ -405,6 +405,39 @@ void Galmod<T>::normalize() {
 
 
 template <class T>
+bool Galmod<T>::addnoise(double noiseRMS) {
+    
+    if (!modCalculated) {
+        std::cout << "GALMOD noise error: the model has not been ";
+        std::cout << "calculated yet.\n";
+        return false; 
+    }
+    if (noiseRMS==0) return false;
+    
+    size_t nPix = out->NumPix();
+    // Getting gaussian noise
+    T *noise = SimulateNoise<T>(noiseRMS,nPix);
+    double fac = 1.;
+    if (out->pars().getParGM().SM) {
+        // Smoothing the noise
+        Beam obeam = {0., 0., 0};
+        Beam nbeam = {in->Head().Bmaj()*3600.,in->Head().Bmin()*3600.,in->Head().Bpa()};
+        Smooth3D<T> *sm = new Smooth3D<T>;
+        sm->setUseBlanks(false);
+        sm->smooth(in, obeam, nbeam, noise, noise);
+        // Rescaling the noise to match the required rms
+        T stdd = findStddev(noise,nPix);
+        fac = noiseRMS/stdd;
+        delete sm;
+    }
+    // Add noise to the model
+    for (size_t i=nPix; i--;) out->Array(i) += (noise[i]*fac);
+    delete [] noise;
+    
+    return true;
+}
+
+template <class T>
 void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
 
     in = c;
@@ -919,7 +952,8 @@ void Galmod<T>::galmod() {
         double vrottmp = r->vrot[ir];
         double vradtmp = r->vrad[ir];
         double vverttmp= r->vvert[ir];
-        //  The VDISP should be such that VDISP^2 + chwidth^2 / 12 = sig_instr^2 + sig_v^2
+        // The VDISP should be such that VDISP^2 + chwidth^2 / 12 = sig_instr^2 + sig_v^2
+        // The chwidth^2 / 12 is for gridding = convolution with a boxcar of width = channel.
         //double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr-(chwidth*chwidth)/12.);
         double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr);
         double vsystmp = r->vsys[ir];
@@ -1263,7 +1297,6 @@ void Galmod<T>::galmod() {
     
 }
 */
-
 
 
 template <class T>

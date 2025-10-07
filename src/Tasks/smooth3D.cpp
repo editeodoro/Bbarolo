@@ -182,6 +182,13 @@ void Smooth3D<T>::cubesmooth(Cube<T> *c) {
     
     fft = c->pars().getflagFFT();
     scalefac = c->pars().getScaleFactor();
+    
+    if (scalefac==-1) {
+        if (FluxtoJyBeam(1.,c->Head())!=1) {
+            // The units are per not per beam, scale factor is unity
+            scalefac = 1;
+        }
+    }
 
     smooth(c, Bhi, Blo, OB, NB);
 }
@@ -422,7 +429,10 @@ bool Smooth3D<T>::defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam) {
             std::cin >> scalefac;
             std::cout << std::endl;
         }
-        else if (scalefac==-1) scalefac = 1.0/dataO[(lx*ly)/2+1];
+        else if (scalefac==-1) {
+            // The units are per beam factor not given, so calculating it
+            scalefac = 1.0/dataO[(lx*ly)/2+1];
+        }
     }
     oldbeam.bpa=oldbeam.bpa-90+crota;
 

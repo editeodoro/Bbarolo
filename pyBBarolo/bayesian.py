@@ -183,7 +183,11 @@ class BayesianBBarolo(FitMod3D):
         self.priors['zcyl']  = dict(name='uniform',loc=0,scale=5)                   # 0-5 arcsec
         self.priors['dens']  = dict(name='uniform',loc=0.1,scale=200)               # 0.1-200 1E20 cm^-2
         self.priors['z0']    = dict(name='uniform',loc=0,scale=10)                  # 0-10 arcsec
-        self.priors['sigma'] = dict(name='halfcauchy',scale=0.5) 
+        self.priors['sigma'] = dict(name='halfcauchy',scale=0.5)
+        
+        # Priors for maximum radius
+        radsep = np.abs(rr['radii'][-1]-rr['radii'][-2])
+        self.priors['radmax']= dict(name='uniform',loc=rr['radii'][-1]-radsep/2.,scale=radsep) # +- radsep
 
         # Defining the parametric functions. Default only for dens, vrot and vdisp
         self.funcs['vrot']   = lambda R,p1,p2: 2./np.pi*p1*np.arctan(radii/p2)      # Arctan function for vrot
@@ -226,9 +230,11 @@ class BayesianBBarolo(FitMod3D):
 
         dup = {key : False for key in self.priors.keys()}
 
+        okpars = ['sigma','radmax']
+
         for pname in freepar:
             s = pname.split('_')
-            if s[0] not in self._inri.r and 'sigma' not in s[0]:
+            if s[0] not in self._inri.r and s[0] not in okpars:
                 raise ValueError(f"ERROR! The requested free parameter is unknown: {s[0]}")
             if dup[s[0]]:
                 raise ValueError(f"ERROR! Multiple entries for {s[0]} parameter. Please choose one!")
@@ -247,7 +253,7 @@ class BayesianBBarolo(FitMod3D):
                     self.freepar_idx[f'{s[0]}_p{i+1}'] = np.arange(self.ndim,self.ndim+1,dtype='int')
                     self.ndim += 1
             elif len(s)==1:
-                if 'sigma' in s[0]:
+                if s[0] in okpars:
                     self.freepar_idx[s[0]] = np.array([self.ndim])
                     self.ndim += 1
                     self.freepar_names.append(s[0])
@@ -256,9 +262,10 @@ class BayesianBBarolo(FitMod3D):
                     self.ndim += self._inri.nr
                     for i in range(self._inri.nr):
                         self.freepar_names.append(f'{s[0]}{i+1}')
-
+        
         # Setting the priors
         for key in self.freepar_idx:
+            print (self.prior_distr)
             if self.prior_distr[key] is None:
                 # Prior distribution is not set externally, so we use the defined self.priors
                 try:
@@ -286,7 +293,7 @@ class BayesianBBarolo(FitMod3D):
         # Setting up the Ellprof object if a normalization and not using BB residuals 
         self._ellprof = libBB.Ellprof_new_alt(self.inp._cube,self._inri._rings)
         if self.useNorm and not self.useBBres:
-            #self._update_profile(self._inri)
+            self._update_profile(self._inri)
             # Check if we need to update the profile in each fit iteration (= only if geometry is fitted)
             self.update_prof = any(sub in string for string in self.freepar_names for sub in ['inc','phi','xpos','ypos'])
 
@@ -327,7 +334,7 @@ class BayesianBBarolo(FitMod3D):
         return mod, bhi, blo, galmod
 
 
-    def _normalize_model(self, model, data, mask=None):
+    def _normalize_model(self, model, data, mask=None, **kwargs):
         """Normalize the model to the maximum value of the data.
         
         Parameters
@@ -453,7 +460,7 @@ class BayesianBBarolo(FitMod3D):
 
         # Setting up all the needed class attributes
         self._setup(freepar,useBBres,**kwargs)
-
+        
         if verbose:
             print (f"\nFitting {self.ndim} parameters: {self.freepar_names}")
             self.print_priors()
@@ -539,6 +546,13 @@ class BayesianBBarolo(FitMod3D):
 
         freepar_idx = copy.copy(self.freepar_idx)
 
+        # Treating the radmax parameter
+        if 'radmax' in freepar_idx:
+            radmax = theta[freepar_idx['radmax']][0]
+            #I only adjust the latest ring
+            rings.r['radii'][-1] = radmax
+            #rings.modify_parameter('radii',radii)
+
         # Treating cases with function forms
         whatFunctional = np.unique([key.split('_')[0] for key in freepar_idx if '_p' in key])
         if len(whatFunctional)>0:
@@ -552,7 +566,7 @@ class BayesianBBarolo(FitMod3D):
         # Now treating the rest of the parameters with regular rings
         for key in freepar_idx:
             pvalue = theta[freepar_idx[key]]
-            if key=='sigma': continue
+            if key=='sigma' or key=='radmax': continue
             if key=='dens': pvalue *= 1E20
             if len(pvalue)==1: pvalue = pvalue[0]
             rings.modify_parameter(key,pvalue)

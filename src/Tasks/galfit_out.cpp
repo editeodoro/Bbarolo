@@ -289,28 +289,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     // Adding noise to a model
     if (par.NOISERMS!=0) { 
         if (verb) std::cout << "    Writing " << randomAdjective(1) << " noisy model..." << std::flush;
-        size_t nPix = mod->Out()->NumPix();
-        // Getting gaussian noise
-        T *noise = SimulateNoise<T>(par.NOISERMS,nPix);
-        double fac = 1.;
-        if (par.SM) {
-            // Smoothing the noise
-            Beam obeam = {0., 0., 0};
-            Beam nbeam = {in->Head().Bmaj()*arcconv,in->Head().Bmin()*arcconv,in->Head().Bpa()};
-            Smooth3D<T> *sm = new Smooth3D<T>;
-            sm->setUseBlanks(false);
-            sm->smooth(in, obeam, nbeam, noise, noise);
-            // Rescaling the noise to match the required rms
-            T stdd = findStddev(noise,nPix);
-            fac = par.NOISERMS/stdd;
-            delete sm;
-        }
-        // Add noise to the model
-        for (size_t i=nPix; i--;) mod->Out()->Array(i) += (noise[i]*fac);    
+        mod->addnoise(par.NOISERMS);
         // Writing to FITS file
         std::string mfile = outfold+prefix+"mod_noise.fits";
         mod->Out()->fitswrite_3d(mfile.c_str());
-        delete [] noise;
         if (verb) std::cout << " Done." << std::endl;
     }
  
@@ -1387,7 +1369,6 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
     //if (zmin_wcs>zmax_wcs) std::swap(zmin_wcs,zmax_wcs);
     bool reverse = (pa_av>=45 && pa_av<225);
     //if (cdelt3_kms<0) reverse = !reverse;
-
 
     scriptnames.push_back("plot_pvs.py");
     pyf.open((in->pars().getOutfolder()+"plotscripts/"+scriptnames[2]).c_str());
