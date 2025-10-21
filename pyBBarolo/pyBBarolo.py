@@ -323,7 +323,9 @@ class Model3D(Task):
         self.outmodel = None
         super(Model3D,self).__init__(fitsname=fitsname,**kwargs)
         self._opts.update ({'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
-                            'nv'    : [-1, np.int32, "Number of subclouds per profile"]})
+                            'nv'    : [-1, np.int32, "Number of subclouds per profile"],
+                            'linear': [0.8493, np.float32, "Spectral resolution in channels"]})
+                            
         
 
     def smooth(self,beam=None):
@@ -381,6 +383,7 @@ class GalMod(Model3D):
         self._opts.update({'ltype' : [2, np.int32, "Layer type along z"],
                            'cmode' : [1, np.int32, "Mode of clouds-surface density"],
                            'iseed' : [-1, np.int32, "Seed for random number generator"]})
+                           
         self._args = {'radii': [None,'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None,'X-center of the galaxy in pixels'],
                       'ypos' : [None,'Y center of the galaxy in pixels'],
@@ -601,7 +604,7 @@ class FitMod3D(Model3D):
                            'bweight' : [1, np.int32, "Weighting function for Blank pixels"],
                            'tol'     : [1E-03, np.float64, "Tolerance for minimization."],
                            'mask'    : ['SMOOTH', str, "Mask type"],
-                           'norm'    : ['LOCAL', str, "Normalization type"],
+                           'norm'    : ['AZIM', str, "Normalization type"],
                            'free'    : ['VROT VDISP', str, "Free parameters"],
                            'side'    : ['B', str, "Which side of the galaxy to fit"],
                            'twostage': [True, bool, "Regularize and fit a second model"],
@@ -611,7 +614,9 @@ class FitMod3D(Model3D):
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
                            'restwave': [-1., np.float64, "Rest wavelength of observed line"],
-                           'outfolder' : ['./', str, "Directory for outputs" ]})
+                           'outfolder' : ['./', str, "Directory for outputs" ],
+                           'linear': [0, np.float32, "Spectral resolution in channels"]})
+
         self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None, 'X-center of the galaxy in pixels'],
                       'ypos' : [None, 'Y center of the galaxy in pixels'],

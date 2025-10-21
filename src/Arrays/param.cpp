@@ -716,19 +716,31 @@ bool Param::checkPars() {
 #endif
 
     // Checking MASK parameter
-    std::string maskstr = makeupper(MaskType);
-    if (maskstr=="NONE" || maskstr=="SMOOTH" || maskstr=="SEARCH" || maskstr=="SEARCHLARGEST" ||
-        maskstr=="THRESHOLD" || maskstr=="NEGATIVE" ||  maskstr=="SMOOTH&SEARCH"  || 
-        maskstr=="SMOOTH&SEARCHLARGEST") {
-        MaskType = maskstr;
-    }
-    else if (maskstr.find("FILE(")!=std::string::npos) {
-        size_t first = maskstr.find_first_of("(");
-        std::string sub1 = maskstr.substr(0,first);
-        std::string sub2 = MaskType.substr(first);
-        MaskType = sub1+sub2;
+    std::string ms = makeupper(MaskType);
+    std::vector<std::string> maskav = {"SMOOTH","SEARCH","SMOOTH&SEARCH","SEARCHLARGEST",
+                                       "SMOOTH&SEARCHLARGEST","THRESHOLD","NEGATIVE","NONE"};
+    
+    bool maskOK = false;
+    
+    if (ms.find("FILE(")!=std::string::npos) {
+        size_t first = ms.find_first_of("(");
+        size_t secon = ms.find_last_of(")");
+        std::string sub1 = ms.substr(0,first);
+        std::string sub2 = MaskType.substr(first,secon-first);
+        std::string sub3 = ms.substr(secon);
+        MaskType = sub1+sub2+sub3;
+        maskOK = true;
     }
     else {
+        for (const auto& m : maskav) {
+            if (ms==m || ms.find(m + "_ENLARGE")!=std::string::npos) {
+                maskOK = true;
+                MaskType = ms;
+            }
+        }
+    }
+
+    if (!maskOK) {
         cout << "\n ERROR: Unknown type of mask: " << MaskType << std::endl;
         cout << " Setting to SMOOTH" << std::endl;
         MaskType = "SMOOTH";

@@ -294,11 +294,11 @@ void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED) {
     } 
     
     // Initializing random number engines
-    iseed = ISEED;    
+    iseed = ISEED;
     generator.seed(iseed);
     uniform   = std::uniform_real_distribution<float>(-1.,1.);
     gaussia   = std::normal_distribution<float>(0.,1.);
-        
+
 }
 
 
@@ -431,6 +431,7 @@ bool Galmod<T>::addnoise(double noiseRMS) {
     
     return true;
 }
+
 
 template <class T>
 void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
@@ -597,7 +598,6 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
     if (nch==-1) nch=2./(2*sqrt(2*log(2)));
     chwidth = fabs(DeltaVel(in->Head()))*1000;
     sig_instr = nch*chwidth;
-    
 }
 
 
