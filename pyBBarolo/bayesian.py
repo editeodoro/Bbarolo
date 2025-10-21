@@ -265,7 +265,6 @@ class BayesianBBarolo(FitMod3D):
         
         # Setting the priors
         for key in self.freepar_idx:
-            print (self.prior_distr)
             if self.prior_distr[key] is None:
                 # Prior distribution is not set externally, so we use the defined self.priors
                 try:
@@ -520,7 +519,64 @@ class BayesianBBarolo(FitMod3D):
 
             self.samples, weights, _ = self.sampler.posterior()
             self.weights = np.exp(weights-weights.max())
+        
+        elif method=='emcee':
+            
+            raise NotImplementedError("emcee is currently disabled.")
+            
+            ''' Needs to be checked and debugged 
+            try: 
+                import emcee
+            except ImportError:
+                raise ImportError("BayesianBB requires the package emcee when method='emcee'.")
+            
+            global emcee_log_prior
+            global emcee_log_probability
+            
+            def emcee_log_prior(theta):
+                """Compute the log prior for emcee using the same priors as for dynesty."""
+                logp = 0.0
+                for key in self.freepar_idx:
+                    val = theta[self.freepar_idx[key]]
+                    lp = self.prior_distr[key].logpdf(val)
+                    #if not np.isfinite(lp):
+                    #    return -np.inf
+                    logp += lp
+                return logp
+            
+            def emcee_log_probability(theta):
+                lp = emcee_log_prior(theta)
+                #if not np.isfinite(lp):
+                #    return -np.inf
+                return lp + log_likelihood(theta)
+            
+            # Number of walkers (a common heuristic is 2–4 times ndim)
+            nwalkers = sampler_kwargs.get('nwalkers', 4 * self.ndim + 2)
+            nsteps = run_kwargs.get('nsteps', 2000)
 
+            # Initialize walkers: small Gaussian ball around some initial guess
+            if 'theta0' not in sampler_kwargs:
+                raise ValueError("method='emcee' requires an initial position theta0 for sampler_kwargs.")
+            
+            theta0 = np.asarray(sampler_kwargs['theta0']) 
+            frac = sampler_kwargs.get('init_fraction', 0.1)  # 10% variation by default
+
+            # Random fractional perturbation around theta0
+            p0 = theta0 * (1 + frac * np.random.randn(nwalkers, self.ndim))
+            
+            # Define the sampler
+            self.sampler = emcee.EnsembleSampler(nwalkers, self.ndim, emcee_log_probability)#, pool=pool)
+
+            # Run MCMC
+            if verbose:
+                print(f"Running emcee with {nwalkers} walkers for {nsteps} steps...")
+                self.sampler.run_mcmc(p0, nsteps, progress=verbose)
+
+                # Flatten and store results
+                self.samples = self.sampler.get_chain(discard=run_kwargs.get('burnin', nsteps // 2), flat=True)
+                self.weights = np.ones(len(self.samples))  # Equal weights for MCMC samples
+                self.results = self.sampler  # for symmetry with dynesty
+            '''
         else: 
             raise ValueError(f"ERROR! Unknown method '{method}'.")
         

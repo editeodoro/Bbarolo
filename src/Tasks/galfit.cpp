@@ -1131,7 +1131,7 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
     Model::Galmod<T> *mod = new Model::Galmod<T>;
-    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
+    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS,par.ISEED);
     mod->calculate();
     
     // Adding up the "sofar" model, if requested

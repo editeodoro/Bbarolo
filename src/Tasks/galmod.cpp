@@ -293,13 +293,8 @@ void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED) {
         cdens=1.;
     } 
     
-    iseed = ISEED;
-    if (iseed>=0) {
-        std::cout << "GALMOD warning: ISEED must be negative. Assuming -1.\n";
-        iseed=-1;
-    }
-    
     // Initializing random number engines
+    iseed = ISEED;    
     generator.seed(iseed);
     uniform   = std::uniform_real_distribution<float>(-1.,1.);
     gaussia   = std::normal_distribution<float>(0.,1.);
