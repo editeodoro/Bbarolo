@@ -520,7 +520,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     /// - NONE:          No mask.
     ///
     /// A string "ENLARGEN" can be appended to all the above, to enlarge the mask by N
-    /// pixels (characters after ENLARGE).
+    /// pixels (characters after ENLARGE), e.g., SMOOTH_ENLARGE3 -> enlarge by 3 pixels.
     ///////////////////////////////////////////////////////////////////////////////////
 
     if (maskAllocated) delete [] mask;

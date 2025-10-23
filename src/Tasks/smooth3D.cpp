@@ -334,14 +334,15 @@ bool Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam, T *OldArray, T 
 
 
 template <class T>
-bool Smooth3D<T>::defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam) {
+bool Smooth3D<T>::defineConvbeam_Gaussian(Beam Oldbeam, Beam Newbeam, double *pixSize) {
     
-    /// A function that defines the convolution beam, the 
-    /// convolution field and the scale factor for smoothing.
-        
+    // Defines the convolution beam and convolution field for Gaussian smoothing
+
     oldbeam = Oldbeam;
     newbeam = Newbeam;
-    
+    gridspace[0]=pixSize[0]; 
+    gridspace[1]=pixSize[1];
+
     if (oldbeam.bmaj<oldbeam.bmin) {
         std::cout << "Major axis < minor axis. Inverting...";
         double dum = oldbeam.bmaj;
@@ -368,28 +369,42 @@ bool Smooth3D<T>::defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam) {
         std::cout << "SMOOTHING error: cannot calculate convolution parameters!\n";
         return false;
     }
-     
-    double *datadummy = new double[NdatX*NdatY];
-    T *dataI    = new T[NdatX*NdatY];
-    T *dataO        = new T[NdatX*NdatY];
-    
+
     confie = new double[maxconv];
     confieAllocated=true;
-        
+    
     conbeam.bpa -= crota-90;
     if (!Fillgauss2d(conbeam, 1.0, true, NconX, NconY, confie)) {
         std::cout << "SMOOTH error: Convolution region to big!\n";
         return false;
     }
     conbeam.bpa += crota;
+    std::cout << "ALLGOO2" << std::endl;
 
+    return true;
+}
+
+
+template <class T>
+bool Smooth3D<T>::defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam) {
+    
+    /// A function that defines the convolution beam, the 
+    /// convolution field and the scale factor for smoothing.
+        
+    if (!defineConvbeam_Gaussian(Oldbeam, Newbeam, gridspace)) {
+        return false;
+    }
+     
+    double *datadummy = new double[NdatX*NdatY];
+    T *dataI    = new T[NdatX*NdatY];
+    T *dataO    = new T[NdatX*NdatY];
+    
     int maxbufsize=dimAxes[0]*NconY;
     if (maxbufsize>NdatX*NdatY) {
         cout << maxbufsize << "  " << NdatX << "  " << NdatY << " " << newbeam.bmaj << " " << NdatX*NdatY << endl;
         std::cout<<"SMOOTH: Convolution field too big or buffer too small.\n";
         return false;
     }
-
 
     int dumNconX, dumNconY;
     oldbeam.bpa=oldbeam.bpa+90-crota;

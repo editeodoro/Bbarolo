@@ -965,122 +965,30 @@ template bool Galfit<double>::regularizeParams(std::vector<double>,std::vector<d
 template <class T> 
 bool Galfit<T>::setCfield() {
     
-    T pixsizeX = fabs(in->Head().Cdelt(0))*arcconv; 
-    T pixsizeY = fabs(in->Head().Cdelt(1))*arcconv; 
+    double pixSize[2] = {in->Head().Cdelt(0)*arcconv, in->Head().Cdelt(1)*arcconv};
     
-    //Beam Old = {pixsizeX, pixsizeY, 0};
+    //Beam Old = {fabs(pixsizeX), fabs(pixsizeY), 0};
     Beam Old = {0, 0, 0};
 
     Beam New = {in->Head().Bmaj()*3600.,        // Beam always in degrees
                 in->Head().Bmin()*3600.,
                 in->Head().Bpa()};
-/*
-    if (Old.bmaj<Old.bmin) {
-        std::cout << "Old beam major axis < minor axis. Inverting...";
-        std::swap(Old.bmaj, Old.bmin);
-    }
-*/
-    bool agreed = ((New.bmaj>=Old.bmaj) && (New.bmin>=Old.bmin)); 
- 
-    if (!agreed) {
-        std::cout << "3DFIT error: new beam smaller than old beam\n";
+                
+    
+    Smooth3D<T> *sm = new Smooth3D<T>;
+    if (!sm->defineConvbeam_Gaussian(Old, New, pixSize)) {
+        delete sm;
         return false;
     }
-    if (New.bmaj<New.bmin) {
-        std::cout << "New beam major axis < minor axis. Inverting...";
-        std::swap(New.bmaj, New.bmin);
-    }
-
-    // Now calculate the convolution beam;
-    double a2  = Old.bmaj/2;
-    double b2  = Old.bmin/2;
-    double a0  = New.bmaj/2;
-    double b0  = New.bmin/2;
-    double D0  = a0*a0-b0*b0;
-    double D2  = a2*a2-b2*b2;    
-    double th2 = Old.bpa*atan(1.)/45.;
-    double th0 = New.bpa*atan(1.)/45.;
-    double D1  = sqrt(D0*D0+D2*D2-2*D0*D2*cos(2*(th0-th2)));    
-    double a1, b1, th1;
     
-    double arg = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2+D1); 
-    if (arg<0) {
-        std::cout << "3DFIT error: unsuitable new beam parameters!\n";
-    return false;
-    }
-    else a1 = sqrt(arg);
-      
-    arg = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2-D1); 
-    if (arg<0) {
-        std::cout << "3DFIT error: unsuitable new beam parameters!\n";
-    return false;
-    }
-    else b1 = sqrt(arg);
-    
-    double nom   = D0*sin(2*th0)-D2*sin(2*th2);
-    double denom = D0*cos(2*th0)-D2*cos(2*th2); 
-    if (denom==0 && nom==0) th1=0;
-    else {
-        T twoth1 = atan2(nom,denom);
-        th1 = twoth1/2;          
-    }
-    
-    Beam Con = {2*a1, 2*b1, (th1*180./M_PI)-90.};
-
-    // Building the convolution field.
-    double phi = Con.bpa*M_PI/180.;
-    double cs = cos(phi);
-    double sn = sin(phi);  
-    double beam[2] = {Con.bmaj, Con.bmin};
-
-    double xr = 0.5*beam[0];
-    double yr = 0.5*beam[1];
-    double extend = sqrt(-1.0*log(1E-04)/log(2.0));
-    xr *= extend;
-    yr *= extend;
-   
-    double x1 = fabs(xr*cs-0.0*sn);
-    double y1 = fabs(xr*sn+0.0*cs);
-    double x2 = fabs(0.0*cs-yr*sn);
-    double y2 = fabs(0.0*sn+yr*cs);
-    double x  = (x2>x1 ? x2:x1);
-    double y  = (y2>y1 ? y2:y1);
-   
-    int Xmax = lround(x/pixsizeX); 
-    int Ymax = lround(y/pixsizeY); 
-
-    NconX = 2*Xmax+1;    
-    NconY = 2*Ymax+1; 
-    
+    NconX = sm->getNconX();
+    NconY = sm->getNconY();
     cfield = new double[NconX*NconY];
-    cfieldAllocated=true;       
-      
-    double argfac = -4.0 * log(2.0);
-    double totalarea = 0;
-    for (int j=-Ymax; j<=Ymax; j++) {
-        for (int i=-Xmax; i<=Xmax; i++) {
-            int pos = (j+Ymax)*NconX+(i+Xmax);    
-            x = i*pixsizeX;
-            y = j*pixsizeY;
-            xr = x*cs + y*sn;
-            yr = -1.0*x*sn + y*cs;
-            double argX=0;
-            double argY=0;
-            if (beam[0]!=0) argX = xr/beam[0];
-            if (beam[1]!=0) argY = yr/beam[1];
-            double arg = argfac*(argX*argX+argY*argY);
-            double c = exp(arg);
-            if (c>=1E-04) {
-                cfield[pos] = c;
-                totalarea += c;
-            } 
-            else cfield[pos] = 0;
-        }
-    }
-   
-    for (int i=0;i<NconX*NconY;i++) cfield[i] = cfield[i]/totalarea;
-
+    cfieldAllocated=true;
+    std::copy(sm->Confie(), sm->Confie()+NconX*NconY, cfield);
+    delete sm;   
     return true;
+    
 }
 template bool Galfit<float>::setCfield();
 template bool Galfit<double>::setCfield();
@@ -1151,6 +1059,31 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
 }
 template Model::Galmod<float>* Galfit<float>::getModel(Rings<float>*, int*, int*, Model::Galmod<float>*, bool);
 template Model::Galmod<double>* Galfit<double>::getModel(Rings<double>*, int*, int*, Model::Galmod<double>*, bool);
+
+
+template <class T>
+T* Galfit<T>::getModel_BBB(Rings<T> *dr, int* bhi, int* blo, int iseed) {
+
+    int nv = par.NV==-1 ? in->DimZ() : par.NV;
+    int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
+
+    Model::Galmod<T> *mod = new Model::Galmod<T>;
+    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS,iseed);
+    mod->calculate();
+
+    T *outarray = new T[2*mod->Out()->NumPix()];
+
+    for (int i=0; i<mod->Out()->NumPix(); i++) {
+        outarray[i] = mod->Out()->Array(i);
+        outarray[i+mod->Out()->NumPix()] = mod->Out()->Array(i);
+    }
+
+    Convolve_fft(&outarray[mod->Out()->NumPix()], bsize);
+
+    return outarray;
+}
+template float* Galfit<float>::getModel_BBB(Rings<float>*, int*, int*, int);
+template double* Galfit<double>::getModel_BBB(Rings<double>*, int*, int*, int);
 
 
 template <class T>

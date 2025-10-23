@@ -614,8 +614,7 @@ class FitMod3D(Model3D):
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
                            'restwave': [-1., np.float64, "Rest wavelength of observed line"],
-                           'outfolder' : ['./', str, "Directory for outputs" ],
-                           'linear': [0, np.float32, "Spectral resolution in channels"]})
+                           'outfolder' : ['./', str, "Directory for outputs" ]})
 
         self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None, 'X-center of the galaxy in pixels'],

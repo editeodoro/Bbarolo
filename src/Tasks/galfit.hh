@@ -68,6 +68,8 @@ public:
     double calculateResiduals(Rings<T> *r) {return getFuncValue(r);}
     void writeRingFile(std::string filename, Rings<T> *r, T ***errors=nullptr);
     Galmod<T>* getModel(Rings<T> *dr, int *bhi, int* blo, Model::Galmod<T> *modsoFar=nullptr, bool finalModel=false);
+    T* getModel_BBB(Rings<T> *dr, int* bhi, int* blo, int iseed);
+
     bool AsymmetricDrift(T *rad, T *densprof, T *dispprof, T *rotcur, T *inc, int nn);
 
     // Functions defined in galfit_min.cpp

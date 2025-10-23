@@ -71,10 +71,14 @@ public:
     Beam    Oldbeam() {return oldbeam;}
     Beam    Newbeam() {return newbeam;}
     Beam    Conbeam() {return conbeam;}
+    int     getNconX() {return NconX;}
+    int     getNconY() {return NconY;}
     double  Scalefac(){return scalefac;}
     void    setUseScalefac (bool ff) {usescalefac=ff;}
     void    setUseBlanks(bool b) {useBlanks=b;}
     
+    bool defineConvbeam_Gaussian(Beam Oldbeam, Beam Newbeam, double *pixSize);
+
     void cubesmooth(Cube<T> *c);
     void smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam);
     void smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newbeam);
@@ -115,11 +119,11 @@ private:
     typedef bool (Smooth3D<T>::*funcPtr) (Beam, Beam);
     funcPtr func_psf;
     
-    bool defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam);
-    bool defineBeam_Moffat(Beam Oldbeam, Beam Newbeam);
     bool calculate(T *OldArray, T *NewArray);   
     bool calculatefft(T *OldArray, T *NewArray);
-    bool Convpars();                
+    bool Convpars(); 
+    bool defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam);
+    bool defineBeam_Moffat(Beam Oldbeam, Beam Newbeam);           
     bool Fillgauss2d(Beam varbeam, float ampl, bool norm, int &NconX, 
                      int &NconY, double *cfie);
     bool FillMoffat2d(Beam varbeam, float ampl, bool norm, int &NconX, 
