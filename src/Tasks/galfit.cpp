@@ -973,7 +973,6 @@ bool Galfit<T>::setCfield() {
     Beam New = {in->Head().Bmaj()*3600.,        // Beam always in degrees
                 in->Head().Bmin()*3600.,
                 in->Head().Bpa()};
-                
     
     Smooth3D<T> *sm = new Smooth3D<T>;
     if (!sm->defineConvbeam_Gaussian(Old, New, pixSize)) {
@@ -1071,6 +1070,7 @@ T* Galfit<T>::getModel_BBB(Rings<T> *dr, int* bhi, int* blo, int iseed) {
     mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS,iseed);
     mod->calculate();
 
+    // Storing both non-convolved and convolved model (non-convolved first) in the same array.
     T *outarray = new T[2*mod->Out()->NumPix()];
 
     for (int i=0; i<mod->Out()->NumPix(); i++) {

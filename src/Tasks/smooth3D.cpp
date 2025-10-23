@@ -379,7 +379,6 @@ bool Smooth3D<T>::defineConvbeam_Gaussian(Beam Oldbeam, Beam Newbeam, double *pi
         return false;
     }
     conbeam.bpa += crota;
-    std::cout << "ALLGOO2" << std::endl;
 
     return true;
 }
