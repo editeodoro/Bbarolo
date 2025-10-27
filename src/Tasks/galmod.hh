@@ -90,7 +90,7 @@ public:
     Rings<Type> *Ring() {return r;}
     Type *getArray() {return out->Array();}
     void setArray(Type *a) {out->setArray(a);}
-
+    void setEmpty(bool e) {empty=e;}
     
     void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings, 
                int NV=-1, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);
@@ -132,6 +132,7 @@ protected:
     bool    ringDefined;
     
     std::vector<int> nv;                    //< Number of subclouds
+    bool    empty;                          //< Whether to fill innermost ring.
     int     ltype;                          //< Layer type.
     int     cmode;                          //< Cloud mode 
     float   cdens;                          //< Surf. dens. of clouds per area of a pixel.

@@ -154,7 +154,10 @@ void Galmod<T>::defaults() {
     nlines        = 1;
     relvel.push_back(0);
     relint.push_back(1);
-           
+
+    // This is better as true when 3DFIT (otherwise it lowers the VROT and increase VDISP)
+    empty         = true;
+
 }
 
 
@@ -646,8 +649,6 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         }
     }
     
-    // This is better as true when 3DFIT (otherwise it lowers the VROT and increase VDISP)
-    bool empty = true;
     /*
     if (uradii[0]!=0) {
         std::cout << "Leave innerpart of first ring empty? [Y,N]";

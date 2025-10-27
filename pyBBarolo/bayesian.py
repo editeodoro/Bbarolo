@@ -26,10 +26,10 @@ from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer, vprint, isIterabl
 
 try: 
     import dynesty as dyn
-    from dynesty.utils import resample_equal
+    from dynesty import utils as dyfunc
     from scipy import stats
 except ImportError:
-    raise ImportError("BayesianBB requires the packages 'scipy' and 'dynesty'. Please install them.")
+    raise ImportError("BayesianBB requires the packages 'scipy', and 'dynesty'. Please install them.")
 
 parallel = True
 try: 
@@ -64,9 +64,9 @@ class BayesianBBarolo(FitMod3D):
     
     Attributes
     ----------
-    taskname : str
-      A string with the name of the task (BAYESIAN3DFIT)
-    
+    fitsname : str
+      A string with the name of the fits file to be used.
+
     ...
       
     Methods
@@ -74,7 +74,32 @@ class BayesianBBarolo(FitMod3D):
     set_options(**kwargs):
         Set all options for BBarolo.
 
-    TO BE COMPLETED
+    show_options():
+        Print the options set for BBarolo.
+    
+    init(radii,xpos,ypos,vsys,vrot,vdisp,inc,phi,z0,vrad,dens,vvert,dvdz,zcyl):
+        Initialize the rings of the model.
+    
+    compute(threads,freepar,method,useBBres,sampler_kwargs,run_kwargs,like_kwargs, **kwargs):
+        Fit the model to the data using a Bayesian sampler.
+
+    write_bestmodel(plots,**kwargs):
+        Write the best model and plots using the BBarolo library.
+
+    corner_plot(samples,labels,truths,quantiles,plot_dynesty,**kwargs):
+        Create a corner plot of the posterior distributions.
+
+    print_priors():
+        Print the priors set for the fit.
+    
+    print_stats():
+        Compute and print statistics of the fit.
+
+    load_results(inputfile):
+        Load previously saved results from a file.
+    
+    save_results(outfile):
+        Save results to a file.
     """
     
     def __init__(self,fitsname,**kwargs):
@@ -110,8 +135,8 @@ class BayesianBBarolo(FitMod3D):
         self.prior_distr = None
         # A dictionary with functions for parametric fits
         self.funcs = {}
-        # A pointer to the C++ Galfit object
-        self._galfit = None
+        # A pointer to the C++ Galfit and Ellprof objects
+        self._galfit = self._ellprof = None
         self.modCalculated = False
 
     
@@ -161,7 +186,9 @@ class BayesianBBarolo(FitMod3D):
             Cylindrical height where the dvdz starts in arcsec. Default is 0.            
         """
         # Using the Fit3D initialization function (see pyBBarolo.py)
-        # super(BayesianBBarolo,self)._input(**kwargs)
+        if self._inri is not None:
+            print ("Error: rings can not be re-initialized. Please create a new BayesianBBarolo object.")
+            return
 
         # Initialize rings
         if not isIterable(radii): raise ValueError("radii must be an array")
@@ -190,7 +217,7 @@ class BayesianBBarolo(FitMod3D):
         self.priors['radmax']= dict(name='uniform',loc=rr['radii'][-1]-radsep/2.,scale=radsep) # +- radsep
 
         # Defining the parametric functions. Default only for dens, vrot and vdisp
-        self.funcs['vrot']   = lambda R,p1,p2: 2./np.pi*p1*np.arctan(radii/p2)      # Arctan function for vrot
+        self.funcs['vrot']   = lambda R,p1,p2: 2./np.pi*p1*np.arctan(R/p2)          # Arctan function for vrot
         self.funcs['vdisp']  = lambda R,p1,p2: p1 + p2*R                            # Line for vdisp
         self.funcs['dens']   = lambda R,p1,p2: p1*np.exp(-R/p2)                     # Exponential for dens
 
@@ -212,13 +239,15 @@ class BayesianBBarolo(FitMod3D):
             - self.ndim: number of parameters to fit
             - self.freepar_idx: indexes of the parameters to fit
             - self.freepar_names: names of the parameters to fit
+            - self._freepar_inp: input freepar list
             - self.prior_distr: dictionary with prior probabilities
             - self._galfit: pointer to the C++ Galfit object
             - self.mask: mask from the input cube (3D array)
             - self._ellprof: a pointer to a C++ Ellprof object   
         """
-        if self._inri is None: 
-            print ("Error: you need to initialize rings first by calling the function init()")
+
+        if self._inri is None:
+            print("Error: you need to initialize rings first by calling the function init()")
             return
         
         self.useBBres = useBBres 
@@ -227,6 +256,7 @@ class BayesianBBarolo(FitMod3D):
         self.freepar_idx = {}
         self.ndim = 0
         self.freepar_names = []
+        self._freepar_inp = freepar
 
         dup = {key : False for key in self.priors.keys()}
 
@@ -275,22 +305,24 @@ class BayesianBBarolo(FitMod3D):
                     
             elif not isinstance(self.prior_distr[key], stats._distn_infrastructure.rv_continuous_frozen):
                 raise ValueError(f"ERROR! Prior for {key} should be None or a scipy.stats distribution.")
-
+        
         # Making a Param C++ object and a Galfit object
         self._opts.add_params(verbose=False)
         self._opts.make_object()
 
-        self._galfit = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._opts._params)
-
-        # Getting the mask from the input cube
-        self.mask  = reshapePointer(libBB.Cube_getMask(self.inp._cube),self.inp.dim[::-1])
-        self.data  = reshapePointer(libBB.Cube_array(self.inp._cube),self.inp.dim[::-1])
-
+        if self._galfit is None: 
+            self._galfit = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._opts._params)
+            # Getting the mask from the input cube
+            self.mask  = reshapePointer(libBB.Cube_getMask(self.inp._cube),self.inp.dim[::-1])
+            self.data  = reshapePointer(libBB.Cube_array(self.inp._cube),self.inp.dim[::-1])
+        
         # Checking whether the density is fitted or not. In case it is not, use a normalization
         self.useNorm = not any('dens' in sub for sub in self.freepar_names)
-
-        # Setting up the Ellprof object if a normalization and not using BB residuals 
-        self._ellprof = libBB.Ellprof_new_alt(self.inp._cube,self._inri._rings)
+        
+        # Setting up the Ellprof object if a normalization and not using BB residuals
+        if self._ellprof is None:
+            self._ellprof = libBB.Ellprof_new_alt(self.inp._cube,self._inri._rings)
+        
         if self.useNorm and not self.useBBres:
             self._update_profile(self._inri)
             # Check if we need to update the profile in each fit iteration (= only if geometry is fitted)
@@ -323,7 +355,7 @@ class BayesianBBarolo(FitMod3D):
         # within the last ring. This is to calculate the residuals faster.
         bhi, blo = (ctypes.c_int * 2)(0), (ctypes.c_int * 2)(0)
         libBB.Galfit_getModelSize(self._galfit,rings._rings,bhi,blo)
-        galmod = libBB.Galfit_getModel(self._galfit,rings._rings,bhi,blo)
+        galmod = libBB.Galfit_getModel(self._galfit,rings._rings,bhi,blo,False)
         bhi, blo = np.array(bhi), np.array(blo)
 
         # Reshaping the model to the correct 3D shape
@@ -487,7 +519,6 @@ class BayesianBBarolo(FitMod3D):
             else:
                 print ("WARNING: Parallelization is disabled!")
 
-
         # Now running the sampling 
         toc = time.time()
         if method=='dynesty': 
@@ -498,11 +529,12 @@ class BayesianBBarolo(FitMod3D):
             
             self.sampler.run_nested(print_progress=verbose,**run_kwargs)
 
-            # Saving the results into class attributes
             self.results = self.sampler.results
-            self.samples = self.results.samples  # Posterior samples
-            self.weights = np.exp(self.results.logwt - self.results.logz[-1])
-                                
+            samples = self.results.samples
+            weights = np.exp(self.results.logwt - self.results.logz[-1])
+
+            #self.quantiles = np.array([dyfunc.quantile(s, [0.16, 0.5, 0.84], weights=self.weights) for s in self.samples.T]).T
+                        
         elif method=='nautilus':
             
             try: 
@@ -516,73 +548,15 @@ class BayesianBBarolo(FitMod3D):
             self.sampler = nautilus.Sampler(prior_transform,log_likelihood,n_dim=self.ndim, \
                                             pool=pool,pass_dict=False,**sampler_kwargs)
             self.sampler.run(verbose=verbose,**run_kwargs)
-
-            self.samples, weights, _ = self.sampler.posterior()
-            self.weights = np.exp(weights-weights.max())
-        
-        elif method=='emcee':
             
-            raise NotImplementedError("emcee is currently disabled.")
+            samples, weights, _ = self.sampler.posterior()
+            weights = np.exp(weights-weights.max())
+            self.results = None
             
-            ''' Needs to be checked and debugged 
-            try: 
-                import emcee
-            except ImportError:
-                raise ImportError("BayesianBB requires the package emcee when method='emcee'.")
-            
-            global emcee_log_prior
-            global emcee_log_probability
-            
-            def emcee_log_prior(theta):
-                """Compute the log prior for emcee using the same priors as for dynesty."""
-                logp = 0.0
-                for key in self.freepar_idx:
-                    val = theta[self.freepar_idx[key]]
-                    lp = self.prior_distr[key].logpdf(val)
-                    #if not np.isfinite(lp):
-                    #    return -np.inf
-                    logp += lp
-                return logp
-            
-            def emcee_log_probability(theta):
-                lp = emcee_log_prior(theta)
-                #if not np.isfinite(lp):
-                #    return -np.inf
-                return lp + log_likelihood(theta)
-            
-            # Number of walkers (a common heuristic is 2–4 times ndim)
-            nwalkers = sampler_kwargs.get('nwalkers', 4 * self.ndim + 2)
-            nsteps = run_kwargs.get('nsteps', 2000)
-
-            # Initialize walkers: small Gaussian ball around some initial guess
-            if 'theta0' not in sampler_kwargs:
-                raise ValueError("method='emcee' requires an initial position theta0 for sampler_kwargs.")
-            
-            theta0 = np.asarray(sampler_kwargs['theta0']) 
-            frac = sampler_kwargs.get('init_fraction', 0.1)  # 10% variation by default
-
-            # Random fractional perturbation around theta0
-            p0 = theta0 * (1 + frac * np.random.randn(nwalkers, self.ndim))
-            
-            # Define the sampler
-            self.sampler = emcee.EnsembleSampler(nwalkers, self.ndim, emcee_log_probability)#, pool=pool)
-
-            # Run MCMC
-            if verbose:
-                print(f"Running emcee with {nwalkers} walkers for {nsteps} steps...")
-                self.sampler.run_mcmc(p0, nsteps, progress=verbose)
-
-                # Flatten and store results
-                self.samples = self.sampler.get_chain(discard=run_kwargs.get('burnin', nsteps // 2), flat=True)
-                self.weights = np.ones(len(self.samples))  # Equal weights for MCMC samples
-                self.results = self.sampler  # for symmetry with dynesty
-            '''
         else: 
             raise ValueError(f"ERROR! Unknown method '{method}'.")
         
-        
-        self.samples = resample_equal(self.samples,self.weights)
-        self.params = np.median(self.samples,axis=0)
+        self._set_sampling_stats(samples,weights)
 
         dt = time.time()-toc
         dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
@@ -597,6 +571,19 @@ class BayesianBBarolo(FitMod3D):
         self.modCalculated = True
  
     
+    def _set_sampling_stats(self,samples,weights):
+        """ Calculate statistics of the sampling results and set class attributes. """
+        self.samples = samples
+        self.weights = weights / np.nansum(weights)
+        self.samples_equal = dyfunc.resample_equal(self.samples, self.weights)
+        self.modCalculated = True
+        
+        # Below only ok with Numpy > 2.0, but nautilus currently does not support it. So using equal weighting samples.
+        #self.quantiles = np.quantile(self.samples, [0.16,0.50,0.84], weights=self.weights, axis=0, method='inverted_cdf')        
+        self.quantiles = np.quantile(self.samples_equal, [0.16,0.50,0.84], axis=0)
+        self.params = self.quantiles[1]
+
+
     def _update_rings(self,rings,theta):
         """ Update rings with the parameters theta """
 
@@ -676,7 +663,7 @@ class BayesianBBarolo(FitMod3D):
             # Deriving the last model
             _, ys, xs = self.data.shape
             bhi, blo = (ctypes.c_int * 2)(xs,ys), (ctypes.c_int * 2)(0)
-            galmod = libBB.Galfit_getModel(self._galfit,self.outri._rings,bhi,blo)
+            galmod = libBB.Galfit_getModel(self._galfit,self.outri._rings,bhi,blo,True)
 
             if self.useNorm:
                 # Reshaping the model to the correct 3D shape
@@ -684,32 +671,71 @@ class BayesianBBarolo(FitMod3D):
                 # Normalizing and copying it back to the C++ Galmod object
                 model = self._normalize_model(model,self.data,self.mask)
                 libBB.Galmod_set_array(galmod,np.ravel(model).astype('float32'))
+                model = reshapePointer(libBB.Galmod_array(galmod),self.data.shape)
             
             # Writing all the outputs
             libBB.Galfit_writeOutputs(self._galfit,galmod,self._ellprof,plots)
-        
+
         vprint(verbose,"Done!")
 
 
-    def print_stats(self,burnin=0,percentiles=[15.865,50,84.135]):
+    def corner_plot(self,samples=None,labels=None,truths=None,quantiles=[0.15865,0.50,0.84135],plot_dynesty=False,**kwargs):
+        """ Create a corner plot of the posterior distributions """
+        
+        if samples is None and not self.modCalculated:
+            print ("Sampler has not been run yet. Please run compute() before running this function or load samples with load_samples().")
+
+        defaults  = dict(max_n_ticks=5, color='darkblue', show_titles=True)
+
+        if plot_dynesty:
+            try: 
+                from dynesty import plotting as dyplot
+            except ImportError:
+                raise ImportError("BayesianBB requires the package 'dynesty' to produce dynesty plots.")
+
+            # Dynesty corner plot needs the results object
+            samples = self.results
+            cornerplot = dyplot.cornerplot
+
+        else:
+            try: 
+                import corner
+            except ImportError:
+                raise ImportError("BayesianBB requires the package 'corner' to produce corner plots.")
+
+            cornerplot = corner.corner
+            defaults['plot_datapoints'] = False
+
+        if samples is None:
+            samples = self.samples_equal
+        if labels is None:
+            labels = self.freepar_names
+        
+        mergedkey = {**defaults, **kwargs}
+
+        c = cornerplot(samples, title_quantiles=quantiles, quantiles=quantiles, \
+                       labels=labels, label_kwargs=dict(fontsize=20), **mergedkey)
+        
+        return c[0] if plot_dynesty else c
+
+
+    def print_stats(self,quantiles=[0.15865,0.50,0.84135]):
 
         if not self.modCalculated:
             print ("Sampler has not been run yet. Please run compute() before running this function.")
             return
         
-        if not isIterable(percentiles) and len(percentiles)!=3:
+        if not isIterable(quantiles) and len(quantiles)!=3:
             raise ValueError("ERROR! Percentiles must be a list of three values.")
 
-        results = copy.copy(self.sampler.results)
-        #results = results[burnin:]
-        weights = np.exp(results.logwt - results.logz[-1])
-        samples = resample_equal(results.samples,weights)
+        results = self.results
+        samples = self.samples_equal
 
         # Printing central values and error of posterior distributions
         logl = self._log_likelihood(self.params)
         print(f"\nBest-fit parameters (log_likelihood = {logl:.2f}):") 
         for i in range(len(self.freepar_names)):
-            values = np.percentile(samples[:, i], percentiles)
+            values = self.quantiles.T[i]
             q = np.diff(values)
             txt = "  %10s = %10.3f %+10.3f %+10.3f"%(self.freepar_names[i], values[1], -q[0], q[1])
             print (txt)
@@ -723,8 +749,6 @@ class BayesianBBarolo(FitMod3D):
             txt = "  %10s = %10.3f "%(self.freepar_names[i], max_params[i])
             print(txt)
 
-        return results, samples
-
 
     def print_priors(self):
         """ Print the priors for each parameter """
@@ -732,6 +756,50 @@ class BayesianBBarolo(FitMod3D):
         for key in self.freepar_idx:
             print(f"{key:>10s} = {self.prior_distr[key].dist.name:10s}", self.prior_distr[key].kwds)
         print ("\n")
+    
+
+    def save_results(self,outfile):
+        """ Save the results as a dictionary in a pickle file."""
+
+        tosave = dict()
+        tosave['results'] = self.results if self.results is not None else None
+        tosave['samples'] = self.samples
+        tosave['freepar_inp'] = self._freepar_inp
+        tosave['freepar_names'] = self.freepar_names
+        tosave['freepar_idx']   = self.freepar_idx
+        tosave['inrings'] = self._inri.r
+        tosave['options'] = self._opts.opts
+        np.save(outfile,tosave)
+
+ 
+    def load_results(self,inputfile,sampler='dynesty'):
+        """ Load previously saved results from a file. Input file must be a numpy .npy file."""
+        
+        r = np.load(inputfile,allow_pickle=True).item()
+        
+        # Initializing rings
+        rr = r['inrings']
+        self.init(radii=rr['radii'],xpos=rr['xpos'],ypos=rr['ypos'],vsys=rr['vsys'],vrot=rr['vrot'],\
+                  vdisp=rr['vdisp'],inc=rr['inc'],phi=rr['phi'],z0=rr['z0'],vrad=rr['vrad'],\
+                  dens=rr['dens']/1E20,vvert=rr['vvert'],dvdz=rr['dvdz'],zcyl=rr['zcyl'])
+        
+        # Setting options and all necessary attributes
+        self.set_options(**r['options'])
+        self._setup(r['freepar_inp'])
+
+        # Loading sampling results
+        if sampler=='dynesty':
+
+            self.results = r['results']
+            weights = np.exp(self.results.logwt - self.results.logz[-1])
+            self._set_sampling_stats(self.results.samples, weights)
+
+        elif sampler=='nautilus':
+            raise NotImplementedError()
+        else:
+            raise ValueError(f"Error: sampler {sampler} not known")
+        
+
 
 
 

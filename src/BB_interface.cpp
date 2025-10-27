@@ -83,8 +83,8 @@ bool Galfit_galfit(Galfit<float> *g) {signal(SIGINT, signalHandler); g->galfit()
 bool Galfit_secondStage(Galfit<float> *g) {signal(SIGINT, signalHandler); return g->SecondStage();}
 float Galfit_calcresiduals(Galfit<float> *g, Rings<float> *r) {return g->calculateResiduals(r);}
 void Galfit_getModelSize(Galfit<float> *g, Rings<float> *r, int *bhi, int *blo) {g->getModelSize(r,blo,bhi);}
-Galmod<float>* Galfit_getModel(Galfit<float> *g, Rings<float> *r, int *bhi, int *blo) {signal(SIGINT, signalHandler); 
-                                                                        return g->getModel(r,bhi,blo,nullptr,false);}
+Galmod<float>* Galfit_getModel(Galfit<float> *g, Rings<float> *r, int *bhi, int *blo, bool final) {signal(SIGINT, signalHandler); 
+                                                                        return g->getModel(r,bhi,blo,nullptr,final);}
 float* Galfit_getModel_BBB(Galfit<float> *g, Rings<float> *r, int *bhi, int *blo, int iseed) {signal(SIGINT, signalHandler); 
                                                                         return g->getModel_BBB(r,bhi,blo,iseed);}
 void Galfit_writeModel(Galfit<float> *g, const char* norm, bool plots) {signal(SIGINT, signalHandler); g->writeModel(string(norm),plots);}
