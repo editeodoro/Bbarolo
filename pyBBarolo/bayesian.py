@@ -315,7 +315,10 @@ class BayesianBBarolo(FitMod3D):
             # Getting the mask from the input cube
             self.mask  = reshapePointer(libBB.Cube_getMask(self.inp._cube),self.inp.dim[::-1])
             self.data  = reshapePointer(libBB.Cube_array(self.inp._cube),self.inp.dim[::-1])
-        
+
+            #@TODO: Should we normalize data to be in some sensible range (e.g. 0-1)? 
+            #self.data = (self.data - np.nanmin(self.data)) / (np.nanmax(self.data) - np.nanmin(self.data))
+
         # Checking whether the density is fitted or not. In case it is not, use a normalization
         self.useNorm = not any('dens' in sub for sub in self.freepar_names)
         

@@ -604,6 +604,9 @@ bool Header::header_read (std::string fname) {
     // Parse the FITS header to fill in the wcsprm structure
     status=wcspih(hdr, nkeys, relax, ctrl, &nreject, &nwcs, &wcs);
 
+    // Here, I am always just loading 1 wcs structure, so overriding nwcs.
+    nwcs = 1;
+
     int stat[NWCSFIX];
     // Applies all necessary corrections to the wcsprm structure
     //  (missing cards, non-standard units or spectral types, ...)

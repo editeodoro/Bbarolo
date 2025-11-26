@@ -798,7 +798,6 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         
     }
     
-
     // Writing mask to FITS file
     Cube<short> *m = new Cube<short>(axisDim);
     m->saveHead(head);
