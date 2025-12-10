@@ -652,7 +652,7 @@ void Param::setParam(string &parstr) {
 
     if(arg=="smoothspec")  flagSmoothSpectral = readFlag(ss);
     if(arg=="window_type") window_type = makeupper(readFilename(ss));
-    if(arg=="window_size") window_size = readval<int>(ss);
+    if(arg=="window_size") window_size = readval<float>(ss);
 
     if(arg=="slitfit")    flagSlitfit = readFlag(ss);
     if(arg=="slitwidth")  slitwidth = readval<float>(ss);
@@ -717,8 +717,8 @@ bool Param::checkPars() {
 
     // Checking MASK parameter
     std::string ms = makeupper(MaskType);
-    std::vector<std::string> maskav = {"SMOOTH","SEARCH","SMOOTH&SEARCH","SEARCHLARGEST",
-                                       "SMOOTH&SEARCHLARGEST","THRESHOLD","NEGATIVE","NONE"};
+    std::vector<std::string> maskav = {"SMOOTH","SEARCH","SMOOTH&SEARCH","SMOOTHSPEC&SEARCH","SEARCHLARGEST",
+                                       "SMOOTH&SEARCHLARGEST","SMOOTHSPEC&SEARCHLARGEST","THRESHOLD","NEGATIVE","NONE"};
     
     bool maskOK = false;
     
@@ -1061,13 +1061,13 @@ bool Param::checkPars() {
     }
 
     if (flagSmoothSpectral) {
-        if (window_size%2==0) {
+        std::string str = window_type;
+        if (int(window_size)%2==0 && str!="GAUSSIAN") {
             cout << "SMOOTHSPEC error: smoothing window must be an odd number\n";
             good = false;
         }
-        std::string str = window_type;
         bool ok = str=="HANNING" || str=="HANNING2" || str=="BOXCAR"  || str=="TOPHAT"   || 
-                  str=="FLATTOP" || str=="BARTLETT" || str=="WELCH"   || str=="BLACKMAN";
+                  str=="FLATTOP" || str=="BARTLETT" || str=="WELCH"   || str=="BLACKMAN" || str=="GAUSSIAN";
         if (!ok) {
             cout << "SMOOTHSPEC error: unknown window type " << str << "\n";
             good = false;

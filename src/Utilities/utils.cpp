@@ -1051,63 +1051,95 @@ template double* SimulateNoise(double,size_t);
 
 
 template <class T>
-T* Smooth1D(T *inarray,size_t npts,std::string windowType,size_t windowSize) {
+T* Smooth1D(T *inarray, size_t npts, std::string windowType, float windowSize) {
     
-    // Performs smoothing on a single 1D array. Accepted windows are below 
-    
-    bool known_window = windowType=="HANNING" || windowType=="HANNING2" ||
-                        windowType=="BOXCAR"  || windowType=="TOPHAT"   || 
-                        windowType=="FLATTOP" || windowType=="BARTLETT" ||
-                        windowType=="WELCH"   || windowType=="BLACKMAN";
+    bool known_window =
+        windowType=="HANNING" || windowType=="HANNING2" ||
+        windowType=="BOXCAR"  || windowType=="TOPHAT"   ||
+        windowType=="FLATTOP" || windowType=="BARTLETT" ||
+        windowType=="WELCH"   || windowType=="BLACKMAN" ||
+        windowType=="GAUSSIAN";
+
     if (!known_window) {
-         std::cerr << "Smoothing 1D: window type unknown "
-                   << "Changing "<< windowType << " to \"HANNING\" .\n";
-         windowType = "HANNING";
+        std::cerr << "Smoothing 1D: window type unknown "
+                  << "→ setting to HANNING.\n";
+        windowType = "HANNING";
     }
+
+    int kernelSize = int(windowSize);
+
     // Check window size and type
-    if(windowSize%2==0){ 
+    if(kernelSize%2==0 && windowType!="GAUSSIAN"){ 
       std::cerr << "Smoothing 1D: need an odd number for the window size. "
   	            << "Changing "<< windowSize << " to " << windowSize+1<<".\n";
-      windowSize++;
+      kernelSize++;
     }
-   
-    // Defining coefficients for smoothing
-    double *coeff = new double[windowSize];
-    float scale = (windowSize+1.)/2.;
-    float N = windowSize-1;
-    float sum = 0;
-    for(size_t j=0; j<windowSize; j++) {
-        float x = j-(windowSize-1)/2.;
-        if (windowType=="HANNING")            // Hanning used in radio-astronomy
-            coeff[j] = 0.5+0.5*cos(x*M_PI/scale);
-        else if (windowType=="HANNING2")      // Classical Hanning window
-            coeff[j] = 0.5-0.5*cos(j*2*M_PI/N);
-        else if (windowType=="BARTLETT")      // Triangular window
-            coeff[j] = 1-fabs((j-N/2.)/(N/2.));
+
+
+    double sigma = 0;
+    if (windowType == "GAUSSIAN") {
+        // interpret windowSize as FWHM
+        sigma = windowSize / (2.0 * sqrt(2.0 * log(2.0)));
+        // dynamic full support: ±5σ
+        kernelSize = 2 * int(5 * sigma) + 1;
+        
+        if (kernelSize%2==0) kernelSize++;
+    }
+    int half = kernelSize / 2;
+
+    // ----------------------------------------------------------
+    // Build kernel
+    // ----------------------------------------------------------
+    std::vector<double> coeff(kernelSize);
+    double N = kernelSize - 1;
+    double scale = (kernelSize + 1.) / 2.;
+    double sum = 0;
+
+    for (int j = 0; j < kernelSize; j++) {
+        double x = j - half;
+
+        if (windowType == "GAUSSIAN")
+            coeff[j] = exp(-(x*x) / (2*sigma*sigma));
+        else if (windowType=="HANNING")
+            coeff[j] = 0.5 + 0.5*cos(x*M_PI/scale);
+        else if (windowType=="HANNING2")
+            coeff[j] = 0.5 - 0.5*cos(j*2*M_PI/N);
+        else if (windowType=="BARTLETT")
+            coeff[j] = 1 - fabs((j - N/2.)/(N/2.));
         else if (windowType=="WELCH")
-            coeff[j] = 1-std::pow((j-N/2.)/(N/2.),2);
-        else if (windowType=="BLACKMAN") 
-            coeff[j] = 0.42659-0.49656*cos(j*2*M_PI/N)+0.076849*cos(j*4*M_PI/N);
+            coeff[j] = 1 - pow((j - N/2.)/(N/2.),2);
+        else if (windowType=="BLACKMAN")
+            coeff[j] = 0.42659 - 0.49656*cos(j*2*M_PI/N)
+                                + 0.076849*cos(j*4*M_PI/N);
         else if (windowType=="FLATTOP")
-            coeff[j] =  0.21557895-0.416631580*cos(j*2*M_PI/N)+0.277263158*cos(j*4*M_PI/N)
-                                  -0.083578957*cos(j*6*M_PI/N)+0.006947368*cos(j*8*M_PI/N);
-        else coeff[j] = 1.;
-        sum += coeff[j]; 
+            coeff[j] = 0.21557895
+                      -0.416631580*cos(j*2*M_PI/N)
+                      +0.277263158*cos(j*4*M_PI/N)
+                      -0.083578957*cos(j*6*M_PI/N)
+                      +0.006947368*cos(j*8*M_PI/N);
+        else
+            coeff[j] = 1.0;
+
+        sum += coeff[j];
     }
-    
-    // Smooth
-    T *newarray = new T[npts];
-    for(size_t i=0; i<npts; i++){
-        newarray[i] = 0.;
-        for(size_t j=0; j<windowSize; j++){
-            float x = j-(windowSize-1)/2.;
-            if((i+x>0)&&(i+x<npts)) newarray[i] += coeff[j]/sum*inarray[i+int(x)];
+
+    // ----------------------------------------------------------
+    // Convolution
+    // ----------------------------------------------------------
+    T *out = new T[npts];
+    for (size_t i = 0; i < npts; i++) {
+        out[i] = 0.0;
+        for (int j = 0; j < kernelSize; j++) {
+            int idx = i + (j - half);
+            if (idx >= 0 && idx < (int)npts)
+                out[i] += coeff[j]/sum * inarray[idx];
         }
     }
-    delete [] coeff;
-    return newarray;
+    return out;
 }
-template float* Smooth1D(float*,size_t,std::string,size_t);
-template double* Smooth1D(double*,size_t,std::string,size_t);
-
+template short* Smooth1D(short*,size_t,std::string,float);
+template int* Smooth1D(int*,size_t,std::string,float);
+template long* Smooth1D(long*,size_t,std::string,float);
+template float* Smooth1D(float*,size_t,std::string,float);
+template double* Smooth1D(double*,size_t,std::string,float);
 

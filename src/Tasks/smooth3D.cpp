@@ -1047,6 +1047,9 @@ template class Smooth3D<int>;
 template class Smooth3D<long>;
 template class Smooth3D<float>;
 template class Smooth3D<double>;
+template class SpectralSmooth3D<short>;
+template class SpectralSmooth3D<int>;
+template class SpectralSmooth3D<long>;
 template class SpectralSmooth3D<float>;
 template class SpectralSmooth3D<double>;
 

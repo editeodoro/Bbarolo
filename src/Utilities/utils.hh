@@ -176,7 +176,7 @@ double* getCenterCoordinates(std::string *pos, Header &h);
 
 template <class T> T* RingRegion (Rings<T> *r, Header &h);
 template <class T> T* SimulateNoise(double stddev, size_t size);
-template <class T> T* Smooth1D(T *inarray, size_t npts, std::string windowType, size_t windowSize);
+template <class T> T* Smooth1D(T *inarray, size_t npts, std::string windowType, float windowSize);
 
 
 #endif

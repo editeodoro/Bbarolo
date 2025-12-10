@@ -513,13 +513,16 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     ///                  these values.
     /// - SMOOTH&SEARCH: Smooths the cube by a factor FACTOR and then runs the source 
  	///                  finder on the smoothed cube.
+    /// - SMOOTHSPEC&SEARCH: Smooths the cube spectrally and then runs the source 
+ 	///                      finder on the smoothed cube.
+    
     /// - NEGATIVE:      Calculates the noise statitistics just on the negative pixels
     ///                  and builds the mask based on the S/N threshold BLANKCUT.
     /// - FILE(Name):    User-provided mask. 'Name' is a fitsfile with same size of the
     ///                  cube and filled with 0(false) or 1(true).
     /// - NONE:          No mask.
     ///
-    /// A string "ENLARGEN" can be appended to all the above, to enlarge the mask by N
+    /// A string "ENLARGE" can be appended to all the above, to enlarge the mask by N
     /// pixels (characters after ENLARGE), e.g., SMOOTH_ENLARGE3 -> enlarge by 3 pixels.
     ///////////////////////////////////////////////////////////////////////////////////
 
@@ -543,31 +546,50 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     if (par.getMASK().find("SMOOTH")!=std::string::npos || par.getMASK().find("SEARCH")!=std::string::npos) {
         
         ////////////////////////////////////////////////////////////////////////
-        // SMOOTH&SEARCH MASK
+        // MASKS with SMOOTHING
         ////////////////////////////////////////////////////////////////////////
-        if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
-            // Smoothing first and searching for the largest object
-            bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
-            bmin  = head.Bmin()*arcsconv(head.Cunit(0));
-            bpa   = head.Bpa();
-            factor = par.getFactor()==-1 ? 2 : par.getFactor();
-            nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
-            nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
-            nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
-            Beam oldbeam = {bmaj,bmin,bpa};
-            Beam newbeam = {nbmaj,nbmin,nbpa};
-        
-            Smooth3D<T> *sm = new Smooth3D<T>;
-            sm->smooth(this, oldbeam, newbeam);
-        
+        if (par.getMASK().find("SMOOTH")!=std::string::npos) {
+            
             Cube<T> *smoothed = new Cube<T>();
-            smoothed->setCube(sm->Array(),axisDim);
             smoothed->saveHead(head);
             smoothed->saveParam(par);
-            smoothed->Head().setBmaj(nbmaj/3600.);
-            smoothed->Head().setBmin(nbmin/3600.);
-            smoothed->Head().setBpa(nbpa);
-            smoothed->Head().calcArea();
+            
+            ////////////////////////////////////////////////////////////////////////
+            // SMOOTH&SEARCH  MASK
+            ////////////////////////////////////////////////////////////////////////
+            if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
+                // Smoothing first and searching for the largest object
+                bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
+                bmin  = head.Bmin()*arcsconv(head.Cunit(0));
+                bpa   = head.Bpa();
+                factor = par.getFactor()==-1 ? 2 : par.getFactor();
+                nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
+                nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
+                nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
+                Beam oldbeam = {bmaj,bmin,bpa};
+                Beam newbeam = {nbmaj,nbmin,nbpa};
+        
+                Smooth3D<T> *sm = new Smooth3D<T>;
+                sm->smooth(this, oldbeam, newbeam);
+                smoothed->setCube(sm->Array(),axisDim);
+                smoothed->Head().setBmaj(nbmaj/3600.);
+                smoothed->Head().setBmin(nbmin/3600.);
+                smoothed->Head().setBpa(nbpa);
+                smoothed->Head().calcArea();
+                
+                delete sm;
+            }
+            ////////////////////////////////////////////////////////////////////////
+            // SMOOTHSPEC&SEARCH  MASK
+            ////////////////////////////////////////////////////////////////////////
+            else if (par.getMASK().find("SMOOTHSPEC&SEARCH")!=std::string::npos) {
+                SpectralSmooth3D<T> *sm = new SpectralSmooth3D<T>(par.getWindowType(),par.getWindowSize());
+                sm->smooth(this);
+                smoothed->setCube(sm->Array(),axisDim);
+                delete sm;
+            }
+            
+            // Now searching the smoothed cube.
             smoothed->setCubeStats();
             smoothed->search();
             size_t numObj = smoothed->getNumObj();
@@ -596,7 +618,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             
             }
             delete smoothed;
-            delete sm;
+            
         }
         
         ////////////////////////////////////////////////////////////////////////
@@ -811,11 +833,17 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     s.push_back(sh+"FITSFILE="+par.getImageFile());
     
     if (par.getMASK().find("SMOOTH")!=std::string::npos) {
-        s.push_back(sh+"FACTOR="+to_string(factor));
-        s.push_back(sh+"NEWBMAJ="+to_string(nbmaj));
-        s.push_back(sh+"NEWBMIN="+to_string(nbmin));
-        s.push_back(sh+"NEWBPA="+to_string(nbpa));
-        if (par.getMASK()=="SMOOTH") s.push_back(sh+"BLANKCUT="+to_string(par.getBlankCut()));
+        if (par.getMASK().find("SPEC")!=std::string::npos) {
+            s.push_back(sh+"WINDOW_TYPE="+par.getWindowType());
+            s.push_back(sh+"WINDOW_SIZE="+to_string(par.getWindowSize()));
+        }
+        else {
+            s.push_back(sh+"FACTOR="+to_string(factor));
+            s.push_back(sh+"NEWBMAJ="+to_string(nbmaj));
+            s.push_back(sh+"NEWBMIN="+to_string(nbmin));
+            s.push_back(sh+"NEWBPA="+to_string(nbpa));
+            if (par.getMASK()=="SMOOTH") s.push_back(sh+"BLANKCUT="+to_string(par.getBlankCut()));
+        }
     }
     
     if (par.getMASK().find("SEARCH")!=std::string::npos) {

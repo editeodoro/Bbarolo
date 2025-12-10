@@ -259,7 +259,7 @@ public:
     
     bool    getflagSmoothSpectral () {return flagSmoothSpectral;}
     string  getWindowType () {return window_type;}
-    size_t  getWindowSize () {return window_size;}
+    float   getWindowSize () {return window_size;}
     
     bool    getFlagSlitfit () {return flagSlitfit;}
     float   getSlitWidth () {return slitwidth;}
@@ -349,7 +349,7 @@ private:
     
     bool            flagSmoothSpectral; ///< Spectral smoothing the datacube?
     string          window_type;        ///< Type of smoothing window
-    size_t          window_size;        ///< Type of smoothing window
+    float           window_size;        ///< Type of smoothing window
 
     bool            flagSlitfit;        ///< Fitting a 3D model to a slit observation.
     float           slitwidth;          ///< Width of the slit in arcsec
