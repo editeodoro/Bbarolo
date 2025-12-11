@@ -434,13 +434,19 @@ class BayesianBBarolo(FitMod3D):
     def _log_likelihood(self,theta,**kwargs):
         """ Likelihood function for the fit """
         
+        # Checking for non-acceptable negative values
+        a = ('vrot','vdisp','inc','xpos','ypos','dens','z0','radmax')
+        for k in self.freepar_idx:
+            if k.startswith(a) and np.any(theta[self.freepar_idx[k]]<0): 
+                return -np.inf
+    
         rings = self._update_rings(self._inri,theta)
 
         if self.useBBres:
             # Calculating residuals through BBarolo directly
             res = libBB.Galfit_calcresiduals(self._galfit,rings._rings)
         else: 
-            # Calculating residuals manually            
+            # Calculating residuals manually
 
             # Recompute the density profile along the current rings and update the rings
             if self.useNorm and self.update_prof:
