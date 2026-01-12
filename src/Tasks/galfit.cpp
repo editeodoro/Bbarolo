@@ -240,7 +240,7 @@ Galfit<T>::Galfit(Cube<T> *c) {
 //*/
 
     // A little trick: fit a 2D model first to get better PA variation
-    if (toEstimate && makelower(par.FREE).find("pa")!=std::string::npos && inR->nr>=5 && !c->pars().getflagGalMod()) {
+    if (makelower(par.FREE).find("pa")!=std::string::npos && inR->nr>=5 && !c->pars().getflagGalMod()) {
 
         double topix = c->Head().PixScale()*arcsconv(c->Head().Cunit(0));
         // Initializing rings
@@ -252,10 +252,15 @@ Galfit<T>::Galfit(Cube<T> *c) {
             wids[i]  = inR->radsep/topix;
         }
         // Initializing a Ringmodel instance
-        Ringmodel<T> tr(inR->nr,radii,wids,&inR->vsys[0],&inR->vrot[0],&inR->vrad[0],
-                       &inR->phi[0],&inR->inc[0],inR->xpos[0],inR->ypos[0]);
-
-        tr.setfield(ip->Vemap,c->DimX(),c->DimY());
+        Ringmodel<T> tr;
+        if (toEstimate) {
+            tr.set(inR->nr,radii,wids,&inR->vsys[0],&inR->vrot[0],&inR->vrad[0],
+                   &inR->phi[0],&inR->inc[0],inR->xpos[0],inR->ypos[0]);
+            tr.setfield(ip->Vemap,c->DimX(),c->DimY());
+        }
+        else {
+            tr.setfromCube(c,inR);
+        }
         // Setting free parameters. Order is VSYS, VROT, VEXP, PA, INC, X0, Y0
         // Fitting only VROT and PA
         bool mpar[7] = {false,true,false,true,false,false,false};
