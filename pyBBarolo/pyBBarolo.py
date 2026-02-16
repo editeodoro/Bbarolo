@@ -380,7 +380,7 @@ class GalMod(Model3D):
     def __init__(self,fitsname):
         super(GalMod,self).__init__(fitsname=fitsname)
         self.taskname = "GALMOD"
-        self._opts.update({'ltype' : [2, np.int32, "Layer type along z"],
+        self._opts.update({'ltype' : [1, np.int32, "Layer type along z"],
                            'cmode' : [1, np.int32, "Mode of clouds-surface density"],
                            'iseed' : [-1, np.int32, "Seed for random number generator"]})
                            

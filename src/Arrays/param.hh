@@ -249,6 +249,7 @@ public:
     bool    getflagFFT () {return flagFFT;}
     void    setflagFFT (bool f) {flagFFT=f;}
     float   getLinear () {return linear;}
+    void    setLinear (float a) {linear=a;}
     float   getFactor () {return factor;}
     float   getScaleFactor () {return scalefactor;}
     void    setFactor (float f) {factor=f;}

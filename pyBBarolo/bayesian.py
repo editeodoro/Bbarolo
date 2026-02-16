@@ -194,7 +194,7 @@ class BayesianBBarolo(FitMod3D):
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
-
+        
         # Defining default uniform priors 
         rr = self._inri.r
         self.priors['xpos']  = dict(name='uniform',loc=rr['xpos'][0]-5,scale=10)    # +- 5 pixels
@@ -307,7 +307,7 @@ class BayesianBBarolo(FitMod3D):
                 raise ValueError(f"ERROR! Prior for {key} should be None or a scipy.stats distribution.")
         
         # Making a Param C++ object and a Galfit object
-        self._opts.add_params(verbose=False)
+        self._opts.add_params(verbose=False,**kwargs)
         self._opts.make_object()
 
         if self._galfit is None: 
