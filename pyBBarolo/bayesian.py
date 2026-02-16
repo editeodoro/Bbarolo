@@ -243,7 +243,7 @@ class BayesianBBarolo(FitMod3D):
             - self.prior_distr: dictionary with prior probabilities
             - self._galfit: pointer to the C++ Galfit object
             - self.mask: mask from the input cube (3D array)
-            - self._ellprof: a pointer to a C++ Ellprof object   
+            - self._ellprof: a pointer to a C++ Ellprof object
         """
 
         if self._inri is None:
@@ -634,7 +634,8 @@ class BayesianBBarolo(FitMod3D):
         libBB.Ellprof_compute(self._ellprof)
         dens = reshapePointer(libBB.Ellprof_dens_array(self._ellprof),(1,self._inri.nr))[0]
         # To avoid problems with Galmod, we normalize the profile such that the minimum value is 1
-        dens *= 1./np.nanmin(dens[dens>0])
+        mindens = np.nanmin(dens[dens>1E-10])
+        dens *= 1./mindens
         rings.modify_parameter("dens",np.abs(dens)*1E20,makeobj=True)
 
         
