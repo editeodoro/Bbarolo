@@ -592,7 +592,9 @@ void Param::setParam(string &parstr) {
     if(arg=="relint")    parGM.RELINT = parGF.RELINT               = readVec<double>(ss);
     if(arg=="noiserms")  parGM.NOISERMS = parGF.NOISERMS           = readval<double>(ss);
     if(arg=="ringfile")  parGM.ringfile = parGF.ringfile           = readFilename(ss);
-
+    if(arg=="empty")     parGM.EMPTY  = parGF.EMPTY  = parGW.EMPTY = readFlag(ss);
+    if(arg=="densflux")  parGM.DENSFLUX = parGF.DENSFLUX = parGW.DENSFLUX = readFlag(ss);
+    
     // 3DFIT ONLY PARAMETERS
     if(arg=="deltainc")  parGF.DELTAINC   = readval<float>(ss);
     if(arg=="deltapa")   parGF.DELTAPHI   = readval<float>(ss);
@@ -1496,11 +1498,12 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         if (isGalfit) recordParam(Str, "[DELTAPA]", "   Max position angle variation from PA (degrees)", p.getParGF().DELTAPHI);
         recordParam(Str, "[Z0]", "   Scale height of the disk (arcsec)", p.getParGF().Z0);
         recordParam(Str, "[DENS]", "   Gas column density (atoms/cm2)", p.getParGF().DENS);
+        recordParam(Str, "[DENSFLUX]", "   Whether DENS is integrated flux / arcs2", stringize(p.getParGF().DENSFLUX));
+        
         if (isGalmod) {
             recordParam(Str, "[VVERT]", "   Vertical velocity (km/s)", p.getParGM().VVERT);
             recordParam(Str, "[DVDZ]", "   Vertical gradient of rotation velocity (km/s/arcs)", p.getParGM().DVDZ);
             recordParam(Str, "[ZCYL]", "   Height where the gradient begins (arcs)", p.getParGM().ZCYL);
-
         }
 
         if (isGalfit) recordParam(Str, "[FREE]", "   Parameters to be minimized", p.getParGF().FREE);
@@ -1518,6 +1521,8 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         else if (t==4) typ = "Lorentzian";
         else if (t==5) typ = "box";
         recordParam(Str, "[LTYPE]", "   Layer type along z direction", typ);
+        
+        recordParam(Str, "[EMPTY]", "   Whether to leave empty inner part", stringize(p.getParGF().EMPTY));
         
         if (isGalfit) {
             typ = "";

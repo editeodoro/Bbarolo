@@ -155,8 +155,8 @@ void Galmod<T>::defaults() {
     relvel.push_back(0);
     relint.push_back(1);
 
-    // This is better as true when 3DFIT (otherwise it lowers the VROT and increase VDISP)
     empty         = true;
+    densIsFlux    = true;
 
 }
 
@@ -229,7 +229,10 @@ Galmod<T>& Galmod<T>::operator=(const Galmod &g) {
         
     this->ringDefined = g.ringDefined;
     if (ringDefined) this->r = g.r;
-        
+    
+    this->empty = g.empty;
+    this->densIsFlux = g.densIsFlux;
+    
     this->ltype = g.ltype;
     this->cmode = g.cmode;
     this->cdens = g.cdens;
@@ -242,26 +245,36 @@ Galmod<T>& Galmod<T>::operator=(const Galmod &g) {
 
 
 template <class T>
-void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings, 
-                         int NV, int LTYPE, int CMODE, float CDENS, int ISEED) {
+void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings) {
     
     /// This function sets all parameters needed to use the Galmod Object. A description
     /// of input is given in the Galmod class definition file (galmod.hh). 
 
     initialize(c, Boxup, Boxlow);
+
+    GALMOD_PAR &p = c->pars().getParGF();
+    setOptions(p.LTYPE, p.CMODE, p.CDENS, p.ISEED, p.EMPTY, p.DENSFLUX);
     
     ringIO(rings);
-
-    setOptions(LTYPE, CMODE, CDENS, ISEED);
     
-    int nvtmp = NV;
+    int nvtmp = p.NV;
     if (nvtmp<1) nvtmp=nsubs;
     for (int i=0; i<r->nr; i++) {
         if (r->vdisp[i]==0) nv.push_back(1);
         else nv.push_back(nvtmp);
     }   
     
-    NHItoRAD();
+    if (densIsFlux) {
+        // DENS parameter is interpreted as INTEGRATED_FLUX / ARC2, e.g. JY*KM/S / ARC2 (always KM/S!)
+        // Using the cd2i parameter to give correct normalization for galmod
+        for (int i=0; i<nsubs; i++) 
+            // Conversion arcmin^2 - > arcsec^2 and m/s -> km/s
+            cd2i[i] = 3600. / chwidth*1000.;
+    }
+    else { 
+        // DENS parameter is interpreted as CM-2 -> FLUX in Jy calculated for HI line
+        NHItoRAD();
+    }
     
     readytomod=true;
     
@@ -269,19 +282,19 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings,
 
 
 template <class T>
-void Galmod<T>::input(Cube<T> *c, Rings<T> *rings, int NV, int LTYPE, int CMODE, float CDENS, int ISEED) {
+void Galmod<T>::input(Cube<T> *c, Rings<T> *rings) {
     
     /// Alternative semplified user interface function. 
     
     int Blo[2] = {0,0};
     int Bup[2] = {c->DimX(),c->DimY()};
     
-    input(c,Bup,Blo,rings,NV,LTYPE,CMODE,CDENS,ISEED);
+    input(c,Bup,Blo,rings);
 }
 
 
 template <class T>
-void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED) {
+void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED, bool EMPTY, bool DENSFLUX) {
     
     ltype=LTYPE;
     cmode=CMODE;
@@ -301,6 +314,9 @@ void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED) {
     generator.seed(iseed);
     uniform   = std::uniform_real_distribution<float>(-1.,1.);
     gaussia   = std::normal_distribution<float>(0.,1.);
+    
+    empty = EMPTY;
+    densIsFlux = DENSFLUX;
 
 }
 
@@ -322,7 +338,7 @@ bool Galmod<T>::calculate() {
 
 
 template <class T>
-bool Galmod<T>::smooth(bool usescalefac) {
+bool Galmod<T>::smooth() {
     
     if (!modCalculated) {
         std::cout << "GALMOD smoothing error: the model has not been ";
@@ -337,11 +353,12 @@ bool Galmod<T>::smooth(bool usescalefac) {
                     in->Head().Bpa()};
 
     Smooth3D<T> *smoothed = new Smooth3D<T>;
-    smoothed->setUseScalefac(usescalefac);
+    bool scalefac = densIsFlux ? false : true;
+    smoothed->setUseScalefac(scalefac);
     smoothed->setUseBlanks(false);
     if(!smoothed->smooth(out, oldbeam, newbeam, out->Array(), out->Array()))
-        return false;   
-    
+        return false;
+        
     for (size_t i=0; i<out->NumPix(); i++)
         if (out->Array(i)<1.E-12) out->Array()[i] = 0;
     
@@ -594,11 +611,9 @@ void Galmod<T>::initialize(Cube<T> *c, int *Boxup, int *Boxlow) {
         std::terminate(); 
     }
     
-    // Get the instrumental broadnening: when Hanning smoothing has been applied, 
-    // the instrumental profile can be approximated by a gaussian with a FWHM of 
-    // twice the channnel separation. Thus, the sig_instr is FWHM/2.355.
+    // Get the instrumental broadnening: default value is FWHM=1 channel, thus sig_instr is FWHM/2.355.
     float nch = in->pars().getLinear();
-    if (nch==-1) nch=2./(2*sqrt(2*log(2)));
+    if (nch==-1) nch=1./(2*sqrt(2*log(2)));
     chwidth = fabs(DeltaVel(in->Head()))*1000;
     sig_instr = nch*chwidth;
 }
@@ -616,156 +631,123 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
     
     if (ringDefined) delete r;
     r = new Rings<T>;
-
-    int nur = rings->nr;
-    T *uradii = new T[nur];
-    T *uvrot  = new T[nur];
-    T *uvdisp = new T[nur];
-    T *uvrad  = new T[nur];
-    T *uvvert = new T[nur];
-    T *udvdz  = new T[nur];
-    T *uzcyl  = new T[nur];
-    T *udens  = new T[nur];
-    T *uz0    = new T[nur];
-    T *uinc   = new T[nur];
-    T *uphi   = new T[nur];
-    T *uxpos  = new T[nur];
-    T *uypos  = new T[nur];
-    T *uvsys  = new T[nur];
-    
+    // The model will be built with oversampling: a ring width of 0.75 pixel size is used.
     r->radsep=0.75*min(pixsize[0],pixsize[1]);
-    uradii[0]=rings->radii[0]/60.;
-    for (int i=1; i<nur; i++) {
-        uradii[i]=rings->radii[i]/60.;
-        if (uradii[i-1]+r->radsep>=uradii[i]) {
-            if (uradii[i-1]>uradii[i]) {
-                std::cerr << "GALMOD error: Radii not in increasing order.\n";
-                std::terminate();
-            }
-            else {
-                std::cerr << "GALMOD error: Radius separation too small.\n";
-                std::terminate();
+    
+    // Copy input rings and converting to expected units
+    Rings<T> *ur = new Rings<T>;
+    *ur = *rings;
+    for (int i=0; i<ur->nr; i++) {
+        ur->radii[i] = rings->radii[i]/60.; // ARCMIN
+        if (i>0) {
+            // Checking that rings are ok
+            if (ur->radii[i-1]+r->radsep>=ur->radii[i]) {
+                if (ur->radii[i-1]>ur->radii[i]) {
+                    std::cerr << "GALMOD ERROR: Radii not in increasing order.\n";
+                    std::terminate();
+                }
+                else {
+                    std::cerr << "GALMOD ERROR: Radius separation too small.\n";
+                    std::terminate();
+                }
             }
         }
+        
+        // Velocities are converted to M/S
+        ur->vsys[i]  = rings->vsys[i]*1000;
+        ur->vrot[i]  = rings->vrot[i]*1000;
+        ur->vrad[i]  = rings->vrad[i]*1000;
+        ur->vvert[i] = rings->vvert[i]*1000;
+        
+        ur->vdisp[i] = rings->vdisp[i]*1000;
+        if (ur->vdisp[i]<0)
+            throw std::runtime_error("GALMOD ERROR: Negative velocity dispersion not allowed.\n");
+        
+        // Density in 1.0E20 cm^2 or flux_int / arcs if DENSFLUX=true
+        ur->dens[i]=rings->dens[i]/1.0E20;
+        if (ur->dens[i]<0) 
+            throw std::runtime_error("GALMOD ERROR: Negative column-density or flux are not allowed.\n");
+        
+        ur->z0[i]=rings->z0[i]/60.;
+        if (ur->z0[i]<0) 
+            throw std::runtime_error("GALMOD ERROR: Negative scale height not allowed.\n");
+        
+        ur->dvdz[i]  = rings->dvdz[i]*1000*60;      // M/S / ARCMIN
+        ur->zcyl[i]  = rings->zcyl[i]/60.;          // ARCMIN
+        ur->inc[i]   = rings->inc[i]*M_PI/180.;     // RADIANS
+        ur->phi[i]   = rings->phi[i]*M_PI/180.;     // RADIANS
+        ur->xpos[i]  = rings->xpos[i];
+        ur->ypos[i]  = rings->ypos[i];
     }
     
-    /*
-    if (uradii[0]!=0) {
-        std::cout << "Leave innerpart of first ring empty? [Y,N]";
-        std::string a;
-        cin >> a;
-        if (a=="N" || a=="n" || a=="NO" || a=="no") empty=true;
-    }
-    */
-
-    for (int i=0; i<nur; i++) {
-        uvrot[i]  = rings->vrot[i]*1000;   
-        uvrad[i]  = rings->vrad[i]*1000;   
-        uvvert[i] = rings->vvert[i]*1000;
-        
-        uvdisp[i] = rings->vdisp[i]*1000;
-        if (uvdisp[i]<0) {
-            std::cerr << "GALMOD error: Negative velocity dispersion not allowed.\n";
-            std::terminate();
-        }
-        
-        udens[i]=rings->dens[i]/1.0E20;
-
-        if (udens[i]<0) {
-            std::cerr << "GALMOD error: Negative column-density not allowed.\n";
-            std::terminate(); 
-        }
-        
-        uz0[i]=rings->z0[i]/60.;
-        if (uz0[i]<0) {
-            std::cerr << "GALMOD error: Negative scale height not allowed.\n";
-            std::terminate(); 
-        }
-        
-        udvdz[i]  = rings->dvdz[i]*1000*60; // m/s/arcmin
-        uzcyl[i]  = rings->zcyl[i]/60.;
-        uinc[i]   = rings->inc[i]*M_PI/180.;
-        uphi[i]   = rings->phi[i]*M_PI/180.;
-        uxpos[i]  = rings->xpos[i];
-        uypos[i]  = rings->ypos[i];
-        uvsys[i]  = rings->vsys[i]*1000;
-    }
-
-    if (uradii[0]!=0 && empty) r->radii.push_back(uradii[0]+r->radsep/2.0);
+    if (ur->radii[0]!=0 && empty) r->radii.push_back(ur->radii[0]+r->radsep/2.0);
     else {
+        // If empty=false, first radius is at half pixel size.
         r->radii.push_back(r->radsep/2.0);
-        while (r->radii.back()<uradii[0]) {
-            r->vrot.push_back(uvrot[0]);
-            r->vrad.push_back(uvrad[0]);
-            r->vvert.push_back(uvvert[0]);
-            r->vdisp.push_back(uvdisp[0]);
-            r->dens.push_back(udens[0]);
-            r->z0.push_back(uz0[0]);
-            r->dvdz.push_back(udvdz[0]);
-            r->zcyl.push_back(uzcyl[0]);
-            r->inc.push_back(uinc[0]);
-            r->phi.push_back(uphi[0]);
-            r->xpos.push_back(uxpos[0]);
-            r->ypos.push_back(uypos[0]);
-            r->vsys.push_back(uvsys[0]);
+        while (r->radii.back()<ur->radii[0]) {
+            r->vrot.push_back(ur->vrot[0]);
+            r->vrad.push_back(ur->vrad[0]);
+            r->vvert.push_back(ur->vvert[0]);
+            r->vdisp.push_back(ur->vdisp[0]);
+            r->dens.push_back(ur->dens[0]);
+            r->z0.push_back(ur->z0[0]);
+            r->dvdz.push_back(ur->dvdz[0]);
+            r->zcyl.push_back(ur->zcyl[0]);
+            r->inc.push_back(ur->inc[0]);
+            r->phi.push_back(ur->phi[0]);
+            r->xpos.push_back(ur->xpos[0]);
+            r->ypos.push_back(ur->ypos[0]);
+            r->vsys.push_back(ur->vsys[0]);
             r->radii.push_back(r->radii.back()+r->radsep);
         }
     }
 
-    for (int i=1; i<nur; i++) {
-        T dur       = uradii[i]-uradii[i-1];
-        T dvrotdr   = (uvrot[i]-uvrot[i-1])/dur;
-        T dvraddr   = (uvrad[i]-uvrad[i-1])/dur;
-        T dvvertdr  = (uvvert[i]-uvvert[i-1])/dur;
-        T dvdispdr  = (uvdisp[i]-uvdisp[i-1])/dur;
-        T ddensdr   = (udens[i]-udens[i-1])/dur;
-        T dz0dr     = (uz0[i]-uz0[i-1])/dur;
-        T ddvdzdr   = (udvdz[i]-udvdz[i-1])/dur;
-        T dzcyldr   = (uzcyl[i]-uzcyl[i-1])/dur;
-        T dincdr    = (uinc[i]-uinc[i-1])/dur;
-        T dphidr    = (uphi[i]-uphi[i-1])/dur;
-        T dxposdr   = (uxpos[i]-uxpos[i-1])/dur;
-        T dyposdr   = (uypos[i]-uypos[i-1])/dur;
-        T dvsysdr   = (uvsys[i]-uvsys[i-1])/dur;
-        while (r->radii.back()<uradii[i]) {
-            T dr = r->radii.back()-uradii[i-1];
-            r->vrot.push_back(uvrot[i-1]+dvrotdr*dr);
-            r->vrad.push_back(uvrad[i-1]+dvraddr*dr);
-            r->vvert.push_back(uvvert[i-1]+dvvertdr*dr);
-            r->vdisp.push_back(uvdisp[i-1]+dvdispdr*dr);
-            r->dens.push_back(udens[i-1]+ddensdr*dr);
-            r->z0.push_back(uz0[i-1]+dz0dr*dr);
-            r->dvdz.push_back(udvdz[i-1]+ddvdzdr*dr);
-            r->zcyl.push_back(uzcyl[i-1]+dzcyldr*dr);
-            r->inc.push_back(uinc[i-1]+dincdr*dr);
-            r->phi.push_back(uphi[i-1]+dphidr*dr);
+    for (int i=1; i<ur->nr; i++) {
+        T dur       = ur->radii[i]-ur->radii[i-1];
+        T dvrotdr   = (ur->vrot[i]-ur->vrot[i-1])/dur;
+        T dvraddr   = (ur->vrad[i]-ur->vrad[i-1])/dur;
+        T dvvertdr  = (ur->vvert[i]-ur->vvert[i-1])/dur;
+        T dvdispdr  = (ur->vdisp[i]-ur->vdisp[i-1])/dur;
+        T ddensdr   = (ur->dens[i]-ur->dens[i-1])/dur;
+        T dz0dr     = (ur->z0[i]-ur->z0[i-1])/dur;
+        T ddvdzdr   = (ur->dvdz[i]-ur->dvdz[i-1])/dur;
+        T dzcyldr   = (ur->zcyl[i]-ur->zcyl[i-1])/dur;
+        T dincdr    = (ur->inc[i]-ur->inc[i-1])/dur;
+        T dphidr    = (ur->phi[i]-ur->phi[i-1])/dur;
+        T dxposdr   = (ur->xpos[i]-ur->xpos[i-1])/dur;
+        T dyposdr   = (ur->ypos[i]-ur->ypos[i-1])/dur;
+        T dvsysdr   = (ur->vsys[i]-ur->vsys[i-1])/dur;
+        while (r->radii.back()<ur->radii[i]) {
+            T dr = r->radii.back()-ur->radii[i-1];
+            r->vrot.push_back(ur->vrot[i-1]+dvrotdr*dr);
+            r->vrad.push_back(ur->vrad[i-1]+dvraddr*dr);
+            r->vvert.push_back(ur->vvert[i-1]+dvvertdr*dr);
+            r->vdisp.push_back(ur->vdisp[i-1]+dvdispdr*dr);
+            r->dens.push_back(ur->dens[i-1]+ddensdr*dr);
+            r->z0.push_back(ur->z0[i-1]+dz0dr*dr);
+            r->dvdz.push_back(ur->dvdz[i-1]+ddvdzdr*dr);
+            r->zcyl.push_back(ur->zcyl[i-1]+dzcyldr*dr);
+            r->inc.push_back(ur->inc[i-1]+dincdr*dr);
+            r->phi.push_back(ur->phi[i-1]+dphidr*dr);
             r->pa.push_back(r->phi.back()+crota2);
-            r->xpos.push_back(uxpos[i-1]+dxposdr*dr);
-            r->ypos.push_back(uypos[i-1]+dyposdr*dr);
-            r->vsys.push_back(uvsys[i-1]+dvsysdr*dr);
+            r->xpos.push_back(ur->xpos[i-1]+dxposdr*dr);
+            r->ypos.push_back(ur->ypos[i-1]+dyposdr*dr);
+            r->vsys.push_back(ur->vsys[i-1]+dvsysdr*dr);
             r->radii.push_back(r->radii.back()+r->radsep);
-        }        
+        }
     }
 
     r->radii.pop_back();
     r->nr=r->radii.size();
     
+    ////////////////////////////////////////////////////////////////////////////////
+    for (int i=0; i<r->nr; i++)
+        std::cout << setprecision(5) << r->radii[i]*60. << " " << std::endl;
+    ////////////////////////////////////////////////////////////////////////////////
+    
     ringDefined = true;
 
-    delete [] uradii;
-    delete [] uvrot;
-    delete [] uvrad;
-    delete [] uvvert;
-    delete [] uvdisp;
-    delete [] udens;
-    delete [] uz0;
-    delete [] udvdz;
-    delete [] uzcyl;
-    delete [] uinc;
-    delete [] uphi;
-    delete [] uxpos;
-    delete [] uypos;
-    delete [] uvsys;
+    delete ur;
 }
 
 /*
@@ -917,7 +899,6 @@ void Galmod<T>::galmod() {
 
     const double twopi = 2*M_PI;
     T *array = out->Array();
-//  Initialize output array on zero.
     for (int i=0; i<out->NumPix(); i++) array[i] = 0.;
 
     ProgressBar bar(false,in->pars().isVerbose(),in->pars().getShowbar());
@@ -932,6 +913,9 @@ void Galmod<T>::galmod() {
 
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
+        double totalflux = 0;   ///////////////////////////////////////////////////////
+        int nnn=0;
+
         bar.update(ir+1);
         if (r->dens[ir]==0) continue;
 //      Get radius
@@ -1059,10 +1043,15 @@ void Galmod<T>::galmod() {
                     if (isubs<0 || isubs>=nsubs) continue;
                     size_t idat  = iprof+isubs*nprof;
                     array[idat] += relint[nl]*fluxsc*cd2i[isubs];
+                    totalflux += fluxsc;
+                    nnn += 1;
                 }
             }
         }
+        
+        std::cout << ir << "  " << rtmp*60. << "  " << totalflux << " " << totalflux/(twopi*rtmp*r->radsep) << " " << nc << " " << nc*nvtmp << " " << nnn << std::endl;
     }
+
 
     bar.fillSpace("OK.\n");
 
@@ -1306,6 +1295,7 @@ void Galmod<T>::NHItoRAD(){
 /// 
 ///   N_HI = 1.823E13 * integ{Tb(v)*dv}      integral in velocity
 ///   N_HI = 3.848E14 * integ{Tb(nu)*dnu}    integral in frequency
+///   N_HI = 2.588E24 * integ{Tb(lambda)*dlambda}    integral in wavelength
 /// 
 /// where the brightness temperature is proportional to specific intensity:
 ///
@@ -1332,7 +1322,7 @@ void Galmod<T>::NHItoRAD(){
 
         if (axtyp==2) {         // Z-axis is wavelength
             labsubs = crval3+cdelt3*(isubs+1-crpix3);
-            fac = C/3.8475E-06;     // This is wrong for wavelength
+            fac = 2.588E04;     // This is 2.588E24 / 1E20
         }
         else if (axtyp==3) {    // Z-axis is frequency
             double fsubs = crval3+cdelt3*(isubs+1-crpix3);
@@ -1426,7 +1416,7 @@ void Galmod_wind<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Shells<T> *shell
         
     this->initialize(c, Boxup, Boxlow);
     shellIO(shells);
-    this->setOptions(LTYPE, CMODE, CDENS, ISEED);
+    this->setOptions(LTYPE, CMODE, CDENS, ISEED, true, false);
     
     int nvtmp = NV;
     if (nvtmp<1) nvtmp=this->nsubs;

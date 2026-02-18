@@ -55,6 +55,8 @@ struct GALMOD_PAR {
     int    LTYPE      = 1;      ///< Layer type along z.
     int    NV         = -1;     ///< Number of subclouds per profile.
     double REDSHIFT   = 0;      ///< Redshift of the galaxy.
+    bool   EMPTY      = true;   ///< Whether to fill in inner hole, if present.
+    bool   DENSFLUX   = true;   ///< Whether DENS is to be interpreted as INT_FLUX/arcs2
     vector<double> RESTWAVE = {-1}; ///< Rest wavelengths.
     vector<double> RESTFREQ = {-1}; ///< Rest frequencies.
     vector<double> RELINT   = {1}; ///< Relative intensities of lines.

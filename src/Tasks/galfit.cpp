@@ -732,9 +732,8 @@ void Galfit<T>::fit_reverse(T ***errors, bool *fitok, std::ostream &fout) {
             // Calculating the model so far
             int blo[2], bhi[2], bsize[2];
             getModelSize(outr,blo,bhi);
-            int nv = par.NV<0 ? in->DimZ() : par.NV;
             Model::Galmod<T> *modsoFar = new Model::Galmod<T>;
-            modsoFar->input(in,bhi,blo,dring2,nv,par.LTYPE,1,par.CDENS);
+            modsoFar->input(in,bhi,blo,dring2);
             modsoFar->calculate();
             //modsoFar->Out()->fitswrite_3d((to_string(ir)+".fits").c_str());
             fitok[ir] = minimize(dring, minimum, pmin, modsoFar);
@@ -1039,11 +1038,11 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
         dr->radii[0] = max(double(dr->radii[0]-dr->radsep/2.),0.);
     }
     
-    int nv = par.NV==-1 ? in->DimZ() : par.NV;
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
+    // This is better to have EMPTY=true when 3DFIT (otherwise it lowers the VROT and increase VDISP)
     Model::Galmod<T> *mod = new Model::Galmod<T>;
-    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS,par.ISEED);
+    mod->input(in,bhi,blo,dr);
     mod->calculate();
     
     // Adding up the "sofar" model, if requested
@@ -1068,11 +1067,10 @@ template Model::Galmod<double>* Galfit<double>::getModel(Rings<double>*, int*, i
 template <class T>
 T* Galfit<T>::getModel_BBB(Rings<T> *dr, int* bhi, int* blo, int iseed) {
 
-    int nv = par.NV==-1 ? in->DimZ() : par.NV;
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
     Model::Galmod<T> *mod = new Model::Galmod<T>;
-    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS,iseed);
+    mod->input(in,bhi,blo,dr);
     mod->calculate();
 
     // Storing both non-convolved and convolved model (non-convolved first) in the same array.

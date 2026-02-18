@@ -55,12 +55,11 @@ void Rings_delete(Rings<float>* r) {delete r;}
 
 
 // Interface for Galmod class //////////////////////////////////////////////////////////
-Galmod<float>* Galmod_new(Cube<float> *c, Rings<float> *r, int NV, int LTYPE, int CMODE, float CDENS, int ISEED) 
-                          {Galmod<float> *g = new Galmod<float>; g->input(c,r,NV,LTYPE,CMODE,CDENS,ISEED); return g;}
-Galmod<float>* Galmod_new_par(Cube<float> *c, Rings<float> *r, Param *p) {Galmod<float> *g = new Galmod<float>;
-                              c->pars() = *p; c->Head().setRedshift(p->getRedshift()); c->Head().setWave0(p->getRestwave());
-                              g->input(c,r,p->getParGM().NV,p->getParGM().LTYPE,p->getParGM().CMODE,
-                              p->getParGM().CDENS,p->getParGM().ISEED); return g;}
+Galmod<float>* Galmod_new(Cube<float> *c, Rings<float> *r) 
+                          {Galmod<float> *g = new Galmod<float>; g->input(c,r); return g;}
+Galmod<float>* Galmod_new_par(Cube<float> *c, Rings<float> *r, Param *p) {c->pars() = *p; 
+                              c->Head().setRedshift(p->getRedshift()); c->Head().setWave0(p->getRestwave());
+                              return Galmod_new(c,r);}
 void Galmod_delete(Galmod<float> *g) {delete g;}
 float* Galmod_array(Galmod<float> *g) {return g->getArray();}
 void Galmod_set_array(Galmod<float> *g, float *a) {return g->setArray(a);}

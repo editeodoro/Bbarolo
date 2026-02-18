@@ -84,7 +84,7 @@ libBB.Rings_set.argtypes = [c_void_p,c_int,array_1d_float,array_1d_float,array_1
 
 # Class Galmod interface ##############################################################
 libBB.Galmod_new.restype = c_void_p
-libBB.Galmod_new.argtypes = [c_void_p,c_void_p,c_int,c_int,c_int,c_float,c_int]
+libBB.Galmod_new.argtypes = [c_void_p,c_void_p]
 libBB.Galmod_new_par.restype = c_void_p
 libBB.Galmod_new_par.argtypes = [c_void_p,c_void_p,c_void_p]
 libBB.Galmod_delete.restype = None

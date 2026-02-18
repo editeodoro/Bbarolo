@@ -176,7 +176,6 @@ bool GalWind<T>::compute_cylindrical() {
     // Collecting needed parameters
     float arcconv = arcsconv(in->Head().Cunit(0));
     float PixSize = in->Head().PixScale()*arcconv;
-    int nv = par.NV>1 ? par.NV : 20;
     float OpA  = atof(par.OPENANG.c_str());
     float z0 = par.HTOT/(2*par.NTOT);  //half-height of each cylinder in arcsec
     float zpix = z0/PixSize;           //half-height of each cylinder in M_PIxels
@@ -263,7 +262,8 @@ bool GalWind<T>::compute_cylindrical() {
         }
 
         // Build first cone
-        con1->input(in, r, nv, par.LTYPE, 1, par.CDENS, -k);
+        in->pars().getParGF().ISEED = -k;
+        con1->input(in, r);
         con1->calculate();
     
         // Build second cone
@@ -276,7 +276,7 @@ bool GalWind<T>::compute_cylindrical() {
             r->vvert[i] = -r->vvert[i];
         }
         
-        con2->input(in, r, nv, par.LTYPE, 1, par.CDENS, -k);
+        con2->input(in, r);
         con2->calculate();
 
         for (size_t i=0; i<in->NumPix(); i++) 

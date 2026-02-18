@@ -36,6 +36,10 @@
 //                      column densities in HI atoms/cm^2. Required
 //                      quantities are nr, xpos, ypos, radii, vrot,
 //                      vsys, vdisp, dens, z0, inc and phi.
+//
+//      Additional parameters below (NV, LTYPE, CMODE, CDENS, ISEED, 
+//                                  EMPTY, FLUXDENS) are taken from 
+//                                  the Param object in the Cube.
 //      -int NV:        Number of subclouds in the velocity profile of 
 //                      a single cloud. Can be set equal to the number 
 //                      of subset. 
@@ -50,7 +54,9 @@
 //                      clouds on the surface density of the HI. 
 //      -int CDENS[1]:  Surface density of clouds in the plane of the 
 //                      rings per area of a pixel. Default is 1.
-//      -int ISEED[-1]: Number to call the random number generator. 
+//      -int ISEED[-1]: Number to call the random number generator.
+//      -bool EMPTY[true]: Whether to leave the inner region empty.
+//      -bool DENSFLUX[true]: Whether to interpret DENS as a flux
 //
 // 2) call calculate() function.
 //
@@ -92,20 +98,16 @@ public:
     void setArray(Type *a) {out->setArray(a);}
     void setEmpty(bool e) {empty=e;}
     
-    void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings, 
-               int NV=-1, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);
-    
-    void input(Cube<Type> *c, Rings<Type> *rings, int NV=-1, int LTYPE=1, int CMODE=1, 
-               float CDENS=1.0, int ISEED=-1);
+    void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings);
+    void input(Cube<Type> *c, Rings<Type> *rings);
                
     bool calculate();
-    bool smooth(bool usescalefac=true);
+    bool smooth();
     void normalize();
     bool addnoise(double noiseRMS);
     
 
 protected:
-
     Cube<Type>  *in;                        //< A pointer to the input cube.
     Cube<Type>  *out;                       //< The Cube containing the model.
     bool    outDefined;
@@ -133,6 +135,7 @@ protected:
     
     std::vector<int> nv;                    //< Number of subclouds
     bool    empty;                          //< Whether to fill innermost ring.
+    bool    densIsFlux;                     //< How to interpret the DENS values.
     int     ltype;                          //< Layer type.
     int     cmode;                          //< Cloud mode 
     float   cdens;                          //< Surf. dens. of clouds per area of a pixel.
@@ -149,7 +152,7 @@ protected:
     /// Private functions.
     
     void    initialize(Cube<Type> *c, int *Boxup, int *Boxlow);
-    void    setOptions(int LTYPE, int CMODE, float CDENS, int ISEED);
+    void    setOptions(int LTYPE, int CMODE, float CDENS, int ISEED, bool EMPTY, bool DENSFLUX);
     double  velgrid(double v);
     double  fdev(int &idum);
     void    NHItoRAD();

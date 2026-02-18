@@ -382,7 +382,10 @@ class GalMod(Model3D):
         self.taskname = "GALMOD"
         self._opts.update({'ltype' : [1, np.int32, "Layer type along z"],
                            'cmode' : [1, np.int32, "Mode of clouds-surface density"],
-                           'iseed' : [-1, np.int32, "Seed for random number generator"]})
+                           'iseed' : [-1, np.int32, "Seed for random number generator"],
+                           'empty' : [True, bool, "If False, inner region is filled with emission"],
+                           'densflux' : [True, bool, "If True, dens is interpreted as flux/arcs2"],
+                       })
                            
         self._args = {'radii': [None,'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None,'X-center of the galaxy in pixels'],
@@ -996,8 +999,9 @@ class Ellprof(Task):
         try: os.remove('rings.txt')
         except: pass
         self.outrings = {'rad':a[:,0],'sum':a[:,1],'mean':a[:,2],'median':a[:,3],'rms':a[:,4],'mad':a[:,5],'numpix':a[:,6],\
-                         'surfdens':a[:,7],'surfdens_err':a[:,8],'surfdens_fo':a[:,9]}
-        if (a.shape[1]>10): self.outrings.update({'msurfdens':a[:,10],'msurfdens':a[:,11]})
+                         'surfdens':a[:,7],'surfdens_err':a[:,8],'surfdens_fo':a[:,9], 'npix_blank':a[:,10], 'surfdens_blank':a[:,11],\
+                         'surfdens_fo_blank':a[:,12]}
+        if (a.shape[1]>13): self.outrings.update({'ndens':a[:,13],'msurfdens':a[:,14]})
         
         return self.outrings
         

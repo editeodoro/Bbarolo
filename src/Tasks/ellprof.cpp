@@ -242,10 +242,9 @@ void Ellprof<T>::setFromCube(Cube<T> *c, Rings<T> *inR, bool mask) {
     
     if (c->Head().NumAx()>2 && c->DimZ()>1) im->ZeroMoment(mask);
     else {
-        bool v = c->pars().isVerbose();
-        c->pars().setVerbosity(false);
-        im->SumMap(mask);
-        c->pars().setVerbosity(v);
+        for (int i=0; i<c->NumPix(); i++) im->Array(i) = c->Array(i);
+        im->setHead(0);
+        im->Head().setBunit(c->Head().Bunit());
     }
     
     imAllocated = true;
@@ -695,10 +694,9 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
     theStream << "# Columns 11   : effective number of blank pixels within the ring.\n";
     theStream << "# Columns 12-13: surface density and face-on surface density including area covered by blank pixels (total area: NPIX + NPIXBL).\n";
     
-    
-    
     if (isJy)
-        theStream << "# Columns 14-16: (ONLY FOR HI DATA!) face-on (inclination corrected) number surface density and mass surface densities with two different techniques.\n";
+//        theStream << "# Columns 14-16: (ONLY FOR HI DATA!) face-on (inclination corrected) number surface density and mass surface densities with two different techniques.\n";
+        theStream << "# Columns 14-15: (ONLY FOR HI DATA!) face-on (inclination corrected) number surface density and mass surface density.\n";
     
     int m=9;
     theStream << "#\n#" << setw(m-1) << "RADIUS" << " "
@@ -715,9 +713,9 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
               << setw(m) << "SDENSBL" << " "
               << setw(m+1) << "SDENSBL_FO" << " ";
     if (isJy)
-        theStream << setw(m) << "SDENS_FO" << " "
-                  << setw(m) << "MASSDENS" << " "
-                  << setw(m) << "MASSDENS2" << " ";
+        theStream << setw(m+1) << "HIDENS_FO" << " "
+                  << setw(m+1) << "HIMASSDENS" << " ";
+//                  << setw(m) << "HIMASSDENS2" << " ";
 
     theStream << "\n#" << setw(m-1) << "arcsec" << " "
               << setw(m) << "u" << " "
@@ -733,9 +731,9 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
               << setw(m) << "u/arcs2" << " "
               << setw(m+1) << "u/arcs2" << " ";
     if (isJy)
-        theStream << setw(m) << "1E20/cm2" << " "
-                  << setw(m) << "Msun/pc2" << " "
-                  << setw(m) << "Msun/pc2" << " ";    
+        theStream << setw(m+1) << "1E20/cm2" << " "
+                  << setw(m+1) << "Msun/pc2" << " ";
+//                  << setw(m) << "Msun/pc2" << " ";
               
     theStream << std::endl << "#" << std::endl;
 
@@ -774,9 +772,9 @@ void Ellprof<T>::printProfile (ostream& theStream, int seg) {
             double numberdens = massdsurfdens/(8.41185687E-02*3.0857*3.0857);
             //totmass_req  = 3.0856*3.0856*8.41185687e-22*totmass_req;
             
-            theStream << setw(m) << numberdens << " "
-                      << setw(m) << massdsurfdens << " "
-                      << setw(m) << massdsurfdens2 << " ";
+            theStream << setw(m+1) << numberdens << " "
+                      << setw(m+1) << massdsurfdens << " ";
+//                      << setw(m) << massdsurfdens2 << " ";
         }
         
         theStream << fixed << std::endl;

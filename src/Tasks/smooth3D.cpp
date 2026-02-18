@@ -571,7 +571,7 @@ bool Smooth3D<T>::calculatefft(T *OldArray, T *NewArray) {
     
     if (!usescalefac) scalefac=1.0;
     int nthreads = in->pars().getThreads();
-
+    
 #pragma omp parallel num_threads(nthreads)
 {
     bar.init(" Smoothing... ",NdatZ);
