@@ -909,8 +909,8 @@ Rings<T>* readRings(GALFIT_PAR &par, Header &h, bool *fromfile) {
         else inR->vdisp.push_back(vdisp);
         if (z0_b) inR->z0.push_back(fr.z0[i]);
         else inR->z0.push_back(z0);
-        if (dens_b) inR->dens.push_back(fr.dens[i]*1.E20);
-        else inR->dens.push_back(dens*1.E20);
+        if (dens_b) inR->dens.push_back(fr.dens[i]);
+        else inR->dens.push_back(dens);
         if (inc_b) inR->inc.push_back(fr.inc[i]);
         else inR->inc.push_back(inc);
         if (pa_b) inR->phi.push_back(fr.phi[i]);

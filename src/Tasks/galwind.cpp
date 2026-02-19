@@ -138,8 +138,8 @@ bool GalWind<T>::compute_spherical() {
         else inS->vdisp.push_back(atof(par.VDISP.c_str()));
         if (vwind_b) inS->vsph.push_back(Vwind[i]);
         else inS->vsph.push_back(atof(par.VWIND.c_str()));
-        if (dens_b) inS->dens.push_back(Dens[i]*1.E20);
-        else inS->dens.push_back(atof(par.VWIND.c_str())*1.E20);
+        if (dens_b) inS->dens.push_back(Dens[i]);
+        else inS->dens.push_back(atof(par.VWIND.c_str()));
         if (opa_b) inS->openang.push_back(Oang[i]);
         else inS->openang.push_back(atof(par.OPENANG.c_str()));
         inS->xpos.push_back(x0);
@@ -255,7 +255,7 @@ bool GalWind<T>::compute_cylindrical() {
             r->inc.push_back(inc); 
             r->phi.push_back(PA);  
             r->z0.push_back(z0);   
-            r->dens.push_back(dens*1E20); 
+            r->dens.push_back(dens); 
             r->vrot.push_back(Vrot[k-1]);  
             r->dvdz.push_back(0.);  
             r->zcyl.push_back(0.);  

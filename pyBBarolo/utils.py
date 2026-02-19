@@ -484,6 +484,7 @@ class SimulatedGalaxyCube(object):
                     vsys=f'file({p},11)',
                     norm=None,
                     mask=None,
+                    empty=False,
                     linear=0,
                     cdens=10,
                     noiserms=noiserms,

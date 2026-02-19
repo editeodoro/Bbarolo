@@ -236,7 +236,7 @@ public:
         
         s = "        Dens";
         theStream << setw(n+4) << left << s << setw(3) << right << "= "
-                  << setw(m-1) << this->dens[nring]/1E20 << left << setw(m) << " 1E20 1/cm2" << endl;
+                  << setw(m-1) << this->dens[nring] << left << setw(m) << " 1E20 1/cm2" << endl;
         
         s = "    VVERT";
         theStream << setw(n) << left << s << setw(3) << right << "= "

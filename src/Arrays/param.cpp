@@ -1498,9 +1498,9 @@ void printParams(std::ostream& Str, Param &p, bool defaults, string whichtask) {
         if (isGalfit) recordParam(Str, "[DELTAPA]", "   Max position angle variation from PA (degrees)", p.getParGF().DELTAPHI);
         recordParam(Str, "[Z0]", "   Scale height of the disk (arcsec)", p.getParGF().Z0);
         recordParam(Str, "[DENS]", "   Gas column density (atoms/cm2)", p.getParGF().DENS);
-        recordParam(Str, "[DENSFLUX]", "   Whether DENS is integrated flux / arcs2", stringize(p.getParGF().DENSFLUX));
         
         if (isGalmod) {
+            recordParam(Str, "[DENSFLUX]", "   Whether DENS is integrated flux / arcs2", stringize(p.getParGF().DENSFLUX));
             recordParam(Str, "[VVERT]", "   Vertical velocity (km/s)", p.getParGM().VVERT);
             recordParam(Str, "[DVDZ]", "   Vertical gradient of rotation velocity (km/s/arcs)", p.getParGM().DVDZ);
             recordParam(Str, "[ZCYL]", "   Height where the gradient begins (arcs)", p.getParGM().ZCYL);

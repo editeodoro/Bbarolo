@@ -44,7 +44,6 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     const double tol  = par.TOL;
     
     int ndim=nfree;
-    if (global) ndim=nfree*dring->nr;
 
     const int NMAX=200*ndim;
 
@@ -54,55 +53,7 @@ bool Galfit<T>::minimize(Rings<T> *dring, T &minimum, T *pmin, Galmod<T> *modsoF
     T *point = new T[ndim];
     T *dels  = new T[ndim];
 
-    /*
-    int k=0;
-    if (mpar[VROT])  point[k++]=dring->vrot.front();
-    if (mpar[VDISP]) point[k++]=dring->vdisp.front();
-    if (mpar[DENS])  point[k++]=dring->dens.front();
-    if (mpar[Z0])    point[k++]=dring->z0.front();
-    if (mpar[INC])   point[k++]=dring->inc.front();
-    if (mpar[PA])    point[k++]=dring->phi.front();
-    if (mpar[XPOS])  point[k++]=dring->xpos.front();
-    if (mpar[YPOS])  point[k++]=dring->ypos.front();
-    if (mpar[VSYS])  point[k++]=dring->vsys.front();
-    if (mpar[VRAD])  point[k++]=dring->vrad.front();
-
-    /// Determine the initial simplex.
-    for (int i=0; i<ndim; i++) {
-        dels[i]  = 0.2*point[i];
-        point[i] = point[i]-0.1*point[i];					///-<<<<<<<<<<<< Totalmente arbitrario. pensaci su.
-    }
-    */
-
-    /// Determine the initial simplex (new way).
-    //    if (global) {
-    //        int n=dring->nr, k=0;
-    //        if (mpar[VROT])  for (int j=0;j<n;j++) {dels[k]=30.; point[k++]=dring->vrot[j];}
-    //        if (mpar[VDISP]) for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->vdisp[j];}
-    //        if (mpar[DENS])  for (int j=0;j<n;j++) {dels[k]=0.2*dring->dens.front(); point[k++]=dring->dens[j];}
-    //        if (mpar[Z0])    for (int j=0;j<n;j++) {dels[k]=0.2*dring->z0.front(); point[k++]=dring->z0[j];}
-    //        if (mpar[INC])   for (int j=0;j<n;j++) {dels[k]=5.; point[k++]=dring->vexp[j];}
-    //        if (mpar[PA])    for (int j=0;j<n;j++) {dels[k]=10.; point[k++]=dring->phi[j];}
-    //        if (mpar[XPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[XPOS]-mins[XPOS])/4.; point[k++]=dring->xpos[j];}
-    //        if (mpar[YPOS])  for (int j=0;j<n;j++) {dels[k]=(maxs[YPOS]-mins[YPOS])/4.; point[k++]=dring->ypos[j];}
-    //        if (mpar[VSYS])  for (int j=0;j<n;j++) {dels[k]=(maxs[VSYS]-mins[VSYS])/4.; point[k++]=dring->vsys[j];}
-    //        if (mpar[VRAD])  for (int j=0;j<n;j++) {dels[k]=(maxs[VRAD]-mins[VRAD])/4.; point[k++]=dring->vrad[j];}
-    //    }
-    //    else {
-    //        int k=0;
-    //        if (mpar[VROT])  {dels[k]=30.; point[k++]=dring->vrot.front();}
-    //        if (mpar[VDISP]) {dels[k]=10.; point[k++]= dring->vdisp.front();}
-    //        if (mpar[DENS])  {dels[k]=0.2*dring->dens.front(); point[k++]= dring->dens.front();}
-    //        if (mpar[Z0])    {dels[k]=0.2*dring->z0.front(); point[k++]= dring->z0.front();}
-    //        if (mpar[INC])   {dels[k]=5.; point[k++]= dring->inc.front();}
-    //        if (mpar[PA])    {dels[k]=10.;point[k++]= dring->phi.front();}
-    //        if (mpar[XPOS])  {dels[k]=(maxs[XPOS]-mins[XPOS])/4.;point[k++]= dring->xpos.front();}
-    //        if (mpar[YPOS])  {dels[k]=(maxs[YPOS]-mins[YPOS])/4.;point[k++]= dring->ypos.front();}
-    //        if (mpar[VSYS])  {dels[k]=(maxs[VSYS]-mins[VSYS])/4.;point[k++]= dring->vsys.front();}
-    //        if (mpar[VRAD])  {dels[k]=(maxs[VRAD]-mins[VRAD])/4.;point[k++]= dring->vrad.front();}
-    //    }
     int n=1, k=0;
-    if (global) n=dring->nr;
     if (mpar[VROT]) {
         for (int j=0;j<n;j++) {
             if (dring->vrot[j]>40) dels[k]=30.;
@@ -278,22 +229,9 @@ double Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
     static std::uniform_real_distribution<float> uniform = std::uniform_real_distribution<float>(0.,1.);
     static std::mt19937 generator(-1);
     static auto fran = std::bind(uniform, generator);
-    
-//    T vrot  = dring->vrot.front();
-//    T vdisp = dring->vdisp.front();
-//    T dens  = dring->dens.front();
-//    T z0    = dring->z0.front();
-//    T inc   = dring->inc.front();
-//    T phi   = dring->phi.front();
-//    T xpos  = dring->xpos.front();
-//    T ypos  = dring->ypos.front();
-//    T vsys  = dring->vsys.front();
-//    T vrad  = dring->vrad.front();
-    
-
+        
     int n=1, np=0, w_r=dring->id;
 
-    if (global) {n=dring->nr; w_r=0;}
     T vrot[n],vdisp[n],dens[n],z0[n],inc[n],phi[n],xpos[n],ypos[n],vsys[n],vrad[n];
 
     for (int j=0; j<n; j++) {
@@ -411,92 +349,17 @@ double Galfit<T>::func3D(Rings<T> *dring, T *zpar, Galmod<T> *modsoFar) {
         }
     }
 
-    /*
-    bool out_of_boundaries=false;
-    for (int i=0; i<MAXPAR; i++) {
-        if (mpar[i]) {
-            switch(i) {
-                case VROT:
-                    vrot = zpar[npar];
-                    if (vrot<mins[VROT] || vrot>maxs[VROT]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                case VDISP:
-                    vdisp = zpar[npar];
-                    if (vdisp<mins[VDISP] || vdisp>maxs[VDISP]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                case DENS:
-                    dens = zpar[npar];
-                    npar++;
-                    break;
-
-                case Z0:
-                    z0 = zpar[npar];
-                    if (z0<mins[Z0] || z0>maxs[Z0]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                case INC:
-                    inc = zpar[npar];
-                    if (inc<mins[INC] || inc>maxs[INC]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                case PA:
-                    phi = zpar[npar];
-                    if (phi<mins[PA] || phi>maxs[PA]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                case XPOS:
-                    xpos = zpar[npar];
-                    if (xpos<mins[XPOS] || xpos>maxs[XPOS]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                case YPOS:
-                    ypos = zpar[npar];
-                    if (ypos<mins[YPOS] || ypos>maxs[YPOS]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                case VSYS:
-                    vsys = zpar[npar];
-                    if (vsys<mins[VSYS] || vsys>maxs[VSYS]) out_of_boundaries = true;
-                    npar++;
-                    break;
-                
-                case VRAD:
-                    vrad = zpar[npar];
-                    if (vrad<mins[VRAD] || vrad>maxs[VRAD]) out_of_boundaries = true;
-                    npar++;
-                    break;
-
-                    default:
-                    break;
-            }
-        }
-    }
-
-    if (out_of_boundaries) return FLT_MAX;
-*/
-
-
-    for (int i=0,j=0; i<dring->nr; i++) {
-        j=i*global;
-        dring->vrot[i] 	= vrot[j];
-        dring->vdisp[i]	= vdisp[j];
-        dring->z0[i]	= z0[j];
-        dring->dens[i]	= dens[j];
-        dring->inc[i]	= inc[j];
-        dring->phi[i]	= phi[j];
-        dring->xpos[i]	= xpos[j];
-        dring->ypos[i]	= ypos[j];
-        dring->vsys[i]	= vsys[j];
-        dring->vrad[i]	= vrad[j];
+    for (int i=0; i<dring->nr; i++) {
+        dring->vrot[i] 	= vrot[0];
+        dring->vdisp[i]	= vdisp[0];
+        dring->z0[i]	= z0[0];
+        dring->dens[i]	= dens[0];
+        dring->inc[i]	= inc[0];
+        dring->phi[i]	= phi[0];
+        dring->xpos[i]	= xpos[0];
+        dring->ypos[i]	= ypos[0];
+        dring->vsys[i]	= vsys[0];
+        dring->vrad[i]	= vrad[0];
     }
 
     return getFuncValue(dring,modsoFar);
@@ -568,11 +431,10 @@ void Galfit<T>::Convolve(T *array, int *bsize) {
                     long nPix = x+y*(bsize[0]+NconX-1);
                     long mPix = (x-(NconX-1)/2)+(y-(NconY-1)/2)*bsize[0]+z*bsize[0]*bsize[1];
                     //if (IsIn(x-(NconX-1)/2,y-(NconY-1)/2,blo,dring))
-                    array[mPix] = afterCON[nPix];
+                    array[mPix] = afterCON[nPix]*conv_scalefactor;
                     //else modp[mPix] = 0;
                 }
             }
-
         }
 
         delete [] beforeCON;
@@ -596,9 +458,9 @@ void Galfit<T>::Convolve_fft(T *array, int *bsize) {
         for (uint z=in->DimZ(); z--;) {
             T *ptr = &array[z*size];
             for (uint i=size; i--;) beforeCON[i] = isNaN(ptr[i]) ? 0 : ptr[i];
-            convolve (cfft,beforeCON, cfield);
+            convolve (cfft,beforeCON,cfield);
             for (uint i=size; i--;)
-                ptr[i] = (cfft.dst[i]<1.E-12) ? 0. : cfft.dst[i];	//<<<< Un po' arbitrario, non mi piace.
+                ptr[i] = (cfft.dst[i]<1.E-12) ? 0. : cfft.dst[i]*conv_scalefactor;	//<<<< Un po' arbitrario, non mi piace.
         }
 
         clear_Conv2D(cfft);

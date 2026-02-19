@@ -61,28 +61,29 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     Tasks::Ellprof<T> ell(in,outr,true);
     ell.RadialProfile();
     
-
+    // If a azimuthal normalization is requested, using the azimuthal profile as input for output rings.
+    // This is a little trick to ensure a smoother azimuthal model -> scaling factor avoid very small/large fluxes. 
+    float scaling_factor = 1;
     if (normtype=="AZIM" || normtype=="BOTH") {
         double profmin=FLT_MAX;
         for (auto i=0; i<outr->nr; i++) {
-            double mean = ell.getMean(i);
+            double mean = ell.getSurfDensFaceOn(i);
             if (!isNaN(mean) && profmin>mean && mean>0) profmin = mean;
         }
-        float factor = 1;
         while(profmin<0.1) {
             profmin*=10;
-            factor *=10;
+            scaling_factor *=10;
         }
         while (profmin>10) {
             profmin /= 10;
-            factor /= 10;
+            scaling_factor /= 10;
         }
         for (auto i=0; i<outr->nr; i++) {
-            if (outr->dens[i]>0) outr->dens[i]=factor*fabs(ell.getMean(i))*1E20;
-            //if (outr->dens[i]==0) outr->dens[i]=profmin*1E20;
+            if (outr->dens[i]>0) outr->dens[i] = scaling_factor*fabs(ell.getSurfDensFaceOn(i));
+            //if (outr->dens[i]==0) outr->dens[i]=profmin;
         }
     }
-    
+
     std::string dens_out = outfold+"densprof.txt";
     std::ofstream fileo(dens_out.c_str());
     ell.printProfile(fileo,ell.getNseg()-1);
@@ -102,6 +103,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     int blo[2] = {0,0};
     Rings<T> *last = new Rings<T>;
     *last = *outr;
+    // Last model is calculated with a larger number of clouds.
     Model::Galmod<T> *mod = getModel(last,bhi,blo,nullptr,true);
     delete last;
     mod->Out()->Head().setMinMax(0.,0.);
@@ -112,55 +114,10 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     if (normtype=="AZIM" || normtype=="BOTH") {
 
         // The final model has been build from the azimuthal profile calculated before,
-        // thus just need to rescale the model to the total flux of data inside last ring.
+        // thus just need to rescale the model by the same factor used for the profile.
+        
+        for (auto i=in->NumPix(); i--;) outarray[i] /= scaling_factor;
 
-        // Calculate total flux of model within last ring
-        float totflux_data=0, totflux_model=0;
-
-        //for (auto i=0; i<in->DimX()*in->DimY(); i++) {
-        //    if (!isNaN(ringreg[i])) {
-        //        for (auto z=0; z<in->DimZ(); z++) {
-        //            long npix = i+z*in->DimY()*in->DimX();
-        //            totflux_model += outarray[npix]*in->Mask(npix);
-        //            totflux_data  += in->Array(npix)*in->Mask(npix);
-        //        }
-        //    }
-        //    //else {
-        //    //      for (size_t z=0; z<in->DimZ(); z++)
-        //    //             outarray[i+z*in->DimY()*in->DimX()]=0;
-        //    //}
-        //}
-        
-        
-        //////////////////////////////////////////////////////////////////
-        // New normalization method, taking only pixels in a given range 
-        // (see start, stop below)
-        std::vector<T> d, m;
-        for (auto i=0; i<in->DimX()*in->DimY(); i++) {
-            if (!isNaN(ringreg[i])) {
-                for (auto z=0; z<in->DimZ(); z++) {
-                    long npix = i+z*in->DimY()*in->DimX();
-                    if (in->Mask(npix) && in->Array(npix)>0) {
-                        d.push_back(in->Array(npix));
-                        m.push_back(outarray[npix]);
-                    }
-                }
-            }
-        }
-        
-        std::sort (d.begin(), d.end()); 
-        std::sort (m.begin(), m.end()); 
-        int start = 0.6*d.size();
-        int stop  = 0.99*d.size();
-        
-        for (int i=start; i<stop; i++) {
-            totflux_data  += d[i];
-            totflux_model += m[i];
-        }
-        ////////////////////////////////////////////////////////////////////////
-        
-        double factor = totflux_data/totflux_model;
-        for (auto i=in->NumPix(); i--;) outarray[i] *= factor;
         if (verb) std::cout << " Done." << std::endl;
 
         if (verb) std::cout << "    Writing " << randomAdjective(1) << " azimuthally-normalized model..." << std::flush;
@@ -221,6 +178,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         // Here I renormalize to have to the integral of the input density profile.
         // Output cube will have units of Jy/beam for HI data.
         
+        /*
         // Current flux model is assumed to be in JY/beam
         mod->Out()->Head().setBunit("JY/BEAM");
         // Getting current profile
@@ -240,7 +198,8 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
         totmass_curr = 2.36E-07*totmass_curr/(arctorad*arctorad);
 
         for (auto i=in->NumPix(); i--;) outarray[i] *= totmass_req/totmass_curr;
-        
+        */
+
         /*
         //////////////////////////////////////////////////////////////////////////////////////////
         // Re-normalization
@@ -900,9 +859,9 @@ void Galfit<T>::plotPar_Gnuplot () {
 
     if (mpar[DENS]) {
         maxa = *max_element(&outr->dens[0], &outr->dens[0]+outr->nr);
-        maxa += 0.1*maxa/1.E20;
+        maxa += 0.1*maxa;
         mina = *min_element(&outr->dens[0], &outr->dens[0]+outr->nr);
-        mina -= 0.1*mina/1.E20;
+        mina -= 0.1*mina;
         gnu << "@BMARGIN" << endl << "@XTICS" << endl
             << "set xlabel 'Radius [arcsec]'" << endl
             << "set yrange [" <<mina<<":"<<maxa<<"]\n"
@@ -1829,7 +1788,7 @@ void Galfit<T>::printInitial (Rings<T> *inr, std::string outfile) {
             << setw(m) << inr->inc[i]
             << setw(m) << inr->phi[i]
             << setw(m) << inr->z0[i]
-            << setw(m) << inr->dens[i]/1.E20
+            << setw(m) << inr->dens[i]
             << setw(m) << inr->xpos[i]
             << setw(m) << inr->ypos[i]
             << setw(m) << inr->vsys[i] << endl;

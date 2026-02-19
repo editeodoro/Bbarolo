@@ -154,7 +154,7 @@ protected:
     void    initialize(Cube<Type> *c, int *Boxup, int *Boxlow);
     void    setOptions(int LTYPE, int CMODE, float CDENS, int ISEED, bool EMPTY, bool DENSFLUX);
     double  velgrid(double v);
-    double  fdev(int &idum);
+    double  fdev();
     void    NHItoRAD();
 
 private:

@@ -324,7 +324,7 @@ class Model3D(Task):
         super(Model3D,self).__init__(fitsname=fitsname,**kwargs)
         self._opts.update ({'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
                             'nv'    : [-1, np.int32, "Number of subclouds per profile"],
-                            'linear': [0.8493, np.float32, "Spectral resolution in channels"]})
+                            'linear': [0.42465, np.float32, "Spectral resolution in channels"]})
                             
         
 
@@ -429,7 +429,7 @@ class GalMod(Model3D):
         
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
     
         
     def _compute(self,threads=1,**kwargs):
@@ -683,7 +683,7 @@ class FitMod3D(Model3D):
         # Now we can initialize rings
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.,z0,inc,phi)
 
 
     def _compute(self,threads=1):
@@ -881,7 +881,7 @@ class FitMod2D(Task):
         """
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.,0.,inc,phi)
 
     
     def _compute(self,threads=1):
@@ -975,7 +975,7 @@ class Ellprof(Task):
         """
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.,0.,inc,phi)
         
 
     def _compute(self,threads=1):

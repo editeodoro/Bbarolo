@@ -348,8 +348,8 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         else inr->vdisp.push_back(vdisp);
         if (z0_b) inr->z0.push_back(file_rings.z0[i]);
         else inr->z0.push_back(z0);
-        if (dens_b) inr->dens.push_back(file_rings.dens[i]*1.E20);
-        else inr->dens.push_back(dens*1.E20);
+        if (dens_b) inr->dens.push_back(file_rings.dens[i]);
+        else inr->dens.push_back(dens);
         if (inc_b) inr->inc.push_back(file_rings.inc[i]);
         else inr->inc.push_back(inc);
         if (pa_b) inr->phi.push_back(file_rings.phi[i]);

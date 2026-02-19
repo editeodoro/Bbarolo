@@ -107,7 +107,8 @@ protected:
     double   *cfield;                       //< Convolution field.
     bool     cfieldAllocated = false;
     int      NconX;                         //< Convolution field X-dimension.
-    int      NconY;                         //< Convolution field Y-dimensione
+    int      NconY;                         //< Convolution field Y-dimension.
+    double   conv_scalefactor = 1;          //< Scaling factor for convolution.
     int      wpow = 1;                      //< Weighing function power.
     bool     second = false;
     Cube<T>  *line_im;                      //< Line Image;
@@ -115,7 +116,6 @@ protected:
     float    *chan_noise;                   //< Noise in each channel map.
     T        data_noise;                    //< Global noise in the cube. 
     bool     chan_noiseAllocated = false;
-    bool     global = false;                //< Whether to fit all parameters at once.
     bool     reverse = false;               //< Using reverse cumulative fitting
     bool     verb = true;
     vector<string> norms;                   //< Density normalization functions.

@@ -195,22 +195,8 @@ void Smooth3D<T>::cubesmooth(Cube<T> *c) {
 
 
 template <class T>
-void Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam) {
-    
-    int Bhi[3] = {c->DimX(), c->DimY(), c->DimZ()};
-    int Blo[3] = {0,0,0};
-    
-    smooth(c, Bhi, Blo, Oldbeam, Newbeam);
-}
+bool Smooth3D<T>::setfromCube(Cube<T> *c, Beam Oldbeam, Beam Newbeam, int *Bhi, int *Blo) {
 
-
-template <class T>
-void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newbeam) {
-    
-    /// Front end function for Smooth3D. It initializes all needed 
-    /// variable. 
-        
-    using namespace std;
     in = c;
     float unittoarc = arcsconv(in->Head().Cunit(0));    
     gridspace[0]=in->Head().Cdelt(0)*unittoarc; 
@@ -218,10 +204,10 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
     
     for (int i=0; i<3; i++) {
         dimAxes[i]  = c->AxesDim(i);
-        bhi[i]      = Bhi[i];
-        blo[i]      = Blo[i];
         fhi[i]      = dimAxes[i];
         flo[i]      = 0;
+        bhi[i]      = Bhi==nullptr ? fhi[i] : Bhi[i];
+        blo[i]      = Blo==nullptr ? flo[i] : Blo[i];   
     }
 
     NdatX = bhi[0]-blo[0];
@@ -229,9 +215,30 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
     NdatZ = bhi[2]-blo[2];
     
     crota = c->Head().Crota();
+    
+    beamDefined = (this->*func_psf)(Oldbeam, Newbeam); 
+    return beamDefined;
+}
 
-    beamDefined = (this->*func_psf)(Oldbeam,Newbeam);
-    if (!beamDefined) std::terminate();
+
+template <class T>
+bool Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam) {
+    
+    int Bhi[3] = {c->DimX(), c->DimY(), c->DimZ()};
+    int Blo[3] = {0,0,0};
+    
+    return smooth(c, Bhi, Blo, Oldbeam, Newbeam);
+}
+
+
+template <class T>
+bool Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newbeam) {
+    
+    /// Front end function for Smooth3D. It initializes all needed 
+    /// variable. 
+        
+    if (!setfromCube(c, Oldbeam, Newbeam, Bhi, Blo)) 
+        return false;
     
     //FitsWrite_2D ("PSF.fits", confie, NconX, NconY);
     
@@ -277,10 +284,11 @@ void Smooth3D<T>::smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newb
     if (fft) allOK = calculatefft(c->Array(), array);
     else allOK = calculate(c->Array(), array);
     if (!allOK) {
-        std::cout << "SMOOTH error: cannot smooth data\n";
-        std::terminate();
+        std::cerr << "SMOOTH error: cannot smooth data\n";
+        return false;
     }
-
+    
+    return true;
 }
 
 
@@ -294,29 +302,9 @@ bool Smooth3D<T>::smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam, T *OldArray, T 
     /// This function does not write the smoothed array on the 
     /// Smooth3D::array variable!!!!
     
-
-    in = c;
-    float unittoarc = arcsconv(in->Head().Cunit(0));    
-    gridspace[0]=in->Head().Cdelt(0)*unittoarc; 
-    gridspace[1]=in->Head().Cdelt(1)*unittoarc;
+    if (!setfromCube(c, Oldbeam, Newbeam)) 
+        return false;        
     
-    for (int i=0; i<3; i++) {
-        dimAxes[i]  = c->AxesDim(i);
-        fhi[i]      = dimAxes[i];
-        flo[i]      = 0;
-        bhi[i]      = fhi[i];
-        blo[i]      = flo[i];
-    }
-
-    NdatX = bhi[0]-blo[0];
-    NdatY = bhi[1]-blo[1];
-    NdatZ = bhi[2]-blo[2];
-    
-    crota = c->Head().Crota();
-    
-    beamDefined = (this->*func_psf)(Oldbeam, Newbeam); 
-    if (!beamDefined) return false;
-        
     blanks = new bool [NdatX*NdatY*NdatZ];
     blanksAllocated = true;
     for (int i=0; i<NdatX*NdatY*NdatZ; i++) blanks[i] = isBlank(c->Array(i)) && useBlanks ? false : true;

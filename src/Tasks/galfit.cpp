@@ -96,7 +96,6 @@ Galfit<T>& Galfit<T>::operator=(const Galfit &g) {
     this->NconX     = g.NconX;
     this->NconY     = g.NconY;
     this->wpow      = g.wpow;
-    this->global    = g.global;
     this->reverse   = g.reverse;
 
     if (cfieldAllocated) delete [] cfield;
@@ -380,6 +379,10 @@ void Galfit<T>::setup (Cube<T> *c, Rings<T> *inrings, GALFIT_PAR *p) {
     }
     if (norms.size()==2) norms.push_back(norms[1]);
 
+    // At the moment, there is no fit of DENS, so the values are arbitrary and interpreted as flux. Forcing densflux=true.
+    // This could be changed in the future if we want to fit DENS as a free parameter.
+    par.DENSFLUX = true;
+
     // Setting limits for fitting parameters
     maxs[VROT]  = *max_element(inr->vrot.begin(),inr->vrot.end())+par.DELTAVROT;
     mins[VROT]  = *min_element(inr->vrot.begin(),inr->vrot.end())-par.DELTAVROT;
@@ -469,56 +472,9 @@ void Galfit<T>::galfit() {
     else if (norms[n-1]=="AZIM") func_norm = &Model::Galfit<T>::norm_azim;
     else func_norm = &Model::Galfit<T>::norm_local;
 
-//    global=false;
-//    if (global) {
-//        Rings<T> *dring = new Rings<T>;
-//        *dring = *inr;
-//        T minimum=0;
-//        T pmin[nfree*dring->nr];
-//        if (!minimize(dring, minimum, pmin)) cout << "DIOCANEEEEEE" << endl;
-
-//        int k=0;
-//        if (mpar[VROT])  for (int ir=0; ir<inr->nr; ir++) outr->vrot[ir]=pmin[k++];
-//        if (mpar[VDISP]) for (int ir=0; ir<inr->nr; ir++) outr->vdisp[ir]=pmin[k++];
-//        if (mpar[DENS])  for (int ir=0; ir<inr->nr; ir++) outr->dens[ir]=pmin[k++];
-//        if (mpar[Z0])    for (int ir=0; ir<inr->nr; ir++) outr->z0[ir]=pmin[k++];
-//        if (mpar[INC])   for (int ir=0; ir<inr->nr; ir++) outr->inc[ir]=pmin[k++];
-//        if (mpar[PA])    for (int ir=0; ir<inr->nr; ir++) outr->phi[ir]=pmin[k++];
-//        if (mpar[XPOS])  for (int ir=0; ir<inr->nr; ir++) outr->xpos[ir]=pmin[k++];
-//        if (mpar[YPOS])  for (int ir=0; ir<inr->nr; ir++) outr->ypos[ir]=pmin[k++];
-//        if (mpar[VSYS])  for (int ir=0; ir<inr->nr; ir++) outr->vsys[ir]=pmin[k++];
-//        if (mpar[VRAD])  for (int ir=0; ir<inr->nr; ir++) outr->vrad[ir]=pmin[k++];
-
-//        for (int ir=0; ir<inr->nr; ir++) {
-//            float radius = ir==0 ?  inr->radsep/4. : inr->radii[ir];
-//            double toKpc = KpcPerArc(distance);
-//            fileout << setprecision(3) << fixed << left;
-//            fileout << setw(m) << radius*toKpc
-//                    << setw(m) << radius
-//                    << setw(m+1) << outr->vrot[ir]
-//                    << setw(m+1) << outr->vdisp[ir]
-//                    << setw(m) << outr->inc[ir]
-//                    << setw(m) << outr->phi[ir]
-//                    << setw(m) << outr->z0[ir]*toKpc*1000
-//                    << setw(m) << outr->z0[ir]
-//                    << setw(m) << outr->dens[ir]/1E20
-//                    << setw(m) << outr->xpos[ir]
-//                    << setw(m) << outr->ypos[ir]
-//                    << setw(m+1) << outr->vsys[ir]
-//                    << setw(m+1) << outr->vrad[ir]
-//                    << endl;
-
-//        }
-//    }
-//    else {
-    
-
     bool usereverse = reverse;//(n==2 && reverse) || (!par.TWOSTAGE && reverse);
     if (usereverse) fit_reverse(errors,fitok,fout);
     else fit_straight(errors,fitok,fout);
-
-
-  //  }
 
     fout.close();
 
@@ -974,12 +930,12 @@ bool Galfit<T>::setCfield() {
     //Beam Old = {fabs(pixsizeX), fabs(pixsizeY), 0};
     Beam Old = {0, 0, 0};
 
-    Beam New = {in->Head().Bmaj()*3600.,        // Beam always in degrees
-                in->Head().Bmin()*3600.,
-                in->Head().Bpa()};
-    
+    // New beam in degrees
+    Beam New = {in->Head().Bmaj()*3600.,in->Head().Bmin()*3600.,in->Head().Bpa()};
+        
+    // Calculating the convolution kernel and the scaling factor using the Smooth3D class. 
     Smooth3D<T> *sm = new Smooth3D<T>;
-    if (!sm->defineConvbeam_Gaussian(Old, New, pixSize)) {
+    if (!sm->setfromCube(in, Old, New)) {
         delete sm;
         return false;
     }
@@ -989,41 +945,14 @@ bool Galfit<T>::setCfield() {
     cfield = new double[NconX*NconY];
     cfieldAllocated=true;
     std::copy(sm->Confie(), sm->Confie()+NconX*NconY, cfield);
-    delete sm;   
+    conv_scalefactor = par.DENSFLUX ? 1.0 : sm->Scalefac();
+    
+    delete sm;
     return true;
     
 }
 template bool Galfit<float>::setCfield();
 template bool Galfit<double>::setCfield();
-
-/*
-template <class T>
-Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr) {
-
-    // If no rings are provided, we will use the output rings and built the final model
-    if (dr==nullptr) {
-        dr = outr;
-        // Creating output rings for final Galmod. Moving innermost and outermost ring boundaries.    
-        if (dr->nr==1) 
-            dr->addRing(dr->radii[0]+dr->radsep/2., dr->xpos[0], dr->ypos[0], dr->vsys[0], dr->vrot[0], dr->vdisp[0], 
-                        dr->vrad[0], dr->vvert[0], dr->dvdz[0], dr->zcyl[0], dr->dens[0], dr->z0[0], dr->inc[0], dr->phi[0]);
-        else dr->radii[dr->nr-1] += dr->radsep/2.;
-        dr->radii[0] = max(double(dr->radii[0]-dr->radsep/2.),0.);
-    }
-
-    int bhi[2] = {in->DimX(), in->DimY()};
-    int blo[2] = {0,0};
-    int nv = par.NV==-1 ? in->DimZ() : par.NV;
-    
-    Model::Galmod<T> *mod = new Model::Galmod<T>;
-    mod->input(in,bhi,blo,dr,nv,par.LTYPE,1,par.CDENS);
-    mod->calculate();
-    if (par.SM) mod->smooth();
-    return mod;
-}
-template Model::Galmod<float>* Galfit<float>::getModel(Rings<float> *);
-template Model::Galmod<double>* Galfit<double>::getModel(Rings<double> *);
-*/
 
 
 template <class T>
@@ -1040,7 +969,7 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
     
     int bsize[2] = {bhi[0]-blo[0], bhi[1]-blo[1]};
 
-    // This is better to have EMPTY=true when 3DFIT (otherwise it lowers the VROT and increase VDISP)
+    // It's better to have EMPTY=true when 3DFIT (otherwise it lowers the VROT and increase VDISP)
     Model::Galmod<T> *mod = new Model::Galmod<T>;
     mod->input(in,bhi,blo,dr);
     mod->calculate();
@@ -1051,7 +980,7 @@ Model::Galmod<T>* Galfit<T>::getModel(Rings<T> *dr, int* bhi, int* blo, Model::G
         for (auto i=mod->Out()->NumPix(); i--;) modp[i] += modsoFar->Out()->Array()[i];
     }
 
-    //<<<<< Convolution....
+    // Convolution
     if (par.SM) {
         if (in->pars().getflagFFT()) Convolve_fft(modp, bsize);
         else Convolve(modp, bsize);
@@ -1296,7 +1225,7 @@ void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, 
          << setw(m) << r->phi[i]
          << setw(m) << r->z0[i]*toKpc*1000
          << setw(m) << r->z0[i]
-         << setw(m) << r->dens[i]/1E20
+         << setw(m) << r->dens[i]
          << setw(m) << r->xpos[i]
          << setw(m) << r->ypos[i]
          << setw(m+1) << r->vsys[i]

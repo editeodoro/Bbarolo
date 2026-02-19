@@ -193,7 +193,7 @@ class BayesianBBarolo(FitMod3D):
         # Initialize rings
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
         
         # Defining default uniform priors 
         rr = self._inri.r
@@ -619,7 +619,6 @@ class BayesianBBarolo(FitMod3D):
         for key in freepar_idx:
             pvalue = theta[freepar_idx[key]]
             if key=='sigma' or key=='radmax': continue
-            if key=='dens': pvalue *= 1E20
             if len(pvalue)==1: pvalue = pvalue[0]
             rings.modify_parameter(key,pvalue)
         
@@ -636,7 +635,7 @@ class BayesianBBarolo(FitMod3D):
         # To avoid problems with Galmod, we normalize the profile such that the minimum value is 1
         mindens = np.nanmin(dens[dens>1E-10])
         dens *= 1./mindens
-        rings.modify_parameter("dens",np.abs(dens)*1E20,makeobj=True)
+        rings.modify_parameter("dens",np.abs(dens),makeobj=True)
 
         
     def write_bestmodel(self,plots=True,**kwargs):
@@ -791,7 +790,7 @@ class BayesianBBarolo(FitMod3D):
         rr = r['inrings']
         self.init(radii=rr['radii'],xpos=rr['xpos'],ypos=rr['ypos'],vsys=rr['vsys'],vrot=rr['vrot'],\
                   vdisp=rr['vdisp'],inc=rr['inc'],phi=rr['phi'],z0=rr['z0'],vrad=rr['vrad'],\
-                  dens=rr['dens']/1E20,vvert=rr['vvert'],dvdz=rr['dvdz'],zcyl=rr['zcyl'])
+                  dens=rr['dens'],vvert=rr['vvert'],dvdz=rr['dvdz'],zcyl=rr['zcyl'])
         
         # Setting options and all necessary attributes
         self.set_options(**r['options'])

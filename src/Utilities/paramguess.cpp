@@ -814,7 +814,7 @@ double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, dou
     T inc  = mypar[1];
 
     Rings<T> *rings = new Rings<T>;
-    rings->setRings(0,RMAX,radsep,xcen,ycen,vsys,10*DeltaVel(c->Head()),8,0,0,0,0,1E20,0,inc,pa);
+    rings->setRings(0,RMAX,radsep,xcen,ycen,vsys,10*DeltaVel(c->Head()),8,0,0,0,0,1,0,inc,pa);
 
     MomentMap<T> *totalmap = new MomentMap<T>;
     totalmap->input(c);
@@ -839,8 +839,8 @@ double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, dou
         factor /= 10;
     }
     for (int i=0; i<rings->nr; i++) {
-        rings->dens[i]=factor*fabs(ell.getMean(i))*1E20;
-        if (rings->dens[i]==0) rings->dens[i]=profmin*1E20;
+        rings->dens[i]=factor*fabs(ell.getMean(i));
+        if (rings->dens[i]==0) rings->dens[i]=profmin;
     }
 
     Model::Galmod<T> *mod = new Model::Galmod<T>;

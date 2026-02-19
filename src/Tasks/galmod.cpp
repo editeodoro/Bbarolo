@@ -21,11 +21,6 @@
     Internet email: enrico.diteodoro@gmail.com
 -----------------------------------------------------------------------*/
 
-// NB: Random number generators supported:
-// 1) GALMOD classic: iran(), gasdev() -> Uncomment lines with "Classic galmod"
-// 2) STD c++ library -> Uncomment lines with "STD library"
-// There are 5 lines to change: 3 in galmod() and 2 in fdev()
-
 #include <iostream>
 #include <cmath>
 #include <random>
@@ -43,95 +38,6 @@
 #include <stdlib.h>
 #define C  2.99792458E08            // Speed of light in M/S
 #define nran 16777216
-
-int iran(int &idum) {
-    
-    /// Random number generator due to Knuth.
-    /// The choices for MBIG and MSEED are not particularly important 
-    /// since the they are only used 55 times in a linear congruential 
-    /// algorithm to initialize the array ma.
-    
-        
-    const int MBIG = 16777216;
-    const int MSEED= 1618033;
-
-    static int ma[56];
-    static int inext, inextp, mk;
-#pragma omp threadprivate(ma,inext,inextp,mk)
-
-    int Iran=0; 
-
-    if (idum<0) {
-        Iran = MSEED-fabs(idum);
-        Iran = Iran % MBIG;
-        ma[55]=Iran;
-        mk=1;
-        for (int i=1; i<=54; i++) {
-            int ii = (21*i) % 55;
-            ma[ii] = mk;
-            mk = Iran-mk;
-            if (mk<0) mk += MBIG;
-             Iran = ma[ii];
-        }
-        for (int kk=1; kk<=4; kk++) {
-            for (int i=1; i<=55; i++) {
-                int j= (i+30) % 55;             
-                ma[i]=ma[i]-ma[1+j];
-                if (ma[i]<0) ma[i] = ma[i]+MBIG;
-            }
-        }
-
-        inext=0;
-        inextp=31;
-        idum=1;
-    }
-
-    inext=inext+1;
-    if (inext==56) inext=1;
-    inextp=inextp+1;
-    if (inextp==56) inextp=1;
-    Iran = ma[inext]-ma[inextp];
-    if (Iran<0) Iran=Iran+MBIG;
-    ma[inext] = Iran;
-    
-    return Iran;
-}
-
-
-double gasdev(int &idum) {
-
-    /// Function to get random deviates from a gaussian distribution.
-    /// Drawn from 'Numerical Recipes' but modified a bit.
-
-    static double v1, v2, r;
-    static double fac, gset;
-    static int iset=0;
-#pragma omp threadprivate(v1,v2,r,fac,gset,iset)
-    
-    double Gasdev=0;
-    
-    if (iset==0) {
-        int ctrl = 0;
-        while (ctrl==0) {
-            v1 = double(1+2*iran(idum)-nran)/double(nran);
-            v2 = double(1+2*iran(idum)-nran)/double(nran);
-            r=v1*v1+v2*v2;
-            if (r>=1 || r==0) ctrl=0;
-            else ctrl=1;
-        }
-        fac  = sqrt(-2.0*log(r)/r);
-        gset = v1*fac;
-        Gasdev = v2*fac;
-        iset = 1;
-    }
-    else { 
-        Gasdev=gset;
-        iset=0;
-    }
-    
-    return Gasdev;
-
-}
 
 
 namespace Model {
@@ -252,7 +158,7 @@ void Galmod<T>::input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings) {
 
     initialize(c, Boxup, Boxlow);
 
-    GALMOD_PAR &p = c->pars().getParGF();
+    GALMOD_PAR &p = c->pars().getParGM();
     setOptions(p.LTYPE, p.CMODE, p.CDENS, p.ISEED, p.EMPTY, p.DENSFLUX);
     
     ringIO(rings);
@@ -345,6 +251,24 @@ bool Galmod<T>::smooth() {
         std::cout << "calculated yet.\n";
         return false; 
     }
+    
+    // Because the model is built with pixelation, the "beam" of the model is 
+    // a box car with size = pixsize. 
+    // To smooth the model cube to input data (Gaussian beam), we have to 
+    // convolve it with a Gaussian beam with a convolution beam:
+    //
+    // CONBEAM_MAJ = SQRT( beam1^2 - fwhm^2 * cdelt1^2 / 12 )
+    // CONBEAM_MAJ = SQRT( beam2^2 - fwhm^2 * cdelt2^2 / 12 )
+    //
+    // where fwhm = 2.354820045.
+    // Moreover, if DENSFLUX=false, we also need to rescale the output with an
+    // appropriate scaling.
+    //
+    // SCALE = 2*pi*(beam1/fwhm)*(beam2/fwhm) / (cdelt1*cdelt2)
+    //
+    // The above is very similar to start from a Gaussian beam with FWHM=0 instead 
+    // of a box car and calculate the convolution beam to get to the final beam. 
+    // This is what is done here. 
     
     //Beam oldbeam = {pixsize[0]*60, pixsize[1]*60, 0};
     Beam oldbeam = {0., 0., 0};    
@@ -625,8 +549,7 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
     /// This function creates the set of rings to be used in the model.
     /// - Velocities are given in km/s and then converted in m/s.
     /// - Radii are given in arcsec and then converted in arcmin.
-    /// - Column densities are given in HI atoms/cm^2 and the converted 
-    ///   in units of 1E20 atoms/cm^2.
+    /// - Column densities are inputed in 1E20 HI atoms/cm^2.
     /// - Angles are given in grades and then converted in radians.
     
     if (ringDefined) delete r;
@@ -663,8 +586,8 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
         if (ur->vdisp[i]<0)
             throw std::runtime_error("GALMOD ERROR: Negative velocity dispersion not allowed.\n");
         
-        // Density in 1.0E20 cm^2 or flux_int / arcs if DENSFLUX=true
-        ur->dens[i]=rings->dens[i]/1.0E20;
+        // Input density is already in 1E20 cm^2 or flux_int / arcs if DENSFLUX=true
+        ur->dens[i]=rings->dens[i];
         if (ur->dens[i]<0) 
             throw std::runtime_error("GALMOD ERROR: Negative column-density or flux are not allowed.\n");
         
@@ -741,8 +664,8 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
     r->nr=r->radii.size();
     
     ////////////////////////////////////////////////////////////////////////////////
-    for (int i=0; i<r->nr; i++)
-        std::cout << setprecision(5) << r->radii[i]*60. << " " << std::endl;
+    //for (int i=0; i<r->nr; i++)
+    //    std::cout << setprecision(5) << r->radii[i]*60. << " " << std::endl;
     ////////////////////////////////////////////////////////////////////////////////
     
     ringDefined = true;
@@ -897,15 +820,13 @@ void Galmod<T>::galmod() {
 template <class T>
 void Galmod<T>::galmod() {
 
-    const double twopi = 2*M_PI;
     T *array = out->Array();
     for (int i=0; i<out->NumPix(); i++) array[i] = 0.;
 
     ProgressBar bar(false,in->pars().isVerbose(),in->pars().getShowbar());
     bar.init(" Modeling... ",r->nr);
 
-    int isd = iseed;
-//  Get number of velocity profiles that will be done.
+//  Number of velocity profiles that will be done.
     int nprof = bsize[0]*bsize[1];
 
 //  Convenient random generator functions
@@ -913,59 +834,45 @@ void Galmod<T>::galmod() {
 
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
-        double totalflux = 0;   ///////////////////////////////////////////////////////
-        int nnn=0;
-
         bar.update(ir+1);
         if (r->dens[ir]==0) continue;
-//      Get radius
-        double rtmp = r->radii[ir];
+
 //      Get number of clouds inside ring.
-        int nc = lround(cdens*pow(r->dens[ir],cmode)*twopi*rtmp*r->radsep/pixarea);
-        if (nc==0) {
-            std::cerr << " GALMOD ERROR: No clouds used. Choose higher CDENS. " << std::endl;
-            std::terminate();
-//          Do next ring, jump to end of loop for rings.
-            continue;
+        double ring_area_pix = 2*M_PI*r->radii[ir]*r->radsep/pixarea;
+        int nc = lround(cdens*pow(r->dens[ir],cmode)*ring_area_pix);
+        if (lround(nc/ring_area_pix)<10.) {
+            // We require at least 10 clouds per pixel on average to avoid too much noise in the model.
+            nc = lround(10*ring_area_pix);
+            //std::cerr << " GALMOD WARNING: Number of clouds is too low, defaulting to 10 clouds per pixel. Choose higher CDENS.\n";
         }
+ 
 //      Get values of ir-radius.
-        double vrottmp = r->vrot[ir];
-        double vradtmp = r->vrad[ir];
-        double vverttmp= r->vvert[ir];
         // The VDISP should be such that VDISP^2 + chwidth^2 / 12 = sig_instr^2 + sig_v^2
         // The chwidth^2 / 12 is for gridding = convolution with a boxcar of width = channel.
         //double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr-(chwidth*chwidth)/12.);
         double vdisptmp= sqrt(r->vdisp[ir]*r->vdisp[ir]+sig_instr*sig_instr);
-        double vsystmp = r->vsys[ir];
-        double z0tmp   = r->z0[ir];
-        double dvdztmp = r->dvdz[ir];
-        double zcyltmp = r->zcyl[ir];
         double sinc    = sin(r->inc[ir]);
         double cinc    = cos(r->inc[ir]);
         double spa     = sin(r->phi[ir])*cos(crota2)+cos(r->phi[ir])*sin(crota2);
         double cpa     = cos(r->phi[ir])*cos(crota2)-sin(r->phi[ir])*sin(crota2);
-        double nvtmp   = nv[ir];
-        float  fluxsc  = r->dens[ir]*twopi*rtmp*r->radsep/(nc*nvtmp);
+        float  fluxsc  = r->dens[ir]*ring_area_pix*pixarea/(nc*nv[ir]);
 
 // ==>> Loop over clouds inside each ring.
         for (int ic=0; ic<nc; ic++) {
-//          Get radius inside ring. The range includes the inner boundary,
-//          excludes the outer boundary. The probability of a radius inside
-//          a ring is proportional to the total radius and thus the
+//          Get radius inside ring. The range includes the inner boundary,excludes the outer boundary. 
+//          The probability of a radius inside a ring is proportional to the total radius and thus the
 //          surface density of the clouds is constant over the area of the ring.
-            double ddum = fabs(fran());                        // STD library
-            //double ddum = double(iran(isd))/double(nran);       // Classic galmod
-            double R    = sqrt(pow((rtmp-0.5*r->radsep),2)+2*r->radsep*rtmp*ddum);
+            double R    = sqrt((r->radii[ir]-0.5*r->radsep)*(r->radii[ir]-0.5*r->radsep)
+                               +2*r->radsep*r->radii[ir]*fabs(fran()));
 //          Get azimuth and its sine and cosine.
-            double az   = twopi*fabs(fran());                 // STD library
-            //double az   = twopi*double(iran(isd))/double(nran); // Classic galmod
+            double az   = 2*M_PI*fabs(fran());
             double saz  = sin(az);
             double caz  = cos(az);
 //          Get height above the plane of the ring using a random deviate
 //          drawn from density profile of the layer.
-            double z    = fdev(isd)*z0tmp;
+            double z    = fdev()*r->z0[ir];
 //          Get position in the plane of the sky with respect to the major
-//          and minor axes of the spiral galaxy.
+//          and minor axes of the galaxy.
             double x    = R*caz;
             double y    = R*saz*cinc-z*sinc;
 //          Get grid of this position, check if it is inside area of box.
@@ -975,83 +882,32 @@ void Galmod<T>::galmod() {
             if (grid[0]<blo[0] || grid[0]>=bhi[0]) continue;
             if (grid[1]<blo[1] || grid[1]>=bhi[1]) continue;
 
-//            /////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//            float rr, theta;
-//            float xr = (-(grid[0]-r->pos[0])*spa+(grid[1]-r->pos[1])*cpa);
-//            float yr = (-(grid[0]-r->pos[0])*cpa-(grid[1]-r->pos[1])*spa)/cinc;
-//            rr = sqrt(xr*xr+yr*yr);
-//            if (rr<0.1) theta = 0.0;
-//            else theta = atan2(yr, xr)/M_PI*180;
-//
-//            int side = 1;
-//            bool use;
-//            switch (side) {                     // Which side of galaxy.
-//                case 1:                         //< Receding half.
-//                    use = (fabs(theta)<=90.0);
-//                    break;
-//                case 2:                         //< Approaching half.
-//                    use = (fabs(theta)>=90.0);
-//                    break;
-//                case 3:                         //< Both halves.
-//                    use = 1;
-//                    break;
-//                default:
-//                    break;
-//            }
-//
-//            if (!use) continue;
-
-//          //////////// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//
 //          Get profile number of current pixel and check if position is in
 //          range of positions of profiles that are currently being done.
             int iprof = (grid[1]-blo[1])*bsize[0]+grid[0]-blo[0];
 //          Get systematic velocity of cloud.
-            double vsys = vsystmp+(vrottmp*caz+vradtmp*saz)*sinc;
+            double vsys = r->vsys[ir]+(r->vrot[ir]*caz+r->vrad[ir]*saz)*sinc;
 //          Adding vertical rotational gradient after zcyl
-            if (abs(z)>zcyltmp) vsys = vsystmp+((vrottmp-dvdztmp*(abs(z)-zcyltmp))*caz+vradtmp*saz)*sinc;
+            if (abs(z)>r->zcyl[ir]) 
+                vsys = r->vsys[ir]+((r->vrot[ir]-r->dvdz[ir]*(abs(z)-r->zcyl[ir]))*caz+r->vrad[ir]*saz)*sinc;
 //          Adding vertical velocity
-            if (z>0.) vsys += vverttmp*cinc;
+            if (z>0.) vsys += r->vvert[ir]*cinc;
             //else if (z<0.) vsys -= vverttmp*cinc;
-            else vsys += vverttmp*cinc;     // <--- The sign here depends on the meaning of vvert. If different from the one above, GALWIND will not work (should have a flag for GALWIND execution)
+            else vsys += r->vvert[ir]*cinc;     // <--- The sign here depends on the meaning of vvert. If different from the one above, GALWIND will not work (should have a flag for GALWIND execution)
 
-
-//          ORIGINAL GALMOD BUILDING PROFILES
-// ==>>     Build velocity profile.
-//            for (int iv=0; iv<nvtmp; iv++) {
-//              Get deviate drawn from gaussian velocity profile and add
-//              to the systematic velocity.
-//                double v     = vsys+gasdev(isd)*vdisptmp;
-//              Get grid of velocity along FREQ-OHEL or VELO axis.
-//              If a grid is not in the range, jump to next velocity profile.
-//                int isubs = lround(velgrid(v));
-//                if (isubs<0 || isubs>=nsubs) continue;
-//               int idat  = iprof+isubs*nprof;
-//              Convert HI atom flux per pixel to flux per pixel of 21cm
-//              radiation expressed in Jy and add subcloud to the data
-//              buffer.
-//                datbuf[idat] = datbuf[idat]+fluxsc*cd2i[isubs];
-//            }
-
-//          MODIFIED BUILDING PROFILE FOR MULTIPLE LINES
-            for (int iv=0; iv<nvtmp; iv++) {
-                double vdev = gaussia(generator)*vdisptmp;        // STD library
-                //double vdev = gasdev(isd)*vdisptmp;                 // Classic galmod
+//          Building line profile.
+            for (int iv=0; iv<nv[ir]; iv++) {
+                double vdev = gaussia(generator)*vdisptmp;
                 for (int nl=0; nl<nlines; nl++) {
                     double v     = vsys+vdev+relvel[nl];
                     int isubs = lround(velgrid(v));
                     if (isubs<0 || isubs>=nsubs) continue;
                     size_t idat  = iprof+isubs*nprof;
                     array[idat] += relint[nl]*fluxsc*cd2i[isubs];
-                    totalflux += fluxsc;
-                    nnn += 1;
                 }
             }
-        }
-        
-        std::cout << ir << "  " << rtmp*60. << "  " << totalflux << " " << totalflux/(twopi*rtmp*r->radsep) << " " << nc << " " << nc*nvtmp << " " << nnn << std::endl;
+        }        
     }
-
 
     bar.fillSpace("OK.\n");
 
@@ -1372,7 +1228,7 @@ double Galmod<T>::velgrid(double v) {
 
 
 template <class T>
-double Galmod<T>::fdev(int &idum){
+double Galmod<T>::fdev(){
     
     /// Function to get random deviates for various functions.
     /// The double precision variable Fdev contains the random deviate.
@@ -1382,12 +1238,10 @@ double Galmod<T>::fdev(int &idum){
     double Fdev=0, x=0;
     
     if (ltype==1) {                                 /// Gaussian function: exp(-0.5*x^2) 
-        Fdev = gaussia(generator);                // STD library
-        //Fdev = gasdev(idum);                        // Classic galmod
+        Fdev = gaussia(generator);
     }
     else {
-        x = uniform(generator);                    // STD library
-        //x = double(1+2*iran(idum)-nran)/double(nran);// Classic galmod
+        x = uniform(generator);                    
         if (ltype==2) Fdev = atanh(x);               // Sech2 function: sech2(x)
         else if (ltype==3) {                         // Exponential function: exp(-|x|)
            if (x>=0.0) Fdev = -log(x);
@@ -1437,8 +1291,7 @@ void Galmod_wind<T>::shellIO(Shells<T> *shells) {
     /// This function creates the set of shell to be used in the model.
     /// - Velocities are given in km/s and then converted in m/s.
     /// - Radii are given in arcsec and then converted in arcmin.
-    /// - Column densities are given in HI atoms/cm^2 and the converted 
-    ///   in units of 1E20 atoms/cm^2.
+    /// - Column densities are given in 1E20 HI atoms/cm^2.
     /// - Angles are given in grades and then converted in radians.
     
     s = new Shells<T>;
@@ -1483,7 +1336,7 @@ void Galmod_wind<T>::shellIO(Shells<T> *shells) {
             std::terminate();
         }
         
-        udens[i]=shells->dens[i]/1.0E20;
+        udens[i]=shells->dens[i];
 
         if (udens[i]<0) {
             std::cout << "GALMOD error: Negative column-density not allowed.\n";

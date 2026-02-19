@@ -77,11 +77,10 @@ public:
     void    setUseScalefac (bool ff) {usescalefac=ff;}
     void    setUseBlanks(bool b) {useBlanks=b;}
     
-    bool defineConvbeam_Gaussian(Beam Oldbeam, Beam Newbeam, double *pixSize);
-
+    bool setfromCube(Cube<T> *c, Beam Oldbeam, Beam Newbeam, int *Bhi=nullptr, int *Blo=nullptr);
     void cubesmooth(Cube<T> *c);
-    void smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam);
-    void smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newbeam);
+    bool smooth(Cube<T> *c, Beam Oldbeam, Beam Newbeam);
+    bool smooth(Cube<T> *c, int *Bhi, int *Blo, Beam Oldbeam, Beam Newbeam);
     bool smooth(Cube<T> *c, Beam Oldbeam, Beam NewBeam, T *OldArray, T *NewArray);
     void fitswrite();
 
@@ -123,7 +122,9 @@ private:
     bool calculatefft(T *OldArray, T *NewArray);
     bool Convpars(); 
     bool defineBeam_Gaussian(Beam Oldbeam, Beam Newbeam);
-    bool defineBeam_Moffat(Beam Oldbeam, Beam Newbeam);           
+    bool defineBeam_Moffat(Beam Oldbeam, Beam Newbeam);
+    bool defineConvbeam_Gaussian(Beam Oldbeam, Beam Newbeam, double *pixSize);
+
     bool Fillgauss2d(Beam varbeam, float ampl, bool norm, int &NconX, 
                      int &NconY, double *cfie);
     bool FillMoffat2d(Beam varbeam, float ampl, bool norm, int &NconX, 
