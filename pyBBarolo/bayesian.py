@@ -316,8 +316,17 @@ class BayesianBBarolo(FitMod3D):
             self.mask  = reshapePointer(libBB.Cube_getMask(self.inp._cube),self.inp.dim[::-1])
             self.data  = reshapePointer(libBB.Cube_array(self.inp._cube),self.inp.dim[::-1])
 
-            #@TODO: Should we normalize data to be in some sensible range (e.g. 0-1)? 
-            #self.data = (self.data - np.nanmin(self.data)) / (np.nanmax(self.data) - np.nanmin(self.data))
+        ##########################################################################################
+        # Normalizing data to a maximum of 10. This is to avoid numerical issues in the fit.
+        # This is just for testing purposes
+        
+        # Calculate the noise from the median absolute deviation of the data in the masked region
+        self.noiserms = 1.4826*np.median(np.abs(self.data[self.mask==0]-np.median(self.data[self.mask==0])))
+        # The below is a pointer, so it modifies also the data array in the Galfit object!
+        #self.scaling_factor = 1./np.nanmax(self.data)
+        #self.data *= self.scaling_factor
+        #self.data /= self.noiserms
+        ##########################################################################################
 
         # Checking whether the density is fitted or not. In case it is not, use a normalization
         self.useNorm = not any('dens' in sub for sub in self.freepar_names)
@@ -358,7 +367,7 @@ class BayesianBBarolo(FitMod3D):
         # within the last ring. This is to calculate the residuals faster.
         bhi, blo = (ctypes.c_int * 2)(0), (ctypes.c_int * 2)(0)
         libBB.Galfit_getModelSize(self._galfit,rings._rings,bhi,blo)
-        galmod = libBB.Galfit_getModel(self._galfit,rings._rings,bhi,blo,False)
+        galmod = libBB.Galfit_getModel(self._galfit,rings._rings,bhi,blo,True)
         bhi, blo = np.array(bhi), np.array(blo)
 
         # Reshaping the model to the correct 3D shape
@@ -628,13 +637,13 @@ class BayesianBBarolo(FitMod3D):
 
     def _update_profile(self,rings):
         """ Get the density profile from the rings using Ellprof"""
-        
         libBB.Ellprof_update_rings(self._ellprof,rings._rings)
         libBB.Ellprof_compute(self._ellprof)
         dens = reshapePointer(libBB.Ellprof_dens_array(self._ellprof),(1,self._inri.nr))[0]
-        # To avoid problems with Galmod, we normalize the profile such that the minimum value is 1
-        mindens = np.nanmin(dens[dens>1E-10])
-        dens *= 1./mindens
+
+        #mindens = np.nanmin(dens[dens>1E-10])
+        #dens *= 1./mindens
+        print (dens)
         rings.modify_parameter("dens",np.abs(dens),makeobj=True)
 
         
@@ -798,10 +807,12 @@ class BayesianBBarolo(FitMod3D):
 
         # Loading sampling results
         if sampler=='dynesty':
-
             self.results = r['results']
             weights = np.exp(self.results.logwt - self.results.logz[-1])
             self._set_sampling_stats(self.results.samples, weights)
+            self.outri = Rings(self._inri.nr)
+            self.outri.set_rings_from_dict(self._inri.r)
+            self.outri = self._update_rings(self.outri,self.params)
 
         elif sampler=='nautilus':
             raise NotImplementedError()

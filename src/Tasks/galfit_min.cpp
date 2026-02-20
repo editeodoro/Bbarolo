@@ -801,8 +801,8 @@ template <class T>
 void Galfit<T>::getModelSize(Rings<T> *dring, int *blo, int *bhi) {
     
     // Calculating sizes of model cube (only extends to the last ring)
-    int xdis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(0))*arcconv));
-    int ydis = ceil((dring->radii.back()+3*dring->z0.back())/(fabs(in->Head().Cdelt(1))*arcconv));
+    int xdis = ceil((dring->radii.back()+dring->radsep/2.+3*dring->z0.back())/(fabs(in->Head().Cdelt(0))*arcconv));
+    int ydis = ceil((dring->radii.back()+dring->radsep/2.+3*dring->z0.back())/(fabs(in->Head().Cdelt(1))*arcconv));
     int xpos = ceil(dring->xpos.back());
     int ypos = ceil(dring->ypos.back());
     blo[0] = xpos-xdis;

@@ -103,7 +103,6 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
     int blo[2] = {0,0};
     Rings<T> *last = new Rings<T>;
     *last = *outr;
-    // Last model is calculated with a larger number of clouds.
     Model::Galmod<T> *mod = getModel(last,bhi,blo,nullptr,true);
     delete last;
     mod->Out()->Head().setMinMax(0.,0.);
@@ -174,63 +173,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     if (normtype=="NONE") {
         
-        // The final model has been build from an input density profile in cm^-2
-        // Here I renormalize to have to the integral of the input density profile.
-        // Output cube will have units of Jy/beam for HI data.
-        
-        /*
-        // Current flux model is assumed to be in JY/beam
-        mod->Out()->Head().setBunit("JY/BEAM");
-        // Getting current profile
-        Tasks::Ellprof<T> ell2(mod->Out(),outr,false);
-        ell2.RadialProfile();
-        
-        // Calculating integral of input density profile and current
-        double totmass_req=0, totmass_curr=0;
-        for (int i=0; i<outr->nr; i++) {
-            totmass_req  += outr->dens[i];                                  // In cm^-2
-            totmass_curr += ell2.getSurfDensFaceOn(i)/in->Head().BeamArea(); // In JY*KM/S/pc2
-        }
-        
-        // Converting everything to Msun/pc2
-        const double arctorad = 1/3600.*M_PI/180.;
-        totmass_req  = 3.0856*3.0856*8.41185687e-22*totmass_req;
-        totmass_curr = 2.36E-07*totmass_curr/(arctorad*arctorad);
-
-        for (auto i=in->NumPix(); i--;) outarray[i] *= totmass_req/totmass_curr;
-        */
-
-        /*
-        //////////////////////////////////////////////////////////////////////////////////////////
-        // Re-normalization
-        float totflux_data=0, totflux_model=0;
-    
-        std::vector<T> d, m;
-        for (auto i=0; i<in->DimX()*in->DimY(); i++) {
-            if (!isNaN(ringreg[i])) {
-                for (auto z=0; z<in->DimZ(); z++) {
-                    long npix = i+z*in->DimY()*in->DimX();
-                    if (in->Mask(npix) && in->Array(npix)>0) {
-                        d.push_back(in->Array(npix));
-                        m.push_back(outarray[npix]);
-                    }
-                }
-            }
-        }
-        
-        std::sort (d.begin(), d.end()); 
-        std::sort (m.begin(), m.end()); 
-        int start = 0.6*d.size();
-        int stop  = 0.99*d.size();
-        
-        for (int i=start; i<stop; i++) {
-            totflux_data  += d[i];
-            totflux_model += m[i];
-        }
-        
-        for (auto i=in->NumPix(); i--;) outarray[i] *= totflux_data/totflux_model;
-        //////////////////////////////////////////////////////////////////////////////////////////
-        */
+        // No renormaliza needed, just write the model as it is.
         
         if (verb) std::cout << " Done." << std::endl;
         

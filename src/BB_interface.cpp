@@ -138,7 +138,8 @@ void Ellprof_delete(Ellprof<float> *e) {delete e;}
 void Ellprof_compute(Ellprof<float> *e) {signal(SIGINT, signalHandler); e->RadialProfile();}
 void Ellprof_write(Ellprof<float> *e, const char *fout) {std::ofstream fileo(fout); e->printProfile(fileo);}
 double* Ellprof_dens_array(Ellprof<float> *e) { double *d = new double[e->getNrad()]; 
-                                                for (int i=e->getNrad(); i--;) d[i] = e->getMedian(i); return d;}
+                                                for (int i=e->getNrad(); i--;) d[i] = e->getSurfDensFaceOn(i); 
+                                                return d;}
 void Ellprof_update_rings(Ellprof<float> *e, Rings<float> *r) {e->update_rings(r);}
 //////////////////////////////////////////////////////////////////////////////////////////                  
 
