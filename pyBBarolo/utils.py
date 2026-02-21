@@ -431,8 +431,8 @@ class SimulatedGalaxyCube(object):
         if self.radii is not None:
             np.savetxt(fileout,np.transpose([self.radii,self.vrot,self.vrad,self.disp,self.inc,
             self.pa,self.z0,self.dens,self.xpos,self.ypos,self.vsys]),
-            header="RADII         VROT    VRAD   VDISP      INC       PA      Z0    DENS    XPOS    YPOS    VSYS",
-            fmt='%-12.5f %7.1f %7.1f %7.1f %8.2f %8.2f %7.2f %7.2f %7.1f %7.1f %7.1f')
+            header="RADII         VROT    VRAD   VDISP      INC       PA      Z0      DENS    XPOS    YPOS    VSYS",
+            fmt='%-12.5f %7.1f %7.1f %7.1f %8.2f %8.2f %7.2f %9.2e %7.1f %7.1f %7.1f')
         
         
         
