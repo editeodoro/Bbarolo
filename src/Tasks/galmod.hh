@@ -60,10 +60,6 @@
 //
 // 2) call calculate() function.
 //
-//
-//
-//
-//
 
 #ifndef GALMOD_HH_
 #define GALMOD_HH_
@@ -78,7 +74,7 @@
 
 namespace Model {
     
-template <class Type>   
+template <class T>   
 class Galmod
 {
 
@@ -91,25 +87,23 @@ public:
     void defaults();
     
     // Obvious inline functions 
-    Cube<Type>  *In () {return in;}
-    Cube<Type>  *Out() {return out;}
-    Rings<Type> *Ring() {return r;}
-    Type *getArray() {return out->Array();}
-    void setArray(Type *a) {out->setArray(a);}
+    Cube<T>  *In () {return in;}
+    Cube<T>  *Out() {return out;}
+    Rings<T> *Ring() {return r;}
+    T    *getArray() {return out->Array();}
+    void setArray(T *a) {out->setArray(a);}
     void setEmpty(bool e) {empty=e;}
     
-    void input(Cube<Type> *c, int *Boxup, int *Boxlow, Rings<Type> *rings);
-    void input(Cube<Type> *c, Rings<Type> *rings);
+    void input(Cube<T> *c, int *Boxup, int *Boxlow, Rings<T> *rings);
+    void input(Cube<T> *c, Rings<T> *rings);
                
     bool calculate();
     bool smooth();
-    void normalize();
     bool addnoise(double noiseRMS);
-    
 
 protected:
-    Cube<Type>  *in;                        //< A pointer to the input cube.
-    Cube<Type>  *out;                       //< The Cube containing the model.
+    Cube<T>  *in;                        //< A pointer to the input cube.
+    Cube<T>  *out;                       //< The Cube containing the model.
     bool    outDefined;
     double  crpix3, crval3, cdelt3;         //< Header keywords.
     double  cdelt[2];                       //<
@@ -130,7 +124,7 @@ protected:
     std::vector<float> relvel;              //< Relative velocities of lines.
     std::vector<float> relint;              //< Relative velocities of lines.
     
-    Rings<Type> *r;                         //< Set of rings.       
+    Rings<T> *r;                         //< Set of rings.       
     bool    ringDefined;
     
     std::vector<int> nv;                    //< Number of subclouds
@@ -148,41 +142,39 @@ protected:
     std::mt19937 generator;
     std::uniform_real_distribution<float> uniform;
     std::normal_distribution<float> gaussia;
-    
-    /// Private functions.
-    
-    void    initialize(Cube<Type> *c, int *Boxup, int *Boxlow);
+        
+    void    initialize(Cube<T> *c, int *Boxup, int *Boxlow);
     void    setOptions(int LTYPE, int CMODE, float CDENS, int ISEED, bool EMPTY, bool DENSFLUX);
     double  velgrid(double v);
     double  fdev();
     void    NHItoRAD();
 
 private:
-    void    ringIO(Rings<Type> *rings);
+    void    ringIO(Rings<T> *rings);
     void    galmod();
     
 };
 
 // A class to simulate outflows in spherical coordinates
-template <class Type>   
-class Galmod_wind : public Galmod<Type>
+template <class T>   
+class Galmod_wind : public Galmod<T>
 {
 public:
     Galmod_wind() {this->defaults();}
     ~Galmod_wind() {if (shellDefined) delete s;}
     
-    void input(Cube<Type> *c, int *Boxup, int *Boxlow, Shells<Type> *shells, 
+    void input(Cube<T> *c, int *Boxup, int *Boxlow, Shells<T> *shells, 
                int NV=-1, int LTYPE=1, int CMODE=1, float CDENS=1.0, int ISEED=-1);
     
     bool calculate();
     
 
 protected:
-    Shells<Type> *s;
+    Shells<T> *s;
     bool    shellDefined;
     
 private:
-    void    shellIO(Shells<Type> *shells);
+    void    shellIO(Shells<T> *shells);
     void    galmod_wind();
 };
 

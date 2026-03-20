@@ -109,7 +109,7 @@ class SimulatedGalaxyCube(object):
       Radii of the galaxy model
     
     dens: (list, np.array)
-      Surface-density profile of the galaxy
+      Surface-density (or flux) profile of the galaxy
     
     inc: (list, np.array)
       Inclination angles of the galaxy
@@ -151,23 +151,34 @@ class SimulatedGalaxyCube(object):
       Run GALMOD and build the emission-line datacue model.
     
     """
-    def __init__(self,axisDim=None,cdelts=None,**kwargs):
+    def __init__(self,fitscube=None,axisDim=None,cdelts=None,**kwargs):
         """ Initialize a SimulatedGalaxyCube instance.
             Here we define the template cube that will be used to create
             the galaxy model.
             If no inputs are given, a default template cube will be used.
             
         Args:
+          fitscube (str or astropy.fits): template cube. If None, a default cube will 
+                                          be created from axisDim and cdelts.
           axisDim (list):   axis dimensions of the template cube
           cdelts (list):    pixel dimensions of the template cube
           kwargs (dict):    Additional parameters to be passed to emptyfits()
 
         """
-        # A default cube size if not given
-        if not axisDim: axisDim = [256,256,64]
-        if not cdelts: cdelts = [-20./3600.,20./3600.,10]
+        if fitscube is not None:
+            if isinstance(fitscube, str):
+                self.f = fits.open(fitscube)[0]
+            elif isinstance(fitscube, fits.PrimaryHDU):
+                self.f = fitscube
+            else:
+                raise ValueError("fitscube must be a string or an astropy.io.fits.PrimaryHDU")
+        else:
+            # A default cube size if not given
+            if not axisDim: axisDim = [256,256,64]
+            if not cdelts: cdelts = [-20./3600.,20./3600.,10]
+            self.f     = emptyfits(axisDim,cdelts,**kwargs)
         
-        self.f     = emptyfits(axisDim,cdelts,**kwargs)
+        # Ring parameters
         self.radii = None
         self.dens  = None
         self.inc   = None
@@ -452,7 +463,7 @@ class SimulatedGalaxyCube(object):
         
         # If noise is not given, put a random noise
         noiserms = 0.
-        if noise==True:
+        if not isinstance(noise,(float,int)) and noise==True:
             noiserms = np.random.uniform(0,0.05)
         elif isNumber(noise): noiserms = noise
             

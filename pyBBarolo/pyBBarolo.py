@@ -998,7 +998,7 @@ class Ellprof(Task):
         a = np.genfromtxt('rings.txt') 
         try: os.remove('rings.txt')
         except: pass
-        self.outrings = {'rad':a[:,0],'sum':a[:,1],'mean':a[:,2],'median':a[:,3],'rms':a[:,4],'mad':a[:,5],'numpix':a[:,6],\
+        self.outrings = {'rad':a[:,0],'sum':a[:,1],'mean':a[:,2],'median':a[:,3],'stddev':a[:,4],'mad':a[:,5],'numpix':a[:,6],\
                          'surfdens':a[:,7],'surfdens_err':a[:,8],'surfdens_fo':a[:,9], 'npix_blank':a[:,10], 'surfdens_blank':a[:,11],\
                          'surfdens_fo_blank':a[:,12]}
         if (a.shape[1]>13): self.outrings.update({'ndens':a[:,13],'msurfdens':a[:,14]})

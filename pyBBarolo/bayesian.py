@@ -315,6 +315,8 @@ class BayesianBBarolo(FitMod3D):
             # Getting the mask from the input cube
             self.mask  = reshapePointer(libBB.Cube_getMask(self.inp._cube),self.inp.dim[::-1])
             self.data  = reshapePointer(libBB.Cube_array(self.inp._cube),self.inp.dim[::-1])
+            self.data_mom0 = np.nansum(self.data*self.mask,axis=0)
+
 
         ##########################################################################################
         # Normalizing data to a maximum of 10. This is to avoid numerical issues in the fit.
@@ -326,6 +328,8 @@ class BayesianBBarolo(FitMod3D):
         #self.scaling_factor = 1./np.nanmax(self.data)
         #self.data *= self.scaling_factor
         #self.data /= self.noiserms
+        self.map_rms   = self.noiserms*np.sqrt(np.nansum(self.mask, axis=0))
+
         ##########################################################################################
 
         # Checking whether the density is fitted or not. In case it is not, use a normalization
@@ -342,11 +346,11 @@ class BayesianBBarolo(FitMod3D):
 
         ################################################################################################################
         # TO DELETE! This is just for testing purposes
-        self.update_prof = False
+        #self.update_prof = False
         ################################################################################################################
 
 
-    def _calculate_model(self,rings):
+    def _calculate_model(self,rings,fullcube=False):
         """ This function calculates a unnormalized model given a set of rings.
         
             Parameters
@@ -363,10 +367,16 @@ class BayesianBBarolo(FitMod3D):
             galmod : pointer 
                 A pointer to the Galmod object. Need to be freed after use.
         """
-        # Model is built in a smaller array (blo,bhi) that only contains the galaxy 
-        # within the last ring. This is to calculate the residuals faster.
-        bhi, blo = (ctypes.c_int * 2)(0), (ctypes.c_int * 2)(0)
-        libBB.Galfit_getModelSize(self._galfit,rings._rings,bhi,blo)
+        
+        _, ys, xs = self.data.shape
+        bhi, blo = (ctypes.c_int * 2)(xs,ys), (ctypes.c_int * 2)(0)
+
+        if not fullcube:
+            # Model is built in a smaller array (blo,bhi) that only contains the galaxy 
+            # within the last ring. This is to calculate the residuals faster.
+            bhi, blo = (ctypes.c_int * 2)(0), (ctypes.c_int * 2)(0)
+            libBB.Galfit_getModelSize(self._galfit,rings._rings,bhi,blo)
+
         galmod = libBB.Galfit_getModel(self._galfit,rings._rings,bhi,blo,True)
         bhi, blo = np.array(bhi), np.array(blo)
 
@@ -406,13 +416,17 @@ class BayesianBBarolo(FitMod3D):
         """
         # Applying the mask to the data if requested
         data_4res  = data*mask if mask is not None else data
-        model_4res = self._normalize_model(model,data_4res,**kwargs) if self.useNorm else model
+        model_4res = model #self._normalize_model(model,data_4res,**kwargs) if self.useNorm else model
+        sigma = kwargs.get('sigma',self.noiserms)
+        if sigma<0:
+            return np.inf
 
         # Some weighting steps can be added here (see below for example)
         wi = 1.0
 
         # Calculating the residual
-        res = np.nansum(wi*np.abs(data_4res-model_4res))
+        res  = 0.5*np.nansum(wi*(data_4res-model_4res)**2 / sigma**2)
+        res += 0.5*np.log(2.*np.pi*sigma**2)
 
         #okpix = (self.mask==1) & (mod!=0)
             
@@ -474,9 +488,47 @@ class BayesianBBarolo(FitMod3D):
 
             libBB.Galmod_delete(galmod)
             
-        return -1000*res
-        # This 1000 factor arbitrary, but with small residual there is no convergence. 
-        # We need to understand why...
+        return -res
+    
+
+    def _log_likelihood_geometry(self,theta,**kwargs):
+        """ Likelihood function for the fit """
+        
+        # Checking for non-acceptable negative values
+        a = ('inc','xpos','ypos','dens','z0','radmax')
+        for k in self.freepar_idx:
+            if k.startswith(a) and np.any(theta[self.freepar_idx[k]]<0): 
+                return -np.inf
+    
+        rings = self._update_rings(self._inri,theta)
+
+        # Recompute the density profile along the current rings and update the rings
+        if self.useNorm and self.update_prof:
+            self._update_profile(rings)
+
+        # Calculate the model and the boundaries
+        model, bhi, blo, galmod = self._calculate_model(rings,fullcube=False)
+        
+        # Calculate the residuals
+        map_mod  = np.nansum(model,axis=0)
+        map_data = self.data_mom0[blo[1]:bhi[1],blo[0]:bhi[0]]
+        map_rms  = self.map_rms[blo[1]:bhi[1],blo[0]:bhi[0]]
+
+        map_data = map_data[map_rms!=0]
+        map_mod  = map_mod[map_rms!=0]
+        map_rms  = 1#np.nanmedian(map_rms[map_rms!=0])
+
+        # Some normalization (arbitrary) to help convergence
+        maxdata = 10.#*map_rms #np.nanmax(map_data)
+        map_data *= 1/maxdata
+        map_mod  *= 1/maxdata
+        
+        res  = 0.5*np.nansum((map_data-map_mod)**2 / map_rms**2)
+        res += 0.5*np.log(2.*np.pi*map_rms**2)
+
+        libBB.Galmod_delete(galmod)
+
+        return -res
         
     
     def _prior_transform(self,u):
@@ -490,7 +542,8 @@ class BayesianBBarolo(FitMod3D):
     
     
     def _compute(self,threads=1,freepar=['vrot'],method='dynesty', useBBres = False, \
-                 sampler_kwargs : dict = {}, run_kwargs : dict = {}, like_kwargs : dict = {}, **kwargs):
+                 log_like = None, like_kwargs : dict = {},
+                 sampler_kwargs : dict = {}, run_kwargs : dict = {}, **kwargs):
         
         """ Front-end function to fit a model.
 
@@ -504,6 +557,7 @@ class BayesianBBarolo(FitMod3D):
         Kwargs: verbose (bool), dynamic (bool), other BB options
           
         """
+        log_like = log_like if log_like is not None else self._log_likelihood
 
         verbose  = kwargs.get('verbose',True)
 
@@ -523,7 +577,7 @@ class BayesianBBarolo(FitMod3D):
             return self._prior_transform(u)
 
         def log_likelihood(theta):
-            return self._log_likelihood(theta,**like_kwargs)
+            return log_like(theta,**like_kwargs)
 
 
         # Setting up the parallelization
@@ -576,6 +630,8 @@ class BayesianBBarolo(FitMod3D):
         
         self._set_sampling_stats(samples,weights)
 
+        print (self.results)
+
         dt = time.time()-toc
         dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
 
@@ -589,6 +645,16 @@ class BayesianBBarolo(FitMod3D):
         self.modCalculated = True
  
     
+    def compute_geometry(self,freepar=['xpos','ypos','inc','phi'],**kwargs):
+        """ A wrapper to compute only the geometry of the model using the 0th moment map (Cannubi-style) """
+
+        allowed = {'xpos_single','ypos_single','inc_single','phi_single','z0_single','dens','dens_single','dens_func','radmax'}
+        if not (freepar and set(freepar).issubset(allowed)): 
+            raise ValueError("ERROR! The function compute_geometry only accepts the following free parameters: ", allowed)
+
+        self._compute(freepar=freepar,log_like=self._log_likelihood_geometry,**kwargs)
+
+
     def _set_sampling_stats(self,samples,weights):
         """ Calculate statistics of the sampling results and set class attributes. """
         self.samples = samples
@@ -643,7 +709,6 @@ class BayesianBBarolo(FitMod3D):
 
         #mindens = np.nanmin(dens[dens>1E-10])
         #dens *= 1./mindens
-        print (dens)
         rings.modify_parameter("dens",np.abs(dens),makeobj=True)
 
         
@@ -679,13 +744,9 @@ class BayesianBBarolo(FitMod3D):
                 self._update_profile(self.outri)
 
             # Deriving the last model
-            _, ys, xs = self.data.shape
-            bhi, blo = (ctypes.c_int * 2)(xs,ys), (ctypes.c_int * 2)(0)
-            galmod = libBB.Galfit_getModel(self._galfit,self.outri._rings,bhi,blo,True)
+            model, _, _, galmod = self._calculate_model(self.outri,fullcube=True)
 
             if self.useNorm:
-                # Reshaping the model to the correct 3D shape
-                model = reshapePointer(libBB.Galmod_array(galmod),self.data.shape)
                 # Normalizing and copying it back to the C++ Galmod object
                 model = self._normalize_model(model,self.data,self.mask)
                 libBB.Galmod_set_array(galmod,np.ravel(model).astype('float32'))
@@ -693,6 +754,7 @@ class BayesianBBarolo(FitMod3D):
             
             # Writing all the outputs
             libBB.Galfit_writeOutputs(self._galfit,galmod,self._ellprof,plots)
+            #libBB.Galmod_delete(galmod)
 
         vprint(verbose,"Done!")
 
@@ -704,6 +766,9 @@ class BayesianBBarolo(FitMod3D):
             print ("Sampler has not been run yet. Please run compute() before running this function or load samples with load_samples().")
 
         defaults  = dict(max_n_ticks=5, color='darkblue', show_titles=True)
+
+        if self.results is None:
+            plot_dynesty = False
 
         if plot_dynesty:
             try: 
@@ -759,13 +824,14 @@ class BayesianBBarolo(FitMod3D):
             print (txt)
 
         # Printing the maximum likelihood
-        max_logl   = results.logl.max()
-        max_index  = results.logl.argmax()
-        max_params = samples[max_index]
-        print(f"\nMaximum logl: {max_logl} at:")
-        for i in range(len(self.freepar_names)):
-            txt = "  %10s = %10.3f "%(self.freepar_names[i], max_params[i])
-            print(txt)
+        if results is not None:
+            max_logl   = results.logl.max()
+            max_index  = results.logl.argmax()
+            max_params = samples[max_index]
+            print(f"\nMaximum logl: {max_logl} at:")
+            for i in range(len(self.freepar_names)):
+                txt = "  %10s = %10.3f "%(self.freepar_names[i], max_params[i])
+                print(txt)
 
 
     def print_priors(self):

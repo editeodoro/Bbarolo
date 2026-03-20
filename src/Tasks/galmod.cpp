@@ -37,8 +37,6 @@
 #include <math.h>
 #include <stdlib.h>
 #define C  2.99792458E08            // Speed of light in M/S
-#define nran 16777216
-
 
 namespace Model {
 
@@ -215,15 +213,14 @@ void Galmod<T>::setOptions(int LTYPE, int CMODE, float CDENS, int ISEED, bool EM
         cdens=1.;
     } 
     
+    empty = EMPTY;
+    densIsFlux = DENSFLUX;
+
     // Initializing random number engines
     iseed = ISEED;
     generator.seed(iseed);
     uniform   = std::uniform_real_distribution<float>(-1.,1.);
     gaussia   = std::normal_distribution<float>(0.,1.);
-    
-    empty = EMPTY;
-    densIsFlux = DENSFLUX;
-
 }
 
 
@@ -289,57 +286,6 @@ bool Galmod<T>::smooth() {
     delete smoothed;
     
     return true;
-}
-
-
-template <class T>
-void Galmod<T>::normalize() {
-    
-    if (!modCalculated) {
-        std::cout << "GALMOD ERROR: the model has not been calculated yet.\n";
-        return; 
-    }
-    
-    bool verb = in->pars().isVerbose();
-    if (verb) {
-        in->pars().setVerbosity(false);
-        out->pars().setVerbosity(false);
-    }
-    
-    if (!in->StatsDef()) in->setCubeStats();
-    in->stat().setThresholdSNR(3);
-    T thres = in->stat().getThreshold();
-    
-    if (verb) 
-        std::cout << " Normalizing model to data...";
-        
-    for (int x=0; x<bsize[0]; x++) { 
-        for (int y=0; y<bsize[1]; y++) {
-            T modSum = 0;
-            T obsSum = 0;
-            T factor = 0;   
-            for (int z=0; z<nsubs; z++) {
-                long modPix = out->nPix(x,y,z);
-                long obsPix = in->nPix(x+blo[0],y+blo[1],z);
-                modSum += out->Array(modPix);
-                if (in->Array(obsPix)>thres) 
-                    obsSum += in->Array(obsPix);
-            }
-            if (modSum!=0) factor = obsSum/modSum;
-            else continue;
-            for (int z=0; z<nsubs; z++) {
-                long modPix = out->nPix(x,y,z);
-                out->Array()[modPix] *= factor;
-            }
-        }
-    }
-        
-    
-    if (verb) {
-        in->pars().setVerbosity(true);
-        out->pars().setVerbosity(true);
-    }
-    
 }
 
 
@@ -663,11 +609,6 @@ void Galmod<T>::ringIO(Rings<T> *rings) {
     r->radii.pop_back();
     r->nr=r->radii.size();
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //for (int i=0; i<r->nr; i++)
-    //    std::cout << setprecision(5) << r->radii[i]*60. << " " << std::endl;
-    ////////////////////////////////////////////////////////////////////////////////
-    
     ringDefined = true;
 
     delete ur;
@@ -829,9 +770,6 @@ void Galmod<T>::galmod() {
 //  Number of velocity profiles that will be done.
     int nprof = bsize[0]*bsize[1];
 
-//  Convenient random generator functions
-    auto fran = std::bind(uniform, generator);
-
     // ==>> Loop over standard rings.
     for (int ir=0; ir<r->nr; ir++) {
         bar.update(ir+1);
@@ -839,12 +777,24 @@ void Galmod<T>::galmod() {
 
 //      Get number of clouds inside ring.
         double ring_area_pix = 2*M_PI*r->radii[ir]*r->radsep/pixarea;
+        
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // JUST FOR TESTING, TO BE REMOVED
+        double rms = 2.;
+        double frac = 1; // sigma_MC = frac*rms 
+        double optimal_cdens = pow(r->dens[ir],2-cmode)*pixarea*pixarea*chwidth / 
+                               (pow(frac*rms,2)*sqrt(2*M_PI)*nv[ir]*r->vdisp[ir]);
+        //int nc = lround(optimal_cdens*pow(r->dens[ir],cmode)*ring_area_pix);
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+
+        // Number of clouds. Discretization noise is sqrt(dens^(2-cmode)/cdens).
         int nc = lround(cdens*pow(r->dens[ir],cmode)*ring_area_pix);
         if (lround(nc/ring_area_pix)<10.) {
             // We require at least 10 clouds per pixel on average to avoid too much noise in the model.
             nc = lround(10*ring_area_pix);
             //std::cerr << " GALMOD WARNING: Number of clouds is too low, defaulting to 10 clouds per pixel. Choose higher CDENS.\n";
         }
+        //std::cout << lround(nc/ring_area_pix) << " clouds per pixel in ring " << ir << " with radius " << r->radii[ir]*60 << " arcsec. " << optimal_cdens <<std::endl;
  
 //      Get values of ir-radius.
         // The VDISP should be such that VDISP^2 + chwidth^2 / 12 = sig_instr^2 + sig_v^2
@@ -856,16 +806,18 @@ void Galmod<T>::galmod() {
         double spa     = sin(r->phi[ir])*cos(crota2)+cos(r->phi[ir])*sin(crota2);
         double cpa     = cos(r->phi[ir])*cos(crota2)-sin(r->phi[ir])*sin(crota2);
         float  fluxsc  = r->dens[ir]*ring_area_pix*pixarea/(nc*nv[ir]);
+        double r_inner = r->radii[ir]-0.5*r->radsep;
+        double r_inner_sq = r_inner*r_inner;
+        double r_cross = 2.0 * r->radsep * r->radii[ir];
 
 // ==>> Loop over clouds inside each ring.
         for (int ic=0; ic<nc; ic++) {
 //          Get radius inside ring. The range includes the inner boundary,excludes the outer boundary. 
 //          The probability of a radius inside a ring is proportional to the total radius and thus the
 //          surface density of the clouds is constant over the area of the ring.
-            double R    = sqrt((r->radii[ir]-0.5*r->radsep)*(r->radii[ir]-0.5*r->radsep)
-                               +2*r->radsep*r->radii[ir]*fabs(fran()));
+            double R = sqrt(r_inner_sq+r_cross*fabs(uniform(generator)));
 //          Get azimuth and its sine and cosine.
-            double az   = 2*M_PI*fabs(fran());
+            double az   = 2*M_PI*fabs(uniform(generator));
             double saz  = sin(az);
             double caz  = cos(az);
 //          Get height above the plane of the ring using a random deviate
@@ -1232,8 +1184,6 @@ double Galmod<T>::fdev(){
     
     /// Function to get random deviates for various functions.
     /// The double precision variable Fdev contains the random deviate.
-    /// If nran is within a factor two of the largest possible integer
-    /// then integer overflow could occur.
 
     double Fdev=0, x=0;
     
@@ -1551,4 +1501,3 @@ template class Galmod_wind<double>;
 }
 
 #undef C  
-#undef nran 
