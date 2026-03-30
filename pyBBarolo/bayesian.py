@@ -630,8 +630,6 @@ class BayesianBBarolo(FitMod3D):
         
         self._set_sampling_stats(samples,weights)
 
-        print (self.results)
-
         dt = time.time()-toc
         dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
 

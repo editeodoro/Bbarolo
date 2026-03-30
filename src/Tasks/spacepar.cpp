@@ -144,98 +144,100 @@ void Spacepar<T>::calculate() {
 #pragma omp parallel num_threads(nthreads) shared(funmin,p1min,p2min)
 {
         // NB: THIS LOOP IN PARALLEL CAUSES SOMETIMES SEGFAULT (in fftw_execute)
-        bar.init("   Calculating models...",p1_nsteps);
+        bar.init("   Calculating models...",p1_nsteps*p2_nsteps);
+
 #pragma omp for 
-        for (int i=0; i<p1_nsteps; i++) {
-            if (verb) bar.update(i+1);
-            for (int j=0; j<p2_nsteps; j++) {
+        for (int k=0; k<p1_nsteps*p2_nsteps; k++) {
+            if (verb) bar.update(k+1);
 
-                Rings<T> *dring = new Rings<T>;
-                Rings<T> *inri = Galfit<T>::inr;
+            int i = k/p2_nsteps;
+            int j = k%p2_nsteps;
+
+            Rings<T> *dring = new Rings<T>;
+            Rings<T> *inri = Galfit<T>::inr;
                 
-                dring->nr = 2;
-                float width1=0, width2=0;
-                if (ir==0) width1 = width2 = (inri->radii[1]-inri->radii[0])/2.;
-                else if (ir==inri->nr-1) width1 = width2 = (inri->radii[ir]-inri->radii[ir-1])/2.;
-                else {
-                    width1 = (inri->radii[ir]-inri->radii[ir-1])/2.;
-                    width2 = (inri->radii[ir+1]-inri->radii[ir])/2.;
-                }
+            dring->nr = 2;
+            float width1=0, width2=0;
+            if (ir==0) width1 = width2 = (inri->radii[1]-inri->radii[0])/2.;
+            else if (ir==inri->nr-1) width1 = width2 = (inri->radii[ir]-inri->radii[ir-1])/2.;
+            else {
+                width1 = (inri->radii[ir]-inri->radii[ir-1])/2.;
+                width2 = (inri->radii[ir+1]-inri->radii[ir])/2.;
+            }
 
-                dring->radii.push_back(max(double(inri->radii[ir]-width1),0.));
-                dring->radii.push_back(max(double(inri->radii[ir]+width2),0.));
+            dring->radii.push_back(max(double(inri->radii[ir]-width1),0.));
+            dring->radii.push_back(max(double(inri->radii[ir]+width2),0.));
 
-                for (int k=0; k<dring->nr; k++) {
-                    if (p1=="VROT") dring->vrot.push_back(p1steps[i]);
-                    else if (p2=="VROT") dring->vrot.push_back(p2steps[j]);
-                    else dring->vrot.push_back(inri->vrot[ir]);
+            for (int k=0; k<dring->nr; k++) {
+                if (p1=="VROT") dring->vrot.push_back(p1steps[i]);
+                else if (p2=="VROT") dring->vrot.push_back(p2steps[j]);
+                else dring->vrot.push_back(inri->vrot[ir]);
                     
-                    if (p1=="VDISP") dring->vdisp.push_back(p1steps[i]);
-                    else if (p2=="VDISP") dring->vdisp.push_back(p2steps[j]);
-                    else dring->vdisp.push_back(inri->vdisp[ir]);
-                    
-                    if (p1=="Z0") dring->z0.push_back(p1steps[i]);
-                    else if (p2=="Z0") dring->z0.push_back(p2steps[j]);
-                    else dring->z0.push_back(inri->z0[ir]);
-                    
-                    if (p1=="INC") dring->inc.push_back(p1steps[i]);
-                    else if (p2=="INC") dring->inc.push_back(p2steps[j]);
-                    else dring->inc.push_back(inri->inc[ir]);
-                    
-                    if (p1=="PA") dring->phi.push_back(p1steps[i]);
-                    else if (p2=="PA") dring->phi.push_back(p2steps[j]);
-                    else dring->phi.push_back(inri->phi[ir]);
-                    
-                    if (p1=="XPOS") dring->xpos.push_back(p1steps[i]);
-                    else if (p2=="XPOS") dring->xpos.push_back(p2steps[j]);
-                    else dring->xpos.push_back(inri->xpos[ir]);
-                    
-                    if (p1=="YPOS") dring->ypos.push_back(p1steps[i]);
-                    else if (p2=="YPOS") dring->ypos.push_back(p2steps[j]);
-                    else dring->ypos.push_back(inri->ypos[ir]);
-                    
-                    if (p1=="VSYS") dring->vsys.push_back(p1steps[i]);
-                    else if (p2=="VSYS") dring->vsys.push_back(p2steps[j]);
-                    else dring->vsys.push_back(inri->vsys[ir]);
-
-                    if (p1=="VRAD") dring->vrad.push_back(p1steps[i]);
-                    else if (p2=="VRAD") dring->vrad.push_back(p2steps[j]);
-                    else dring->vrad.push_back(inri->vrad[ir]);
-                    
-                    dring->dens.push_back(inri->dens[ir]);
-                    dring->vvert.push_back(inri->vvert[ir]);
-                    dring->dvdz.push_back(inri->dvdz[ir]);
-                    dring->zcyl.push_back(inri->zcyl[ir]);
-                }
+                if (p1=="VDISP") dring->vdisp.push_back(p1steps[i]);
+                else if (p2=="VDISP") dring->vdisp.push_back(p2steps[j]);
+                else dring->vdisp.push_back(inri->vdisp[ir]);
                 
-                T par[MAXPAR];
-                par[VROT] = dring->vrot.back();
-                par[VDISP] = dring->vdisp.back();
-                par[DENS] = dring->dens.back();
-                par[Z0] = dring->z0.back();
-                par[INC] = dring->inc.back();
-                par[PA] = dring->phi.back();
-                par[XPOS] = dring->xpos.back();
-                par[YPOS] = dring->ypos.back();
-                par[VSYS] = dring->vsys.back();
-                par[VRAD] = dring->vrad.back();
+                if (p1=="Z0") dring->z0.push_back(p1steps[i]);
+                else if (p2=="Z0") dring->z0.push_back(p2steps[j]);
+                else dring->z0.push_back(inri->z0[ir]);
+                    
+                if (p1=="INC") dring->inc.push_back(p1steps[i]);
+                else if (p2=="INC") dring->inc.push_back(p2steps[j]);
+                else dring->inc.push_back(inri->inc[ir]);
+                    
+                if (p1=="PA") dring->phi.push_back(p1steps[i]);
+                else if (p2=="PA") dring->phi.push_back(p2steps[j]);
+                else dring->phi.push_back(inri->phi[ir]);
+                    
+                if (p1=="XPOS") dring->xpos.push_back(p1steps[i]);
+                else if (p2=="XPOS") dring->xpos.push_back(p2steps[j]);
+                else dring->xpos.push_back(inri->xpos[ir]);
+                    
+                if (p1=="YPOS") dring->ypos.push_back(p1steps[i]);
+                else if (p2=="YPOS") dring->ypos.push_back(p2steps[j]);
+                else dring->ypos.push_back(inri->ypos[ir]);
+                    
+                if (p1=="VSYS") dring->vsys.push_back(p1steps[i]);
+                else if (p2=="VSYS") dring->vsys.push_back(p2steps[j]);
+                else dring->vsys.push_back(inri->vsys[ir]);
+
+                if (p1=="VRAD") dring->vrad.push_back(p1steps[i]);
+                else if (p2=="VRAD") dring->vrad.push_back(p2steps[j]);
+                else dring->vrad.push_back(inri->vrad[ir]);
+                    
+                dring->dens.push_back(inri->dens[ir]);
+                dring->vvert.push_back(inri->vvert[ir]);
+                dring->dvdz.push_back(inri->dvdz[ir]);
+                dring->zcyl.push_back(inri->zcyl[ir]);
+            }
+                
+            T par[MAXPAR];
+            par[VROT] = dring->vrot.back();
+            par[VDISP] = dring->vdisp.back();
+            par[DENS] = dring->dens.back();
+            par[Z0] = dring->z0.back();
+            par[INC] = dring->inc.back();
+            par[PA] = dring->phi.back();
+            par[XPOS] = dring->xpos.back();
+            par[YPOS] = dring->ypos.back();
+            par[VSYS] = dring->vsys.back();
+            par[VRAD] = dring->vrad.back();
                      
-                T minfunc = Galfit<T>::func3D(dring, par);
-                parspace->Array(i,j,ir) = minfunc;
+            T minfunc = Galfit<T>::func3D(dring, par);
+            parspace->Array(i,j,ir) = minfunc;
                 
-                delete dring;
+            delete dring;
                 
 #pragma omp critical (spacepar_min) 
 {
-                if (minfunc<funmin) {
-                    funmin = minfunc;
-                    p1min = p1steps[i];
-                    p2min = p2steps[j];
-                }
-                file << p1steps[i] << "  " << p2steps[j] << "  " << minfunc << endl;
-}
+            if (minfunc<funmin) {
+                funmin = minfunc;
+                p1min = p1steps[i];
+                p2min = p2steps[j];
             }
-            
+            file << p1steps[i] << "  " << p2steps[j] << "  " << minfunc << endl;
+}
+                
 #pragma omp critical (spacepar_endl) 
             file << endl;
         }
