@@ -1182,7 +1182,7 @@ void writeHeader(std::ostream &fout, bool *mpar, bool writeErrors, bool writeBad
          << setw(m)   << "P.A.(deg)"
          << setw(m)   << "Z0(pc)"
          << setw(m)   << "Z0(arcs)"
-         << setw(m)   << "SIG(E20)"
+         << setw(m)   << "DENS(un)"
          << setw(m)   << "XPOS(pix)"
          << setw(m)   << "YPOS(pix)"
          << setw(m+1) << "VSYS(km/s)"
@@ -1225,8 +1225,8 @@ void writeRing(std::ostream &fout, Rings<T> *r, int i, double toKpc, int nfree, 
          << setw(m) << r->phi[i]
          << setw(m) << r->z0[i]*toKpc*1000
          << setw(m) << r->z0[i]
-         << setw(m) << r->dens[i]
-         << setw(m) << r->xpos[i]
+         << setw(m) << setprecision(1) << scientific << r->dens[i]
+         << setw(m) << setprecision(3) << fixed << r->xpos[i]
          << setw(m) << r->ypos[i]
          << setw(m+1) << r->vsys[i]
          << setw(m+1) << r->vrad[i];

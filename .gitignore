@@ -8,6 +8,7 @@ BBarolo
 *.swp
 *.qmake.stash
 src/build/
+src/Build/
 src/GUI/Makefile
 *.par
 output/

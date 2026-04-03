@@ -20,6 +20,7 @@ It uses either dynesty or nautilus libraries for this.
 ########################################################################
 
 import ctypes, time, copy, os
+from matplotlib import axes
 import numpy as np
 from .BB_interface import libBB
 from .pyBBarolo import Param, Rings, FitMod3D, reshapePointer, vprint, isIterable
@@ -28,8 +29,9 @@ try:
     import dynesty as dyn
     from dynesty import utils as dyfunc
     from scipy import stats
+    import matplotlib.pyplot as plt
 except ImportError:
-    raise ImportError("BayesianBB requires the packages 'scipy', and 'dynesty'. Please install them.")
+    raise ImportError("BayesianBB requires the packages 'scipy', 'matplotlib' and 'dynesty'. Please install them.")
 
 parallel = True
 try: 
@@ -89,6 +91,9 @@ class BayesianBBarolo(FitMod3D):
     corner_plot(samples,labels,truths,quantiles,plot_dynesty,**kwargs):
         Create a corner plot of the posterior distributions.
 
+    plot_profiles(**kwargs):
+        Plot the best-fit profiles of the fitted parameters.
+
     print_priors():
         Print the priors set for the fit.
     
@@ -138,9 +143,10 @@ class BayesianBBarolo(FitMod3D):
         # A pointer to the C++ Galfit and Ellprof objects
         self._galfit = self._ellprof = None
         self.modCalculated = False
+        # Input and output rings
+        self._inri = self.outri = None
 
     
-     
     def set_options(self,**kwargs):
         """ Add options to be passed to BBarolo """
         self._opts.add_params(**kwargs)
@@ -151,26 +157,26 @@ class BayesianBBarolo(FitMod3D):
         print(self._opts)
     
     
-    def init(self,radii,xpos,ypos,vsys,vrot,vdisp,inc,phi,z0=0,vrad=0,dens=1,vvert=0,dvdz=0,zcyl=0):
+    def init(self,radii,xpos,ypos,vsys=0,vrot=100,vdisp=10,inc=0,phi=0,z0=0,vrad=0,dens=1,vvert=0,dvdz=0,zcyl=0):
         """ Initialize rings for the fit. Parameters that are not fitted will be fixed.
         
         Parameters
         ----------
         radii : list
             Radii of the model in arcsec
-        xpos : float, list
+        xpos : float, list (optional)
             X center of the galaxy in pixels
-        ypos : float, list
+        ypos : float, list (optional)
             Y center of the galaxy in pixels
-        vsys : float, list
+        vsys : float, list (optional)
             Systemic velocity of the galaxy in km/s
-        vrot : float, list
+        vrot : float, list (optional)
             Rotation velocity in km/s
-        vdisp : float, list
+        vdisp : float, list (optional)
             Velocity dispersion in km/s
-        inc : float, list
+        inc : float, list (optional)
             Inclination angle in degrees
-        phi : float, list
+        phi : float, list (optional)
             Position angle of the receding part of the major axis (N->W)
         z0 : float, list (optional)
             Disk scaleheight in arcsec. Default is 0.
@@ -185,7 +191,6 @@ class BayesianBBarolo(FitMod3D):
         zcyl : float, list (optional)
             Cylindrical height where the dvdz starts in arcsec. Default is 0.            
         """
-        # Using the Fit3D initialization function (see pyBBarolo.py)
         if self._inri is not None:
             print ("Error: rings can not be re-initialized. Please create a new BayesianBBarolo object.")
             return
@@ -199,7 +204,7 @@ class BayesianBBarolo(FitMod3D):
         rr = self._inri.r
         self.priors['xpos']  = dict(name='uniform',loc=rr['xpos'][0]-5,scale=10)    # +- 5 pixels
         self.priors['ypos']  = dict(name='uniform',loc=rr['ypos'][0]-5,scale=10)    # +- 5 pixels
-        self.priors['vsys']  = dict(name='uniform',loc=rr['vsys'][0]-50,scale=100)  # +- 50 km/s
+        self.priors['vsys']  = dict(name='uniform',loc=rr['vsys'][0]-20,scale=40)   # +- 20 km/s
         self.priors['vrot']  = dict(name='uniform',loc=0,scale=350)                 # 0-350 km/s
         self.priors['vdisp'] = dict(name='uniform',loc=0,scale=50)                  # 0-50 km/s    
         self.priors['vrad']  = dict(name='uniform',loc=0,scale=50)                  # 0-50 km/s
@@ -231,8 +236,18 @@ class BayesianBBarolo(FitMod3D):
 
         # Initializing the prior distributions to None
         self.prior_distr = {key: None for key in self.priors.keys()}
+
+        # Lambda parameters for smoothness penalty in the likelihood
+        self.lambdas = {key: 0.0 for key in ['vrot','vdisp','dens','vrad','phi','inc','xpos','ypos','z0']}   
     
     
+    def _autoinit():
+        """ This function initializes the rings in case the user does not call init() before compute(). 
+            The rings are estimated with BBarolo's ParamGuess class.
+        """
+        raise NotImplementedError("Automatic initialization of rings is not implemented yet. Please call the init() function before compute().")
+        
+
     def _setup(self,freepar,useBBres=False,**kwargs):
         """ Setup function for the fit 
             It sets the following class attributes:
@@ -245,11 +260,11 @@ class BayesianBBarolo(FitMod3D):
             - self.mask: mask from the input cube (3D array)
             - self._ellprof: a pointer to a C++ Ellprof object
         """
+        
 
         if self._inri is None:
-            print("Error: you need to initialize rings first by calling the function init()")
-            return
-        
+            self._autoinit()
+
         self.useBBres = useBBres 
 
         # Determining the number of parameters to fit and indexes for theta
@@ -329,25 +344,19 @@ class BayesianBBarolo(FitMod3D):
         #self.data *= self.scaling_factor
         #self.data /= self.noiserms
         self.map_rms   = self.noiserms*np.sqrt(np.nansum(self.mask, axis=0))
-
         ##########################################################################################
 
         # Checking whether the density is fitted or not. In case it is not, use a normalization
         self.useNorm = not any('dens' in sub for sub in self.freepar_names)
-        
-        # Setting up the Ellprof object if a normalization and not using BB residuals
+   
         if self._ellprof is None:
             self._ellprof = libBB.Ellprof_new_alt(self.inp._cube,self._inri._rings)
         
+        # Calculating the initial profile if we are using normalization. This is updated in each fit iteration if geometry is fitted.
         if self.useNorm and not self.useBBres:
             self._update_profile(self._inri)
             # Check if we need to update the profile in each fit iteration (= only if geometry is fitted)
             self.update_prof = any(sub in string for string in self.freepar_names for sub in ['inc','phi','xpos','ypos'])
-
-        ################################################################################################################
-        # TO DELETE! This is just for testing purposes
-        #self.update_prof = False
-        ################################################################################################################
 
 
     def _calculate_model(self,rings,fullcube=False):
@@ -357,6 +366,8 @@ class BayesianBBarolo(FitMod3D):
             ----------
             rings : Rings
                 A Rings object with the parameters of the model.
+            fullcube : bool (False by default)
+                Whether to calculate the model in the full input cube (True) or only in a smaller cube containing the galaxy (False). 
 
             Returns
             -------
@@ -387,78 +398,33 @@ class BayesianBBarolo(FitMod3D):
         return mod, bhi, blo, galmod
 
 
-    def _normalize_model(self, model, data, mask=None, **kwargs):
-        """Normalize the model to the maximum value of the data.
-        
-        Parameters
-        ----------
-        model : numpy.ndarray
-            The model data to be normalized.
-        data : numpy.ndarray
-            The reference data for normalization.
-        
-        Returns
-        -------
-        numpy.ndarray
-            The normalized model.
-        """
-        # Normalizing the model to the maximum value of the data
-        nrm = np.nanmax(data) / np.nanmax(model)
-        return nrm * model
-
-
     def _calculate_residuals(self,model,data,mask=None,**kwargs):
         """ This is the default residual calculation function. 
              It can be overwritten by the user if needed.
-
-            @TODO: residuals could use a WFUNC and BWEIGHT, similar to BB
-
         """
         # Applying the mask to the data if requested
         data_4res  = data*mask if mask is not None else data
-        model_4res = model #self._normalize_model(model,data_4res,**kwargs) if self.useNorm else model
         sigma = kwargs.get('sigma',self.noiserms)
         if sigma<0:
             return np.inf
 
-        # Some weighting steps can be added here (see below for example)
-        wi = 1.0
-
         # Calculating the residual
-        res  = 0.5*np.nansum(wi*(data_4res-model_4res)**2 / sigma**2)
+        res  = 0.5*np.nansum( (data_4res-model)**2 / sigma**2)
         res += 0.5*np.log(2.*np.pi*sigma**2)
 
-        #okpix = (self.mask==1) & (mod!=0)
-            
-        # Weighting the residual by the azimuthal angle
-        #x0  = np.mean(rings.r['xpos'])
-        #y0  = np.mean(rings.r['ypos'])
-        #inc = np.radians(np.mean(rings.r['inc']))
-        #phi = np.radians(np.mean(rings.r['phi']))
-
-        #x, y = np.arange(self.mask.shape[2]), np.arange(self.mask.shape[1])
-        #xr =  -(x[None,:]-x0)*np.sin(phi)+(y[:,None]-y0)*np.cos(phi);
-        #yr = (-(x[None,:]-x0)*np.cos(phi)-(y[:,None]-y0)*np.sin(phi))/np.cos(inc);
-
-        #wpow = 2.0
-        #th = np.arctan2(yr, xr)
-        #wi = np.abs(np.cos(th))**wpow[None,:,:]
-
-        # Calculating number of blanks (= model present, but data not in the mask)
-        #nblanks = np.sum((self.mask==0) & (mod!=0))
-        #ntot    = np.sum(self.mask)
-        #if nblanks>ntot: nblanks = ntot-1
-        #print (ntot,nblanks)
-        #bweight = 1.0
-        #res *= (1+nblanks/ntot)**bweight/(ntot-nblanks)
         return res
 
 
     def _log_likelihood(self,theta,**kwargs):
-        """ Likelihood function for the fit """
+        """ Likelihood function for the fit 
+        
+            Accepted kwargs:
+            - factor: a multiplicative factor for the log-likelihood. Default is 1.
+            - lambdas: a dictionary with the lambda parameters for the smoothness penalty. Default is self.lambdas.
+        """
         
         # Checking for non-acceptable negative values
-        a = ('vrot','vdisp','inc','xpos','ypos','dens','z0','radmax')
+        a = ('vrot','vdisp','inc','xpos','ypos','z0','dens','radmax')
         for k in self.freepar_idx:
             if k.startswith(a) and np.any(theta[self.freepar_idx[k]]<0): 
                 return -np.inf
@@ -484,11 +450,32 @@ class BayesianBBarolo(FitMod3D):
 
             kwargs['sigma'] = theta[self.freepar_idx['sigma']][0] if 'sigma' in self.freepar_names else 1
 
-            res  = self._calculate_residuals(model,data,mask,**kwargs)
+            logL  = self._calculate_residuals(model,data,mask,**kwargs)
 
             libBB.Galmod_delete(galmod)
+
+            # Adding a smoothness penalty if requested in the ring-by-ring fit
+            lambdas = kwargs.get('lambdas', self.lambdas)
+            smoothness = any(lambdas[key]>0 for key in lambdas.keys())
+            if smoothness:
+                for key in self.freepar_idx:
+                    if key in lambdas and lambdas[key]>0 and len(self.freepar_idx[key])>1:
+                        v = rings.r[key]
+                        
+                        if key=='vrot':
+                            # Adding a zero at the beginning to force the rotation curve to start from zero
+                            v = np.concatenate([[0.0], v])
+
+                        dr = rings.r['radii'][1] - rings.r['radii'][0]
+                        d2v = (v[2:] - 2*v[1:-1] + v[:-2]) / dr**2
+
+                        penalty = np.sum(d2v**2)
+                        #penalty = np.sum((d2v / (1 + r[1:-1]))**2)
+                        logL += 0.5 * lambdas[key] * penalty
             
-        return -res
+            factor = kwargs.get('factor',1.0)
+
+        return -factor*logL
     
 
     def _log_likelihood_geometry(self,theta,**kwargs):
@@ -541,7 +528,7 @@ class BayesianBBarolo(FitMod3D):
         return p
     
     
-    def _compute(self,threads=1,freepar=['vrot'],method='dynesty', useBBres = False, \
+    def _compute(self,threads=1,freepar=['vrot'],method='dynesty', useBBres=False, \
                  log_like = None, like_kwargs : dict = {},
                  sampler_kwargs : dict = {}, run_kwargs : dict = {}, **kwargs):
         
@@ -557,13 +544,12 @@ class BayesianBBarolo(FitMod3D):
         Kwargs: verbose (bool), dynamic (bool), other BB options
           
         """
-        log_like = log_like if log_like is not None else self._log_likelihood
-
-        verbose  = kwargs.get('verbose',True)
-
         # Setting up all the needed class attributes
         self._setup(freepar,useBBres,**kwargs)
         
+        log_like = log_like if log_like is not None else self._log_likelihood
+        verbose  = kwargs.get('verbose',True)
+
         if verbose:
             print (f"\nFitting {self.ndim} parameters: {self.freepar_names}")
             self.print_priors()
@@ -628,8 +614,6 @@ class BayesianBBarolo(FitMod3D):
         else: 
             raise ValueError(f"ERROR! Unknown method '{method}'.")
         
-        self._set_sampling_stats(samples,weights)
-
         dt = time.time()-toc
         dt = f'{dt:.2f} seconds' if dt<60.00 else f'{dt/60.00:.2f} minutes' 
 
@@ -641,6 +625,20 @@ class BayesianBBarolo(FitMod3D):
                 pool.join()
         
         self.modCalculated = True
+
+        # Calculating sampling statistics and setting class attributes
+        self._set_sampling_stats(samples,weights)
+
+        # Creating a new Rings object for the best-fit rings.
+        self.outri = Rings(self._inri.nr)
+        self.outri.set_rings_from_dict(self._inri.r)
+        
+        # Updating output rings with best parameters from the sampling
+        self.outri = self._update_rings(self.outri,self.params)
+
+        # Setting up the output rings in the Galfit object.
+        # @TODO: Add support for errors in the rings (already in the C++ code)
+        libBB.Galfit_setOutRings(self._galfit,self.outri._rings)
  
     
     def compute_geometry(self,freepar=['xpos','ypos','inc','phi'],**kwargs):
@@ -717,18 +715,6 @@ class BayesianBBarolo(FitMod3D):
             return
         
         verbose = kwargs.get('verbose',True)
-
-        # Creating a new Rings object for the outputs
-        self.outri = Rings(self._inri.nr)
-        self.outri.set_rings_from_dict(self._inri.r)
-        
-        # Updating output rings with best parameters from the sampling
-        self.outri = self._update_rings(self.outri,self.params)
-
-        # Setting up the output rings in the Galfit object.
-        # @TODO: Add support for errors in the rings (already in the C++ code)
-        libBB.Galfit_setOutRings(self._galfit,self.outri._rings)
-
         vprint(verbose,"\nWriting the best model to output directory ...",end=' ',flush=True)
         
         if self.useBBres:
@@ -762,6 +748,7 @@ class BayesianBBarolo(FitMod3D):
         
         if samples is None and not self.modCalculated:
             print ("Sampler has not been run yet. Please run compute() before running this function or load samples with load_samples().")
+            return
 
         defaults  = dict(max_n_ticks=5, color='darkblue', show_titles=True)
 
@@ -798,6 +785,49 @@ class BayesianBBarolo(FitMod3D):
                        labels=labels, label_kwargs=dict(fontsize=20), **mergedkey)
         
         return c[0] if plot_dynesty else c
+
+
+    def plot_profiles(self,**kwargs):
+        
+        if not self.modCalculated:
+            print ("Sampler has not been run yet. Please run compute() before running this function or load samples with load_samples().")
+            return
+
+        rings = self.outri.r
+        toplot = ['vrot','vdisp','dens','inc','phi','z0','xpos','ypos','vsys']
+        labels = [r'$V_\mathrm{rot}$ (km/s)',r'$\sigma$ (km/s)','Density','Inclination (deg)','Position angle (deg)',\
+                  r'$z_0$ (arcsec)','Xpos (pix)','Ypos (pix)',r'$V_\mathrm{sys}$ (km/s)']
+
+        # Creating the figure and axes
+        fig = plt.figure(figsize=(12,12))
+        nrows, ncols = 3, 3
+        xlen, ylen, x_sep, y_sep = 0.27, 0.13, 0.07, 0.015
+        for i in range(nrows):
+            yl = ylen * (1.6 if i == 0 else 1.0)
+            y = 0.9 - i * (ylen + y_sep)
+            for j in range(ncols):
+                x = 0.1 + j * (xlen + x_sep)
+                fig.add_axes([x, y, xlen, yl])
+                # Some formatting of axes
+                isbottom = i == nrows - 1
+                fig.axes[-1].tick_params(direction='in',top=True,right=True,labelbottom=isbottom)
+                if isbottom:
+                    fig.axes[-1].set_xlabel('Radius (arcsec)', fontsize=14)
+                fig.axes[-1].set_xlim(0, rings['radii'][-1]*1.05)
+
+        ax = np.ravel(fig.axes) 
+        for i in range(len(toplot)):
+            a = toplot[i]
+            q = self.quantiles[:,self.freepar_idx[a]]
+            err_low, err_up = q[1]-q[0], q[2]-q[1]
+            ax[i].errorbar(rings['radii'],rings[a],yerr=[err_low, err_up],fmt='o',c='#B22222')    
+            ax[i].set_ylabel(labels[i])
+            ax[i].set_ylim(0.9*np.nanmin(rings[a]-err_low), 1.1*np.nanmax(rings[a]+err_up))
+
+            if a=='vrot':
+                ax[i].set_ylim(0, None)
+        
+        return fig
 
 
     def print_stats(self,quantiles=[0.15865,0.50,0.84135]):
@@ -882,12 +912,3 @@ class BayesianBBarolo(FitMod3D):
             raise NotImplementedError()
         else:
             raise ValueError(f"Error: sampler {sampler} not known")
-        
-
-
-
-
-
-
-
-        
