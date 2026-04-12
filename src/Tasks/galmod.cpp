@@ -33,7 +33,6 @@
 #include <Utilities/utils.hh>
 #include <Utilities/progressbar.hh>
 
-#include <sys/socket.h>
 #include <math.h>
 #include <stdlib.h>
 #define C  2.99792458E08            // Speed of light in M/S

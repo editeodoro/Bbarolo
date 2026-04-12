@@ -267,7 +267,8 @@ void MomentMap<T>::SNMap(bool msk, std::string outfolder){
         T noise = sqrt(nchan-b+a*nchan*nchan)*c*sigmaBC;
         // Converting to  Jy/beam * km/s if requested
         if (in->pars().getFluxConvert())
-            noise = FluxtoJyBeam(noise,in->Head())*fabs(DeltaVel(in->Head()));
+            noise = FluxtoJyBeam(noise,in->Head());
+        noise *= fabs(DeltaVel(in->Head()));
         // Noise map
         nmap->Array()[i] = noise!=0 ? noise : log(-1);
         // S/N map

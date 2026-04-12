@@ -909,6 +909,6 @@ class BayesianBBarolo(FitMod3D):
             self.outri = self._update_rings(self.outri,self.params)
 
         elif sampler=='nautilus':
-            raise NotImplementedError()
+            raise NotImplementedError("Loading results from nautilus is not yet implemented.")
         else:
             raise ValueError(f"Error: sampler {sampler} not known")
