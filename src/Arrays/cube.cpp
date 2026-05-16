@@ -555,7 +555,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             smoothed->saveParam(par);
             
             ////////////////////////////////////////////////////////////////////////
-            // SMOOTH&SEARCH  MASK
+            // SMOOTH&SEARCH MASK
             ////////////////////////////////////////////////////////////////////////
             if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
                 // Smoothing first and searching for the largest object

@@ -140,6 +140,8 @@ Galfit<T>::Galfit(Cube<T> *c) {
     
     c->checkBeam();
 
+    if (!c->MaskAll()) c->BlankMask();
+
     // Read all rings from a BBarolo output file, if given as input
     if (!par.ringfile.empty()) {
         if (par.RADII=="-1" && (par.NRADII==-1 || par.RADSEP==-1))

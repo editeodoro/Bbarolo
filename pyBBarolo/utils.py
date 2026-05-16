@@ -23,6 +23,8 @@ import numpy as np
 from astropy.io import fits
 from .wrapper import BBaroloWrapper, BBexe
 from .pyBBarolo import isIterable, isNumber
+from scipy.ndimage import map_coordinates 
+from scipy.interpolate import make_splprep 
 
 
 def emptyfits(axisDim,cdelts,crpixs=None,crvals=None,ctypes=None,cunits=None,\
@@ -93,6 +95,129 @@ def emptyfits(axisDim,cdelts,crpixs=None,crvals=None,ctypes=None,cunits=None,\
     
     return fits.PrimaryHDU(data=d.astype(dtype),header=h)
     
+
+def build_path(x0, y0, rad_pix, pa_deg, nx, ny, oversampling=1):
+    
+    """ Build a path along the galaxy disk, given the ring parameters. 
+         The path is built by fitting a spline to the ring points and then 
+         extending it linearly at both ends. Finally, the path is interpolated
+         to have a uniform sampling.
+         
+         Args:
+            x0 (float):        X center of the galaxy (pixel)
+            y0 (float):        Y center of the galaxy (pixel)
+            rad_pix (list):    Ring radii in pixels
+            pa_deg (list):     Ring position angles in degrees
+            nx (int):          Number of pixels in X direction
+            ny (int):          Number of pixels in Y direction
+            oversampling (int): Oversampling factor for the final path
+    
+         Returns:
+            sp (np.array):     Distances along the path from the center (arcsec)
+            xp (np.array):     X coordinates of the path points (pixel)
+            yp (np.array):     Y coordinates of the path points (pixel)
+    """
+
+    # 1. Ring points 
+    pa_to_xy = lambda r, pa: (x0-r*np.sin(pa), y0+r*np.cos(pa))
+  
+    xy_pos = [pa_to_xy(r, np.radians(pa)) for r, pa in zip(rad_pix, pa_deg)]
+    xy_neg = [pa_to_xy(-r, np.radians(pa)) for r, pa in zip(rad_pix[::-1], pa_deg[::-1])]
+    xy_ring = np.concatenate([xy_neg,[[x0,y0]],xy_pos])
+  
+    # 2. Spline fit
+    spl, u = make_splprep(xy_ring.T, s=0)
+    u_inner = np.linspace(0, 1, xy_ring.shape[0]*3)
+    x_s, y_s = spl(u_inner)
+    
+    # 3. Tangents at ends
+    t0 = spl(0.0, nu=1)
+    t1 = spl(1.0, nu=1)
+    t0 /= np.hypot(*t0)
+    t1 /= np.hypot(*t1)
+
+    # 4. Extend linearly
+    n_ext = int(np.maximum(nx,ny)/2)
+    s_ext = np.linspace(1, n_ext + 1, n_ext*oversampling)
+    xf = x_s[-1] + s_ext * t1[0]
+    yf = y_s[-1] + s_ext * t1[1]
+    xb = x_s[0] - s_ext * t0[0]
+    yb = y_s[0] - s_ext * t0[1]
+
+    # 5. Combine full slit and select points within field
+    x = np.concatenate([xb[::-1], x_s, xf])
+    y = np.concatenate([yb[::-1], y_s, yf])
+    mask = (x >= 0) & (x <= nx - 1) & (y >= 0) & (y <= ny - 1)
+    x, y = x[mask], y[mask]
+    
+    # 6. Calculating distances along the path
+    icenter = np.argmin((x - x0)**2 + (y - y0)**2)
+    ds = np.hypot(np.diff(x), np.diff(y))
+    s = np.concatenate([[0.0], np.cumsum(ds)])
+    
+    # 7. Sorting and interpolating across a uniform grid
+    idx = np.argsort(s)
+    x, y, s = x[idx], y[idx], s[idx]
+    s -= s[icenter]
+    sp = np.arange(s.min(),s.max(),1/oversampling)
+    xp = np.interp(sp,s,x)
+    yp = np.interp(sp,s,y)
+    
+    return sp,xp,yp
+
+
+def extract_pv_path(cube, x, y, width=0, order=0): 
+    """ Extract a PV slice from a datacube along a given path.
+    
+    Args:
+        cube (np.array): The datacube from which to extract the PV slice.
+        x (np.array): X coordinates of the path points.
+        y (np.array): Y coordinates of the path points.
+        width (int): Width of the extraction window.
+        order (int): Order of the interpolation.
+
+    Returns:
+        pv (np.array): The extracted PV slice.
+    """
+    nv, ny, nx = cube.shape[:3] 
+    pv = np.full((nv, len(x)), np.nan)
+
+    if order == 0:
+        xs, ys = np.around([x, y]).astype(int)
+        ok = (xs >= 0) & (ys >= 0) & (xs < nx) & (ys < ny)
+        pv[:, ok] = cube[:, ys[ok], xs[ok]]
+    else:
+        dx, dy = np.gradient(x), np.gradient(y)
+        norm = np.hypot(dx, dy)
+        px, py = - dy / norm, dx / norm
+
+        for i in range(len(x)): 
+            samples = []
+            
+            for w in range(-width, width + 1):
+                xx = x[i] + w * px[i]
+                yy = y[i] + w * py[i]
+                if (xx < 0 or xx >= nx or yy < 0 or yy >= ny): continue
+                coords = np.vstack([np.arange(nv),np.full(nv,yy),np.full(nv,xx)])
+                spec = map_coordinates(cube, coords, order=order, mode='nearest')
+                samples.append(spec)
+
+            pv[:, i] = np.nan
+            
+            if len(samples) > 0:
+                pv[:, i] = np.nanmean(samples, axis=0)
+    
+    return pv
+
+
+def extract_pv(cube, x0, y0, rad_pix, pa_deg, pa_width=1, oversampling=1):
+
+    """ Extract a PV slice from a datacube along a path defined by the ring parameters.
+        This function is a wrapper around build_path() and extract_pv_path(). 
+    """
+    sp, xp, yp = build_path(x0, y0, rad_pix, pa_deg, cube.shape[2], cube.shape[1], oversampling)
+    pv = extract_pv_path(cube, xp, yp, width=pa_width)
+    return sp, xp, yp, pv
 
 
 class SimulatedGalaxyCube(object):

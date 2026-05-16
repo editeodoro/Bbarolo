@@ -880,9 +880,23 @@ double funcIncfromMap(std::vector<double> &mypar, Cube<T> *c, double radsep, dou
 template <class T>
 ParamGuess<T>* EstimateInitial(Cube<T> *c, GALFIT_PAR *p){
     
-    // Running the source finder to detect the source
-    if (!c->getIsSearched()) c->search();
-    Detection<T> *largest = c->getSources()->LargestDetection();
+    Detection<T> *largest = nullptr;
+    if (c->MaskAll() && c->pars().getMASK().find("FILE(") != std::string::npos) {
+        // Using user-given mask as the source detection
+        largest = new Detection<T>;
+        for (int x=0; x<c->DimX(); x++) {
+            for (int y=0; y<c->DimY(); y++) {
+                for (int z=0; z<c->DimZ(); z++) {
+                    if (c->Mask(x,y,z)) largest->addPixel(x,y,z);
+                }
+            }
+        }
+    }
+    else {
+        // Running the source finder to detect the source
+        if (!c->getIsSearched()) c->search();
+        largest = c->getSources()->LargestDetection();
+    }
 
     bool verb = c->pars().isVerbose();
     c->pars().setVerbosity(false);
