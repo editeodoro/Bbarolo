@@ -166,48 +166,86 @@ def build_path(x0, y0, rad_pix, pa_deg, nx, ny, oversampling=1):
     return sp,xp,yp
 
 
-def extract_pv_path(cube, x, y, width=0, order=0): 
+def extract_pv_path(array, x, y, order=0, z_oversampling=1, width=1):
+
     """ Extract a PV slice from a datacube along a given path.
-    
-    Args:
-        cube (np.array): The datacube from which to extract the PV slice.
-        x (np.array): X coordinates of the path points.
-        y (np.array): Y coordinates of the path points.
-        width (int): Width of the extraction window.
-        order (int): Order of the interpolation.
+        The path is defined by the x and y coordinates of the points along it.
+        The function uses scipy's map_coordinates to perform the interpolation.
+        If width>0, the function will extract multiple slices across the width of the slit
+        and average them to get the final PV slice (antialiasing).
 
-    Returns:
-        pv (np.array): The extracted PV slice.
+        Args:
+          array (np.array): 3D datacube (z,y,x)
+          x (np.array):     X coordinates of the path points (pixel)
+          y (np.array):     Y coordinates of the path points (pixel)
+          order (int):      Interpolation order (0=nearest, 1=linear)
+          z_oversampling (int): Oversampling factor for the z-axis
+          width (int):      Width of the slit in pixels
+        
+        Returns:
+          pv_slice (np.array): 2D array with the extracted PV slice (z,x)
     """
-    nv, ny, nx = cube.shape[:3] 
-    pv = np.full((nv, len(x)), np.nan)
 
-    if order == 0:
-        xs, ys = np.around([x, y]).astype(int)
-        ok = (xs >= 0) & (ys >= 0) & (xs < nx) & (ys < ny)
-        pv[:, ok] = cube[:, ys[ok], xs[ok]]
-    else:
-        dx, dy = np.gradient(x), np.gradient(y)
+    zsize, ysize, xsize = array.shape[:3] 
+
+    zs = np.outer(np.arange(0, zsize, 1.0/z_oversampling), np.ones(len(x)))
+    z_len = zs.shape[0]
+  
+    # Number of sub-samples across the width
+    if width>0:
+        
+        nwidth = 2*width + 1
+        dx = np.gradient(x)
+        dy = np.gradient(y)
         norm = np.hypot(dx, dy)
-        px, py = - dy / norm, dx / norm
+        nx = dy / norm
+        ny = -dx / norm
+        
+        # Sample positions across the slit width
+        offsets = np.linspace(-width/2.0, width/2.0, nwidth)
 
-        for i in range(len(x)): 
-            samples = []
-            
-            for w in range(-width, width + 1):
-                xx = x[i] + w * px[i]
-                yy = y[i] + w * py[i]
-                if (xx < 0 or xx >= nx or yy < 0 or yy >= ny): continue
-                coords = np.vstack([np.arange(nv),np.full(nv,yy),np.full(nv,xx)])
-                spec = map_coordinates(cube, coords, order=order, mode='nearest')
-                samples.append(spec)
+        # Accumulate samples
+        samples = []
+        for off in offsets:
+            xs = x + off * nx
+            ys = y + off * ny
+            xs_grid = np.outer(np.ones(z_len), xs)
+            ys_grid = np.outer(np.ones(z_len), ys)
 
-            pv[:, i] = np.nan
-            
-            if len(samples) > 0:
-                pv[:, i] = np.nanmean(samples, axis=0)
+            if np.any(np.isnan(array)):
+                vals = map_coordinates(np.nan_to_num(array),[zs, ys_grid, xs_grid],
+                                       order=int(order),cval=np.nan)
+                bad = map_coordinates(np.isnan(array).astype(float),[zs, ys_grid, xs_grid],
+                                      order=0,cval=1.0) > 0
+                vals[bad] = np.nan
+            else:
+                vals = map_coordinates(array,[zs, ys_grid, xs_grid],order=int(order),cval=np.nan)
+
+            samples.append(vals)
+
+        pv_slice = np.nanmean(np.stack(samples, axis=0), axis=0)
     
-    return pv
+    else:
+        if order == 0:
+            pv_slice = np.full((z_len, len(x)), np.nan)
+            xs, ys = np.around([x, y]).astype(int)
+            z_idx = np.rint(zs[:, 0]).astype(int)
+            ok = (xs >= 0) & (ys >= 0) & (xs < xsize) & (ys < ysize)
+            pv_slice[:, ok] = array[z_idx[:, None], ys[ok], xs[ok]]
+
+        else:
+            xs_grid = np.outer(np.ones(z_len), x)
+            ys_grid = np.outer(np.ones(z_len), y)
+            
+            if np.any(np.isnan(array)):
+                pv_slice = map_coordinates(np.nan_to_num(array),[zs,ys_grid,xs_grid],order=int(order),cval=np.nan)
+                bad = map_coordinates(np.isnan(array).astype(float),[zs, ys_grid, xs_grid],order=0, cval=1.0) > 0
+                pv_slice[bad] = np.nan
+            else:
+                pv_slice = map_coordinates(array,[zs, ys_grid, xs_grid],order=int(order),cval=np.nan)
+
+    return pv_slice
+
 
 
 def extract_pv(cube, x0, y0, rad_pix, pa_deg, pa_width=1, oversampling=1):

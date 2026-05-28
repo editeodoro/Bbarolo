@@ -10,30 +10,98 @@ AC_INIT([BBAROLO],[1.8],[enrico.diteodoro@gmail.com])
 #AC_PREFIX_DEFAULT(/usr/local)
 
 ##### ------ Macro that checks for specific modules in python ----- ######
+#
+# Usage:
+#
+#   AC_PYTHON_MODULE(module)
+#   AC_PYTHON_MODULE(module, min_version)
+#
+# Examples:
+#
+#   AC_PYTHON_MODULE(numpy)
+#   AC_PYTHON_MODULE(scipy, 1.10.0)
+#
+##########################################################################
+
 AC_DEFUN([AC_PYTHON_MODULE],
-[AC_MSG_CHECKING(for module $1 in python)
-echo "import $1" | ${PYTHON} -
-if test $? -ne 0 ; then
-	AC_MSG_RESULT(no)
-	AC_MSG_WARN([
+[
+AC_MSG_CHECKING([for module $1 in python])
+
+python_code="
+import sys
+
+try:
+    import $1 as module
+except ImportError:
+    sys.exit(1)
+
+minver = '$2'
+
+if minver:
+    try:
+        from packaging.version import Version
+        modver = Version(module.__version__)
+        reqver = Version(minver)
+    except Exception:
+        sys.exit(2)
+
+    if modver < reqver:
+        sys.exit(3)
+
+sys.exit(0)
+"
+
+echo "$python_code" | ${PYTHON} -
+py_status=$?
+
+if test $py_status -eq 1 ; then
+
+    AC_MSG_RESULT(no)
+    AC_MSG_WARN([
     -------------------------------------------------------------------
-    WARNING: Cannot find python module '$1' in ordinary PYTHONPATH. If 
-             you have '$1' please permanently add its directory to the 
+    WARNING: Cannot find python module '$1' in ordinary PYTHONPATH. If
+             you have '$1' please permanently add its directory to the
              PYTHONPATH variable in your .profile or .bash_profile with:
 
               export PYTHONPATH=\$PYTHONPATH:/moduledir     (BASH shell)
-              setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell) 
+              setenv PYTHONPATH \$PYTHONPATH:/moduledir     (C-shell)
 
-             Then run again ./configure. 
-             Otherwise, BBarolo won't produce all the output files.
+             Then run again ./configure.
     -------------------------------------------------------------------
 ])
-	AC_SUBST([PYTHON], "")
+    AC_SUBST([PYTHON], "")
+
+elif test $py_status -eq 3 ; then
+
+    AC_MSG_RESULT(no)
+    AC_MSG_WARN([
+    -------------------------------------------------------------------
+    WARNING: Python module '$1' version is too old.
+
+             Required version: $2
+    -------------------------------------------------------------------
+])
+    AC_SUBST([PYTHON], "")
+
+elif test $py_status -eq 2 ; then
+
+    AC_MSG_RESULT(no)
+    AC_MSG_WARN([
+    -------------------------------------------------------------------
+    WARNING: Could not determine version for python module '$1'.
+             The module may not define __version__ or packaging is
+             missing.
+    -------------------------------------------------------------------
+])
+    AC_SUBST([PYTHON], "")
+
 else
-	AC_MSG_RESULT(yes)
+    AC_MSG_RESULT(yes)
 fi
 ])
-###########################################################################
+##########################################################################
+
+
 
 ######### ------ Macro that checks for MPI implementation ----- ###########
 AC_DEFUN([AX_PROG_CXX_MPI], [
@@ -598,7 +666,7 @@ AS_IF([test -z "$PYTHON_INCLUDE"], [
 ])
 AC_PYTHON_MODULE(matplotlib)
 AC_PYTHON_MODULE(astropy)
-AC_PYTHON_MODULE(scipy)
+AC_PYTHON_MODULE(scipy,1.15.0)
 ##########################################################################
 
 

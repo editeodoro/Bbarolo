@@ -2771,8 +2771,23 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #AC_PREFIX_DEFAULT(/usr/local)
 
 ##### ------ Macro that checks for specific modules in python ----- ######
+#
+# Usage:
+#
+#   AC_PYTHON_MODULE(module)
+#   AC_PYTHON_MODULE(module, min_version)
+#
+# Examples:
+#
+#   AC_PYTHON_MODULE(numpy)
+#   AC_PYTHON_MODULE(scipy, 1.10.0)
+#
+##########################################################################
 
-###########################################################################
+
+##########################################################################
+
+
 
 ######### ------ Macro that checks for MPI implementation ----- ###########
 
@@ -6875,23 +6890,51 @@ printf "%s\n" "$as_me: WARNING:
  ;;
 esac
 fi
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for module matplotlib in python" >&5
 printf %s "checking for module matplotlib in python... " >&6; }
-echo "import matplotlib" | ${PYTHON} -
-if test $? -ne 0 ; then
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+
+python_code="
+import sys
+
+try:
+    import matplotlib as module
+except ImportError:
+    sys.exit(1)
+
+minver = ''
+
+if minver:
+    try:
+        from packaging.version import Version
+        modver = Version(module.__version__)
+        reqver = Version(minver)
+    except Exception:
+        sys.exit(2)
+
+    if modver < reqver:
+        sys.exit(3)
+
+sys.exit(0)
+"
+
+echo "$python_code" | ${PYTHON} -
+py_status=$?
+
+if test $py_status -eq 1 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
     -------------------------------------------------------------------
     WARNING: Cannot find python module 'matplotlib' in ordinary PYTHONPATH. If
              you have 'matplotlib' please permanently add its directory to the
              PYTHONPATH variable in your .profile or .bash_profile with:
 
               export PYTHONPATH=\$PYTHONPATH:/moduledir     (BASH shell)
-              setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell)
+              setenv PYTHONPATH \$PYTHONPATH:/moduledir     (C-shell)
 
              Then run again ./configure.
-             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 " >&5
 printf "%s\n" "$as_me: WARNING:
@@ -6901,36 +6944,106 @@ printf "%s\n" "$as_me: WARNING:
              PYTHONPATH variable in your .profile or .bash_profile with:
 
               export PYTHONPATH=\$PYTHONPATH:/moduledir     (BASH shell)
-              setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell)
+              setenv PYTHONPATH \$PYTHONPATH:/moduledir     (C-shell)
 
              Then run again ./configure.
-             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 " >&2;}
-	PYTHON=""
+    PYTHON=""
+
+
+elif test $py_status -eq 3 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Python module 'matplotlib' version is too old.
+
+             Required version:
+    -------------------------------------------------------------------
+" >&5
+printf "%s\n" "$as_me: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Python module 'matplotlib' version is too old.
+
+             Required version:
+    -------------------------------------------------------------------
+" >&2;}
+    PYTHON=""
+
+
+elif test $py_status -eq 2 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Could not determine version for python module 'matplotlib'.
+             The module may not define __version__ or packaging is
+             missing.
+    -------------------------------------------------------------------
+" >&5
+printf "%s\n" "$as_me: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Could not determine version for python module 'matplotlib'.
+             The module may not define __version__ or packaging is
+             missing.
+    -------------------------------------------------------------------
+" >&2;}
+    PYTHON=""
+
 
 else
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 fi
+
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for module astropy in python" >&5
 printf %s "checking for module astropy in python... " >&6; }
-echo "import astropy" | ${PYTHON} -
-if test $? -ne 0 ; then
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+
+python_code="
+import sys
+
+try:
+    import astropy as module
+except ImportError:
+    sys.exit(1)
+
+minver = ''
+
+if minver:
+    try:
+        from packaging.version import Version
+        modver = Version(module.__version__)
+        reqver = Version(minver)
+    except Exception:
+        sys.exit(2)
+
+    if modver < reqver:
+        sys.exit(3)
+
+sys.exit(0)
+"
+
+echo "$python_code" | ${PYTHON} -
+py_status=$?
+
+if test $py_status -eq 1 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
     -------------------------------------------------------------------
     WARNING: Cannot find python module 'astropy' in ordinary PYTHONPATH. If
              you have 'astropy' please permanently add its directory to the
              PYTHONPATH variable in your .profile or .bash_profile with:
 
               export PYTHONPATH=\$PYTHONPATH:/moduledir     (BASH shell)
-              setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell)
+              setenv PYTHONPATH \$PYTHONPATH:/moduledir     (C-shell)
 
              Then run again ./configure.
-             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 " >&5
 printf "%s\n" "$as_me: WARNING:
@@ -6940,36 +7053,106 @@ printf "%s\n" "$as_me: WARNING:
              PYTHONPATH variable in your .profile or .bash_profile with:
 
               export PYTHONPATH=\$PYTHONPATH:/moduledir     (BASH shell)
-              setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell)
+              setenv PYTHONPATH \$PYTHONPATH:/moduledir     (C-shell)
 
              Then run again ./configure.
-             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 " >&2;}
-	PYTHON=""
+    PYTHON=""
+
+
+elif test $py_status -eq 3 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Python module 'astropy' version is too old.
+
+             Required version:
+    -------------------------------------------------------------------
+" >&5
+printf "%s\n" "$as_me: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Python module 'astropy' version is too old.
+
+             Required version:
+    -------------------------------------------------------------------
+" >&2;}
+    PYTHON=""
+
+
+elif test $py_status -eq 2 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Could not determine version for python module 'astropy'.
+             The module may not define __version__ or packaging is
+             missing.
+    -------------------------------------------------------------------
+" >&5
+printf "%s\n" "$as_me: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Could not determine version for python module 'astropy'.
+             The module may not define __version__ or packaging is
+             missing.
+    -------------------------------------------------------------------
+" >&2;}
+    PYTHON=""
+
 
 else
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 fi
 
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for module scipy in python" >&5
 printf %s "checking for module scipy in python... " >&6; }
-echo "import scipy" | ${PYTHON} -
-if test $? -ne 0 ; then
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+
+python_code="
+import sys
+
+try:
+    import scipy as module
+except ImportError:
+    sys.exit(1)
+
+minver = '1.15'
+
+if minver:
+    try:
+        from packaging.version import Version
+        modver = Version(module.__version__)
+        reqver = Version(minver)
+    except Exception:
+        sys.exit(2)
+
+    if modver < reqver:
+        sys.exit(3)
+
+sys.exit(0)
+"
+
+echo "$python_code" | ${PYTHON} -
+py_status=$?
+
+if test $py_status -eq 1 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
     -------------------------------------------------------------------
     WARNING: Cannot find python module 'scipy' in ordinary PYTHONPATH. If
              you have 'scipy' please permanently add its directory to the
              PYTHONPATH variable in your .profile or .bash_profile with:
 
               export PYTHONPATH=\$PYTHONPATH:/moduledir     (BASH shell)
-              setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell)
+              setenv PYTHONPATH \$PYTHONPATH:/moduledir     (C-shell)
 
              Then run again ./configure.
-             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 " >&5
 printf "%s\n" "$as_me: WARNING:
@@ -6979,16 +7162,58 @@ printf "%s\n" "$as_me: WARNING:
              PYTHONPATH variable in your .profile or .bash_profile with:
 
               export PYTHONPATH=\$PYTHONPATH:/moduledir     (BASH shell)
-              setenv PYTHONPATH \$PYTHONPATH:/moduledir        (C-shell)
+              setenv PYTHONPATH \$PYTHONPATH:/moduledir     (C-shell)
 
              Then run again ./configure.
-             Otherwise, BBarolo won't produce all the output files.
     -------------------------------------------------------------------
 " >&2;}
-	PYTHON=""
+    PYTHON=""
+
+
+elif test $py_status -eq 3 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Python module 'scipy' version is too old.
+
+             Required version: 1.15
+    -------------------------------------------------------------------
+" >&5
+printf "%s\n" "$as_me: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Python module 'scipy' version is too old.
+
+             Required version: 1.15
+    -------------------------------------------------------------------
+" >&2;}
+    PYTHON=""
+
+
+elif test $py_status -eq 2 ; then
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Could not determine version for python module 'scipy'.
+             The module may not define __version__ or packaging is
+             missing.
+    -------------------------------------------------------------------
+" >&5
+printf "%s\n" "$as_me: WARNING:
+    -------------------------------------------------------------------
+    WARNING: Could not determine version for python module 'scipy'.
+             The module may not define __version__ or packaging is
+             missing.
+    -------------------------------------------------------------------
+" >&2;}
+    PYTHON=""
+
 
 else
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 fi
 
