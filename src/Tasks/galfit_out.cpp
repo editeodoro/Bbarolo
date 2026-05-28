@@ -988,8 +988,6 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "###############################################################\n"
         << "import numpy as np \n"
         << "import matplotlib.pyplot as plt \n"
-        << "from scipy.ndimage import map_coordinates \n"
-        << "from scipy.interpolate import make_splprep  \n"
         << std::endl
         << "def defineaxis(nrows,ncols,xlen,ylen,xsep=0,ysep=0,fig_width=8.27,fig_heigth=11.69, fig=None):\n\n"
         << "  if not fig: fig = plt.figure(figsize=(fig_width, fig_heigth)) \n"
@@ -1013,6 +1011,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "  return (pad_x,pad_y)\n\n";
         
     pyf << "def build_path(x0, y0, rad_pix, pa_deg, nx, ny, oversampling=1):\n\n"
+        << "  from scipy.interpolate import make_splprep\n"
         << "  # 1. Ring points \n"
         << "  pa_to_xy = lambda r, pa: (x0-r*np.sin(pa), y0+r*np.cos(pa))\n\n"
         << "  xy_pos = [pa_to_xy(r, np.radians(pa)) for r, pa in zip(rad_pix, pa_deg)]\n"
@@ -1051,6 +1050,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "  return sp,xp,yp\n\n";
        
     pyf << "def extract_pv(array, x, y, order=1, width=1, oversampling=1):\n\n"
+        << "  from scipy.ndimage import map_coordinates \n"
         << "  zsize, ysize, xsize = array.shape[:3] \n"
         << "  zs = np.outer(np.arange(0, zsize, 1.0/oversampling), np.ones(len(x)))\n"
         << "  z_len = zs.shape[0]\n\n"
