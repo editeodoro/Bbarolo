@@ -628,7 +628,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             // Masking using the search algorithm.
             if (!isSearched) search();
         
-            uint numObj = getNumObj();
+            int numObj = getNumObj();
             if (numObj==0) {
                 std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
                 std::terminate();
@@ -718,7 +718,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     else if (par.getMASK().find("THRESHOLD")!=std::string::npos) {
         // Simple cut
         float thresh = par.getParSE().threshold;
-        for (uint i=numPix; i--;) {
+        for (auto i=numPix; i--;) {
             if (array[i]>thresh) mask[i] = 1;
         }
     }
@@ -779,7 +779,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     // NO MASK
     ////////////////////////////////////////////////////////////////////////
     else if (par.getMASK()=="NONE") {
-        for (uint i=numPix; i--;) {
+        for (auto i=numPix; i--;) {
             //if (array[i]>0) 
                 mask[i] = 1;
         }
@@ -792,7 +792,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     if (found!=std::string::npos) {
         
         bool *tmask = new bool[numPix];
-        for (uint i=numPix; i--;) tmask[i] = mask[i];
+        for (auto i=numPix; i--;) tmask[i] = mask[i];
         
         // Determining number of pixels to add (3 if not given)
         string Ns = par.getMASK().substr(found + 7);

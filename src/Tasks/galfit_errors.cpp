@@ -218,7 +218,7 @@ void Galfit<T>::getErrors (Rings<T> *dr, T **err, int ir, T minimum) {
 
     int n_models=100;
     int n_bin = 40;
-    uint cc=1;
+    unsigned int cc=1;
     bar.init(" Estimating errors... ",n_models*nfree);
 
     //default_random_engine generator;  

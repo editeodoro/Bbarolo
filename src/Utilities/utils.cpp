@@ -38,7 +38,6 @@
 #include <wcslib/wcs.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <Utilities/allocator.hpp>
 

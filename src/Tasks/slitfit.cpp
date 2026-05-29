@@ -118,7 +118,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         exit(EXIT_FAILURE);
     }
     else if (numObj>1) {
-        uint n=0, size=0;
+        unsigned int n=0, size=0;
         for (int i=0; i<numObj; i++)
             if (line_im->pObject(i)->getSize()>size) {n=i;size=line_im->pObject(i)->getSize();}
         for (int i=0; i<numObj; i++)
@@ -166,7 +166,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         exit(EXIT_FAILURE);
     }
     else if (numObj>1) {
-        uint n=0, size=0;
+        unsigned int n=0, size=0;
         for (int i=0; i<numObj; i++)
             if (in->pObject(i)->getSize()>size) {n=i;size=in->pObject(i)->getSize();}
         for (int i=0; i<numObj; i++)
@@ -256,7 +256,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
         exit(EXIT_FAILURE);
     }
     else if (numObj>1) {
-        uint n=0, size=0;
+        unsigned int n=0, size=0;
         for (int i=0; i<numObj; i++)
             if (line_im->pObject(i)->getSize()>size) {n=i;size=line_im->pObject(i)->getSize();}
         for (int i=0; i<numObj; i++)
@@ -330,7 +330,7 @@ void Galfit<T>::slit_init(Cube<T> *c) {
     nr = nr>0 && nr<max_size ? nr : max_size;
     if (radii_b) {
        radsep = 0;
-       for (uint i=1; i<file_rings.radii.size()-1; i++)
+       for (auto i=1; i<file_rings.radii.size()-1; i++)
             radsep += file_rings.radii[i+1]-file_rings.radii[i];
         radsep/=(file_rings.radii.size()-2);
      }

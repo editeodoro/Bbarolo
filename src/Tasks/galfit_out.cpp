@@ -1762,7 +1762,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << "  fig, axes = defineaxis(4,5,0.3,0.3,xsep=0.01,ysep=0.1,fig_width=10,fig_heigth=10)\n"
         << "  axes = np.ravel(axes)\n\n"
         << "  pos = axes[4].get_position()\n"
-        << "  ax_m1 = fig.add_axes([pos.x1+0.03,pos.y0-0.2 ,0.3,0.3])\n"
+        << "  ax_m1 = fig.add_axes([pos.x1+0.03,pos.y0-0.2,0.3,0.3])\n"
         << "  pos = axes[14].get_position()\n"
         << "  ax_m2 = fig.add_axes([pos.x1+0.03,pos.y0-0.2,0.3,0.3])\n"
         << std::endl
@@ -1789,7 +1789,7 @@ std::vector<std::string> Galfit<T>::writeScripts_Python() {
         << std::endl
         << "  for i,ax in enumerate(axes[10:]):\n"
         << "    pos = ax.get_position()\n"
-        << "    ax.set_position([pos.x0,pos.y0 - 0.07,pos.width,pos.height])\n"
+        << "    ax.set_position([pos.x0,pos.y0 - 0.05,pos.width,pos.height])\n"
         << std::endl
         << "    if i<5:\n"
         << "      xi,yi,off,theta = x_maj_s[i],y_maj_s[i],min_offsets[i],pa_m\n"
@@ -2152,48 +2152,6 @@ void Galfit<T>::printInitial (Rings<T> *inr, std::string outfile) {
 }
 template void Galfit<float>::printInitial(Rings<float>*,std::string);
 template void Galfit<double>::printInitial(Rings<double>*,std::string);
-
-
-template <class T>
-void Galfit<T>::DensityProfile (T *surf_dens, int *count) {
-
-    // -STRONZATEEE-----------------------------------------------------------
-
-    if (!in->getIsSearched()) in->search();
-    Detection<T> *obj = in->pObject(0);
-    obj->calcFluxes(obj->getPixelSet(in->Array(), in->AxisDim()));
-    obj->calcWCSparams(in->Head());
-    obj->calcIntegFlux(in->DimZ(), obj->getPixelSet(in->Array(), in->AxisDim()), in->Head(), false, in->pars().getFluxConvert());
-    obj->setMass(2.365E5*obj->getIntegFlux()*distance*distance);
-    T *surf_bright_faceon = new T[outr->nr];
-    T *mass_surf_dens = new T[outr->nr];
-    float surf_bright_tot = 0;
-    float Area = fabs(in->Head().Cdelt(0))*arcsconv(in->Head().Cunit(0))*fabs(in->Head().Cdelt(1))*arcsconv(in->Head().Cunit(1));
-    for (int i=0;i<outr->nr;i++) {
-        surf_bright_faceon[i] = surf_dens[i]/Area;
-        surf_bright_faceon[i] *= cos(outr->inc[i]*M_PI/180.)/count[i];
-        surf_bright_tot += surf_dens[i];
-        //surf_dens[i]/=count[i];
-        //cout << surf_bright_tot << endl;
-    }
-    //cout << scientific<< obj->getMass() << std::endl << surf_bright_tot;
-
-    std::ofstream fileout((in->pars().getOutfolder()+"surface_dens.txt").c_str());
-
-    int m=18;
-    fileout << "#" << setw(m-1) << "RADIUS" << setw(m) << "SURFBRIGHT" << setw(m) << "SURFDENS" << std::endl;
-    fileout << "#" << setw(m-1) << "(arcsec)" << setw(m) << "("+in->Head().Bunit()+"/arc2)" << setw(m) << "(Msun/pc2)" << std::endl;
-
-    for (int i=0;i<outr->nr;i++) {
-        mass_surf_dens[i]=obj->getMass()*surf_bright_faceon[i]/surf_bright_tot/(4.848*4.848*distance*distance);
-        fileout << setw(m) << outr->radii[i] << setw(m) << surf_bright_faceon[i] << setw(m) << mass_surf_dens[i] << std::endl;
-    }
-
-    delete [] surf_bright_faceon;
-    delete [] mass_surf_dens;
-}
-template void Galfit<float>::DensityProfile (float*, int *);
-template void Galfit<double>::DensityProfile (double*, int *);
 
 
 }

@@ -152,7 +152,6 @@ protected:
     void printDetails  (Rings<T> *dr, T fmin, long pix, std::ostream& str=std::cout);
     void showInitial (Rings<T> *inr, std::ostream& Stream);
     void printInitial (Rings<T> *inr, std::string outfile);
-    void DensityProfile (T *surf_dens, int *count);
     int* getErrorColumns();
     int  plotParam() {plotPar_Gnuplot(); return plotAll_Python();}
     void plotPVs_Gnuplot(Image2D<T> *pva_d, Image2D<T> *pvb_d, Image2D<T> *pva_m, Image2D<T> *pvb_m);

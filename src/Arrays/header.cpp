@@ -480,7 +480,7 @@ bool Header::header_read (std::string fname) {
     }
     else object = dumstr;
 
-    for (uint i=0; i<object.size();i++) {
+    for (auto i=0; i<object.size();i++) {
         if (object[i]=='/' || object[i]=='\\') object.replace(i,1, "-");
         if (object[i]=='(' || object[i]==')')  object.replace(i,1, "-");
         if (isspace(object[i])) object.replace(i,1, "_");
@@ -695,7 +695,7 @@ void Header::headwrite (fitsfile *fptr, short numDim, bool fullHead) {
     //fits_update_key_flt(fptr, "BLANK", blank, 12, com, &status);
     
     if (fullHead) {
-        for (uint i=0; i<keys.size(); i++) {
+        for (auto i=0; i<keys.size(); i++) {
             status=0;
             bool towrite = false;
             int hist = keys[i].find("HISTORY");

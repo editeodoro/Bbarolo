@@ -818,7 +818,7 @@ Detection<T>* Search<T>::LargestDetection () {
 
     int numObj = objectList->size();
     if (numObj==0) return NULL;
-    uint n=0, size=0;
+    unsigned int n=0, size=0;
     for (int i=0; i<numObj; i++) {
         Detection<T> *obj = pObject(i);
         if (obj->getSize()>size) {n=i;size=obj->getSize();}

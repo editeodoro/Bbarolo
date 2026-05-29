@@ -177,7 +177,7 @@ std::string deblankAll (std::string s) {
     // Delete all blank spaces from the string s.
     
     std::string newstring;
-    for (uint i=0; i<s.size();i++) 
+    for (auto i=0; i<s.size();i++) 
         if (!isspace(s[i])) newstring += s[i];
     return newstring;
     

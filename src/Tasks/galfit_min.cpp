@@ -455,11 +455,11 @@ void Galfit<T>::Convolve_fft(T *array, int *bsize) {
         Conv2D cfft;
         init_Conv2D(cfft,LINEAR_SAME, bsize[0], bsize[1], NconX, NconY);
         
-        for (uint z=in->DimZ(); z--;) {
+        for (auto z=in->DimZ(); z--;) {
             T *ptr = &array[z*size];
-            for (uint i=size; i--;) beforeCON[i] = isNaN(ptr[i]) ? 0 : ptr[i];
+            for (auto i=size; i--;) beforeCON[i] = isNaN(ptr[i]) ? 0 : ptr[i];
             convolve (cfft,beforeCON,cfield);
-            for (uint i=size; i--;)
+            for (auto i=size; i--;)
                 ptr[i] = (cfft.dst[i]<1.E-12) ? 0. : cfft.dst[i]*conv_scalefactor;	//<<<< Un po' arbitrario, non mi piace.
         }
 
@@ -485,8 +485,8 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
     double (*wfunc)(double) = cos;
     if (wpow<0) wfunc = sin;
     
-    for (uint y=bsize[1]; y--;) {
-        for (uint x=bsize[0]; x--;) {
+    for (auto y=bsize[1]; y--;) {
+        for (auto x=bsize[0]; x--;) {
             double theta;
             if (!IsIn(x,y,blo,dring,theta)) continue;
             if (!getSide(theta)) continue;
@@ -494,7 +494,7 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
             //< Factor for normalization.
             T modSum=0, obsSum = 0, factor=0;
-            for (uint z=in->DimZ(); z--;) {
+            for (auto z=in->DimZ(); z--;) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
                 modSum += array[modPix];
@@ -508,7 +508,7 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
             double wi = std::pow(wf, fabs(wpow));
 
             // Normalizing and residuals.
-            for (uint z=in->DimZ(); z--;) {
+            for (auto z=in->DimZ(); z--;) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
                 array[modPix] *= factor;
@@ -557,7 +557,7 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
         //< Factor for normalization.
         T modSum=0, obsSum = 0, factor=0;
-        for (uint z=in->DimZ(); z--;) {
+        for (auto z=in->DimZ(); z--;) {
             long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
             long obsPix = in->nPix(x+blo[0],y+blo[1],z);
             modSum += array[modPix];
@@ -570,7 +570,7 @@ double Galfit<T>::norm_local (Rings<T> *dring, T *array, int *bhi, int *blo) {
         double wi = std::pow(costh, double(wpow));
 
         // Normalizing and residuals.
-        for (uint z=in->DimZ(); z--;) {
+        for (auto z=in->DimZ(); z--;) {
             long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
             long obsPix = in->nPix(x+blo[0],y+blo[1],z);
             array[modPix] *= factor;
@@ -614,13 +614,13 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
 
     //< Factor for normalization.
     T obsSum=0, modSum=0, factor=1;
-    for (uint y=bsize[1]; y--;) {
-        for (uint x=bsize[0]; x--;) {
+    for (auto y=bsize[1]; y--;) {
+        for (auto x=bsize[0]; x--;) {
             double theta;
             if (!IsIn(x,y,blo,dring,theta)) continue;
             if (!getSide(theta)) continue;
 
-            for (uint z=in->DimZ(); z--;) {
+            for (auto z=in->DimZ(); z--;) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
                 modSum += array[modPix];
@@ -632,8 +632,8 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
     if (modSum!=0) factor = obsSum/modSum;
     else factor=0;
     
-    for (uint y=bsize[1]; y--;) {
-        for (uint x=bsize[0]; x--;) {
+    for (auto y=bsize[1]; y--;) {
+        for (auto x=bsize[0]; x--;) {
             double theta;
             if (!IsIn(x,y,blo,dring,theta)) continue;
             if (!getSide(theta)) continue;
@@ -643,7 +643,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
             double wi = std::pow(wf, fabs(wpow));
 
             // Normalizing and residuals.
-            for (uint z=in->DimZ(); z--;) {
+            for (auto z=in->DimZ(); z--;) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
                 array[modPix] *= factor;
@@ -697,7 +697,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
         T theta = pix->getF();
         if (!getSide(theta)) continue;
 
-        for (uint z=in->DimZ(); z--;) {
+        for (auto z=in->DimZ(); z--;) {
             long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
             long obsPix = in->nPix(x+blo[0],y+blo[1],z);
             modSum += array[modPix];
@@ -720,7 +720,7 @@ double Galfit<T>::norm_azim (Rings<T> *dring, T *array, int *bhi, int *blo) {
         double wi = std::pow(wf, fabs(wpow));
         
         // Normalizing and residuals.
-        for (uint z=in->DimZ(); z--;) {
+        for (auto z=in->DimZ(); z--;) {
             long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
             long obsPix = in->nPix(x+blo[0],y+blo[1],z);
             array[modPix] *= factor;
@@ -759,8 +759,8 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
     double (*wfunc)(double) = cos;
     if (wpow<0) wfunc = sin;
     
-    for (uint y=bsize[1]; y--;) {
-        for (uint x=bsize[0]; x--;) {
+    for (auto y=bsize[1]; y--;) {
+        for (auto x=bsize[0]; x--;) {
             double theta;
             if (!IsIn(x,y,blo,dring,theta)) continue;
             if (!getSide(theta)) continue;
@@ -772,7 +772,7 @@ double Galfit<T>::norm_none (Rings<T> *dring, T *array, int *bhi, int *blo) {
             double wi = std::pow(wf, fabs(wpow));
             
             // Normalizing and residuals.
-            for (uint z=in->DimZ(); z--;) {
+            for (auto z=in->DimZ(); z--;) {
                 long modPix = x+y*bsize[0]+z*bsize[0]*bsize[1];
                 long obsPix = in->nPix(x+blo[0],y+blo[1],z);
                 T obs = in->Array(obsPix)>0 ? in->Array(obsPix) : data_noise;
