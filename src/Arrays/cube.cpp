@@ -542,174 +542,170 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
     
     double bmaj,bmin,bpa,nbmaj,nbmin,nbpa,factor;
     bmaj=bmin=bpa=nbmaj=nbmin=nbpa=factor=0;
-       
-    if (par.getMASK().find("SMOOTH")!=std::string::npos || par.getMASK().find("SEARCH")!=std::string::npos) {
+
+    ////////////////////////////////////////////////////////////////////////
+    // MASKS with SMOOTHING + SEARCH
+    ////////////////////////////////////////////////////////////////////////
+    if (par.getMASK().find("SMOOTH")!=std::string::npos && par.getMASK().find("SEARCH")!=std::string::npos) {
+        
+        Cube<T> *smoothed = new Cube<T>();
+        smoothed->saveHead(head);
+        smoothed->saveParam(par);
         
         ////////////////////////////////////////////////////////////////////////
-        // MASKS with SMOOTHING
+        // SMOOTH&SEARCH MASK
         ////////////////////////////////////////////////////////////////////////
-        if (par.getMASK().find("SMOOTH")!=std::string::npos) {
-            
-            Cube<T> *smoothed = new Cube<T>();
-            smoothed->saveHead(head);
-            smoothed->saveParam(par);
-            
-            ////////////////////////////////////////////////////////////////////////
-            // SMOOTH&SEARCH MASK
-            ////////////////////////////////////////////////////////////////////////
-            if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
-                // Smoothing first and searching for the largest object
-                bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
-                bmin  = head.Bmin()*arcsconv(head.Cunit(0));
-                bpa   = head.Bpa();
-                factor = par.getFactor()==-1 ? 2 : par.getFactor();
-                nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
-                nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
-                nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
-                Beam oldbeam = {bmaj,bmin,bpa};
-                Beam newbeam = {nbmaj,nbmin,nbpa};
-        
-                Smooth3D<T> *sm = new Smooth3D<T>;
-                sm->smooth(this, oldbeam, newbeam);
-                smoothed->setCube(sm->Array(),axisDim);
-                smoothed->Head().setBmaj(nbmaj/3600.);
-                smoothed->Head().setBmin(nbmin/3600.);
-                smoothed->Head().setBpa(nbpa);
-                smoothed->Head().calcArea();
-                
-                delete sm;
-            }
-            ////////////////////////////////////////////////////////////////////////
-            // SMOOTHSPEC&SEARCH  MASK
-            ////////////////////////////////////////////////////////////////////////
-            else if (par.getMASK().find("SMOOTHSPEC&SEARCH")!=std::string::npos) {
-                SpectralSmooth3D<T> *sm = new SpectralSmooth3D<T>(par.getWindowType(),par.getWindowSize());
-                sm->smooth(this);
-                smoothed->setCube(sm->Array(),axisDim);
-                delete sm;
-            }
-            
-            // Now searching the smoothed cube.
-            smoothed->setCubeStats();
-            smoothed->search();
-            size_t numObj = smoothed->getNumObj();
-            if (numObj==0) {
-                std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
-                std::terminate();
-            }
-        
-            if (onlyLargest || numObj==1) {
-                Detection<T> *larg = smoothed->getSources()->LargestDetection();
-                std::vector<Voxel<T> > voxlist = larg->template getPixelSet<T>();
-                typename std::vector<Voxel<T> >::iterator vox;
-                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
-                }
-            }
-            else {
-                for (size_t i=0; i<numObj; i++) {
-                    Detection<T> *obj = smoothed->pObject(i);
-                    std::vector<Voxel<T> > voxlist = obj->template getPixelSet<T>();
-                    typename std::vector<Voxel<T> >::iterator vox;
-                    for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-                        mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
-                    }
-                }
-            
-            }
-            delete smoothed;
-            
-        }
-        
-        ////////////////////////////////////////////////////////////////////////
-        // SEARCH MASK
-        ////////////////////////////////////////////////////////////////////////
-        else if (par.getMASK().find("SEARCH")!=std::string::npos) {
-            // Masking using the search algorithm.
-            if (!isSearched) search();
-        
-            int numObj = getNumObj();
-            if (numObj==0) {
-                std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
-                std::terminate();
-            }
-        
-            if (onlyLargest || numObj==1) {
-                Detection<T> *larg = sources->LargestDetection();
-                std::vector<Voxel<T> > voxlist = larg->template getPixelSet<T>();
-                typename std::vector<Voxel<T> >::iterator vox;
-                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
-                }
-            }
-            else {
-                for (size_t i=0; i<numObj; i++) {
-                    Detection<T> *obj = pObject(i);
-                    std::vector<Voxel<T> > voxlist = obj->template getPixelSet<T>();
-                    typename std::vector<Voxel<T> >::iterator vox;
-                    for(vox=voxlist.begin();vox<voxlist.end();vox++) {
-                        mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
-                    }
-                }
-            
-            }
-        }
-        
-        ////////////////////////////////////////////////////////////////////////
-        // SMOOTH MASK
-        ////////////////////////////////////////////////////////////////////////
-        else if (par.getMASK().find("SMOOTH")!=std::string::npos) {
-            // Smooth and cut
+        if (par.getMASK().find("SMOOTH&SEARCH")!=std::string::npos) {
+            // Smoothing first and searching for the largest object
             bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
             bmin  = head.Bmin()*arcsconv(head.Cunit(0));
             bpa   = head.Bpa();
             factor = par.getFactor()==-1 ? 2 : par.getFactor();
             nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
             nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
-            nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();   
-            //if (nbmaj/bmaj<1.1) nbmaj = factor*bmaj;
-            //if (nbmin/bmin<1.1) nbmin = factor*bmin;
+            nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();
             Beam oldbeam = {bmaj,bmin,bpa};
             Beam newbeam = {nbmaj,nbmin,nbpa};
-                
+    
             Smooth3D<T> *sm = new Smooth3D<T>;
             sm->smooth(this, oldbeam, newbeam);
-            bool *blanks = new bool[numPix];
-            for (size_t i=0; i<numPix; i++) blanks[i] = isBlank(sm->Array(i)) ? false : true;
-            st->calculate(sm->Array(),numPix,blanks);
-            st->setThresholdSNR(par.getBlankCut());
-
-            ///* Without three consecutive channels requirement
-            for (size_t i=0; i<numPix; i++) {
-                if (sm->Array(i)>st->getThreshold()) mask[i] = 1;
+            smoothed->setCube(sm->Array(),axisDim);
+            smoothed->Head().setBmaj(nbmaj/3600.);
+            smoothed->Head().setBmin(nbmin/3600.);
+            smoothed->Head().setBpa(nbpa);
+            smoothed->Head().calcArea();
+            
+            delete sm;
+        }
+        ////////////////////////////////////////////////////////////////////////
+        // SMOOTHSPEC&SEARCH MASK
+        ////////////////////////////////////////////////////////////////////////
+        else if (par.getMASK().find("SMOOTHSPEC&SEARCH")!=std::string::npos) {
+            SpectralSmooth3D<T> *sm = new SpectralSmooth3D<T>(par.getWindowType(),par.getWindowSize());
+            sm->smooth(this);
+            smoothed->setCube(sm->Array(),axisDim);
+            delete sm;
+        }
+        
+        // Now searching the smoothed cube.
+        smoothed->setCubeStats();
+        smoothed->search();
+        size_t numObj = smoothed->getNumObj();
+        if (numObj==0) {
+            std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
+            std::terminate();
+        }
+    
+        if (onlyLargest || numObj==1) {
+            Detection<T> *larg = smoothed->getSources()->LargestDetection();
+            std::vector<Voxel<T> > voxlist = larg->template getPixelSet<T>();
+            typename std::vector<Voxel<T> >::iterator vox;
+            for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
             }
-            //*/
-
-            /* With three consecutive channels requirement
-            T thr = st->getThreshold();
-            T *Array = sm->Array();
-            for (int z=1; z<axisDim[2]-1; z++) {
-                for (int y=0; y<axisDim[1]; y++) {
-                    for (int x=0; x<axisDim[0]; x++) {
-                        long npix = nPix(x,y,z);
-                        long nchan = nPix(x,y,z+1);
-                        long pchan = nPix(x,y,z-1);
-                        mask[npix] = Array[npix]>thr && Array[pchan]>thr && Array[nchan]>thr;
-                    }
+        }
+        else {
+            for (size_t i=0; i<numObj; i++) {
+                Detection<T> *obj = smoothed->pObject(i);
+                std::vector<Voxel<T> > voxlist = obj->template getPixelSet<T>();
+                typename std::vector<Voxel<T> >::iterator vox;
+                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
                 }
             }
+        
+        }
+        delete smoothed;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // SEARCH MASK
+    ////////////////////////////////////////////////////////////////////////
+    else if (par.getMASK().find("SEARCH")!=std::string::npos) {
+        // Masking using the search algorithm.
+        if (!isSearched) search();
+    
+        int numObj = getNumObj();
+        if (numObj==0) {
+            std::cout << "MASKING error: No sources detected in the datacube. Cannot build mask!!! \n";
+            std::terminate();
+        }
+    
+        if (onlyLargest || numObj==1) {
+            Detection<T> *larg = sources->LargestDetection();
+            std::vector<Voxel<T> > voxlist = larg->template getPixelSet<T>();
+            typename std::vector<Voxel<T> >::iterator vox;
+            for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+            }
+        }
+        else {
+            for (size_t i=0; i<numObj; i++) {
+                Detection<T> *obj = pObject(i);
+                std::vector<Voxel<T> > voxlist = obj->template getPixelSet<T>();
+                typename std::vector<Voxel<T> >::iterator vox;
+                for(vox=voxlist.begin();vox<voxlist.end();vox++) {
+                    mask[nPix(vox->getX(),vox->getY(),vox->getZ())]=1;
+                }
+            }
+        
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////
+    // SMOOTH MASK
+    ////////////////////////////////////////////////////////////////////////
+    else if (par.getMASK().find("SMOOTH")!=std::string::npos) {
+        // Smooth and cut
+        bmaj  = head.Bmaj()*arcsconv(head.Cunit(0));
+        bmin  = head.Bmin()*arcsconv(head.Cunit(0));
+        bpa   = head.Bpa();
+        factor = par.getFactor()==-1 ? 2 : par.getFactor();
+        nbmaj = par.getBmaj()==-1 ? factor*bmaj : par.getBmaj();
+        nbmin = par.getBmin()==-1 ? factor*bmin : par.getBmin();
+        nbpa  = par.getBpa()==-1  ? bpa    : par.getBpa();   
+        //if (nbmaj/bmaj<1.1) nbmaj = factor*bmaj;
+        //if (nbmin/bmin<1.1) nbmin = factor*bmin;
+        Beam oldbeam = {bmaj,bmin,bpa};
+        Beam newbeam = {nbmaj,nbmin,nbpa};
+            
+        Smooth3D<T> *sm = new Smooth3D<T>;
+        sm->smooth(this, oldbeam, newbeam);
+        bool *blanks = new bool[numPix];
+        for (size_t i=0; i<numPix; i++) blanks[i] = isBlank(sm->Array(i)) ? false : true;
+        st->calculate(sm->Array(),numPix,blanks);
+        st->setThresholdSNR(par.getBlankCut());
+
+        ///* Without three consecutive channels requirement
+        for (size_t i=0; i<numPix; i++) {
+            if (sm->Array(i)>st->getThreshold()) mask[i] = 1;
+        }
+        //*/
+
+        /* With three consecutive channels requirement
+        T thr = st->getThreshold();
+        T *Array = sm->Array();
+        for (int z=1; z<axisDim[2]-1; z++) {
             for (int y=0; y<axisDim[1]; y++) {
                 for (int x=0; x<axisDim[0]; x++) {
-                    mask[nPix(x,y,0)]=Array[nPix(x,y,0)]>thr && Array[nPix(x,y,1)]>thr && Array[nPix(x,y,2)]>thr;
-                    int l = axisDim[2]-1;
-                    mask[nPix(x,y,l)]=Array[nPix(x,y,l)]>thr && Array[nPix(x,y,l-1)]>thr && Array[nPix(x,y,l-2)]>thr;
+                    long npix = nPix(x,y,z);
+                    long nchan = nPix(x,y,z+1);
+                    long pchan = nPix(x,y,z-1);
+                    mask[npix] = Array[npix]>thr && Array[pchan]>thr && Array[nchan]>thr;
                 }
             }
-            */
-
-            delete sm;
-            delete [] blanks;
         }
+        for (int y=0; y<axisDim[1]; y++) {
+            for (int x=0; x<axisDim[0]; x++) {
+                mask[nPix(x,y,0)]=Array[nPix(x,y,0)]>thr && Array[nPix(x,y,1)]>thr && Array[nPix(x,y,2)]>thr;
+                int l = axisDim[2]-1;
+                mask[nPix(x,y,l)]=Array[nPix(x,y,l)]>thr && Array[nPix(x,y,l-1)]>thr && Array[nPix(x,y,l-2)]>thr;
+            }
+        }
+        */
+
+        delete sm;
+        delete [] blanks;
     }
     
     ////////////////////////////////////////////////////////////////////////
@@ -722,6 +718,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             if (array[i]>thresh) mask[i] = 1;
         }
     }
+
     ////////////////////////////////////////////////////////////////////////
     // NEGATIVE MASK
     ////////////////////////////////////////////////////////////////////////
@@ -743,6 +740,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
             if (channel_noise!=NULL) channel_noise[z]=st->getSpread();
         }
     }
+
     ////////////////////////////////////////////////////////////////////////
     // MASK FROM FILE
     ////////////////////////////////////////////////////////////////////////
@@ -775,6 +773,7 @@ void Cube<T>::BlankMask (float *channel_noise, bool onlyLargest){
         delete ma;
 
     }
+    
     ////////////////////////////////////////////////////////////////////////
     // NO MASK
     ////////////////////////////////////////////////////////////////////////

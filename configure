@@ -3035,7 +3035,7 @@ if test -z "$CXX"; then
     CXX=$CCC
   else
     if test -n "$ac_tool_prefix"; then
-  for ac_prog in g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC clang++
+  for ac_prog in g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++ c++ clang++ icpc
   do
     # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
 set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -3085,7 +3085,7 @@ fi
 fi
 if test -z "$CXX"; then
   ac_ct_CXX=$CXX
-  for ac_prog in g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC clang++
+  for ac_prog in g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++ c++ clang++ icpc
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -3817,7 +3817,7 @@ if test -z "$CXX"; then
     CXX=$CCC
   else
     if test -n "$ac_tool_prefix"; then
-  for ac_prog in g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC clang++
+  for ac_prog in g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++ c++ clang++ icpc
   do
     # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
 set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -3867,7 +3867,7 @@ fi
 fi
 if test -z "$CXX"; then
   ac_ct_CXX=$CXX
-  for ac_prog in g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC clang++
+  for ac_prog in g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++ c++ clang++ icpc
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -4189,6 +4189,7 @@ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
+#AC_PROG_CC
 
 
 
@@ -7120,7 +7121,7 @@ try:
 except ImportError:
     sys.exit(1)
 
-minver = '1.15'
+minver = '1.15.0'
 
 if minver:
     try:
@@ -7178,14 +7179,14 @@ printf "%s\n" "no" >&6; }
     -------------------------------------------------------------------
     WARNING: Python module 'scipy' version is too old.
 
-             Required version: 1.15
+             Required version: 1.15.0
     -------------------------------------------------------------------
 " >&5
 printf "%s\n" "$as_me: WARNING:
     -------------------------------------------------------------------
     WARNING: Python module 'scipy' version is too old.
 
-             Required version: 1.15
+             Required version: 1.15.0
     -------------------------------------------------------------------
 " >&2;}
     PYTHON=""

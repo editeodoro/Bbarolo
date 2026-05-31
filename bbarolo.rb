@@ -4,7 +4,7 @@ class Bbarolo < Formula
 
   # Default is v1.7 stable
   stable do
-    url "https://github.com/editeodoro/Bbarolo/archive/1.7.tar.gz"
+    url "https://github.com/editeodoro/Bbarolo/archive/1.8.tar.gz"
     #sha256 "5d169ffb0e60042c74bf54c6f44ed1d7f3d9a8b871f6c6384a24078c6fe2b172"
   end
 

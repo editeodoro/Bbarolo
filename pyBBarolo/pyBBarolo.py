@@ -129,7 +129,7 @@ class Param(object):
     def __str__(self):
         s = "##### Input parameters for BBarolo #####\n"
         for k in self.opts:
-            s += f'{k.upper():18s} {self.opts[k]} \n' 
+            s += f'{k.upper():18s} {self.opts[k]} \n'
         return s
     
     def __del__(self):
@@ -244,9 +244,7 @@ class Task(object):
         # Options for the task
         self._opts = {}
         # A Param object 
-        self._par = Param(fitsfile=fitsname)
-        
-    
+        self._par = Param(fitsfile=fitsname,**kwargs)
     
     def init(self,*args,**kwargs):
         """Initialize a task. Refer to derived class for *args and **kwargs."""
@@ -322,11 +320,10 @@ class Model3D(Task):
         # The output model cube (astropy PrimaryHDU)
         self.outmodel = None
         super(Model3D,self).__init__(fitsname=fitsname,**kwargs)
-        self._opts.update ({'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
+        self._opts.update ({'outfolder' : ['./output', str, "Directory for outputs"],
+                            'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
                             'nv'    : [-1, np.int32, "Number of subclouds per profile"],
                             'linear': [0.42465, np.float32, "Spectral resolution in channels"]})
-                            
-        
 
     def smooth(self,beam=None):
         """Smooth the model and return the smoothed array 
@@ -616,8 +613,7 @@ class FitMod3D(Model3D):
                            'errors'  : [False, bool, "Whether estimating errors"],
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
-                           'restwave': [-1., np.float64, "Rest wavelength of observed line"],
-                           'outfolder' : ['./', str, "Directory for outputs" ]})
+                           'restwave': [-1., np.float64, "Rest wavelength of observed line"]})
 
         self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None, 'X-center of the galaxy in pixels'],
@@ -686,7 +682,7 @@ class FitMod3D(Model3D):
         self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.,z0,inc,phi)
 
 
-    def _compute(self,threads=1):
+    def _compute(self,threads=1,**kwargs):
         """ Fit the model.
 
         Run this function after having set initial parameters with :func:`init` and options with
@@ -704,10 +700,11 @@ class FitMod3D(Model3D):
             self._mod = libBB.Galfit_new(self.inp._cube)
         else:
             self._check_options()
-            self._par.add_params(threads=threads,kwargs=self._opts)
+            self._par.add_params(threads=threads,**kwargs)
+            self._par.add_params_opts(**self._opts)
             self._par.make_object()
             self._mod = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._par._params)
-            
+        self._par.write_parameterfile()
         
         # Calculating the model
         self.modCalculated = libBB.Galfit_galfit(self._mod)

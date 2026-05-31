@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0","wheel","astropy","matplotlib","scipy>=1.15"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyBBarolo"
+dynamic = ["version"]
+description = "A Python wrapper to BBarolo code"
+authors = [
+    { name = "Enrico Di Teodoro", email = "enrico.diteodoro@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+]
+dependencies = ["numpy","astropy","matplotlib","scipy>=1.15"]
+
+[project.urls]
+Homepage = "https://github.com/editeodoro/Bbarolo"
+
+[tool.setuptools]
+packages = ["pyBBarolo"]
+
+[tool.distutils.egg_info]
+egg_base = "."

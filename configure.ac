@@ -204,7 +204,7 @@ AC_DEFUN([_AX_PROG_CXX_MPI], [
       AC_CHECK_TOOLS([CXX], [mpic++ mpicxx mpiCC sxmpic++ hcp mpxlC_r mpxlC mpixlcxx_r mpixlcxx mpg++ mpc++ mpCC cmpic++ mpiFCC CCicpc pgCC pathCC sxc++ xlC_r xlC bgxlC_r bgxlC openCC sunCC crayCC g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC])
     fi
   fi
-  AC_PROG_CXX
+  AC_PROG_CXX([g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++ c++ clang++ icpc])
 ])dnl _AX_PROG_CXX_MPI
 ###########################################################################
 
@@ -261,8 +261,8 @@ AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],
 # Setting CFLAGS and CXXFLAGS to user-defined variable for C++11
 CFLAGS="$CFLAGS"
 
-AC_PROG_CXX
-AC_PROG_CC
+AC_PROG_CXX([g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++ c++ clang++ icpc])
+#AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_LN_S
 AC_CHECK_PROGS(INSTALL, install)

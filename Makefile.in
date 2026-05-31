@@ -12,7 +12,7 @@ FLAGS = -O2 -ftree-vectorize -fPIC -Wuninitialized -std=c++17 @OPENMP_CXXFLAGS@ 
 #FLAGS = -fast -Wall @OPENMP_CXXFLAGS@ @CFLAGS@
 #WCSFLAGS = `pkg-config --cflags --libs wcslib`
 
-CC  = @CC@ $(CFLAGS) $(FLAGS)
+#CC  = @CC@ $(CFLAGS) $(FLAGS)
 CXX = @CXX@ $(CFLAGS) $(FLAGS)
 LINK= @CXX@ $(CFLAGS) $(FLAGS) -flto
 INSTALL = @INSTALL@
@@ -230,18 +230,15 @@ pybb : lib
 	mv $(LIBSO) $(PYBBDIR)
 	mv $(LIBSO_LN) $(PYBBDIR)
 
-pybbdist : pybb
-#	python setup.py sdist upload
-#	python setup.py sdist
+pybbdist :
 	python -m build --sdist
 	twine upload --repository-url  https://upload.pypi.org/legacy/  dist/*
-	rm -rf build dist MANIFEST
+	make cleanpybb
 
-pybbinst : pybb
-#	python setup.py install
+pybbinst :
 	pip install .
-	rm -rf build dist MANIFEST
-	rm -rf pyBBarolo/BBarolo pyBBarolo/libBB*
+	make cleanpybb
+	
 
 
 #######################################################################
@@ -259,3 +256,7 @@ cleanup :
 
 cleangui :
 	cd $(BASE)/GUI && make clean
+
+cleanpybb :
+	rm -rf build dist MANIFEST pyBBarolo.egg*
+	rm -rf pyBBarolo/BBarolo pyBBarolo/libBB*
