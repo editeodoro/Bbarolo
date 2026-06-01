@@ -704,7 +704,6 @@ class FitMod3D(Model3D):
             self._par.add_params_opts(**self._opts)
             self._par.make_object()
             self._mod = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._par._params)
-        self._par.write_parameterfile()
         
         # Calculating the model
         self.modCalculated = libBB.Galfit_galfit(self._mod)
