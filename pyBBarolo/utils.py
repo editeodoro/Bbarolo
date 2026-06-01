@@ -23,6 +23,8 @@ import numpy as np
 from astropy.io import fits
 from .wrapper import BBaroloWrapper, BBexe
 from .pyBBarolo import isIterable, isNumber
+from scipy.ndimage import map_coordinates 
+from scipy.interpolate import make_splprep 
 
 
 def emptyfits(axisDim,cdelts,crpixs=None,crvals=None,ctypes=None,cunits=None,\
@@ -94,6 +96,167 @@ def emptyfits(axisDim,cdelts,crpixs=None,crvals=None,ctypes=None,cunits=None,\
     return fits.PrimaryHDU(data=d.astype(dtype),header=h)
     
 
+def build_path(x0, y0, rad_pix, pa_deg, nx, ny, oversampling=1):
+    
+    """ Build a path along the galaxy disk, given the ring parameters. 
+         The path is built by fitting a spline to the ring points and then 
+         extending it linearly at both ends. Finally, the path is interpolated
+         to have a uniform sampling.
+         
+         Args:
+            x0 (float):        X center of the galaxy (pixel)
+            y0 (float):        Y center of the galaxy (pixel)
+            rad_pix (list):    Ring radii in pixels
+            pa_deg (list):     Ring position angles in degrees
+            nx (int):          Number of pixels in X direction
+            ny (int):          Number of pixels in Y direction
+            oversampling (int): Oversampling factor for the final path
+    
+         Returns:
+            sp (np.array):     Distances along the path from the center (arcsec)
+            xp (np.array):     X coordinates of the path points (pixel)
+            yp (np.array):     Y coordinates of the path points (pixel)
+    """
+
+    # 1. Ring points 
+    pa_to_xy = lambda r, pa: (x0-r*np.sin(pa), y0+r*np.cos(pa))
+  
+    xy_pos = [pa_to_xy(r, np.radians(pa)) for r, pa in zip(rad_pix, pa_deg)]
+    xy_neg = [pa_to_xy(-r, np.radians(pa)) for r, pa in zip(rad_pix[::-1], pa_deg[::-1])]
+    xy_ring = np.concatenate([xy_neg,[[x0,y0]],xy_pos])
+  
+    # 2. Spline fit
+    spl, u = make_splprep(xy_ring.T, s=0)
+    u_inner = np.linspace(0, 1, xy_ring.shape[0]*3)
+    x_s, y_s = spl(u_inner)
+    
+    # 3. Tangents at ends
+    t0 = spl(0.0, nu=1)
+    t1 = spl(1.0, nu=1)
+    t0 /= np.hypot(*t0)
+    t1 /= np.hypot(*t1)
+
+    # 4. Extend linearly
+    n_ext = int(np.maximum(nx,ny)/2)
+    s_ext = np.linspace(1, n_ext + 1, n_ext*oversampling)
+    xf = x_s[-1] + s_ext * t1[0]
+    yf = y_s[-1] + s_ext * t1[1]
+    xb = x_s[0] - s_ext * t0[0]
+    yb = y_s[0] - s_ext * t0[1]
+
+    # 5. Combine full slit and select points within field
+    x = np.concatenate([xb[::-1], x_s, xf])
+    y = np.concatenate([yb[::-1], y_s, yf])
+    mask = (x >= 0) & (x <= nx - 1) & (y >= 0) & (y <= ny - 1)
+    x, y = x[mask], y[mask]
+    
+    # 6. Calculating distances along the path
+    icenter = np.argmin((x - x0)**2 + (y - y0)**2)
+    ds = np.hypot(np.diff(x), np.diff(y))
+    s = np.concatenate([[0.0], np.cumsum(ds)])
+    
+    # 7. Sorting and interpolating across a uniform grid
+    idx = np.argsort(s)
+    x, y, s = x[idx], y[idx], s[idx]
+    s -= s[icenter]
+    sp = np.arange(s.min(),s.max(),1/oversampling)
+    xp = np.interp(sp,s,x)
+    yp = np.interp(sp,s,y)
+    
+    return sp,xp,yp
+
+
+def extract_pv_path(array, x, y, order=0, z_oversampling=1, width=1):
+
+    """ Extract a PV slice from a datacube along a given path.
+        The path is defined by the x and y coordinates of the points along it.
+        The function uses scipy's map_coordinates to perform the interpolation.
+        If width>0, the function will extract multiple slices across the width of the slit
+        and average them to get the final PV slice (antialiasing).
+
+        Args:
+          array (np.array): 3D datacube (z,y,x)
+          x (np.array):     X coordinates of the path points (pixel)
+          y (np.array):     Y coordinates of the path points (pixel)
+          order (int):      Interpolation order (0=nearest, 1=linear)
+          z_oversampling (int): Oversampling factor for the z-axis
+          width (int):      Width of the slit in pixels
+        
+        Returns:
+          pv_slice (np.array): 2D array with the extracted PV slice (z,x)
+    """
+
+    zsize, ysize, xsize = array.shape[:3] 
+
+    zs = np.outer(np.arange(0, zsize, 1.0/z_oversampling), np.ones(len(x)))
+    z_len = zs.shape[0]
+  
+    # Number of sub-samples across the width
+    if width>0:
+        
+        nwidth = 2*width + 1
+        dx = np.gradient(x)
+        dy = np.gradient(y)
+        norm = np.hypot(dx, dy)
+        nx = dy / norm
+        ny = -dx / norm
+        
+        # Sample positions across the slit width
+        offsets = np.linspace(-width/2.0, width/2.0, nwidth)
+
+        # Accumulate samples
+        samples = []
+        for off in offsets:
+            xs = x + off * nx
+            ys = y + off * ny
+            xs_grid = np.outer(np.ones(z_len), xs)
+            ys_grid = np.outer(np.ones(z_len), ys)
+
+            if np.any(np.isnan(array)):
+                vals = map_coordinates(np.nan_to_num(array),[zs, ys_grid, xs_grid],
+                                       order=int(order),cval=np.nan)
+                bad = map_coordinates(np.isnan(array).astype(float),[zs, ys_grid, xs_grid],
+                                      order=0,cval=1.0) > 0
+                vals[bad] = np.nan
+            else:
+                vals = map_coordinates(array,[zs, ys_grid, xs_grid],order=int(order),cval=np.nan)
+
+            samples.append(vals)
+
+        pv_slice = np.nanmean(np.stack(samples, axis=0), axis=0)
+    
+    else:
+        if order == 0:
+            pv_slice = np.full((z_len, len(x)), np.nan)
+            xs, ys = np.around([x, y]).astype(int)
+            z_idx = np.rint(zs[:, 0]).astype(int)
+            ok = (xs >= 0) & (ys >= 0) & (xs < xsize) & (ys < ysize)
+            pv_slice[:, ok] = array[z_idx[:, None], ys[ok], xs[ok]]
+
+        else:
+            xs_grid = np.outer(np.ones(z_len), x)
+            ys_grid = np.outer(np.ones(z_len), y)
+            
+            if np.any(np.isnan(array)):
+                pv_slice = map_coordinates(np.nan_to_num(array),[zs,ys_grid,xs_grid],order=int(order),cval=np.nan)
+                bad = map_coordinates(np.isnan(array).astype(float),[zs, ys_grid, xs_grid],order=0, cval=1.0) > 0
+                pv_slice[bad] = np.nan
+            else:
+                pv_slice = map_coordinates(array,[zs, ys_grid, xs_grid],order=int(order),cval=np.nan)
+
+    return pv_slice
+
+
+
+def extract_pv(cube, x0, y0, rad_pix, pa_deg, pa_width=1, oversampling=1):
+
+    """ Extract a PV slice from a datacube along a path defined by the ring parameters.
+        This function is a wrapper around build_path() and extract_pv_path(). 
+    """
+    sp, xp, yp = build_path(x0, y0, rad_pix, pa_deg, cube.shape[2], cube.shape[1], oversampling)
+    pv = extract_pv_path(cube, xp, yp, width=pa_width)
+    return sp, xp, yp, pv
+
 
 class SimulatedGalaxyCube(object):
     """ 
@@ -109,7 +272,7 @@ class SimulatedGalaxyCube(object):
       Radii of the galaxy model
     
     dens: (list, np.array)
-      Surface-density profile of the galaxy
+      Surface-density (or flux) profile of the galaxy
     
     inc: (list, np.array)
       Inclination angles of the galaxy
@@ -151,23 +314,34 @@ class SimulatedGalaxyCube(object):
       Run GALMOD and build the emission-line datacue model.
     
     """
-    def __init__(self,axisDim=None,cdelts=None,**kwargs):
+    def __init__(self,fitscube=None,axisDim=None,cdelts=None,**kwargs):
         """ Initialize a SimulatedGalaxyCube instance.
             Here we define the template cube that will be used to create
             the galaxy model.
             If no inputs are given, a default template cube will be used.
             
         Args:
+          fitscube (str or astropy.fits): template cube. If None, a default cube will 
+                                          be created from axisDim and cdelts.
           axisDim (list):   axis dimensions of the template cube
           cdelts (list):    pixel dimensions of the template cube
           kwargs (dict):    Additional parameters to be passed to emptyfits()
 
         """
-        # A default cube size if not given
-        if not axisDim: axisDim = [256,256,64]
-        if not cdelts: cdelts = [-20./3600.,20./3600.,10]
+        if fitscube is not None:
+            if isinstance(fitscube, str):
+                self.f = fits.open(fitscube)[0]
+            elif isinstance(fitscube, fits.PrimaryHDU):
+                self.f = fitscube
+            else:
+                raise ValueError("fitscube must be a string or an astropy.io.fits.PrimaryHDU")
+        else:
+            # A default cube size if not given
+            if not axisDim: axisDim = [256,256,64]
+            if not cdelts: cdelts = [-20./3600.,20./3600.,10]
+            self.f     = emptyfits(axisDim,cdelts,**kwargs)
         
-        self.f     = emptyfits(axisDim,cdelts,**kwargs)
+        # Ring parameters
         self.radii = None
         self.dens  = None
         self.inc   = None
@@ -196,8 +370,8 @@ class SimulatedGalaxyCube(object):
             will be completely random. 
             
         Args:
-          radmin (float):      Minimum radius of the galaxy (arcsec)
-          radmax (float):      Maximum radius of the galaxy (arcsec)
+          radmin (float):      Minimum radius of the galaxy (arcsec).
+          radmax (float):      Maximum radius of the galaxy (arcsec).
           radii (list):        List of radii (arcsec). If None, assume cubesize/3.
           dens (float,list):   Surface density (1E20 cm-2). If None, assume a profile.
           ishole (bool):       Whether to have a central hole in dens. If None, randomly decide.
@@ -313,7 +487,7 @@ class SimulatedGalaxyCube(object):
             # Creating a warp in inclination if requested
             if warpinc is None: warpinc = np.random.choice([True, False])
             if warpinc:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.inc[0]
                 stop  = np.random.uniform(start-maxiwarp,start+maxiwarp)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -336,7 +510,7 @@ class SimulatedGalaxyCube(object):
             # Creating a warp in position angle if requested
             if warppa is None: warppa = np.random.choice([True, False])
             if warppa:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.pa[0]
                 stop  = np.random.uniform(start-maxpawarp,start+maxpawarp)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -359,7 +533,7 @@ class SimulatedGalaxyCube(object):
             # Creating a flare if requested
             if flare is None: flare = np.random.choice([True, False])
             if flare:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.z0[0]
                 stop  = np.random.uniform(start,start+start)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -383,6 +557,8 @@ class SimulatedGalaxyCube(object):
                 vflat = np.random.uniform(100,350)
                 rs = np.random.uniform(pixsize,radmax/10)
             self.vrot  = 2./np.pi*vflat*np.arctan(radii/rs)
+            self.rs = rs
+            self.vflat = vflat 
             
             
         # Defining velocity dispersion 
@@ -412,7 +588,7 @@ class SimulatedGalaxyCube(object):
             
             if radmotion is None: radmotion = np.random.choice([True, False])
             if radmotion:
-                rstart  = np.random.randint(0,len(radii))
+                rstart  = np.random.randint(0,len(radii)-1)
                 start = self.vrad[0]
                 stop  = np.random.uniform(start-maxvrad,start+maxvrad)
                 mline = (stop-start)/(radmax-radii[rstart])
@@ -429,8 +605,8 @@ class SimulatedGalaxyCube(object):
         if self.radii is not None:
             np.savetxt(fileout,np.transpose([self.radii,self.vrot,self.vrad,self.disp,self.inc,
             self.pa,self.z0,self.dens,self.xpos,self.ypos,self.vsys]),
-            header="RADII         VROT    VRAD   VDISP      INC       PA      Z0    DENS    XPOS    YPOS    VSYS",
-            fmt='%-12.5f %7.1f %7.1f %7.1f %8.2f %8.2f %7.1f %7.2f %7.1f %7.1f %7.1f')
+            header="RADII         VROT    VRAD   VDISP      INC       PA      Z0      DENS    XPOS    YPOS    VSYS",
+            fmt='%-12.5f %7.1f %7.1f %7.1f %8.2f %8.2f %7.2f %9.2e %7.1f %7.1f %7.1f')
         
         
         
@@ -450,7 +626,7 @@ class SimulatedGalaxyCube(object):
         
         # If noise is not given, put a random noise
         noiserms = 0.
-        if noise==True:
+        if not isinstance(noise,(float,int)) and noise==True:
             noiserms = np.random.uniform(0,0.05)
         elif isNumber(noise): noiserms = noise
             
@@ -482,6 +658,7 @@ class SimulatedGalaxyCube(object):
                     vsys=f'file({p},11)',
                     norm=None,
                     mask=None,
+                    empty=False,
                     linear=0,
                     cdens=10,
                     noiserms=noiserms,
@@ -495,5 +672,5 @@ class SimulatedGalaxyCube(object):
         bb.run(exe=exe,stdout=stdout)
         
         # Copy galaxy parameter file to outfolder
-        #bb.write_parameterfile(f'{outfolder}/BBparams.par')
+        bb.write_parameterfile(f'{outfolder}/BBparams.par')
         os.system(f'cp {p} {outfolder}/{obj}_params.txt')

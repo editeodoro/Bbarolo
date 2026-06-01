@@ -22,6 +22,11 @@ Additional GALMOD-specific parameters are:
 
 * **SM** [true]. Whether to smooth the model to the same spatial resolution of data.
 
+* **EMPTY** [true]. If false, the inner part of the galaxy within the minimum radius will be filled with emission.
+
+* **DENSFLUX** [true]. If true, the input *DENS* is interpreted as a face-on integrated flux in units FLUX_UNIT*KM/S / ARCS^2, where FLUX_UNIT are the units of the input cube. If false, DENS is in *1E20 atoms/cm2*.
+
+
 Outputs
 ========
 

@@ -25,14 +25,14 @@ The python package can be alternatively installed from the main repository. You'
     > wget https://github.com/editeodoro/Bbarolo/archive/X.Y.tar.gz 
     > tar -xvf X.Y.tar.gz && cd Bbarolo-X.Y
     > ./configure
-    > make
+    > make lib
 
   where *X.Y* is the software release. PyBBarolo is only available for BBarolo's release 1.4 and over.
 
 
 2. Install the python package::
 
-    > python setup.py install
+    > make pybbinst
     
     
 If either compilation or installation fail, refer to BBarolo :ref:`compiling <compiling>` and :ref:`troubleshooting <troubleshooting>` pages. 

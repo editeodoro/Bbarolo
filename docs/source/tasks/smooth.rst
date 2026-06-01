@@ -59,9 +59,9 @@ Parameters
 ==========
 * **SMOOTHSPEC** [false]. This flag enables the spectral smoothing algorithm. Can be *true* or *false*.
 
-* **WINDOW_TYPE** [HANNING]. Type of the smoothing window. Implemented windows include *HANNING*, *BOXCAR*, *BARTLETT*, *WELCH*, *BLACKMAN*, *FLATTOP*. 
+* **WINDOW_TYPE** [HANNING]. Type of the smoothing window. Implemented windows include *HANNING*, *BOXCAR*, *BARTLETT*, *WELCH*, *BLACKMAN*, *FLATTOP* and *GAUSSIAN*. 
 
-* **WINDOW_SIZE** [3]. Size of the smoothing window in channels. 
+* **WINDOW_SIZE** [3]. Size of the smoothing window in channels. For all kernels but *GAUSSIAN*, it must be an odd number. For the *GAUSSIAN*, it represents the FWHM in channels.
 
 * **REDUCE** [false]. Whether to do channel resampling. If *true*, output data will be averaged over (WINDOW_SIZE+1)/2 channels.
 

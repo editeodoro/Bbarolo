@@ -7,12 +7,7 @@ Installing BBarolo
 Pre-compiled binaries
 =====================
 
-Pre-compiled executable files for the GUI and the command line utility are available `at this page <http://editeodoro.github.io/Bbarolo/downloads/binaries/>`_. Binaries are for Linux x86_64 and Mac OS X (> 10.6). 
-
-The command line executable (``BBarolo``) is also included in the GUI binary packages and can be found at:
-
-* **Linux**: same directory of BBaroloGUI
-* **MacOS**: BBaroloGUI.app/Contents/MacOS/BBarolo
+Pre-compiled executable files for the GUI and the command line utility are available `at this page <http://editeodoro.github.io/Bbarolo/downloads/binaries/>`_. Binaries are for Linux x86_64 and Mac OS (> 12.0). 
 
 The pre-compiled executables should work on most systems. If they don't, please compile BBarolo from source following the instructions below.
 
@@ -31,12 +26,12 @@ Requirements
 
 To compile the code, all you need is:
 
-- a C++ compiler supporting C++11 standard, like the `GNU <https://gcc.gnu.org/>`_ compiler. OpenMP support is required for multi-threading.
+- a C++ compiler supporting C++17 standard, like the `GNU <https://gcc.gnu.org/>`_ compiler. OpenMP support is required for multi-threading. We note that default Apple Clang compiler on Mac OS systems does not support OpenMP, so we recommend installing another compiler with OpenMP support. 
 - `CFITSIO <http://heasarc.gsfc.nasa.gov/fitsio/>`_ library.
 - `FFTW <http://www.fftw.org/>`_ library.
 - `WCS <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ library.
-- `QT toolkit <http://www.qt.io/developers/>`_ (> 4.0), only if you would like to use the GUI.
-- `Gnuplot <http://www.gnuplot.info/>`_ and `Python <https://www.python.org/>`_ (> 2.6) with the `Astropy <http://www.astropy.org/>`_ package. 
+- `QT toolkit <http://www.qt.io/developers/>`_ (> 5.0), only if you would like to use the GUI (currently discontinued).
+- `Gnuplot <http://www.gnuplot.info/>`_ and `Python <https://www.python.org/>`_ (> 3.8) with the `Astropy <http://www.astropy.org/>`_, `Matplotlib <https://matplotlib.org/.org/>`_ and `Scipy <https://scipy.org/>`_ (>1.15) packages. 
 
 Most of these libraries and packages should already be installed on scientific machines. Otherwise, you can easily install them through the terminal commands of the various package managers, i.e. *apt-get* on Ubuntu-based, *pacman* on Arch-based, *yum* on RPM-based distros, *brew* or *port* on Mac OS X. Note that the QT toolkit is only needed to compile the GUI, which is optional. Gnuplot and Python are not needed to successfully compile the code, but without them BBarolo will not produce any outputs. 
 
@@ -47,7 +42,7 @@ Compiling
 
 If your machine satisfies the above requirements, compiling BBarolo will hopefully be a piece of cake. 
 
-1. **Download** the `latest <https://github.com/editeodoro/Bbarolo/archive/1.7.tar.gz>`_ stable release. From a terminal::
+1. **Download** the `latest <https://github.com/editeodoro/Bbarolo/archive/1.8.tar.gz>`_ stable release. From a terminal::
 
     > wget https://github.com/editeodoro/Bbarolo/archive/X.Y.tar.gz
 

@@ -1,1 +1,2 @@
-__version__ = version = '1.3.0'
+__version__ = version = '1.8.0'
+__BBBversion__ = BBBversion = '0.2'

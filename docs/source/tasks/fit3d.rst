@@ -46,7 +46,7 @@ If any of the following parameters is not explicitly specified, BBarolo will est
 
 * **Z0** [0]. Scale-height of the disc in *arcsec*. 
 
-* **DENS** [1]. Gas surface density in units of *1E20 atoms/cm2*. Fit of this parameter is not currently implemented and its value is not relevant if a normalization is used. 
+* **DENS** [1]. Gas surface density in units of *1E20 atoms/cm2*. Fit of this parameter is not currently implemented and its value is not relevant if a normalization is used. If *DENSFLUX* is true, the DENS parameter is interpreted as an integrated flux divided by area in arcsec2.
 
 .. _3dfitopt:
 
@@ -65,13 +65,17 @@ Some important parameters that can be used to control 3DFIT. All following param
   
   * *SMOOTH&SEARCH*: first smooth to a lower resolution and then scan the smoothed data for sources. Parameters for smoothing and source-finding are the same as the :ref:`SMOOTH <smoothtask>` and :ref:`SEARCH <searchtask>` tasks.
   
+  * *SMOOTHSPEC&SEARCH*: first smooth spectrally then scan the smoothed data for sources. Parameters for smoothing and source-finding are the same as the :ref:`SMOOTHSPEC <spectralsmoothtask>` and :ref:`SEARCH <searchtask>` tasks.
+  
   * *THRESHOLD*: blank all pixels with flux < THRESHOLD. A **THRESHOLD** parameter must be specified in the same flux units of the input datacube. 
   
   * *NONE*: all regions with flux > 0 are used. 
   
   * *file(fitsname.fits)*: A mask FITS file (i.e. filled with 0s and 1s).
   
-* **NORM** [AZIM]. Type of normalization of the model. Accepted values are: *LOCAL* (pixel by pixel), *AZIM* (azimuthal) or *NONE*.
+  *_ENLARGE* + a number *N* can be appended to the above string to enlarge the mask by *N* pixels. For example SEARCH_ENLARGE5 will use the *SEARCH* algorithm and then grow the mask by 5 pixels at the edges.
+  
+* **NORM** [AZIM]. Type of normalization of the model. Accepted values are: *LOCAL* (pixel by pixel), *AZIM* (azimuthal) or *NONE*. Up to three values can be given, representing the normalizations to use for the first and fitting second steps and for the writing of the final model.
 
 * **TWOSTAGE** [true]. This flag enables the second fitting stage after parameter regularisation. This is relevant just if the user wishes to fit parameters other than VROT, VDISP and VRAD. The inclination and the position angle are regularised by polynomials of degree POLYN or a Bezier function (default), while the other parameters by constant functions.
 

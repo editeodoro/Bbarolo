@@ -22,8 +22,11 @@ the underlying BBarolo C++ code, with some extra functionality.
 from __future__ import print_function, division
 import os,sys
 import numpy as np
-#from .BB_interface import libBB
+from .BB_interface import libBB
 from astropy.io import fits
+
+# A function to print only if verbose is True
+vprint = lambda verbose, *args, **kwargs: print(*args,**kwargs) if verbose else None
 
 
 def reshapePointer (p, shape):
@@ -39,7 +42,7 @@ def reshapePointer (p, shape):
     """
     return np.ctypeslib.as_array(p, shape=tuple(shape))
 
-
+    
 def isIterable (p):
     """Check if p is an iteratable (list,tuple or numpy array). """
     return isinstance(p,(list,tuple,np.ndarray))
@@ -51,7 +54,7 @@ def isNumber (p):
 
 
 class FitsCube(object):
-    def __init__(self,fitsname):
+    def __init__(self,fitsname,astropy_pointer=True):
         # File name of the FITS file to read
         self.fname = fitsname
         # Pointer to the C++ Cube object
@@ -66,7 +69,8 @@ class FitsCube(object):
         # Beam information
         self.beam  = libBB.Cube_getBeam(self._cube)
         # Also having a pointer to an Astropy object
-        self.fapy  = fits.open(fitsname)[0]
+        if astropy_pointer:
+            self.fapy  = fits.open(fitsname)[0]
         
         
     def __del__(self):
@@ -86,53 +90,140 @@ class FitsCube(object):
 
 
 
+class Param(object):
+    """Wrapper class for C++ Param class (param.hh)"""
+    
+    def __init__(self,**kwargs):
+        # A dictionary with parameter names and values
+        self.opts = {}
+        # Pointer to the C++ Param object
+        self._params = libBB.Param_new();
+        self.paramDefined = False
+        if kwargs:
+            self.add_params(**kwargs)
+        
+    def add_params(self,**kwargs):
+        """ Add new parameter to the parameter list """
+        if kwargs: self.opts.update(kwargs)
+
+    def add_params_opts(self,**kwargs):
+        """ Add new parameter to the parameter list from _opts variable"""
+        for key, value in kwargs.items():
+            self.opts.update({key : value[0]})
+    
+    def remove_param(self,toremove):
+        """ Remove an option from the parameter list """
+        self.opts.pop(toremove, None)
+        
+    def write_parameterfile(self,fileout='param.par'):
+        """ Write a BBarolo's parameter file in fileout """
+        with open(fileout,'w') as f:
+            f.write(self.__str__())
+
+    def make_object(self):
+        s = self.__str__()
+        if self.paramDefined: libBB.Param_delete(self._params)
+        libBB.Param_setfromstr(self._params,s.encode('utf-8'))
+        self.paramDefined = True
+
+    def __str__(self):
+        s = "##### Input parameters for BBarolo #####\n"
+        for k in self.opts:
+            s += f'{k.upper():18s} {self.opts[k]} \n'
+        return s
+    
+    def __del__(self):
+        if self.paramDefined: libBB.Param_delete(self._params)
+
+
+
 class Rings(object):
     """Wrapper class for C++ Rings structure (rings.hh)"""
     
     def __init__(self,nrings):
         # Number of rings
+        if not isNumber(nrings): raise ValueError("nrings must be a number!")
         self.nr     = nrings
+        # A dictionary that stores the rings values
+        self.r = dict(radii=None,xpos=None,ypos=None,vsys=None,vrot=None,vdisp=None,vrad=None,\
+                      vvert=None,dvdz=None,zcyl=None,dens=None,z0=None,inc=None,phi=None)
         # Pointer to the C++ Rings object
-        self._rings = libBB.Rings_new();
-        self.rinDef = False
-    
-    def set_rings (self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
+        self._rings = None
+
+
+    def set_rings_from_dict(self,Rings):
+        """ Define rings given an input Ring dictionary (same as self.r) 
+            
+            Rings: dict
+        """
+        if not isinstance(Rings,dict):
+            raise ValueError("Rings must be a dictionary")
+        
+        self.set_rings(Rings['radii'],Rings['xpos'],Rings['ypos'],Rings['vsys'],Rings['vrot'],\
+                       Rings['vdisp'],Rings['vrad'],Rings['vvert'],Rings['dvdz'],Rings['zcyl'],\
+                       Rings['dens'],Rings['z0'],Rings['inc'],Rings['phi'])
+        
+
+    def set_rings(self,radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi):
         """ Define rings given the input parameters 
             
-           \param radii: List or array
-           \param other: float or array
+            radii: List or array
+            other: float or array
         """
         
-        fl = np.float32
-        
-        if not isNumber(self.nr): raise ValueError("nrings must be a number")
-            
-        if isIterable(radii): radii = np.array(radii,dtype=fl)
+        if isIterable(radii): self.modify_parameter('radii',radii)
         else: raise ValueError("radii must be an array")
         
-        xpos  = np.array(xpos,dtype=fl)  if isIterable(xpos)  else np.full(self.nr,xpos,dtype=fl)
-        ypos  = np.array(ypos,dtype=fl)  if isIterable(ypos)  else np.full(self.nr,ypos,dtype=fl)
-        vsys  = np.array(vsys,dtype=fl)  if isIterable(vsys)  else np.full(self.nr,vsys,dtype=fl)
-        vrot  = np.array(vrot,dtype=fl)  if isIterable(vrot)  else np.full(self.nr,vrot,dtype=fl)
-        vdisp = np.array(vdisp,dtype=fl) if isIterable(vdisp) else np.full(self.nr,vdisp,dtype=fl)
-        vrad  = np.array(vrad,dtype=fl)  if isIterable(vrad)  else np.full(self.nr,vrad,dtype=fl)
-        vvert = np.array(vvert,dtype=fl) if isIterable(vvert) else np.full(self.nr,vvert,dtype=fl)
-        dvdz  = np.array(dvdz,dtype=fl)  if isIterable(dvdz)  else np.full(self.nr,dvdz,dtype=fl)
-        zcyl  = np.array(zcyl,dtype=fl)  if isIterable(zcyl)  else np.full(self.nr,zcyl,dtype=fl)
-        dens  = np.array(dens,dtype=fl)  if isIterable(dens)  else np.full(self.nr,dens,dtype=fl)
-        z0    = np.array(z0,dtype=fl)    if isIterable(z0)    else np.full(self.nr,z0,dtype=fl)
-        inc   = np.array(inc,dtype=fl)   if isIterable(inc)   else np.full(self.nr,inc,dtype=fl)
-        phi   = np.array(phi,dtype=fl)   if isIterable(phi)   else np.full(self.nr,phi,dtype=fl)
-        
-        allr = (radii,xpos,ypos,vsys,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
-        
-        for i in allr:
-            if len(i)!=self.nr: raise ValueError("All quantities must have size = %i"%self.nr)
+        self.modify_parameter('xpos',xpos)
+        self.modify_parameter('ypos',ypos)
+        self.modify_parameter('vsys',vsys)
+        self.modify_parameter('vrot',vrot)
+        self.modify_parameter('vdisp',vdisp)
+        self.modify_parameter('vrad',vrad)
+        self.modify_parameter('vvert',vvert)
+        self.modify_parameter('dvdz',dvdz)
+        self.modify_parameter('zcyl',zcyl)
+        self.modify_parameter('dens',dens)
+        self.modify_parameter('z0',z0)
+        self.modify_parameter('inc',inc)
+        self.modify_parameter('phi',phi)
 
-        libBB.Rings_set(self._rings,self.nr,radii,xpos,ypos,vsys,vrot,\
-                        vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
-        
-        self.rinDef = True
+        self.make_object()
+
+    def modify_parameter(self,pname,pvalue,makeobj=False):
+        """ Modifies one of the ring parameters (e.g., vrot, vdisp, etc.)
+            
+           pname (str): Name of the parameter
+           other: float or array
+        """
+        if pname not in self.r:
+            raise ValueError("ERROR: Unknown ring parameter %s"%pname)
+        self.r[pname] = np.array(pvalue,dtype=np.float32) if isIterable(pvalue) \
+                                                          else np.full(self.nr,pvalue,dtype=np.float32)
+        if len(self.r[pname])!=self.nr: raise ValueError("All parameters must have size = %i"%self.nr)
+        if makeobj: self.make_object()
+
+    def make_object(self):
+        """ Creates and stores the C++ Rings object """
+        self.__del__()
+        self._rings = libBB.Rings_new();
+        libBB.Rings_set(self._rings,self.nr,self.r['radii'],self.r['xpos'],self.r['ypos'],self.r['vsys'],\
+                        self.r['vrot'],self.r['vdisp'],self.r['vrad'],self.r['vvert'],self.r['dvdz'],\
+                        self.r['zcyl'],self.r['dens'],self.r['z0'],self.r['inc'],self.r['phi'])
+    
+    def __del__(self):
+        if self._rings is not None: 
+            libBB.Rings_delete(self._rings)
+            self._rings = None
+    
+    def __str__(self):
+        s = "##### Rings parameters for BBarolo #####\n"
+        for k in self.r:
+            if np.all(self.r[k] == self.r[k][0]):
+                s += f'{k.upper():6s} = {self.r[k][0]:.3f} \n' 
+            else:
+                s += f'{k.upper():6s} = {self.r[k]} \n' 
+        return s
 
 
 
@@ -143,17 +234,17 @@ class Task(object):
       fitsname (str): Input FITS file
     
     """
-    def __init__(self,fitsname):
+    def __init__(self,fitsname,**kwargs):
         # Task name
         self.taskname = None
         # Input datacube 
-        self.inp = FitsCube(fitsname)
+        self.inp = FitsCube(fitsname,**kwargs)
         # Mandatory arguments of the task
         self._args = {}
         # Options for the task
         self._opts = {}
-        
-    
+        # A Param object 
+        self._par = Param(fitsfile=fitsname,**kwargs)
     
     def init(self,*args,**kwargs):
         """Initialize a task. Refer to derived class for *args and **kwargs."""
@@ -191,7 +282,6 @@ class Task(object):
                 raise ValueError('Argument %s unknown. Try show_arguments() for a list of keywords'%key)
         
     
-    
     def show_arguments(self):
         """ Show needed arguments for the task """
         print ("\nArguments for %s task: %s "%(self.taskname,"-"*(49-len(self.taskname))))
@@ -203,14 +293,14 @@ class Task(object):
         print ("%s\n"%("-"*70))
 
 
-    def compute(self,threads=1):
+    def compute(self,threads=1,**kwargs):
         """ Compute the model 
         
         This function needs to be called after :func:`init`.
         """
         if not isinstance(threads,int):
             raise ValueError("%s ERROR: threads must and integer."%self.taskname)
-        return self._compute(threads)
+        return self._compute(threads,**kwargs)
 
 
 
@@ -221,7 +311,7 @@ class Model3D(Task):
       fitsname (str): FITS file of the galaxy to model
     
     """
-    def __init__(self,fitsname):
+    def __init__(self,fitsname,**kwargs):
         # A pointer to the C++ model
         self._mod = None
         self._modCalculated = False
@@ -229,10 +319,11 @@ class Model3D(Task):
         self._inri = None
         # The output model cube (astropy PrimaryHDU)
         self.outmodel = None
-        super(Model3D,self).__init__(fitsname=fitsname)
-        self._opts.update ({'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
-                            'nv'    : [-1, np.int32, "Number of subclouds per profile"]})
-        
+        super(Model3D,self).__init__(fitsname=fitsname,**kwargs)
+        self._opts.update ({'outfolder' : ['./output', str, "Directory for outputs"],
+                            'cdens' : [10, np.int32, "Surface density of clouds in a ring (1E20)"],
+                            'nv'    : [-1, np.int32, "Number of subclouds per profile"],
+                            'linear': [0.42465, np.float32, "Spectral resolution in channels"]})
 
     def smooth(self,beam=None):
         """Smooth the model and return the smoothed array 
@@ -257,7 +348,7 @@ class Model3D(Task):
                                     Please pass beam=(bmaj,bmin,bpa) paramater to smooth()")
         else:
             if isIterable(beam) and len(beam)==3:
-                set_beam(bmaj=beam[0],bmin=beam[1],bpa=beam[2])
+                self.set_beam(bmaj=beam[0],bmin=beam[1],bpa=beam[2])
             else: 
                 raise ValueError("%s ERROR: beam is a list of [bmaj,bmin,bpa]."%self.taskname)            
         return self._smooth()
@@ -286,9 +377,13 @@ class GalMod(Model3D):
     def __init__(self,fitsname):
         super(GalMod,self).__init__(fitsname=fitsname)
         self.taskname = "GALMOD"
-        self._opts.update({'ltype' : [2, np.int32, "Layer type along z"],
+        self._opts.update({'ltype' : [1, np.int32, "Layer type along z"],
                            'cmode' : [1, np.int32, "Mode of clouds-surface density"],
-                           'iseed' : [-1, np.int32, "Seed for random number generator"]})
+                           'iseed' : [-1, np.int32, "Seed for random number generator"],
+                           'empty' : [True, bool, "If False, inner region is filled with emission"],
+                           'densflux' : [True, bool, "If True, dens is interpreted as flux/arcs2"],
+                       })
+                           
         self._args = {'radii': [None,'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None,'X-center of the galaxy in pixels'],
                       'ypos' : [None,'Y center of the galaxy in pixels'],
@@ -331,10 +426,10 @@ class GalMod(Model3D):
         
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens*1E20,z0,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,vvert,dvdz,zcyl,dens,z0,inc,phi)
     
         
-    def _compute(self,threads=1):
+    def _compute(self,threads=1,**kwargs):
         """ Compute the model 
         
         This function needs to be called after :func:`input`.
@@ -344,10 +439,12 @@ class GalMod(Model3D):
         """
         if self._inri is None: 
             raise ValueError("GALMOD ERROR: you need to set the model with init(...) before calling compute().")
+        
         self._check_options()
-        op = self._opts
-        self._mod = libBB.Galmod_new(self.inp._cube,self._inri._rings,op['nv'][0],op['ltype'][0],\
-                                     op['cmode'][0], op['cdens'][0], op['iseed'][0],int(threads))
+        self._par.add_params_opts(**self._opts)
+        self._par.add_params(threads=threads,**kwargs)
+        self._par.make_object()
+        self._mod = libBB.Galmod_new_par(self.inp._cube,self._inri._rings,self._par._params)
         self._modCalculated = libBB.Galmod_compute(self._mod)
         data_mod  = reshapePointer(libBB.Galmod_array(self._mod),self.inp.dim[::-1])
         
@@ -490,17 +587,16 @@ class FitMod3D(Model3D):
       fitsname (str): FITS file of the galaxy to fit
     
     """
-    #@TODO: Wrap MASK as class containing all the additional parameters to control the mask (3DFIT, 2DFIT, ELLPROF, GALMOD)
     
-    def __init__(self,fitsname):
-        super(FitMod3D,self).__init__(fitsname=fitsname)
+    def __init__(self,fitsname,**kwargs):
+        super(FitMod3D,self).__init__(fitsname=fitsname,**kwargs)
         # Task name
         self.taskname = "3DFIT"
         # The output final rings
         self.bfit = None
         # A dictionary with options and defaults values
         self._opts.update({'ltype'   : [2, np.int32, "Layer type along z"],
-                           'smooth'  : [True, np.bool, "If false, disable smoothing"],
+                           'smooth'  : [True, bool, "If false, disable smoothing"],
                            'deltainc': [5., np.float32,"Inclination angle variation (degrees)"],
                            'deltaphi': [15., np.float32, "Position angle variation (degrees)"],
                            'ftype'   : [2, np.int32, "Residual function to minimize" ],
@@ -508,17 +604,17 @@ class FitMod3D(Model3D):
                            'bweight' : [1, np.int32, "Weighting function for Blank pixels"],
                            'tol'     : [1E-03, np.float64, "Tolerance for minimization."],
                            'mask'    : ['SMOOTH', str, "Mask type"],
-                           'norm'    : ['LOCAL', str, "Normalization type"],
+                           'norm'    : ['AZIM', str, "Normalization type"],
                            'free'    : ['VROT VDISP', str, "Free parameters"],
                            'side'    : ['B', str, "Which side of the galaxy to fit"],
-                           'twostage': [True, np.bool, "Regularize and fit a second model"],
+                           'twostage': [True, bool, "Regularize and fit a second model"],
                            'polyn'   : ['bezier', str, "Type of regularization"],
                            'startrad': [0, np.int32, "Starting radius"],
-                           'errors'  : [False, np.bool, "Whether estimating errors"],
+                           'errors'  : [False, bool, "Whether estimating errors"],
                            'distance': [-1., np.float32, "Distance of the galaxy in Mpc"],
                            'redshift': [-1., np.float64, "Redshift of the galaxy"],
-                           'restwave': [-1., np.float64, "Rest wavelength of observed line"],
-                           'outfolder' : ['./', str, "Directory for outputs" ]})
+                           'restwave': [-1., np.float64, "Rest wavelength of observed line"]})
+
         self._args = {'radii': [None, 'Radii of the model in arcsec (must be an array)'],
                       'xpos' : [None, 'X-center of the galaxy in pixels'],
                       'ypos' : [None, 'Y center of the galaxy in pixels'],
@@ -529,7 +625,7 @@ class FitMod3D(Model3D):
                       'z0'   : [None, 'Disk scaleheight in arcsec'],
                       'inc'  : [None, 'Inclination angle in degrees'],
                       'phi'  : [None, 'Position angle of the receding part of the major axis (N->W)']}
-    
+
     def __del__(self):
         if self._mod: libBB.Galfit_delete(self._mod)
         
@@ -554,7 +650,7 @@ class FitMod3D(Model3D):
         """
         # Check if any parameter needs to be estimated
         allpars = [radii,xpos,ypos,vsys,vrot,inc,phi]
-        toEstimate = [True if (not isIterable(a) and not a) else False for a in allpars]
+        toEstimate = [True if (not isIterable(a) and a is None) else False for a in allpars]
                 
         if True in toEstimate:
             print ("\n%s: estimating initial parameters for fit %s\n"%(self.taskname,"-"*25))
@@ -578,15 +674,15 @@ class FitMod3D(Model3D):
                     
             radii,xpos,ypos,vsys,vrot,inc,phi = allpars
             print ("%s\n"%("-"*70))
-        
-        
+
+
         # Now we can initialize rings
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.E20,z0,inc,phi)
-                  
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,vdisp,vrad,0.,0.,0.,1.,z0,inc,phi)
 
-    def _compute(self,threads=1):
+
+    def _compute(self,threads=1,**kwargs):
         """ Fit the model.
 
         Run this function after having set initial parameters with :func:`init` and options with
@@ -604,30 +700,26 @@ class FitMod3D(Model3D):
             self._mod = libBB.Galfit_new(self.inp._cube)
         else:
             self._check_options()
-            op = self._opts
-            self._mod = libBB.Galfit_new_all(self.inp._cube,self._inri._rings,op['deltainc'][0],op['deltaphi'][0],\
-                                             op['ltype'][0],op['ftype'][0],op['wfunc'][0],op['bweight'][0],op['nv'][0],\
-                                             op['tol'][0],op['cdens'][0],op['startrad'][0],op['mask'][0].encode('utf-8'),\
-                                             op['norm'][0].encode('utf-8'),op['free'][0].encode('utf-8'),\
-                                             op['side'][0].encode('utf-8'),op['twostage'][0],op['polyn'][0].encode('utf-8'),\
-                                             op['errors'][0],op['smooth'][0],op['distance'][0],op['redshift'][0],\
-                                             op['restwave'][0],op['outfolder'][0].encode('utf-8'),int(threads))
+            self._par.add_params(threads=threads,**kwargs)
+            self._par.add_params_opts(**self._opts)
+            self._par.make_object()
+            self._mod = libBB.Galfit_new_par(self.inp._cube,self._inri._rings,self._par._params)
         
-        # Calculating the model                         
-        self.modCalculated = libBB.Galfit_galfit(self._mod)        
-        if (op['twostage'][0]): libBB.Galfit_secondStage(self._mod);
+        # Calculating the model
+        self.modCalculated = libBB.Galfit_galfit(self._mod)
+        if (self._opts['twostage'][0]): libBB.Galfit_secondStage(self._mod);
         
         # Write models
         libBB.Galfit_writeModel(self._mod,self._opts['norm'][0].encode('utf-8'),False)
         
         # Loading final rings
-        try: self.bfit = np.genfromtxt(op['outfolder'][0]+"/rings_final2.txt")
-        except: self.bfit = np.genfromtxt(op['outfolder'][0]+"/rings_final1.txt")
+        try: self.bfit = np.genfromtxt(self._opts['outfolder'][0]+"/rings_final2.txt")
+        except: self.bfit = np.genfromtxt(self._opts['outfolder'][0]+"/rings_final1.txt")
         
         # Loading final model
-        for fname in os.listdir(op['outfolder'][0]):
-            if "mod_%s.fits"%(op['norm'][0].lower()) in fname:
-                filefits = op['outfolder'][0]+"/"+fname
+        for fname in os.listdir(self._opts['outfolder'][0]):
+            if "mod_%s.fits"%(self._opts['norm'][0].lower()) in fname:
+                filefits = self._opts['outfolder'][0]+"/"+fname
         self.outmodel = fits.open(filefits)[0]
         
         return (self.bfit, self.outmodel)
@@ -686,7 +778,7 @@ class Search(Task):
         self._opts = { "searchtype"  : ["spatial", str, "spectral or spatial search"],
                        "snrcut"      : [5, np.float32, "S/N cut for detection when sigma-clipping"],
                        "threshold"   : [0, np.float32, "Flux threshold for a detection"],
-                       "adjacent"    : [True, np.bool, "Use the adjacent criterion for objects merger?" ],
+                       "adjacent"    : [True, bool, "Use the adjacent criterion for objects merger?" ],
                        "thrspatial"  : [-1, np.int32, "Maximum spatial separation between objects"],
                        "thrvelocity" : [2,  np.int32, "Maximum channels separation between objects"],
                        "minchannels" : [2,  np.int32, "Minimum channels to make an object"],
@@ -694,11 +786,11 @@ class Search(Task):
                        "minvoxels"   : [-1, np.int32, "Minimum voxels required in an object"],
                        "maxchannels" : [-1, np.int32, "Maximum channels to accept an object"],
                        "maxangsize"  : [-1, np.float32, "Maximum angular size in an object (arcmin)"],
-                       "growth"      : [True, np.bool, "Growing objects once they are found?"],
+                       "growth"      : [True, bool, "Growing objects once they are found?"],
                        "growthcut"   : [3, np.float32, "The SNR that we are growing objects down to"],
                        "growththresh": [0, np.float32, "The threshold for growing objects down to"],
-                       "rejectbeforemerge" : [True, np.bool, "Whether to reject sources before merging"],
-                       "twostagemerge" : [True, np.bool, "Whether to do a partial merge during search"]}
+                       "rejectbeforemerge" : [True, bool, "Whether to reject sources before merging"],
+                       "twostagemerge" : [True, bool, "Whether to do a partial merge during search"]}
 
 
     def search(self,threads=1):
@@ -785,7 +877,7 @@ class FitMod2D(Task):
         """
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.E20,0.,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,vsys,vrot,0.,vrad,0.,0.,0.,1.,0.,inc,phi)
 
     
     def _compute(self,threads=1):
@@ -879,7 +971,7 @@ class Ellprof(Task):
         """
         if not isIterable(radii): raise ValueError("radii must be an array")
         self._inri = Rings(len(radii))
-        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.E20,0.,inc,phi)
+        self._inri.set_rings(radii,xpos,ypos,0.,0.,0.,0.,0.,0.,0.,1.,0.,inc,phi)
         
 
     def _compute(self,threads=1):
@@ -902,9 +994,10 @@ class Ellprof(Task):
         a = np.genfromtxt('rings.txt') 
         try: os.remove('rings.txt')
         except: pass
-        self.outrings = {'rad':a[:,0],'sum':a[:,1],'mean':a[:,2],'median':a[:,3],'rms':a[:,4],'mad':a[:,5],'numpix':a[:,6],\
-                         'surfdens':a[:,7],'surfdens_err':a[:,8],'surfdens_fo':a[:,9]}
-        if (a.shape[1]>10): self.outrings.update({'msurfdens':a[:,10],'msurfdens':a[:,11]})
+        self.outrings = {'rad':a[:,0],'sum':a[:,1],'mean':a[:,2],'median':a[:,3],'stddev':a[:,4],'mad':a[:,5],'numpix':a[:,6],\
+                         'surfdens':a[:,7],'surfdens_err':a[:,8],'surfdens_fo':a[:,9], 'npix_blank':a[:,10], 'surfdens_blank':a[:,11],\
+                         'surfdens_fo_blank':a[:,12]}
+        if (a.shape[1]>13): self.outrings.update({'ndens':a[:,13],'msurfdens':a[:,14]})
         
         return self.outrings
         

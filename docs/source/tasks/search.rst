@@ -18,7 +18,7 @@ Parameters
 
 * **CUBELETS** [false]. If true, it produces individual cubelets and sub-images for each detected source.
 
-* **SEARCHTYPE** [spatial]. How the search is performed. Accepted values are *spatial* and *spectral*. Spatial search is done in 2D channel maps, spectral search along 1D spectra.
+* **SEARCHTYPE** [spatial]. How the search is performed. Accepted values are *spatial*, *spectral* and *spatialsmooth*. Spatial search is done in 2D channel maps, spectral search along 1D spectra. Spatialsmoooth search is also done in 2D channel maps, but it's performed on a pre-smoothed array (smoothing options are the same of the :ref:`SMOOTH <smoothtask>` task).
 
 * **SNRCUT** [5]. The primary S/N cut (number of σ above the mean/median). 
 
@@ -44,11 +44,14 @@ Parameters
 
 * **THRESHSPATIAL** [2]. The maximum minimum spatial separation in *pixels* for two objects to be merged into a single one. Ignored if FLAGADJACENT is *true*.
 
-* **THRESHVELOCITY** [3]. The maximum minimum channel separation in *channels* for two objects to be merged into a single one. Ignored if FLAGADJACENT is *true*.
+* **THRESHVELOCITY** [2]. The maximum minimum channel separation in *channels* for two objects to be merged into a single one.
 
 * **REJECTBEFOREMERGE** [true]. Whether to reject sources before merging them.
 
 * **TWOSTAGEMERGING** [true]. Whether to do a partial merge during search.
+
+* **PBCORR** [1]. Whether and how to corrects measured integrated fluxes for primary beam attenuation. Primary beam models are available only for WSRT, VLA, ATCA, GMRT and FST telescopes. Accepted values are: 0 = no PB correction; 1 = correct, and set to 0 if behind cutoff; 2 = correct, and set to NaN if behind cutoff; 3 = correct, and set to NaN if behind cutoff; 4 = correct, even behind cutoff. Pointing center is assumed to be at the CRVAL1 and CRVAL2 values.
+
 
 Outputs
 ========
@@ -61,7 +64,7 @@ The task produces the following outputs. Here *NAME* is the name of the galaxy.
 
 * FITS files of the moment maps for the detections (*NAME_mom0th.fits*, *NAME_mom1st.fits*, *NAME_mom2nd.fits*).
   
-* A text file *detections.txt*, containinig a list of detections and their properties.
+* A text file *detections.txt*, containing a list of detections and their properties.
 
 
 Example

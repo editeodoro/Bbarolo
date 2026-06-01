@@ -10,6 +10,12 @@ These tools are based on or developed from the
 
 A list of implemented tools can be obtained with ``BBarolo --fitsutils``. Four utilities are currently available. Each tool is promptly accessible from the command line through ``BBarolo --UTILNAME``, where UTILNAME is one of the utilities listed below:
 
+**listhead**. Print all keywords in the FITS header. Type ``BBarolo --listhead`` for help:
+
+.. literalinclude:: tasks/examples/listhead.txt
+
+|
+
 **modhead**. Modify or add a keyword to a FITS header. Type ``BBarolo --modhead`` for help:
 
 .. literalinclude:: tasks/examples/modhead.txt
@@ -38,3 +44,6 @@ A list of implemented tools can be obtained with ``BBarolo --fitsutils``. Four u
 
 .. literalinclude:: tasks/examples/fitsarith.txt
 
+|
+
+**jybeam2k** and **k2jybeam**. Utilities to convert the flux units between JY/BEAM and K.

@@ -39,6 +39,18 @@ array_1d_float  = ndpointer(dtype=np.float32, ndim=1,flags="CONTIGUOUS")
 array_1d_double = ndpointer(dtype=np.double, ndim=1,flags="CONTIGUOUS")
 
 
+# Class Param interface ###############################################################
+libBB.Param_new.restype = c_void_p
+libBB.Param_new.argtypes = [ ]
+libBB.Param_setfromfile.restype = None
+libBB.Param_setfromfile.argtypes = [c_void_p,c_char_p]
+libBB.Param_setfromstr.restype = None
+libBB.Param_setfromstr.argtypes = [c_void_p,c_char_p]
+libBB.Param_delete.restype = None
+libBB.Param_delete.argtypes = [c_void_p]
+########################################################################################
+
+
 # Class Cube interface #################################################################
 libBB.Cube_new.restype = c_void_p
 libBB.Cube_new.argtypes = [c_char_p]
@@ -52,12 +64,16 @@ libBB.Cube_setBeam.restype = None
 libBB.Cube_setBeam.argtypes = [c_void_p, c_float, c_float, c_float]
 libBB.Cube_getBeam.restype = POINTER(c_float)
 libBB.Cube_getBeam.argtypes = [c_void_p]
+libBB.Cube_getMask.restype = POINTER(c_bool)
+libBB.Cube_getMask.argtypes = [c_void_p]
 ########################################################################################
 
 
 # Struct Rings interface ###############################################################
 libBB.Rings_new.restype = c_void_p
 libBB.Rings_new.argtypes = [ ]
+libBB.Rings_delete.restype = None
+libBB.Rings_delete.argtypes = [c_void_p]
 libBB.Rings_set.restype = None
 libBB.Rings_set.argtypes = [c_void_p,c_int,array_1d_float,array_1d_float,array_1d_float,\
                             array_1d_float,array_1d_float,array_1d_float,array_1d_float,\
@@ -68,11 +84,15 @@ libBB.Rings_set.argtypes = [c_void_p,c_int,array_1d_float,array_1d_float,array_1
 
 # Class Galmod interface ##############################################################
 libBB.Galmod_new.restype = c_void_p
-libBB.Galmod_new.argtypes = [c_void_p,c_void_p,c_int,c_int,c_int,c_float,c_int]
+libBB.Galmod_new.argtypes = [c_void_p,c_void_p]
+libBB.Galmod_new_par.restype = c_void_p
+libBB.Galmod_new_par.argtypes = [c_void_p,c_void_p,c_void_p]
 libBB.Galmod_delete.restype = None
 libBB.Galmod_delete.argtypes = [c_void_p]
 libBB.Galmod_array.restype = POINTER(c_float)
 libBB.Galmod_array.argtypes = [c_void_p]
+libBB.Galmod_set_array.restype = None
+libBB.Galmod_set_array.argtypes = [c_void_p,array_1d_float]
 libBB.Galmod_compute.restype = c_bool
 libBB.Galmod_compute.argtypes = [c_void_p]
 libBB.Galmod_smooth.restype = c_bool
@@ -83,10 +103,8 @@ libBB.Galmod_smooth.argtypes = [c_void_p]
 # Class Galfit interface ##############################################################
 libBB.Galfit_new.restype = c_void_p
 libBB.Galfit_new.argtypes = [c_void_p]
-libBB.Galfit_new_all.restype = c_void_p
-libBB.Galfit_new_all.argtypes = [c_void_p,c_void_p,c_float,c_float,c_int,c_int,c_int,c_int,c_int,\
-                                 c_double,c_int,c_int,c_char_p,c_char_p,c_char_p,c_char_p,c_bool,\
-                                 c_char_p,c_bool,c_bool,c_float,c_double,c_double,c_char_p,c_int]
+libBB.Galfit_new_par.restype = c_void_p
+libBB.Galfit_new_par.argtypes = [c_void_p,c_void_p,c_void_p]
 libBB.Galfit_delete.restype = None
 libBB.Galfit_delete.argtypes = [c_void_p]
 libBB.Galfit_initialGuesses.restype = POINTER(c_float)
@@ -95,8 +113,20 @@ libBB.Galfit_galfit.restype = c_bool
 libBB.Galfit_galfit.argtypes = [c_void_p]
 libBB.Galfit_secondStage.restype = c_bool
 libBB.Galfit_secondStage.argtypes = [c_void_p]
+libBB.Galfit_calcresiduals.restype = c_float
+libBB.Galfit_calcresiduals.argtypes = [c_void_p,c_void_p]
+libBB.Galfit_getModel.restype = c_void_p
+libBB.Galfit_getModel.argtypes = [c_void_p,c_void_p,POINTER(c_int),POINTER(c_int),c_bool]
+libBB.Galfit_getModel_BBB.restype = POINTER(c_float)
+libBB.Galfit_getModel_BBB.argtypes = [c_void_p,c_void_p,POINTER(c_int),POINTER(c_int),c_int]
+libBB.Galfit_getModelSize.restype = None
+libBB.Galfit_getModelSize.argtypes = [c_void_p,c_void_p,POINTER(c_int),POINTER(c_int)]
+libBB.Galfit_setOutRings.restype = None
+libBB.Galfit_setOutRings.argtypes = [c_void_p,c_void_p]
 libBB.Galfit_writeModel.restype = None
 libBB.Galfit_writeModel.argtypes = [c_void_p,c_char_p,c_bool]
+libBB.Galfit_writeOutputs.restype = None
+libBB.Galfit_writeOutputs.argtypes = [c_void_p,c_void_p,c_void_p,c_bool]
 libBB.Galfit_plotModel.restype = c_int
 libBB.Galfit_plotModel.argtypes = [c_void_p]
 ########################################################################################
@@ -144,12 +174,18 @@ libBB.Fit2D_write.argtypes = [c_void_p,c_void_p,c_char_p]
 # Class Ellprof interface ############################################################
 libBB.Ellprof_new.restype = c_void_p
 libBB.Ellprof_new.argtypes = [c_void_p,c_void_p,c_char_p,c_char_p,c_int]
+libBB.Ellprof_new_alt.restype = c_void_p
+libBB.Ellprof_new_alt.argtypes = [c_void_p,c_void_p]
 libBB.Ellprof_delete.restype = None
 libBB.Ellprof_delete.argtypes = [c_void_p]
 libBB.Ellprof_compute.restype = None
 libBB.Ellprof_compute.argtypes = [c_void_p]
 libBB.Ellprof_write.restype = None
 libBB.Ellprof_write.argtypes = [c_void_p,c_char_p]
+libBB.Ellprof_dens_array.restype = POINTER(c_double)
+libBB.Ellprof_dens_array.argtypes = [c_void_p]
+libBB.Ellprof_update_rings.restype = None
+libBB.Ellprof_update_rings.argtypes = [c_void_p,c_void_p]
 ########################################################################################
 
 
