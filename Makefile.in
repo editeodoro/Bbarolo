@@ -69,7 +69,7 @@ MAPDIR = $(BASE)/Map
 UTILDIR = $(BASE)/Utilities
 TASKDIR = $(BASE)/Tasks
 PYBBDIR = $(BASE)/../pyBBarolo
-OBJDIR = $(BASE)/Build
+OBJDIR = ./Build
 
 HEADS := $(wildcard $(BASE)/*.h*)\
 	$(wildcard $(ARRAYDIR)/*.h*)\

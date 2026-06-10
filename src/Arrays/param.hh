@@ -137,7 +137,7 @@ struct SEARCH_PAR {
     bool   cubelets          = false;     ///< If true, produce a sub-cube of each detection.
     int    edges             = 20;        ///< Number of pixels at the edges of a cubelet.
     string sortsrcs          = "nvox";    ///< Type of sorting for detections.
-    int    pbcorr            = 1;         ///< Whether to correct for primary beam attenuation.
+    int    pbcorr            = 0;         ///< Whether to correct for primary beam attenuation.
 
 };
 

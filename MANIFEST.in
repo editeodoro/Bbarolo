@@ -3,6 +3,5 @@ include Makefile.in
 recursive-include src *
 recursive-include config *
 recursive-include pyBBarolo *
-prune src/Build
 prune src/GUI
 exclude src/bbarolo.code-workspace

@@ -214,11 +214,11 @@ void ParamGuess<T>::findPositionAngle(int algorithm) {
 
         // Rotate the PA to conform to BBarolo's definition.
         if (vl<vr) {
-            if (bestpa<90) posang = 270+bestpa;
+            if (bestpa<=90) posang = 270+bestpa;
             else posang = 90+bestpa;
         }
         else {
-            if (bestpa<90) posang = 90+bestpa;
+            if (bestpa<=90) posang = 90+bestpa;
             else posang = bestpa-90;
         }
     }

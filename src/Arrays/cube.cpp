@@ -1856,7 +1856,7 @@ int Cube<T>::plotDetections(){
         << "def setaxislabels(ax): \n"
         << "  ax[0].text(0.5,-0.2,'Int flux " << bu << "',ha='center',transform=ax[0].transAxes,fontsize=fsize+1) \n"
         << "  ax[1].text(0.5,-0.2,'Velocity (km/s)',ha='center',transform=ax[1].transAxes,fontsize=fsize+1) \n"
-        << "  ax[2].text(0.5,-0.2,'Dispersion (km/s)',ha='center',transform=ax[2].transAxes,fontsize=fsize+1) \n"
+        << "  ax[2].text(0.5,-0.2,'Line width (km/s)',ha='center',transform=ax[2].transAxes,fontsize=fsize+1) \n"
         << "  ax[3].text(0.5,-0.2,'Velocity (km/s)',ha='center',transform=ax[3].transAxes,fontsize=fsize+1) \n"
         << std::endl
         << std::endl
