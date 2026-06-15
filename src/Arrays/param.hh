@@ -191,6 +191,7 @@ public:
     bool    getFlagAuto() {return AUTO;}
     bool    getFlagStats() {return flagStats;}
     bool    getFluxConvert() {return fluxConvert;}
+    void    setFluxConvert(bool f) {fluxConvert=f;}
 
     bool    getFlatContsub() {return contsub;}
     string  getExcludeWind() {return exclude_windows;}

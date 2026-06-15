@@ -279,7 +279,7 @@ T FluxtoJyBeam (T in, Header &h) {
     T fluxJYB = in;
     std::string b = deblankAll(makelower(h.Bunit()));
     size_t f = std::string::npos;
-    
+
     if (b.find("w.u.")!=f || b.find("wu")!=f) 
         fluxJYB *= 5E-3;
     else if (b.find("jy/b")!=f || b.find("j/b")!=f) 
@@ -305,7 +305,6 @@ T FluxtoJy (T in, Header &h) {
     
  /// This function convert the input flux value  
  /// in a output flux value in units of Jy. 
- 
     T fluxJY = FluxtoJyBeam(in,h);
     if (h.BeamArea()!=0) fluxJY /= h.BeamArea();
     return fluxJY;

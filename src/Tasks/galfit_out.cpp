@@ -49,6 +49,7 @@ void Galfit<T>::writeModel (std::string normtype, bool makeplots) {
 
     bool verb = in->pars().isVerbose();
     in->pars().setVerbosity(false);
+    in->pars().setFluxConvert(false);
 
     if (verb) std::cout << " Preparing a bunch of cool outputs..." << std::endl;
 
