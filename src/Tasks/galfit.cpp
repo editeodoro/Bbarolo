@@ -189,7 +189,6 @@ Galfit<T>::Galfit(Cube<T> *c) {
 
     // Now reading rings with general purpose function
     bool fromfile = false;
-    std::cout << par.NRADII << std::endl;
     Rings<T> *inR = readRings<T>(par,c->Head(),&fromfile);
     if (inR->nr==0) {
         std::cerr << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
