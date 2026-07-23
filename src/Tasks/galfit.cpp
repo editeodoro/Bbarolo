@@ -166,8 +166,10 @@ Galfit<T>::Galfit(Cube<T> *c) {
     ParamGuess<T> *ip = nullptr;
     if (toEstimate) {
         ip = EstimateInitial(c,&par);
-        if (par.NRADII==-1) par.NRADII = ip->nrings;
-        if (par.RADSEP==-1) par.RADSEP = ip->radsep;
+        if (par.RADII=="-1") {
+            if (par.NRADII==-1) par.NRADII = ip->nrings;
+            if (par.RADSEP==-1) par.RADSEP = ip->radsep;
+        }
         if (par.XPOS=="-1") par.XPOS   = to_string(ip->xcentre);
         if (par.YPOS=="-1") par.YPOS   = to_string(ip->ycentre);
         if (par.VSYS=="-1") par.VSYS   = to_string(ip->vsystem);
@@ -187,8 +189,8 @@ Galfit<T>::Galfit(Cube<T> *c) {
 
     // Now reading rings with general purpose function
     bool fromfile = false;
+    std::cout << par.NRADII << std::endl;
     Rings<T> *inR = readRings<T>(par,c->Head(),&fromfile);
-        
     if (inR->nr==0) {
         std::cerr << "\n 3DFIT ERROR: The number of radii must be > 0! " << std::endl;
         std::terminate();
