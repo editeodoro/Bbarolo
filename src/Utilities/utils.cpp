@@ -105,6 +105,7 @@ double Wave2Vel(double v, double wave0, std::string veldef) {
     //return Freq2Vel(c/v,c/wave0,veldef); 
 }
 
+
 double Vel2Freq(double v, double freq0, std::string veldef) {
     
     // Convert a velocity in km/s into a frequency in the same units as freq0.
@@ -115,6 +116,7 @@ double Vel2Freq(double v, double freq0, std::string veldef) {
     else if (veldef=="optical") freq = freq0/(1+v/c);         // Optical velocity definition
     return freq;
 }
+
 
 double Vel2Wave(double v, double wave0, std::string veldef) {
     
@@ -194,6 +196,7 @@ double Vel2Spec (double in, Header &h) {
     return out;
     
 }
+
 
 double DeltaVel(Header &h) {
 
@@ -439,31 +442,25 @@ double dmsToDec(std::string dms) {
 }
 
 
-template <class T> 
-T angularSeparation(T &ra1, T &dec1, T &ra2, T &dec2) {
-    /*
-   *  Enter ra & dec for two positions. (all positions in degrees)
-   *  Returns the angular separation in degrees.
-   */
-    
-    const long double degToRadian=M_PI/180.;
-    long double dra = (ra1-ra2)*degToRadian;
-    long double d1 = dec1*degToRadian;
-    long double d2 = dec2*degToRadian;
-    long double angsep;
-    if((fabs(ra1-ra2) < 1./3600.)&&(fabs(dec1-dec2)<1./3600.))
-        return sqrt(dra*dra + (d1-d2)*(d1-d2)) / degToRadian;
-    else {
-        if(fabs(ra1-ra2) < 1./3600.)
-        angsep = cos(d1)*cos(d2) - dra*dra*cos(d1)*cos(d2)/2. + sin(d1)*sin(d2);
-        else angsep = cos(dra)*cos(d1)*cos(d2) + sin(d1)*sin(d2);
-        double dangsep = acos(angsep) / degToRadian;
-        return dangsep;
-    }
+template <typename T> 
+double angularSeparation(T ra1, T dec1, T ra2, T dec2) {
 
+   // Returns the angular separation in degrees between to sky positions (all in degrees)
+   // It uses the haversine form of the spherical distance formula.
+
+    double degToRad = M_PI / 180.0;
+    double phi1 = dec1 * degToRad;
+    double phi2 = dec2 * degToRad;
+    double dphi = (dec2 - dec1) * degToRad;
+    double dlambda = (ra2 - ra1) * degToRad;
+
+    double a = sin(dphi/2.0)*sin(dphi/2.0) + cos(phi1)*cos(phi2)*sin(dlambda/2.0)*sin(dlambda/2.0);
+    a = std::max(0.0, std::min(1.0, a));
+
+    return (2.0 * atan2(sqrt(a), sqrt(1.0 - a))) / degToRad;
 }
-template float angularSeparation(float&,float&,float&,float&);
-template double angularSeparation(double&,double&,double&,double&);
+template double angularSeparation(float,float,float,float);
+template double angularSeparation(double,double,double,double);
 
 
 double arcsconv(std::string cunit) {
@@ -505,7 +502,9 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption) {
     // Correct input flux for primary beam attenuation.
     // Available for WSRT, VLA, ATCA, FST and GMRT. Otherwise return input value.
     // Pointing center is assumed to be at CRVAL1 and CRVAL2 keywords.
+    // These corrections are taken from GIPSY's PRIBEAM task.
     // 
+    // cutoffOption = 0 : no correction applied. 
     // cutoffOption = 1 : Return 0 if beyond cutoff.
     // cutoffOption = 2 : Return min. allowed value beyond cutoff. The function
     //                    calculates this value for different telescopes.
@@ -514,142 +513,133 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption) {
     //                    coordinates outside the validity range of the correction function.
     
     bool haveCorr = h.Telesc()=="WSRT" || h.Telesc().find("VLA")!=std::string::npos || 
-                    h.Telesc()=="ATCA" || h.Telesc()=="FST" || h.Telesc()=="GMRT";
+                    h.Telesc()=="ATCA" || h.Telesc()=="GMRT";
         
-    if (!haveCorr) return v.getF();
+    if (!haveCorr || cutoffOption==0) return v.getF();
     
-    const double degtorad = M_PI/180.;
-    T fluxcorr=0;
+    double pix[3] = {static_cast<double>(v.getX()), static_cast<double>(v.getY()), 0.0}, world[3];    
+    if (h.pixToWCS(pix,world)!=0) return v.getF();
     
-    float pcRA = h.Crval(0);                /// Pointing center R.A. (in degrees).
-    float pcDEC = h.Crval(1);               /// Pointing center DEC  (in degrees).
+    // Spherical distance between position and pointing center (assumed to be CRVAL).
+    double angdist = angularSeparation(world[0],world[1],h.Crval(0),h.Crval(1));
     
-    if (pcDEC>=0) pcDEC = 90 - pcDEC;       /// Conversion of DEC to polar angle.
-    else pcDEC = 90 + fabs(pcDEC);
-    
-    pcRA  *= degtorad;                      /// Conversions to radians.
-    pcDEC *= degtorad;
-    
-    float posRA = ((v.getX()+1-h.Crpix(0))*h.Cdelt(0)+h.Crval(0));   
-    float posDEC = ((v.getY()+1-h.Crpix(1))*h.Cdelt(1)+h.Crval(1));
-    
-    if (posDEC>=0) posDEC = 90 - posDEC;
-    else posDEC = 90 + fabs(posDEC);
-    if (posRA<0) posRA += 360;
-    
-    posRA  *= degtorad;
-    posDEC *= degtorad;
-    
-    float acarg = cos(pcDEC)*cos(posDEC) + sin(pcDEC)*sin(posDEC)*cos(pcRA-posRA);
-    acarg = std::max<float>(-1., std::min<float>(1.,acarg));
-    
-    float angdist = acos(acarg)/degtorad;
-    
-    float freq=0;                               /// Frequency in GHz
-    
-    if (makelower(h.Cunit(2))=="km/s") {
-        const float HIrest = 1.420405751;
-        const float c = 299792.458;
-        float vel = h.getZphys(v.getZ());
-        freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
-    }
-    else if (makelower(h.Cunit(2))=="m/s") {
-        const float HIrest = 1.420405751;
-        const float c = 299792458.;
-        float vel = h.getZphys(v.getZ());
-        freq = HIrest*sqrt((1-vel/c)/(1+vel/c));
-    }
-    else if (makelower(h.Cunit(2))=="hz") {
-        freq=(h.getZphys(v.getZ()))/(1E09);
-    }   
-    else if (makelower(h.Cunit(2))=="mhz") {
-        freq=(h.getZphys(v.getZ()))/(1000);
-    }
-    else return -2;
-    
-    float minval=0, pbc=1;
-    if (h.Telesc()=="WSRT") {
-        const float calib = 61.18;
-        minval = 0.023;               /// Cutoff at 2.3%
-        pbc = pow(cos(calib*freq*angdist*degtorad), 6);
+    // Getting frequency of observations in GHz
+    double vel = AlltoVel(h.getZphys(v.getZ()),h);
+    double freq = Vel2Freq(vel,h.Freq0(),"relativistic") / 1E09;
 
-        fluxcorr = v.getF()/pbc;
+    if (freq<0) {
+        std::cerr << " PBCORR ERROR: Negative frequency. Not applying any correction.";
+        return v.getF();
+    }
+
+    double RF = angdist*60*freq;             /// Angular distance in arcmin*GhZ
+    double RF2 = RF*RF;
+    float minval = 0.023;                   /// Default cutoff at 2.3% level
+    double pbc=1;
+
+    if (h.Telesc()=="WSRT") {
+        float lam_cm = 299792458. / (freq*1E9) * 100;
+        float calib;
+        if (lam_cm > 0 && lam_cm < 35.) calib = 61.18;          // 4995 Mhz (6 cm) & 1415 Mhz (21 cm)           
+        else if (lam_cm >= 35. && lam_cm < 70.) calib = 66.4;   // 608.5 Mhz (50 cm)
+        else calib = 62.9;                                      // 327.25 Mhz (90 cm)
+ 
+        pbc = pow(cos(calib*freq*angdist*M_PI/180.), 6);
     }
     else if (h.Telesc().find("VLA")!=std::string::npos) {
-        float RF = angdist*60*freq;         /// The distance is now in arcmin.
-        float minval = 0.023;               /// Cutoff at 2.3%
-        float a0, a1, a2, a3, a4;
+        float a0=1., a1, a2, a3, a4=0.;
+        bool is_legacy = false;
         
-        if (freq<1.43) {
-            a0 = 1.;
-            a1 = -1.329E-03;
-            a2 = +6.445E-07; 
-            a3 = -1.146E-10;
-            a4 = 0.;
+        if (freq<=1.43) {                                       // 20 cm (L) band
+            a1 = -1.329E-03; a2 = +6.445E-07; a3 = -1.146E-10;
         }
-        else if (freq>=1.43 && freq<=1.73) {
-            a0 = 1.;
-            a1 = -1.343E-03;
-            a2 = +6.579E-07; 
-            a3 = -1.186E-10;
-            a4 = 0.;
+        else if (freq>=1.43 && freq<1.73) {                     // 13 cm band
+            a1 = -1.343E-03; a2 = +6.579E-07; a3 = -1.186E-10;
         }
+        else if (freq>=4.4 && freq<=5.1) {                      // 6 cm (C) band
+            a1 = -1.372E-03; a2 = +6.940E-07; a3 = -1.309E-10;
+        }
+        else if (freq>=7.9 && freq<=8.9) {                      // 3.6 cm (X) band
+            a1 = -1.306E-03; a2 = +6.253E-07; a3 = -1.100E-10;
+        }
+        else if (freq>=14.3 && freq<=15.5) {                    // 2.0 cm (U) band
+            a1 = -1.305E-03; a2 = +6.155E-07; a3 = -1.030E-10;
+        }
+        else if (freq>=21.9 && freq<=24.1) {                    // 1.3 cm (K) band
+            a1 = -1.417E-03; a2 = +7.332E-07; a3 = -1.352E-10;
+        }
+        else if (freq>=39.9 && freq<=50.1) {                    // 0.7 cm (Q) band
+            a1 = -1.321E-03; a2 = +6.185E-07; a3 = -0.983E-10;
+        }        
         else {
-            a0 = +0.9920378;
-            a1 = +0.9956885E-03;
-            a2 = +0.3814573E-05; 
-            a3 = -0.5311695E-08;
-            a4 = +0.3980963E-11;
+            // VLA legacy fallback
+            a0 = +0.9920378; a1 = +0.9956885E-03; a2 = +0.3814573E-05; a3 = -0.5311695E-08; a4 = +0.3980963E-11;
+            is_legacy = true;
         }
         
-        float polyn = a0 + a1*pow(RF,2) + a2*pow(RF,4) + a3*pow(RF,6) + a4*pow(RF,8);
-        pbc = 1.0/polyn;
-        pbc = 1.0/std::max<float>(1, pbc);
-        
-        fluxcorr = v.getF()/pbc;
+        double polyn = a0 + RF2 * (a1 + RF2 * (a2 + RF2 * (a3 + RF2 * a4)));
+        pbc = is_legacy ? ((polyn > 0.0) ? 1.0 / polyn : 0.0) : polyn;
+        pbc = std::min(1.0, std::max(0.0, pbc));        
     }
     else if (h.Telesc()=="ATCA") {
-        float RF = angdist*60*freq;                 /// The distance is now in arcmin.
-        float RFmax = 50;                           /// Cut-off at 50 arcmin*GHz
-        
-        const float a0 = 1.;
-        const float a1 = 8.99E-04;
-        const float a2 = 2.15E-06; 
-        const float a3 = -2.23E-09;
-        const float a4 = 1.56E-12;
-        float polyn = a0 + a1*pow(RF,2) + a2*pow(RF,4) + a3*pow(RF,6) +a4*pow(RF,8);
-        float pbc = 1.0/polyn;
-        pbc = 1.0/std::max<float>(1, pbc);
-        // Minimum allowed value when RF = RFMAX
-        minval = 1.0/(a0 + a1*pow(RFmax,2) + a2*pow(RFmax,4) + a3*pow(RFmax,6) +a4*pow(RFmax,8));
-        
-        fluxcorr = v.getF()/pbc;
+        float a0=1., a1=0, a2=0, a3=0, a4=0;
+        bool valid_band = true;
+
+        if (freq>1.25 && freq<=1.78) {                          // 20 cm band
+            a1 = 8.99E-04; a2 = 2.15E-06; a3 = -2.23E-09; a4 = 1.56E-12; 
+        }
+        else if (freq>2.2 && freq<=2.5) {                       // 13 cm band 
+            a1 = 1.02E-03; a2 = 9.48E-07; a3 = -3.68E-10; a4 = 4.88E-13; 
+        }
+        else if (freq>4.4 && freq<=6.1) {                       // 6 cm band 
+            a1 = 1.08E-03; a2 = 1.31E-06; a3 = -1.17E-09; a4 = 1.07E-12; 
+        }
+        else if (freq>8.0 && freq<=9.2) {                       // 3 cm band 
+            a1 = 1.04E-03; a2 = 8.36E-07; a3 = -4.68E-10; a4 = 5.50E-13; 
+        }
+        else valid_band = false;
+
+        double polyn = a0 + RF2 * (a1 + RF2 * (a2 + RF2 * (a3 + RF2 * a4)));
+        pbc = (polyn > 0.0) ? (1.0 / polyn) : 0.0;
+        pbc = std::min(1.0, pbc);
+
+        if (valid_band) {
+            // Minimum allowed value when RF = RFMAX = 50 arcmin*GHz
+            double RFmax2 = 2500.0; // (50 arcmin * GHz)^2
+            double polyn_max = a0 + RFmax2 * (a1 + RFmax2 * (a2 + RFmax2 * (a3 + RFmax2 * a4)));
+            minval = 1.0 / polyn_max;
+        }        
     }
     else if (h.Telesc()=="GMRT") {
-        float RF = angdist*60*freq;             /// The distance is now in arcmin.
-        const float a0 = -2.27961E-03;  
-        const float a1 = 21.4611E-07;
-        const float a2 = -9.7929E-10; 
-        const float a3 = 1.80153E-13;
-        float polyn = 1 + a0*pow(RF,2) + a1*pow(RF,4) + a2*pow(RF,6) +a3*pow(RF,8);
-        pbc = 1/polyn;
-        pbc = 1.0/std::max<float>(1, pbc);
+        float a0=1, a1=0, a2=0, a3=0, a4=0;
         
-        fluxcorr = v.getF()/pbc;    
-    }
-    else if (h.Telesc()=="FST") {
-        float RF = angdist*freq;
-        float RFmax = 2.8;                      /// Cut-off at 2.8 degrees.
-        const float a0 = 0.8031;
-        pbc = exp(-a0*RF*RF);
-        minval = exp(-a0*RFmax*RFmax);
-        fluxcorr = v.getF()/pbc;
+        if (freq <= 0.175) {                                         // 153 MHz band
+            a1 = -4.04; a2 = 76.2; a3 = -68.8; a4 = 22.03;
+        }
+        else if ( (freq > 0.175) && (freq <= 0.277) ) {              // 235 MHz band
+            a1 = -3.366; a2 = 46.159; a3 = -29.963; a4 = 7.529;
+        }
+        else if ( (freq > 0.277) && (freq <= 0.480) ) {              // 325 MHz band
+            a1 = -3.397; a2 = 47.192; a3 = -30.931; a4 = 7.803;
+        }
+        else if ( (freq > 0.480) && (freq <= 0.900) ) {              // 610 MHz band
+            a1 = -3.486; a2 = 47.749; a3 = -35.203; a4 = 10.399;
+        }
+        else if (freq > 0.900) {                                     // 1280 MHz (L) band
+            a1 = -2.27961; a2 = 21.4611; a3 = -9.7929; a4 = 1.80153;
+        }
+
+        double polyn = a0 + RF2 * (a1*1E-03 + RF2 * (a2*1E-07 + RF2 * (a3*1E-10 + RF2*a4*1E-13)));        
+        pbc = std::min(1.0, std::max(0.0, polyn));        
     }
 
+    // Correcting flux for PB attenuation
+    T fluxcorr = pbc>0 ? v.getF()/pbc : v.getF();
+
     // If below cutoff point, do something based on cutoffOption
-    if (pbc<minval && cutoffOption!=0) {
+    if (pbc<minval) {
         if (cutoffOption==1) fluxcorr = 0;
-        if (cutoffOption==2) fluxcorr = minval;
+        if (cutoffOption==2) fluxcorr = v.getF()/minval;
         if (cutoffOption==3) fluxcorr = log(-1);
     }
 

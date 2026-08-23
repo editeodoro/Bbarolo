@@ -160,7 +160,7 @@ double arcsconv(std::string cunit);
 double degconv(std::string cunit);
 std::string decToDMS(const double dec, std::string type, int decPrecision=2);
 double dmsToDec(std::string dms);
-template <class T> T angularSeparation(T &ra1, T &dec1, T &ra2, T &dec2);
+template <typename T> double angularSeparation(T ra1, T dec1, T ra2, T dec2);
 
 
 template <class T> T unifrand(T maxs, T mins) {
