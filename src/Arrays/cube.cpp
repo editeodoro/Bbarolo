@@ -937,7 +937,7 @@ Cube<T>* Cube<T>::Reduce (int fac, std::string rtype) {
         }
         
         reduced->Head().setCdelt(2, fac*head.Cdelt(2));
-        reduced->Head().setCrpix(2, lround(head.Crpix(2)/double(fac)));
+        reduced->Head().setCrpix(2, 0.5+(head.Crpix(2)-0.5) / double(fac));
         
         std::string ochsize = "  Old channel width: "+to_string(Head().Cdelt(2))+" "+Head().Cunit(2);
         std::string nchsize = "  New channel width: "+to_string(reduced->Head().Cdelt(2))+" "+Head().Cunit(2);

@@ -526,7 +526,7 @@ T Pbcor (PixelInfo::Voxel<T> &v, Header &h, short cutoffOption) {
     // Getting frequency of observations in GHz
     double vel = AlltoVel(h.getZphys(v.getZ()),h);
     double freq = Vel2Freq(vel,h.Freq0(),"relativistic") / 1E09;
-
+    std::cout << freq << std::endl;
     if (freq<0) {
         std::cerr << " PBCORR ERROR: Negative frequency. Not applying any correction.";
         return v.getF();
