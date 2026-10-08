@@ -121,7 +121,6 @@ private:
     void    ObjectMergerSimple();                                    // Front-end function to mergeList & finaliseList.
     void    mergeList(DetVec<T> &objList);                           // Merge a list of pixel in a single object.
     void    finaliseList(DetVec<T> &objList);                        // Verify if a detection can be considered an object.
-    void    rejectObjects(DetVec<T> &objList);                       // Verify if a detection can be considered an object.
     void    mergeIntoList(Detection<T> &obj, DetVec<T> &objList);    // Add an object in a detection list.
     void    updateDetectMap();                                       // Update the map of detected pixels.
     void    updateDetectMap(Detection<T> obj);                       // Update the map of detected pixels for a Detection.

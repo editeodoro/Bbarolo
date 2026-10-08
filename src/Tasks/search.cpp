@@ -238,24 +238,29 @@ DetVec<T> Search<T>::search3DArraySpectral() {
 template <class T>
 DetVec<T> Search<T>::search3DArraySpatial() {
 
-  ///  The function searches for detections just in the channel maps.
-  ///  Returns a vector list of Detections.
-  ///
-  ///  \return A std::vector of detected objects.
+    ///  The function searches for detections just in the channel maps.
+    ///  Returns a vector list of Detections.
+    ///
+    ///  \return A std::vector of detected objects.
 
     DetVec<T> outputList;
     int num = 0;
 
     bool useBar = (zSize>1);
-
     ProgressBar bar(false,verbose,useBar&&showbar);
+
+    std::vector< DetVec<T> > channelObjects(zSize);
 
 #pragma omp parallel num_threads(nthreads)
 {
     bar.init("Searching in progress... ",zSize);
 #pragma omp for schedule(dynamic) reduction (+:num)
     for(int z=0; z<zSize; z++) {
-        bar.update(z+1);
+        
+#pragma omp critical (progbar)
+        {
+            bar.update(z+1);
+        }
 
         Obj2DVec<T> objlist = findSources2D(&array[z*xSize*ySize],1);
         typename Obj2DVec<T>::iterator obj;
@@ -265,19 +270,24 @@ DetVec<T> Search<T>::search3DArraySpatial() {
             Detection<T> newObject;
             newObject.addChannel(z,*obj);
             newObject.setOffsets();
-#pragma omp critical
-{
-            if(par.TwoStageMerging) mergeIntoList(newObject,outputList);
-            else outputList.push_back(newObject);
-}
+            channelObjects[z].push_back(newObject);
         }
     }
 }
 
+    for(int z=0; z<zSize; z++) {
+        for(size_t i=0; i<channelObjects[z].size(); i++) {
+            if(par.TwoStageMerging) {
+                mergeIntoList(channelObjects[z][i], outputList);
+            } else {
+                outputList.push_back(channelObjects[z][i]);
+            }
+        }
+    }
+
     bar.fillSpace("Found "+to_string(num)+" items.\n");
 
     return outputList;
-
 }
 
 
@@ -540,13 +550,13 @@ void Search<T>::ObjectMerger() {
         if(par.flagGrowth) {
             ObjectGrower<T> grower;
             grower.define(stats,array,xSize,ySize,zSize,objectList,par);
-#pragma omp parallel for num_threads(nthreads)
+//#pragma omp parallel for num_threads(nthreads)
             for(size_t i=0;i<currentList.size();i++){
                 if(verbose && showbar){
-#ifdef _OPENMP
-                    int tid = omp_get_thread_num();
-                    if(tid==0) {
-#endif
+//#ifdef _OPENMP
+//                    int tid = omp_get_thread_num();
+//                    if(tid==0) {
+//#endif
                         std::cout.setf(std::ios::right);
                         std::cout << "Growing: " << std::setw(6) << i+1 << "/";
                         std::cout.unsetf(std::ios::right);
@@ -554,9 +564,9 @@ void Search<T>::ObjectMerger() {
                         std::cout << std::setw(6) << currentList.size() << std::flush;
                         printBackSpace(22);
                         std::cout << std::flush;
-#ifdef _OPENMP
-                    }
-#endif
+//#ifdef _OPENMP
+//                    }
+//#endif
                 }
                 grower.grow(&currentList[i]);
             }
@@ -565,8 +575,8 @@ void Search<T>::ObjectMerger() {
             mergeList(currentList);
         }
 
-        if(!par.RejectBeforeMerge) finaliseList(currentList);
-        if(par.maxChannels!=-1 || par.maxAngSize!=-1) rejectObjects(currentList);
+        //if(!par.RejectBeforeMerge) 
+        finaliseList(currentList);
 
         objectList->resize(currentList.size());
         for(size_t i=0;i<currentList.size();i++)
@@ -692,48 +702,6 @@ void Search<T>::mergeIntoList(Detection<T> &object, DetVec<T> &objList) {
 
 
 template <class T>
-void Search<T>::rejectObjects(DetVec<T> &objList) {
-
-    if(verbose && showbar){
-        std::cout << "Rejecting:" << std::setw(6) << objList.size();
-        printSpace(6);
-        printBackSpace(22);
-        std::cout << std::flush;
-    }
-
-    int maxchan = par.maxChannels;
-    float maxsize = par.maxAngSize;
-
-    DetVec<T> newlist;
-
-    typename DetVec<T>::iterator obj = objList.begin();
-    int numRej=0;
-    for(;obj<objList.end();obj++){
-        obj->setOffsets();
-
-        int nchan = obj->getNumChannels();
-        float mSize = std::max(fabs(obj->getXmax()-obj->getXmin()),fabs(obj->getYmax()-obj->getYmin()));
-
-        if((maxchan>0 && maxchan<nchan) || (maxsize>0 && maxsize<mSize)) {
-            numRej++;
-            if(verbose && showbar){
-                std::cout << "Rejecting:" << std::setw(6) << objList.size()-numRej;
-                printSpace(6);
-                printBackSpace(22);
-                std::cout << std::flush;
-            }
-        }
-        else newlist.push_back(*obj);
-    }
-
-    objList.clear();
-    objList = newlist;
-
-}
-
-
-
-template <class T>
 void Search<T>::finaliseList(DetVec<T> &objList) {
 
     ///  A function that looks at each object in the Detection vector
@@ -749,20 +717,26 @@ void Search<T>::finaliseList(DetVec<T> &objList) {
         printBackSpace(22);
         std::cout << std::flush;
     }
-
+    
+    int maxchan = par.maxChannels;
+    float maxsize = par.maxAngSize;
     DetVec<T> newlist;
 
     typename DetVec<T>::iterator obj = objList.begin();
     int numRej=0;
     for(;obj<objList.end();obj++){
         obj->setOffsets();
+        
+        int ObjectChan = obj->getNumChannels();
+        float ObjectSize = std::max(fabs(obj->getXmax()-obj->getXmin()),fabs(obj->getYmax()-obj->getYmin()));
 
-        if((obj->hasEnoughChannels(par.minChannels)
+        if( obj->hasEnoughChannels(par.minChannels)
             && (int(obj->getSpatialSize()) >= par.minPix)
-            && (int(obj->getSize()) >= par.minVoxels))){
-
+            && (int(obj->getSize()) >= par.minVoxels)
+            && (maxsize <= 0 || ObjectSize < maxsize) 
+            && (maxchan <= 0 || ObjectChan < maxchan))
+        {
                 newlist.push_back(*obj);
-
         }
         else{
             numRej++;
