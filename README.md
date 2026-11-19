@@ -2,7 +2,7 @@
   <img src="http://editeodoro.github.io/Bbarolo/files/bbarolo.jpg" alt="BBlogo"/>
 </p>
 
-> [!CAUTION]
+> [!WARNING]
 > ## BBarolo has moved to version 2.0: [github.com/editeodoro/bbarolo2](https://github.com/editeodoro/bbarolo2)
 > ### This repository (BBarolo 1.x) is kept for legacy purposes only.
 
