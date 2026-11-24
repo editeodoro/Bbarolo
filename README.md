@@ -2,13 +2,6 @@
   <img src="http://editeodoro.github.io/Bbarolo/files/bbarolo.jpg" alt="BBlogo"/>
 </p>
 
-> [!WARNING]
-> ## BBarolo has moved to version 2.0: [github.com/editeodoro/bbarolo2](https://github.com/editeodoro/bbarolo2)
-> ### This repository (BBarolo 1.x) is kept for legacy purposes only.
-
----
-
-
 BBarolo is a 3D fitting tool to derive the kinematics of galaxies from emission-line observations.
 
 
